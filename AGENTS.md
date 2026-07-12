@@ -94,14 +94,21 @@ See `.ai-factory/DESCRIPTION.md` for detailed project specification.
 
 ## Documentation
 
+Antora documentation source in `src/docs/antora/`. Build with `cd src/docs/antora && antora antora-playbook.yml`.
+
 | Document | Path | Description |
 |----------|------|-------------|
-| README | `README.md` | Project readme (not yet created) |
+| README | `README.md` | Project landing page |
+| User Guide | `src/docs/antora/user-guide/` | Quick start, ontology editing, versioning |
+| Developer Guide | `src/docs/antora/developer-guide/` | Getting started, architecture, config, testing |
+| Admin Guide | `src/docs/antora/admin-guide/` | Deployment, observability, security |
+| Integrator Guide | `src/docs/antora/integrator-guide/` | API reference, authentication, integration config |
+| Antora Playbook | `src/docs/antora/antora-playbook.yml` | Site build configuration |
 | License | `LICENSE` | Project license |
 | Project Specs | `specs/context.md` | Project context and overview |
 | Tech Stack | `specs/stack.md` | Technology stack decisions and rationale |
 | Glossary | `specs/glossary.md` | Domain-specific terminology |
-| Architecture | `.ai-factory/ARCHITECTURE.md` | Architecture documentation (to be generated) |
+| Architecture Guidelines | `.ai-factory/ARCHITECTURE.md` | Architecture patterns and guidelines |
 
 ## AI Context Files
 

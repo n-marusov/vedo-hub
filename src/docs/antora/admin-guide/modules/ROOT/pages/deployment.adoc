@@ -1,0 +1,115 @@
+= Deployment
+:description: Docker Compose, Helm, and CI/CD pipeline for VEDO Core.
+
+== Docker Compose (Development)
+
+The fastest way to run the full stack:
+
+[source,bash]
+----
+cd src && make docker-up     # Start all 28 containers
+cd src && make docker-down   # Stop all containers
+cd src && make docker-logs   # Tail logs from all services
+cd src && make docker-ps     # List running containers
+----
+
+=== Open a Shell in a Container
+
+[source,bash]
+----
+make docker-shell SVC=ontology-service
+make docker-shell SVC=api-gateway
+----
+
+=== Build All Docker Images
+
+[source,bash]
+----
+cd src && make docker-build
+----
+
+Multi-stage Dockerfiles per language in `src/services/*/Dockerfile`:
+
+|===
+|Language |Base → Final
+
+|Go |`golang` → `alpine`
+|Rust |`rust` → `debian-slim`
+|Python |`python-slim`
+|TypeScript |`node` → `nginx`
+|===
+
+== Kubernetes (Helm)
+
+Helm chart values are in `deploy/helm/`:
+
+[source,bash]
+----
+helm install vedo-core deploy/helm/ -f deploy/helm/values.yaml
+----
+
+|===
+|Area |Path |Description
+
+|Values |`deploy/helm/values.yaml` |Service replicas, resources, ingress
+|Charts |`deploy/helm/` |Helm chart templates
+|===
+
+== CI/CD Pipeline
+
+The pipeline is defined in `deploy/ci/gitlab-ci.yml` and runs on GitLab CI.
+
+=== Pipeline Stages
+
+[source,bash]
+----
+# Run all CI checks locally
+cd src && make ci
+# Runs: build + lint + test + typecheck
+----
+
+|===
+|Stage |Commands |Description
+
+|Build |`make build` |Compile all services (Rust, Go, Python, TypeScript)
+|Lint |`make lint` |Linters for all languages + YAML
+|Test |`make test` |Unit and integration tests
+|Typecheck |`make typecheck` |TypeScript type checking
+|Docker |`make docker-build` |Build Docker images for all services
+|Security |SAST / DAST |Security scanning gates + dependency scanning
+|Deploy |— |Deploy to target environment
+|===
+
+== Security Gates
+
+|===
+|Gate |Type |Description
+
+|SAST |Static analysis |Source code vulnerability scanning
+|DAST |Dynamic analysis |Running application vulnerability scanning
+|Dependency scanning |Supply chain |Known CVEs in dependencies
+|BOLA/BFLA tests |Authorization |Object-level and function-level access control tests
+|===
+
+Security test suites are in `tests/security/`.
+
+== Health Checks
+
+Every service container has a health check configured in `docker-compose.yml`:
+
+[source,yaml]
+----
+healthcheck:
+  interval: 10s
+  timeout: 5s
+  retries: 3
+  test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8080/health"]
+----
+
+Compose waits for `condition: service_healthy` before starting dependent services.
+
+== See Also
+
+* xref:observability.adoc[Observability] — tracing, metrics, and logging
+* xref:security.adoc[Security] — Keycloak realm, BOLA/BFLA, security configuration
+* xref:index.adoc[Admin Guide Home]

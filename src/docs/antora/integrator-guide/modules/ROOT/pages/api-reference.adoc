@@ -1,0 +1,148 @@
+= API Reference
+:description: REST and GraphQL endpoints exposed through the API Gateway.
+
+== Base URL
+
+[source]
+----
+http://localhost:8080          # API Gateway (development)
+https://api.vedo-core.example  # Production
+----
+
+All external requests go through the API Gateway. The frontend never accesses backend services directly.
+
+== Health & Metrics
+
+|===
+|Method |Path |Description
+
+|`GET` |`/` |Service info (name, version)
+|`GET` |`/health` |Liveness check
+|`GET` |`/ready` |Readiness check
+|`GET` |`/metrics` |Prometheus metrics
+|===
+
+== Ontologies (API Gateway → ontology-service)
+
+|===
+|Method |Path |Description
+
+|`POST` |`/api/v1/ontologies` |Create a new ontology
+|`GET` |`/api/v1/ontologies` |List ontologies
+|`GET` |`/api/v1/ontologies/{id}` |Get ontology by ID
+|`PUT` |`/api/v1/ontologies/{id}` |Update ontology
+|`DELETE` |`/api/v1/ontologies/{id}` |Delete ontology
+|`POST` |`/api/v1/ontologies/{id}/import` |Import from Turtle/RDF/XML/OWL
+|`GET` |`/api/v1/ontologies/{id}/export` |Export to Turtle/RDF/XML/OWL
+|===
+
+== Versioning (API Gateway → versioning-service)
+
+|===
+|Method |Path |Description
+
+|`POST` |`/api/v1/ontologies/{id}/commits` |Create a commit
+|`GET` |`/api/v1/ontologies/{id}/commits` |List commits
+|`POST` |`/api/v1/ontologies/{id}/branches` |Create a branch
+|`GET` |`/api/v1/ontologies/{id}/branches` |List branches
+|`POST` |`/api/v1/ontologies/{id}/merge` |Merge branches
+|`GET` |`/api/v1/ontologies/{id}/diff` |Diff between commits/branches
+|===
+
+== Comments & Collaboration
+
+|===
+|Method |Path |Description
+
+|`POST` |`/api/v1/ontologies/{id}/comments` |Add a comment on a node
+|`GET` |`/api/v1/ontologies/{id}/comments` |List comments
+|`WebSocket` |`/ws/ontologies/{id}` |Real-time lock/comment events
+|===
+
+== Organization & Access Control
+
+|===
+|Method |Path |Description
+
+|`POST` |`/api/v1/groups` |Create a group
+|`GET` |`/api/v1/groups` |List groups
+|`POST` |`/api/v1/groups/{id}/members` |Add member
+|`GET` |`/api/v1/groups/{id}/members` |List members
+|===
+
+== Merge Requests
+
+|===
+|Method |Path |Description
+
+|`POST` |`/api/v1/merge-requests` |Create a merge request
+|`GET` |`/api/v1/merge-requests` |List merge requests
+|`POST` |`/api/v1/merge-requests/{id}/approve` |Approve merge request
+|`POST` |`/api/v1/merge-requests/{id}/merge` |Execute merge
+|===
+
+== GraphQL
+
+The frontend uses Apollo Client to query the API Gateway's GraphQL endpoint for complex data operations:
+
+[source,graphql]
+----
+query GetOntology($id: ID!) {
+  ontology(id: $id) {
+    id
+    name
+    description
+    classes {
+      id
+      label
+      properties { name type }
+    }
+    relationships {
+      from
+      to
+      type
+    }
+  }
+}
+----
+
+== Error Codes
+
+|===
+|HTTP Status |Error Code |Description
+
+|400 |`BAD_REQUEST` |Malformed request body or parameters
+|401 |`UNAUTHORIZED` |Missing or invalid authentication token
+|403 |`FORBIDDEN` |Insufficient permissions (RBAC)
+|404 |`NOT_FOUND` |Resource does not exist
+|405 |`METHOD_NOT_ALLOWED` |HTTP method not supported on this endpoint
+|409 |`CONFLICT` |Version conflict or duplicate resource
+|422 |`UNPROCESSABLE_ENTITY` |Semantic validation failure
+|429 |`RATE_LIMITED` |Rate limit exceeded
+|500 |`INTERNAL_ERROR` |Unhandled server error
+|===
+
+Error responses follow a consistent JSON shape:
+
+[source,json]
+----
+{
+  "error": "NOT_FOUND",
+  "message": "Ontology with id 'abc123' was not found",
+  "trace_id": "a1b2c3d4-e5f6"
+}
+----
+
+== Security
+
+* *BOLA/BFLA enforcement* at the API Gateway level — object-level and function-level authorization checks prevent unauthorized access.
+* *Negative authorization tests* are part of the test suite (`tests/security/`).
+* *SAST/DAST security gates* run in CI alongside dependency scanning.
+
+See xref:authentication.adoc[Authentication] for token flow and identity providers.
+
+== See Also
+
+* xref:authentication.adoc[Authentication] — Keycloak, OIDC, identity providers
+* xref:integration-config.adoc[Integration Configuration] — service URLs and environment
+* xref:index.adoc[Integrator Guide Home]

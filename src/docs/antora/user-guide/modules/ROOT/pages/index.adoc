@@ -1,7 +1,9 @@
 = User Guide
 
-Welcome to the VEDO Core user guide.
+Welcome to the VEDO Core user guide. Learn how to create, edit, and version ontologies in the cloud-based knowledge graph editor.
 
-== Quick Start
+== Guides
 
-Use Docker Compose to start the local platform and open the frontend.
+* xref:quick-start.adoc[Quick Start] — access the platform and create your first ontology
+* xref:ontology-editing.adoc[Ontology Editing] — work with classes, properties, and relationships
+* xref:versioning.adoc[Versioning] — commits, branches, and merge requests

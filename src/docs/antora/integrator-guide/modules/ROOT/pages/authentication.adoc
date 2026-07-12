@@ -1,0 +1,66 @@
+= Authentication
+:description: Keycloak OIDC/OAuth2 authentication, token flow, and supported identity providers.
+
+== Overview
+
+Authentication is handled by *Keycloak* via OIDC/OAuth2. The `auth-service` integrates with Keycloak for token validation and role-based access control (RBAC).
+
+== Supported Identity Providers
+
+* ESIA / Gosuslugi
+* Yandex
+* VK
+* Google
+
+== Token Flow
+
+[source]
+----
+Client ──(login)──> Keycloak ──(JWT)──> Client
+Client ──(JWT)──> API Gateway ──(validate)──> auth-service ──> Backend
+----
+
+All protected API endpoints require a valid `Authorization: Bearer <token>` header.
+
+== Request Example
+
+[source,bash]
+----
+curl -H "Authorization: Bearer <JWT_TOKEN>" \
+  http://localhost:8080/api/v1/ontologies
+----
+
+== Keycloak Configuration
+
+The Keycloak realm is configured in `deploy/keycloak/vedo-core-realm.json` and imported automatically on startup.
+
+[cols="1,2"]
+|===
+|Keycloak Admin URL |`http://localhost:8180`
+|Admin credentials |`admin` / `admin`
+|Realm name |`vedo-core`
+|===
+
+[CAUTION]
+====
+Change the default admin credentials in production. The development realm is for local use only.
+====
+
+== Roles & Permissions
+
+RBAC roles are managed in Keycloak and enforced at the API Gateway:
+
+|===
+|Role |Permissions
+
+|`admin` |Full system access, user management, guardrail controls
+|`editor` |Create/edit ontologies, commits, branches, merge requests
+|`viewer` |Read-only access to published ontologies
+|`integrator` |API access for external integrations
+|===
+
+== See Also
+
+* xref:api-reference.adoc[API Reference] — REST/GraphQL endpoints
+* xref:integration-config.adoc[Integration Configuration] — service URLs and environment
+* xref:index.adoc[Integrator Guide Home]

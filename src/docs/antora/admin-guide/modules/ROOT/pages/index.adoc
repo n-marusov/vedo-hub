@@ -1,7 +1,20 @@
 = Admin Guide
 
-Operational procedures, observability checks, and maintenance runbooks.
+Operational procedures, observability, security configuration, and deployment guidance for VEDO Core administrators.
+
+== Guides
+
+* xref:deployment.adoc[Deployment] — Docker Compose, Helm, and CI/CD pipeline
+* xref:observability.adoc[Observability] — tracing, metrics, and logging
+* xref:security.adoc[Security] — Keycloak, BOLA/BFLA, and OWASP compliance
 
 == Offline Bundle
 
-Ensure static site artifacts are available for disconnected environments.
+Ensure static site artifacts are available for disconnected environments by building the Antora site:
+
+[source,bash]
+----
+cd src/docs/antora && antora antora-playbook.yml
+----
+
+Output is written to `build/site/`.

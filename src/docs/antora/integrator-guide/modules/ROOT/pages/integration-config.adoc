@@ -1,0 +1,71 @@
+= Integration Configuration
+:description: Service URLs, ports, and environment settings for external integration.
+
+== Service URLs
+
+When integrating with VEDO Core, use the API Gateway as the single entry point:
+
+|===
+|Environment |API Gateway URL
+
+|Development (Docker Compose) |`http://localhost:8080`
+|Production |`https://api.vedo-core.example` (configurable)
+|===
+
+[IMPORTANT]
+====
+Never access backend services (ontology-service, versioning-service, etc.) directly. All requests must go through the API Gateway for authentication, authorization, and routing.
+====
+
+== WebSocket
+
+Real-time collaboration events are available via WebSocket:
+
+[source]
+----
+ws://localhost:8080/ws/ontologies/{ontology_id}
+----
+
+Events include node lock/unlock, comment additions, and presence notifications.
+
+== Key Environment Variables for Integration
+
+|===
+|Variable |Description
+
+|`API_GATEWAY_URL` |Base URL for REST/GraphQL API calls
+|`WS_URL` |WebSocket endpoint for real-time events
+|`KEYCLOAK_URL` |Keycloak server for OAuth2 token exchange
+|`KEYCLOAK_REALM` |Keycloak realm name (`vedo-core`)
+|`KEYCLOAK_CLIENT_ID` |OAuth2 client ID for your integration
+|`KEYCLOAK_CLIENT_SECRET` |OAuth2 client secret for confidential flows
+|===
+
+== Docker Compose Service Ports
+
+For direct network access (internal integrations within Docker network):
+
+|===
+|Service |Container Port |Host Port
+
+|API Gateway |8080 |8080
+|Ontology Service |8080 |8081
+|Versioning Service |8080 |8082
+|Auth Service |8080 |8084
+|Metrics Service |8080 |8086
+|===
+
+== Rate Limiting
+
+The API Gateway enforces rate limits. Exceeding the limit returns HTTP 429 with a `Retry-After` header.
+
+[NOTE]
+====
+Rate limit thresholds are configurable per client and per endpoint. Contact your administrator for specific limits.
+====
+
+== See Also
+
+* xref:api-reference.adoc[API Reference] — full endpoint listing
+* xref:authentication.adoc[Authentication] — OAuth2 token flow
+* xref:index.adoc[Integrator Guide Home]

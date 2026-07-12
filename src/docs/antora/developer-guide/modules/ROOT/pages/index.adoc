@@ -1,7 +1,10 @@
 = Developer Guide
 
-Development workflows, CI, and local environment guidance.
+Development workflows, build system, architecture, and local environment guidance for contributing to VEDO Core.
 
-== Style
+== Guides
 
-Write concise AsciiDoc with stable anchors and references.
+* xref:getting-started.adoc[Getting Started] — prerequisites, build, and local environment
+* xref:architecture.adoc[Architecture] — microservices structure and communication
+* xref:configuration.adoc[Configuration] — environment variables and defaults
+* xref:testing.adoc[Testing] — test suites and how to run them

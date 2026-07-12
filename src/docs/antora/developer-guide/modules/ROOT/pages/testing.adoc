@@ -1,0 +1,83 @@
+= Testing
+:description: Test suites, how to run them, and what they cover.
+
+== Test Suites
+
+Cross-service test suites are in `tests/`:
+
+|===
+|Suite |Path |Description
+
+|E2E |`tests/e2e/playwright/` |Playwright end-to-end browser tests
+|Security |`tests/security/` |BOLA/BFLA authorization tests
+|CLI |`tests/cli/` |vedo-cli integration tests
+|Ticket API |`tests/ticket-api/` |Ticket API contract tests
+|===
+
+== Running Tests
+
+=== All Tests
+
+[source,bash]
+----
+cd src && make test
+----
+
+This runs tests for all languages: Rust (`cargo test`), Go (`go test`), Python (`pytest`), TypeScript.
+
+=== Coverage
+
+[source,bash]
+----
+cd src && make coverage
+----
+
+Runs Go tests with coverage profiles (`cover.out` per service).
+
+=== Individual Languages
+
+[source,bash]
+----
+# Rust
+cd src/services/ontology-service && cargo test
+
+# Go
+cd src/services/api-gateway && go test ./...
+
+# Python
+cd src/services/metrics-service && pytest
+
+# TypeScript
+cd src/services/frontend && pnpm test
+----
+
+== Security Tests
+
+Security tests in `tests/security/` verify:
+
+* *BOLA* (Broken Object-Level Authorization) — users cannot access other users' ontologies, groups, or merge requests.
+* *BFLA* (Broken Function-Level Authorization) — users cannot invoke admin-level operations without proper roles.
+
+Run security tests:
+
+[source,bash]
+----
+cd tests/security && go test -v ./...
+----
+
+== E2E Tests
+
+End-to-end tests use Playwright to simulate user interactions through the browser:
+
+[source,bash]
+----
+cd tests/e2e/playwright && npx playwright test
+----
+
+Requires the full stack running (`make docker-up` from `src/`).
+
+== See Also
+
+* xref:getting-started.adoc[Getting Started] — prerequisites and build
+* xref:architecture.adoc[Architecture] — service inventory
+* xref:configuration.adoc[Configuration] — environment variables

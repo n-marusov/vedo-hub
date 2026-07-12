@@ -1,0 +1,78 @@
+= Observability
+:description: OpenTelemetry tracing, Prometheus metrics, Loki logs, and Grafana dashboards.
+
+== Overview
+
+VEDO Core uses a full observability stack powered by OpenTelemetry, Prometheus, Loki, Tempo, and Grafana. Configuration files are in `deploy/observability/`.
+
+== Components
+
+|===
+|Component |Config Path |Purpose
+
+|OpenTelemetry Collector |`deploy/observability/otel-collector.yml` |Trace context propagation across services
+|Prometheus |`deploy/observability/prometheus.yml` |Metrics scraping (`/metrics` on every service)
+|Grafana |`deploy/observability/grafana/` |Dashboards and visualization
+|Loki |`deploy/observability/loki.yml` |Log aggregation
+|Tempo |`deploy/observability/tempo.yml` |Distributed tracing backend
+|===
+
+== Distributed Tracing
+
+OpenTelemetry trace context is propagated through all services. Every request entering the API Gateway receives a `trace_id` that flows through to backend services via gRPC/REST headers.
+
+=== Trace Headers
+
+|===
+|Header |Description
+
+|`X-Trace-Id` |Unique trace identifier (propagated end-to-end)
+|`X-Correlation-Id` |Request correlation identifier
+|===
+
+== Metrics
+
+Every service exposes a Prometheus-compatible `/metrics` endpoint:
+
+[source,bash]
+----
+curl http://localhost:8080/metrics
+# HELP vedo_service_requests_total Total service requests
+# TYPE vedo_service_requests_total counter
+vedo_service_requests_total{service="api-gateway"} 1234
+----
+
+Prometheus scrapes these endpoints based on the configuration in `deploy/observability/prometheus.yml`.
+
+== Logging
+
+All services emit structured JSON logs with trace context:
+
+[source,json]
+----
+{
+  "service": "api-gateway",
+  "path": "/api/v1/ontologies",
+  "status": 200,
+  "trace_id": "a1b2c3d4",
+  "correlation_id": "e5f6g7h8"
+}
+----
+
+Logs are aggregated by Loki and queryable in Grafana via LogQL.
+
+== Grafana Dashboards
+
+Grafana provides pre-built dashboards for:
+
+* Service health overview (liveness, readiness, request rates)
+* Latency percentiles (p95, p99)
+* Error rates by service
+* Distributed trace visualization (via Tempo integration)
+* Log exploration (via Loki integration)
+
+== See Also
+
+* xref:deployment.adoc[Deployment] — Docker Compose, Helm, CI/CD
+* xref:security.adoc[Security] — Keycloak, BOLA/BFLA, security gates
+* xref:index.adoc[Admin Guide Home]
