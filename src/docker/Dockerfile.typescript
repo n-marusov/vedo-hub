@@ -1,0 +1,20 @@
+# @ctx: Multi-stage TypeScript builder with pnpm — PLAT-LOCAL-002 / DEPLOY-OPS-001
+# Build: docker build -f llm/src/docker/Dockerfile.typescript \
+#   --build-arg SERVICE_DIR=llm/src/<name> \
+#   -t vedo-core/<name>:latest .
+
+ARG NODE_BASE_IMAGE
+ARG NGINX_IMAGE
+ARG SERVICE_DIR
+
+FROM ${NODE_BASE_IMAGE} AS builder
+WORKDIR /app
+COPY ${SERVICE_DIR}/package.json ${SERVICE_DIR}/pnpm-lock.yaml* ./
+RUN corepack enable && pnpm install --frozen-lockfile
+COPY ${SERVICE_DIR}/ .
+RUN pnpm build
+
+FROM ${NGINX_IMAGE} AS runtime
+COPY --from=builder /app/dist /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

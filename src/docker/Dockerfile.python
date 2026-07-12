@@ -1,0 +1,21 @@
+# @ctx: Multi-stage Python builder — PLAT-LOCAL-002 / DEPLOY-OPS-001
+# Build: docker build -f llm/src/docker/Dockerfile.python \
+#   --build-arg SERVICE_DIR=llm/src/<name> \
+#   -t vedo-core/<name>:latest .
+
+ARG PYTHON_BASE_IMAGE
+ARG PYTHON_RUNTIME_IMAGE
+ARG SERVICE_DIR
+
+FROM ${PYTHON_BASE_IMAGE} AS builder
+WORKDIR /app
+COPY ${SERVICE_DIR}/requirements.txt .
+RUN pip install --user --no-cache-dir -r requirements.txt
+
+FROM ${PYTHON_RUNTIME_IMAGE} AS runtime
+WORKDIR /app
+COPY --from=builder /root/.local /root/.local
+COPY ${SERVICE_DIR}/ .
+ENV PATH=/root/.local/bin:$PATH
+EXPOSE 8080
+CMD ["python", "main.py"]

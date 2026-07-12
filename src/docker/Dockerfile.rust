@@ -1,0 +1,31 @@
+# @ctx: Multi-stage Rust builder with cargo-chef — PLAT-LOCAL-002 / DEPLOY-OPS-001
+# Build: docker build -f llm/src/docker/Dockerfile.rust \
+#   --build-arg BINARY_NAME=<name> --build-arg SERVICE_DIR=llm/src/<name> \
+#   -t vedo-core/<name>:latest .
+
+ARG CARGO_CHEF_IMAGE
+ARG RUST_BASE_IMAGE
+ARG RUST_RUNTIME_IMAGE
+ARG BINARY_NAME
+ARG SERVICE_DIR
+
+FROM ${CARGO_CHEF_IMAGE} AS chef
+FROM ${RUST_BASE_IMAGE} AS planner
+COPY --from=chef /usr/bin/cargo-chef /usr/bin/cargo-chef
+WORKDIR /app
+COPY ${SERVICE_DIR}/ .
+RUN cargo chef prepare --recipe-path recipe.json
+
+FROM ${RUST_BASE_IMAGE} AS builder
+COPY --from=chef /usr/bin/cargo-chef /usr/bin/cargo-chef
+WORKDIR /app
+COPY --from=planner /app/recipe.json recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json
+COPY ${SERVICE_DIR}/ .
+RUN cargo build --release --bin ${BINARY_NAME}
+
+FROM ${RUST_RUNTIME_IMAGE} AS runtime
+WORKDIR /app
+COPY --from=builder /app/target/release/${BINARY_NAME} /app/service
+EXPOSE 8080
+CMD ["/app/service"]

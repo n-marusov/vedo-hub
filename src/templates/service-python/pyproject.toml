@@ -1,0 +1,72 @@
+# @ctx: Python service template — pyproject.toml
+# @hlv:sec [CODE_QUALITY] — enforced by GATE-LINT-PYTHON-001
+
+[project]
+name = "service-python-template"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi==0.116.1",
+    "opentelemetry-api==1.30.0",
+    "opentelemetry-sdk==1.30.0",
+    "opentelemetry-exporter-otlp==1.30.0",
+    "opentelemetry-instrumentation-fastapi==0.51b0",
+    "prometheus-client==0.21.0",
+    "python-json-logger==3.2.0",
+    "uvicorn==0.34.0",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # Pyflakes
+    "I",      # isort
+    "N",      # pep8-naming
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "SIM",    # flake8-simplify
+    "TCH",    # flake8-type-checking
+    "RUF",    # Ruff-specific rules
+    "C4",     # flake8-comprehensions
+    "PT",     # flake8-pytest-style
+    "RET",    # flake8-return
+    "ARG",    # flake8-unused-arguments
+    "PTH",    # flake8-use-pathlib
+    "ERA",    # eradicate (commented-out code)
+    "PL",     # Pylint
+    "TRY",    # tryceratops
+]
+
+ignore = [
+    "E501",    # line length — handled by formatter
+    "PLR0913", # too many arguments
+    "TRY003",  # avoid long exception messages
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "PLR2004"]
+"main.py" = ["E402"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[tool.basedpyright]
+include = ["main.py"]
+typeCheckingMode = "standard"
+reportMissingImports = false
+
+[dependency-groups]
+dev = [
+    "basedpyright>=1.39.6",
+    "ruff",
+]

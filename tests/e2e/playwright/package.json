@@ -1,0 +1,12 @@
+{
+  "name": "vedo-playwright-e2e",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "test": "playwright test",
+    "test:ci": "playwright test --reporter=html,json"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.53.0"
+  }
+}

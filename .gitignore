@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Environment
+.env
+.env.local
+.env.*.local
+scripts/
+tools/
+
+human/milestones/*/plan.md
+human/milestones/*/stage_*.md
+validation/gate-results
+validation/validate-report.md
+validation/verify-report.md
+validation/cross-milestone-report.md
+milestones.yaml
+human/milestones/*/open-questions.md
+human/milestones/*/traceability.yaml
+human/glossary.yaml
+human/traceability.yaml
+
+**/*.exe
+**/target/
+llm/src/services/frontend/dist/
+llm/src/services/publish-browse-ui/dist/
+llm/tests/e2e/playwright/test-results/
+**/debug/
+nul
