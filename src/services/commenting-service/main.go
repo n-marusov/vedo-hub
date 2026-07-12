@@ -46,35 +46,37 @@ func main() {
 		port = defaultPort
 	}
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		traceID := resolveID(r.Header.Get("X-Trace-Id"))
-		correlationID := resolveID(r.Header.Get("X-Correlation-Id"))
-		requestTotal.Add(1)
-		knownPath := r.URL.Path == "/" || r.URL.Path == "/health" || r.URL.Path == "/ready" || r.URL.Path == "/metrics"
-		if !knownPath {
-			writeJSON(w, http.StatusNotFound, map[string]any{"error": "ENDPOINT_NOT_FOUND", "message": "The requested endpoint " + r.URL.Path + " does not exist", "available": []string{"/", "/health", "/ready", "/metrics"}})
-			logRequest(r.URL.Path, http.StatusNotFound, traceID, correlationID)
-			return
-		}
-		if r.Method != http.MethodGet {
-			writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"error": "METHOD_NOT_ALLOWED", "message": "Method " + r.Method + " not allowed on " + r.URL.Path, "available": []string{"/", "/health", "/ready", "/metrics"}})
-			logRequest(r.URL.Path, http.StatusMethodNotAllowed, traceID, correlationID)
-			return
-		}
-		switch r.URL.Path {
-		case "/":
-			writeJSON(w, http.StatusOK, map[string]any{"name": serviceName, "version": "0.2.0", "description": "Commenting service", "stub": false})
-		case "/health":
-			writeJSON(w, http.StatusOK, map[string]string{"status": "healthy"})
-		case "/ready":
-			writeJSON(w, http.StatusOK, map[string]string{"status": "ready"})
-		case "/metrics":
-			writeMetrics(w)
-		}
-		logRequest(r.URL.Path, http.StatusOK, traceID, correlationID)
-	})
+	http.HandleFunc("/", handler)
 
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		panic(err)
 	}
+}
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	traceID := resolveID(r.Header.Get("X-Trace-Id"))
+	correlationID := resolveID(r.Header.Get("X-Correlation-Id"))
+	requestTotal.Add(1)
+	knownPath := r.URL.Path == "/" || r.URL.Path == "/health" || r.URL.Path == "/ready" || r.URL.Path == "/metrics"
+	if !knownPath {
+		writeJSON(w, http.StatusNotFound, map[string]any{"error": "ENDPOINT_NOT_FOUND", "message": "The requested endpoint " + r.URL.Path + " does not exist", "available": []string{"/", "/health", "/ready", "/metrics"}})
+		logRequest(r.URL.Path, http.StatusNotFound, traceID, correlationID)
+		return
+	}
+	if r.Method != http.MethodGet {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"error": "METHOD_NOT_ALLOWED", "message": "Method " + r.Method + " not allowed on " + r.URL.Path, "available": []string{"/", "/health", "/ready", "/metrics"}})
+		logRequest(r.URL.Path, http.StatusMethodNotAllowed, traceID, correlationID)
+		return
+	}
+	switch r.URL.Path {
+	case "/":
+		writeJSON(w, http.StatusOK, map[string]any{"name": serviceName, "version": "0.2.0", "description": "Commenting service", "stub": false})
+	case "/health":
+		writeJSON(w, http.StatusOK, map[string]string{"status": "healthy"})
+	case "/ready":
+		writeJSON(w, http.StatusOK, map[string]string{"status": "ready"})
+	case "/metrics":
+		writeMetrics(w)
+	}
+	logRequest(r.URL.Path, http.StatusOK, traceID, correlationID)
 }
