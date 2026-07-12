@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# @ctx: SCA security gate integration test for SEC-SUPPLY-001
-# @hlv:sec [INPUT_VALIDATION] — CI pipeline context validation
+# SCA security gate integration test
 set -euo pipefail
 
 echo "=== SCA Gate Integration Test ==="

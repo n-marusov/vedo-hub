@@ -1,6 +1,4 @@
-// @hlv:artifact code-frontend implements spec-gui-ow-001
-// @ctx: Error presentation layer — catches unhandled promise rejections, displays user-friendly errors
-// @hlv catch_unhandled_rejections — all unhandled promise rejections caught and presented
+// Error presentation layer — catches unhandled promise rejections, displays user-friendly errors
 
 import { computed, ref } from 'vue'
 
@@ -10,7 +8,7 @@ interface AppError {
   message: string
   severity: 'error' | 'warning' | 'info'
   timestamp: number
-  // @hlv:sec [SECRET_HANDLING] — internal stack traces never exposed to UI
+  // internal stack traces never exposed to UI
   internalDetails?: string // masked from user display
 }
 
@@ -29,7 +27,7 @@ export function useErrorPresentation() {
       message,
       severity: 'error',
       timestamp: Date.now(),
-      internalDetails // @hlv:sec — never rendered in UI
+      internalDetails // never rendered in UI
     }
     errors.value.push(error)
     isVisible.value = true
@@ -76,7 +74,6 @@ export function useErrorPresentation() {
     isVisible.value = true
   }
 
-  // @hlv catch_unhandled_rejections — global handler for unhandled promise rejections
   function installGlobalHandler() {
     window.addEventListener('unhandledrejection', (event) => {
       const reason = event.reason
@@ -85,7 +82,6 @@ export function useErrorPresentation() {
 
       addError(code, message, reason?.stack)
 
-      // @hlv:sec — prevent default error exposure in console
       event.preventDefault()
     })
   }

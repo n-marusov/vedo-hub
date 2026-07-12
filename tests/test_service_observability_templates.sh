@@ -1,11 +1,10 @@
 #!/bin/bash
-# @ctx: Stage 4 checks for service observability templates
+# Stage 4 checks for service observability templates
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 TEMPLATES_DIR="$ROOT_DIR/src/templates"
 
-# @hlv CT-OBS-001
 test_all_templates_have_metrics_endpoint() {
   grep -q '"/metrics"' "$TEMPLATES_DIR/service-rust/src/main.rs"
   grep -q '"/metrics"' "$TEMPLATES_DIR/service-go/main.go"
@@ -13,7 +12,6 @@ test_all_templates_have_metrics_endpoint() {
   grep -q '"/metrics"' "$TEMPLATES_DIR/service-ts/src/index.ts"
 }
 
-# @hlv CT-OBS-002
 test_all_templates_emit_structured_logs() {
   grep -q 'trace_id' "$TEMPLATES_DIR/service-rust/src/main.rs"
   grep -q 'trace_id' "$TEMPLATES_DIR/service-go/main.go"
@@ -25,7 +23,6 @@ test_all_templates_emit_structured_logs() {
   grep -q 'correlation_id' "$TEMPLATES_DIR/service-ts/src/index.ts"
 }
 
-# @hlv CT-OBS-003
 test_all_templates_bootstrap_otel_sdk() {
   grep -q 'OTEL_EXPORTER_OTLP_ENDPOINT' "$TEMPLATES_DIR/service-rust/src/main.rs"
   grep -q 'OTEL_EXPORTER_OTLP_ENDPOINT' "$TEMPLATES_DIR/service-go/main.go"
@@ -33,7 +30,6 @@ test_all_templates_bootstrap_otel_sdk() {
   grep -q 'OTEL_EXPORTER_OTLP_ENDPOINT' "$TEMPLATES_DIR/service-ts/src/index.ts"
 }
 
-# @hlv CT-OBS-004
 test_all_templates_define_red_metrics() {
   grep -q 'vedo_requests_total' "$TEMPLATES_DIR/service-rust/src/main.rs"
   grep -q 'vedo_request_errors_total' "$TEMPLATES_DIR/service-rust/src/main.rs"
@@ -49,7 +45,6 @@ test_all_templates_define_red_metrics() {
   grep -q 'vedo_request_duration_seconds' "$TEMPLATES_DIR/service-ts/src/index.ts"
 }
 
-# @hlv CT-OBS-005
 test_all_templates_include_log_redaction() {
   grep -q 'REDACTED' "$TEMPLATES_DIR/service-rust/src/main.rs"
   grep -q 'REDACTED' "$TEMPLATES_DIR/service-go/main.go"
@@ -57,7 +52,6 @@ test_all_templates_include_log_redaction() {
   grep -q 'REDACTED' "$TEMPLATES_DIR/service-ts/src/index.ts"
 }
 
-# @hlv CT-API-001
 test_all_templates_have_metadata_and_health_handlers() {
   grep -q '"/"' "$TEMPLATES_DIR/service-rust/src/main.rs"
   grep -q '"/health"' "$TEMPLATES_DIR/service-rust/src/main.rs"
@@ -73,7 +67,6 @@ test_all_templates_have_metadata_and_health_handlers() {
   grep -q 'app.get("/ready",' "$TEMPLATES_DIR/service-ts/src/index.ts"
 }
 
-# @hlv OTEL_COLLECTOR_DOWN
 # @hlv METRICS_EXPORT_FAILED
 # @hlv TRACE_EXPORT_FAILED
 # @hlv LOG_REDACTION_FAILED

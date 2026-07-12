@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"vedo-core/llm/src/services/ticket-api/ticketapi"
+	"vedo-core/src/services/ticket-api/ticketapi"
 )
 
 type DedupStore struct {

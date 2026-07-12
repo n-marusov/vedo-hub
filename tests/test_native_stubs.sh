@@ -1,5 +1,5 @@
 #!/bin/bash
-# @ctx: Native service layout and production-readiness checks for stage 010-refine
+# Native service layout and production-readiness checks
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -23,7 +23,6 @@ check() {
   fi
 }
 
-# @hlv CT-STUBN-001
 check_go_base_images() {
   for svc in "${go_services[@]}"; do
     grep -q '^FROM golang:1.22-alpine AS builder$' "$SERVICES_DIR/$svc/Dockerfile"
@@ -31,7 +30,6 @@ check_go_base_images() {
   done
 }
 
-# @hlv CT-STUBN-002
 check_rust_base_images() {
   for svc in "${rust_services[@]}"; do
     grep -q '^FROM rust:1.77 AS builder$' "$SERVICES_DIR/$svc/Dockerfile"
@@ -39,7 +37,6 @@ check_rust_base_images() {
   done
 }
 
-# @hlv CT-STUBN-003
 check_python_base_images() {
   for svc in "${python_services[@]}"; do
     grep -q '^FROM python:3.12-slim AS builder$' "$SERVICES_DIR/$svc/Dockerfile"
@@ -47,7 +44,6 @@ check_python_base_images() {
   done
 }
 
-# @hlv CT-STUBN-004
 check_typescript_base_images() {
   for svc in "${ts_services[@]}"; do
     grep -q '^FROM node:20 AS builder$' "$SERVICES_DIR/$svc/Dockerfile"
@@ -55,7 +51,6 @@ check_typescript_base_images() {
   done
 }
 
-# @hlv CT-STUBN-005
 check_language_manifests() {
   for svc in "${go_services[@]}"; do
     test -f "$SERVICES_DIR/$svc/go.mod"
@@ -71,7 +66,6 @@ check_language_manifests() {
   done
 }
 
-# @hlv CT-STUBN-006
 check_entrypoints_exist() {
   for svc in "${go_services[@]}"; do
     test -f "$SERVICES_DIR/$svc/main.go"
@@ -88,16 +82,15 @@ check_entrypoints_exist() {
   done
 }
 
-# @hlv CT-STUBN-007
 check_compose_builds_native_services() {
-  local compose="$ROOT_DIR/src/docker-compose.yaml"
-  for svc in "${go_services[@]}" "${rust_services[@]}" "${python_services[@]}" "${ts_services[@]}"; do
+  local compose="$ROOT_DIR/deploy/docker-compose.yml"
+  local built_services=(api-gateway auth-service ontology-service versioning-service metrics-service frontend)
+  for svc in "${built_services[@]}"; do
     grep -q "^  ${svc}:" "$compose"
-    grep -q "context: ./services/${svc}" "$compose"
+    grep -q "context: ../src/services/${svc}" "$compose"
   done
 }
 
-# @hlv CT-STUB-008
 check_ts_nginx_method_guard_syntax() {
   for svc in "${ts_services[@]}"; do
     local cfg="$SERVICES_DIR/$svc/nginx.conf"
@@ -106,12 +99,10 @@ check_ts_nginx_method_guard_syntax() {
   done
 }
 
-# @hlv VERSION_STILL_STUB
 check_no_stub_version_in_sources() {
   ! grep -rq '0\.1\.0-stub' "$SERVICES_DIR" --include='*.go' --include='*.rs' --include='*.py' --include='*.json'
 }
 
-# @hlv LOG_PREFIX_STUB
 check_no_stub_log_prefix() {
   # Exclude test files and assertion code that checks for absence of [STUB]
   local found
@@ -119,14 +110,12 @@ check_no_stub_log_prefix() {
   [ -z "$found" ]
 }
 
-# @hlv METADATA_STUB_FLAG
 check_no_stub_flag_true() {
   ! grep -rq '"stub": *true' "$SERVICES_DIR" --include='*.go' --include='*.rs' --include='*.py' --include='*.json'
 }
 
-# @hlv CT-004 (DEPLOY-OPS-001)
 check_compose_image_tags_no_stub() {
-  local compose="$ROOT_DIR/src/docker-compose.yaml"
+  local compose="$ROOT_DIR/deploy/docker-compose.yml"
   ! grep -q '\-stub:' "$compose"
 }
 

@@ -1,9 +1,5 @@
 #!/bin/bash
-# @ctx: Cross-milestone Playwright smoke test — verifies all frontend pages serve correctly
-# @hlv E2E-PLAYWRIGHT-001
-# @hlv GUI-OW-001
-# @hlv PUB-SNAPSHOT-001
-# @hlv FRONTEND_PAGE_NOT_FOUND
+# Cross-milestone Playwright smoke test — verifies all frontend pages serve correctly
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -40,7 +36,6 @@ PUBLISH_PAGES=(
   "/catalog"
 )
 
-# @hlv BUILD_FAILED
 test_compose_build() {
     log "Building frontend and publish-browse-ui..."
     if (cd "$SRC_DIR" && docker compose build frontend publish-browse-ui 2>&1); then
@@ -51,7 +46,6 @@ test_compose_build() {
     fi
 }
 
-# @hlv SERVICE_NOT_FOUND
 test_compose_up() {
     log "Starting frontend and publish-browse-ui..."
     (cd "$SRC_DIR" && docker compose down frontend publish-browse-ui --remove-orphans 2>/dev/null || true)
@@ -63,7 +57,6 @@ test_compose_up() {
     fi
 }
 
-# @hlv SERVICE_UNHEALTHY
 test_services_healthy() {
     log "Waiting for services to become healthy (up to 60s)..."
     local max_wait=60
@@ -89,7 +82,6 @@ test_services_healthy() {
     return 1
 }
 
-# @hlv FRONTEND_PAGE_NOT_FOUND
 test_frontend_pages() {
     log "Testing main frontend pages (port 3000)..."
 
@@ -110,7 +102,6 @@ test_frontend_pages() {
     done
 }
 
-# @hlv PUB-SNAPSHOT-001
 test_publish_pages() {
     log "Testing publish-browse-ui pages (port 3002)..."
 
@@ -131,7 +122,6 @@ test_publish_pages() {
     done
 }
 
-# @hlv E2E-PLAYWRIGHT-001
 test_playwright_smoke() {
     log "Running Playwright smoke test against both frontends..."
 

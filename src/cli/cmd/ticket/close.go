@@ -1,6 +1,4 @@
-// @hlv:artifact code-cli implements spec-cli-ticket-ops-001
-// @ctx: Operator close ticket command — lifecycle transition to closed
-// @hlv:sec [AUTH_BOUNDARY] — requires operator permissions, P0 closure restriction
+// Operator close ticket command — lifecycle transition to closed
 
 package ticket
 
@@ -12,11 +10,7 @@ import (
 	"net/http"
 )
 
-// @ctx: close command — transition ticket to closed state
-// @hlv CLI-TICKET-NOT-FOUND
-// @hlv CLI-TICKET-UNAUTHORIZED
-// @hlv CLI-TICKET-INVALID-STATE
-// @hlv CLI-TICKET-AUDIT-FAILED
+// close command — transition ticket to closed state
 func ExecuteClose(apiBase string, ticketID string, token string) error {
 	slog.Info("cli.ticket.close.enter",
 		"ticket_id", ticketID,
@@ -26,7 +20,6 @@ func ExecuteClose(apiBase string, ticketID string, token string) error {
 		return fmt.Errorf("CLI-MISSING-REQUIRED-FIELD: ticket_id is required")
 	}
 
-	// @hlv:sec [AUTH_BOUNDARY] — token required
 	if token == "" {
 		return fmt.Errorf("CLI-TICKET-UNAUTHORIZED: operator token required")
 	}

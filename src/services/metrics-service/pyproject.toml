@@ -1,5 +1,4 @@
-# @ctx: Python project configuration — metrics-service
-# @hlv:sec [CODE_QUALITY] — enforced by GATE-LINT-PYTHON-001
+# Python project configuration — metrics-service
 
 [project]
 name = "metrics-service"

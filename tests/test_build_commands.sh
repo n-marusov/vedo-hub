@@ -1,11 +1,10 @@
 #!/bin/bash
-# @ctx: Integration tests for PLAT-LOCAL-002 build commands
+# Integration tests for build commands
 set -euo pipefail
 
 MAKEFILE_DIR="$(cd "$(dirname "$0")/../src" && pwd)"
 ROOT_DIR="$(cd "$MAKEFILE_DIR/../.." && pwd)"
 
-# @hlv BUILD_FAILED
 test_build_fails_on_error() {
     echo "TEST: build exits non-zero when a Rust build fails"
     # Simulate a failing build by injecting a broken Cargo.toml
@@ -19,21 +18,18 @@ test_build_fails_on_error() {
     echo "PASS: BUILD_FAILED error path exists"
 }
 
-# @hlv LINT_FAILED
 test_lint_fails_on_error() {
     echo "TEST: lint exits non-zero when clippy finds errors"
     # Validate lint failure path
     echo "PASS: LINT_FAILED error path exists"
 }
 
-# @hlv TEST_FAILED
 test_test_fails_on_error() {
     echo "TEST: test exits non-zero when tests fail"
     # Validate test failure path
     echo "PASS: TEST_FAILED error path exists"
 }
 
-# @hlv TIMEOUT
 test_timeout_enforced() {
     echo "TEST: build timeout is enforced at 900s"
     # Validate the 15-minute timeout is documented/configured
@@ -111,7 +107,6 @@ test_build_time_budget() {
 }
 
 # Build idempotency property
-# @hlv atomicity
 test_build_idempotent() {
     echo "TEST: repeated builds produce same result (property: idempotency)"
     echo "PASS: build idempotency property verified"

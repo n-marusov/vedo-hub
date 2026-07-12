@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# @ctx: SCA gate contract tests — Go unit tests for security supply-chain gate
+# SCA gate contract tests — Go unit tests for security supply-chain gate
 set -euo pipefail
 
 cd "$(dirname "$0")/.."

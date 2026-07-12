@@ -1,9 +1,5 @@
 #!/bin/bash
-# @ctx: Cross-milestone docker compose build + health check scenario
-# @hlv DEPLOY-OPS-001
-# @hlv STUB-NATIVE-001
-# @hlv SERVICE_UNHEALTHY
-# @hlv PORT_CONFLICT
+# Cross-milestone docker compose build + health check scenario
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -18,7 +14,6 @@ log() { echo "[$(date +%H:%M:%S)] $*"; }
 pass() { PASS=$((PASS + 1)); echo "  PASS: $*"; }
 fail() { FAILED=$((FAILED + 1)); echo "  FAIL: $*"; }
 
-# @hlv BUILD_FAILED
 test_compose_build() {
     log "Building all compose services..."
     if (cd "$SRC_DIR" && docker compose build 2>&1); then
@@ -29,7 +24,6 @@ test_compose_build() {
     fi
 }
 
-# @hlv SERVICE_NOT_FOUND
 test_compose_up() {
     log "Starting all compose services..."
     # Clean up first
@@ -42,7 +36,6 @@ test_compose_up() {
     fi
 }
 
-# @hlv SERVICE_UNHEALTHY
 test_all_services_healthy() {
     log "Waiting for all services to become healthy (up to 120s)..."
     local max_wait=120
@@ -80,7 +73,6 @@ test_all_services_healthy() {
     return 1
 }
 
-# @hlv structured_logging_only
 test_health_endpoints() {
     log "Checking health endpoints..."
     local services
@@ -108,7 +100,6 @@ test_health_endpoints() {
     done <<< "$services"
 }
 
-# @hlv STUB_MISSING
 test_metadata_endpoints() {
     log "Checking metadata endpoints..."
     local services

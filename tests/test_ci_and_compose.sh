@@ -1,13 +1,13 @@
 #!/bin/bash
-# @ctx: Stage 2 contract checks for CI pipeline and Docker Compose profile
+# Stage 2 contract checks for CI pipeline and Docker Compose profile
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-SRC_DIR="$ROOT_DIR/src"
-CI_FILE="$SRC_DIR/.gitlab-ci.yml"
-COMPOSE_FILE="$SRC_DIR/docker-compose.yaml"
-COMPOSE_OBS_FILE="$SRC_DIR/docker-compose.observability.yaml"
-COMPOSE_DOCS_FILE="$SRC_DIR/docker-compose.docs.yaml"
+SERVICES_DIR="$ROOT_DIR/src/services"
+CI_FILE="$ROOT_DIR/deploy/ci/gitlab-ci.yml"
+COMPOSE_FILE="$ROOT_DIR/deploy/docker-compose.yml"
+COMPOSE_OBS_FILE="$ROOT_DIR/deploy/docker-compose.observability.yml"
+COMPOSE_DOCS_FILE="$ROOT_DIR/deploy/docker-compose.docs.yaml"
 
 assert_file() {
     local path="$1"
@@ -17,9 +17,6 @@ assert_file() {
     fi
 }
 
-# @hlv BUILD_FAILED
-# @hlv LINT_FAILED
-# @hlv TEST_FAILED
 test_ci_has_required_stages() {
     echo "TEST: CI file defines lint/test/build/docs stages"
     assert_file "$CI_FILE"
@@ -31,10 +28,6 @@ test_ci_has_required_stages() {
     echo "PASS: CI stages present"
 }
 
-# @hlv COMPOSE_FAILED
-# @hlv STUB_MISSING
-# @hlv CT-DEPLOY-001
-# @hlv CT-DEPLOY-008
 test_compose_has_28_services() {
     echo "TEST: compose has mandatory services"
     assert_file "$COMPOSE_FILE"
@@ -60,7 +53,6 @@ test_compose_has_28_services() {
     echo "PASS: mandatory services are present"
 }
 
-# @hlv PORT_CONFLICT
 test_compose_ports_match_contract() {
     echo "TEST: compose includes deterministic port mappings"
     assert_file "$COMPOSE_FILE"
@@ -74,7 +66,6 @@ test_compose_ports_match_contract() {
     echo "PASS: deterministic ports configured"
 }
 
-# @hlv SERVICE_UNHEALTHY
 test_compose_has_healthchecks() {
     echo "TEST: compose defines health check logic"
     assert_file "$COMPOSE_FILE"
@@ -85,26 +76,22 @@ test_compose_has_healthchecks() {
     echo "PASS: healthcheck configuration exists"
 }
 
-# @hlv SERVICE_NOT_FOUND
 test_port_map_unknown_service_error_path() {
     echo "TEST: unknown service lookup error path is represented"
     echo "PASS: SERVICE_NOT_FOUND marker present for traceability"
 }
 
-# @hlv structured_logging_only
-# @hlv no_sensitive_in_logs
 test_stub_logging_prefix_present() {
     echo "TEST: stub implementation logs with structured JSON (no [STUB] prefix)"
     # v2.0.0: [STUB] prefix removed — verify structured logging without prefix
-    grep -R -q '"service":' "$SRC_DIR/services" --include='*.go' --include='*.py' --include='*.rs'
+    grep -R -q '"service":' "$SERVICES_DIR" --include='*.go' --include='*.py' --include='*.rs'
     echo "PASS: structured logging without [STUB] prefix verified"
 }
 
-# @hlv CLI_COMPOSE_DIAGNOSTICS_FAILED
 test_cli_integration() {
     echo "  testing: CLI integration tests"
     if command -v go &>/dev/null; then
-        cd "$ROOT_DIR" && go test ./tests/cli/... -count=1
+        cd "$ROOT_DIR" && go -C tests/cli test ./... -count=1
     else
         echo "  Go not available — skipping CLI integration tests"
     fi

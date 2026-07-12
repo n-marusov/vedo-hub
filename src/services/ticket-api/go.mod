@@ -1,4 +1,4 @@
-module vedo-core/llm/src/services/ticket-api
+module vedo-core/src/services/ticket-api
 
 go 1.22
 

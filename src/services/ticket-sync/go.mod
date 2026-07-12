@@ -1,4 +1,4 @@
-module vedo-core/llm/src/services/ticket-sync
+module vedo-core/src/services/ticket-sync
 
 go 1.22
 

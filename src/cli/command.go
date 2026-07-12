@@ -6,14 +6,13 @@ import (
 	"log/slog"
 	"time"
 
-	"vedo-core/llm/src/cli/commands/ticket"
+	"vedo-core/src/cli/commands/ticket"
 )
 
-// @ctx: command framework — linear dispatch: validate → guardrails → execute → output
+// command framework — linear dispatch: validate → guardrails → execute → output
 // Implements CLI-OPS-001 stage update: support commands, MFA hooks, emergency placeholders
 
 // ExecuteCommand dispatches and runs a CLI command.
-// @hlv:sec [INPUT_VALIDATION] — command and output_format validated before dispatch
 func ExecuteCommand(input CliInput) CliOutput {
 	if input.ActorType == "" {
 		input.ActorType = ActorUser
@@ -40,8 +39,7 @@ func ExecuteCommand(input CliInput) CliOutput {
 		)
 	}()
 
-	// @ctx: validate output format first
-	// @hlv CLI_INVALID_FORMAT
+	// validate output format first
 	if input.OutputFormat != FormatHuman && input.OutputFormat != FormatJSON {
 		slog.Error("cli.invalid_format",
 			"request_id", input.RequestID,
@@ -73,10 +71,8 @@ func ExecuteCommand(input CliInput) CliOutput {
 
 	if err := evaluateMFAGuard(input); err != nil {
 		if err.Error() == "CLI_GUARDRAIL_NOT_SATISFIED" {
-			// @hlv CLI_GUARDRAIL_NOT_SATISFIED
 			return CliOutput{Status: "error", Error: &CliError{Code: "CLI_GUARDRAIL_NOT_SATISFIED", Message: "guardrail controls are not satisfied"}}
 		}
-		// @hlv CLI_MFA_REQUIRED
 		return CliOutput{Status: "error", Error: &CliError{Code: "CLI_MFA_REQUIRED", Message: "fresh MFA challenge is required"}}
 	}
 
@@ -87,11 +83,10 @@ func ExecuteCommand(input CliInput) CliOutput {
 			"entity_id", input.TenantID,
 			"input_summary", summarizeInput(input),
 		)
-		// @hlv CLI_TICKET_REQUIRED
 		return CliOutput{Status: "error", Error: &CliError{Code: "CLI_TICKET_REQUIRED", Message: "ticket_id is mandatory for this command"}}
 	}
 
-	// @ctx: dispatch to command handler
+	// dispatch to command handler
 	var output CliOutput
 	switch input.Command {
 	case CmdSupportTenantInfo:
@@ -123,7 +118,6 @@ func ExecuteCommand(input CliInput) CliOutput {
 	case CmdTicketCreate, CmdTicketList, CmdTicketShow, CmdTicketComment, CmdTicketUpdate, CmdTicketClose, CmdTicketReopen, CmdTicketDelete:
 		output = dispatchTicketCommand(input, traceID, correlationID, controls)
 	default:
-		// @hlv CLI_COMMAND_NOT_SUPPORTED
 		slog.Error("cli.command_not_supported",
 			"request_id", input.RequestID,
 			"trace_id", traceID,
@@ -179,10 +173,9 @@ func executeSecurityPolicyDisable(input CliInput, traceID string, correlationID 
 	return CliOutput{Status: "ok", Data: &CliData{Command: string(input.Command), Result: "security-policy-disable-placeholder", TraceID: traceID, CorrelationID: correlationID, GuardrailsApplied: controls, MFAChallengePerformed: true}}
 }
 
-// @hlv:sec [INPUT_VALIDATION] — status local checks compose service health
 func executeStatusLocal(input CliInput) CliOutput {
 	slog.Info("cli.status_local", "environment", input.TargetEnvironment)
-	// @ctx: collects local compose service health status
+	// collects local compose service health status
 	diagnostics := &Diagnostics{
 		ComposeServicesTotal:   28,
 		ComposeServicesHealthy: 28,
@@ -199,10 +192,9 @@ func executeStatusLocal(input CliInput) CliOutput {
 	}
 }
 
-// @hlv:sec [NETWORK] — compose diagnostics connects to running services
 func executeDiagnoseCompose(input CliInput) CliOutput {
 	slog.Info("cli.diagnose_compose", "environment", input.TargetEnvironment)
-	// @ctx: collects diagnostic summary from compose services
+	// collects diagnostic summary from compose services
 	return CliOutput{
 		Status: "ok",
 		Data: &CliData{
@@ -214,10 +206,9 @@ func executeDiagnoseCompose(input CliInput) CliOutput {
 	}
 }
 
-// @hlv:sec [INPUT_VALIDATION] — docs open fails gracefully in non-interactive CI
 func executeDocsOpen(input CliInput) CliOutput {
 	slog.Info("cli.docs_open", "environment", input.TargetEnvironment)
-	// @ctx: docs open must fail gracefully in headless CI
+	// docs open must fail gracefully in headless CI
 	if input.TargetEnvironment == EnvCI || input.TargetEnvironment == EnvAirgapped {
 		slog.Warn("cli.docs_open.headless", "environment", input.TargetEnvironment)
 		return CliOutput{
@@ -241,8 +232,7 @@ func executeDocsOpen(input CliInput) CliOutput {
 
 func executeAuthResolveCreds(input CliInput) CliOutput {
 	slog.Info("cli.auth_resolve_credentials")
-	// @ctx: delegated to credentials provider chain (TASK-004)
-	// @hlv CLI_CREDENTIALS_NOT_CONFIGURED
+	// delegated to credentials provider chain (TASK-004)
 	return CliOutput{
 		Status: "error",
 		Error: &CliError{
@@ -254,12 +244,12 @@ func executeAuthResolveCreds(input CliInput) CliOutput {
 
 func dispatchTicketCommand(input CliInput, traceID string, correlationID string, controls []string) CliOutput {
 	ticketInput := &ticket.TicketCliInput{
-		Command:     extractTicketSubcommand(input.Command),
-		TicketID:    input.TicketID,
-		Actor:       string(input.ActorType),
-		TraceID:     traceID,
-		Channel:     "cli",
-		Source:      "manual",
+		Command:  extractTicketSubcommand(input.Command),
+		TicketID: input.TicketID,
+		Actor:    string(input.ActorType),
+		TraceID:  traceID,
+		Channel:  "cli",
+		Source:   "manual",
 	}
 	output := ticket.Dispatch(ticketInput)
 	resultJSON, err := json.Marshal(output)

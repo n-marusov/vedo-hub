@@ -1,5 +1,4 @@
-# @ctx: DEPLOY-OPS-001 Helm values for all VEDO Core services
-# @hlv INV-DEPLOYMENT-OPERATIONS-0084 Rolling update default for dev/staging/minor/patch
+# Helm values for all VEDO Core services
 global:
   environment: dev
   deploymentModel: saas

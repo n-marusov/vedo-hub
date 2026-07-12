@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# @ctx: Python Ruff lint + format gate — runs ruff check --fix and ruff format
+# Python Ruff lint + format gate — runs ruff check --fix and ruff format
 # on all Python services (directories with pyproject.toml).
 set -euo pipefail
 

@@ -1,6 +1,4 @@
-// @ctx: Keycloak OIDC client — authorization code flow with PKCE per GUI-LOGIN-001
-// @hlv:sec [AUTH_BOUNDARY] — OIDC flow validates state and nonce before session creation
-// @hlv:sec [SECRET_HANDLING] — tokens stored in sessionStorage via saveSession
+// Keycloak OIDC client — authorization code flow with PKCE per GUI-LOGIN-001
 
 import { type UserSession, saveSession } from './session'
 
@@ -25,7 +23,6 @@ const DEFAULT_CONFIG: KeycloakConfig = {
   redirectUri: `${window.location.origin}/auth/callback`
 }
 
-// @hlv LOGIN_SSO_CONFIG_MISSING
 export function getConfig(): KeycloakConfig {
   return {
     realm: import.meta.env.VITE_KEYCLOAK_REALM || DEFAULT_CONFIG.realm,
@@ -35,7 +32,6 @@ export function getConfig(): KeycloakConfig {
   }
 }
 
-// @hlv:sec [AUTH_BOUNDARY] — PKCE code verifier generated per RFC 7636
 function generateCodeVerifier(): string {
   const array = new Uint8Array(32)
   crypto.getRandomValues(array)
@@ -55,7 +51,6 @@ async function generateCodeChallenge(verifier: string): Promise<string> {
     .replace(/=+$/, '')
 }
 
-// @hlv:sec [AUTH_BOUNDARY] — CSRF state stored in sessionStorage for callback validation
 export async function initiateLogin(): Promise<void> {
   const config = getConfig()
   const state = crypto.randomUUID()
@@ -83,7 +78,6 @@ export async function initiateLogin(): Promise<void> {
   window.location.href = authUrl
 }
 
-// @hlv:sec [AUTH_BOUNDARY] — callback validates state, exchanges code, parses JWT
 export async function handleCallback(): Promise<UserSession> {
   const params = new URLSearchParams(window.location.search)
   const code = params.get('code')
@@ -101,7 +95,6 @@ export async function handleCallback(): Promise<UserSession> {
 
   const savedState = sessionStorage.getItem('kc_state')
   if (state !== savedState) {
-    // @hlv:sec [AUTH_BOUNDARY] — CSRF state mismatch
     throw new Error('State mismatch — possible CSRF attack')
   }
 
@@ -134,7 +127,6 @@ export async function handleCallback(): Promise<UserSession> {
   const tokens = await tokenResponse.json()
   const session = parseToken(tokens.access_token, tokens.refresh_token)
 
-  // @hlv:sec [SECRET_HANDLING] — clear PKCE artifacts after successful login
   sessionStorage.removeItem('kc_state')
   sessionStorage.removeItem('kc_nonce')
   sessionStorage.removeItem('kc_code_verifier')
@@ -143,7 +135,6 @@ export async function handleCallback(): Promise<UserSession> {
   return session
 }
 
-// @hlv:sec [AUTH_BOUNDARY] — JWT payload parsed client-side for role extraction
 function parseToken(accessToken: string, refreshToken: string): UserSession {
   const payload = decodeJwtPayload(accessToken) as JwtPayload
 
@@ -174,7 +165,6 @@ function decodeJwtPayload(token: string): Record<string, unknown> {
   return JSON.parse(json)
 }
 
-// @hlv:sec [AUTH_BOUNDARY] — logout redirects to Keycloak end session endpoint
 export function logout(): void {
   const config = getConfig()
   const endSessionUrl = `${config.url}/realms/${config.realm}/protocol/openid-connect/logout`

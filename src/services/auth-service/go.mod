@@ -1,3 +1,3 @@
-module vedo-core/llm/src/services/auth-service
+module vedo-core/src/services/auth-service
 
 go 1.22

@@ -1,5 +1,5 @@
 #!/bin/bash
-# @ctx: Property-based gate checks with generation counters
+# Property-based gate checks with generation counters
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -16,7 +16,6 @@ total_count=${#host_ports[@]}
 valid_generations=0
 counterexamples=0
 
-# @hlv atomicity
 for ((i=0; i<10000; i++)); do
   if [ "$unique_count" -eq "$total_count" ]; then
     valid_generations=$((valid_generations + 1))
@@ -25,7 +24,6 @@ for ((i=0; i<10000; i++)); do
   fi
 done
 
-# @hlv non_negative_total
 for ((i=0; i<10000; i++)); do
   index=$((i % total_count))
   port=${host_ports[$index]}

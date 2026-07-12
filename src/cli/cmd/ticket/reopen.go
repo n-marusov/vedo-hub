@@ -1,6 +1,4 @@
-// @hlv:artifact code-cli implements spec-cli-ticket-ops-001
-// @ctx: Operator reopen ticket command — lifecycle transition from closed to reopened
-// @hlv:sec [AUTH_BOUNDARY] — requires operator permissions
+// Operator reopen ticket command — lifecycle transition from closed to reopened
 
 package ticket
 
@@ -12,11 +10,7 @@ import (
 	"net/http"
 )
 
-// @ctx: reopen command — transition ticket from closed to reopened state
-// @hlv CLI-TICKET-NOT-FOUND
-// @hlv CLI-TICKET-UNAUTHORIZED
-// @hlv CLI-TICKET-INVALID-STATE
-// @hlv CLI-TICKET-AUDIT-FAILED
+// reopen command — transition ticket from closed to reopened state
 func ExecuteReopen(apiBase string, ticketID string, token string) error {
 	slog.Info("cli.ticket.reopen.enter",
 		"ticket_id", ticketID,
@@ -26,7 +20,6 @@ func ExecuteReopen(apiBase string, ticketID string, token string) error {
 		return fmt.Errorf("CLI-MISSING-REQUIRED-FIELD: ticket_id is required")
 	}
 
-	// @hlv:sec [AUTH_BOUNDARY] — token required
 	if token == "" {
 		return fmt.Errorf("CLI-TICKET-UNAUTHORIZED: operator token required")
 	}

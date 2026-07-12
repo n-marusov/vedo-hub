@@ -1,5 +1,4 @@
-# @ctx: OBS-OPS-001 Prometheus scrape configuration for VEDO Core
-# @hlv INV-OBSERVABILITY-OPERATIONS-0111 Prometheus is part of default stack
+# Prometheus scrape configuration for VEDO Core
 global:
   scrape_interval: 15s
   evaluation_interval: 15s

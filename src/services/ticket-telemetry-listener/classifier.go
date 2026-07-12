@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"vedo-core/llm/src/services/ticket-api/ticketapi"
+	"vedo-core/src/services/ticket-api/ticketapi"
 )
 
 type ClassifyResult struct {

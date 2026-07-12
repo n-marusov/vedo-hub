@@ -1,6 +1,4 @@
-// @hlv:artifact code-cli implements spec-cli-ticket-ops-001
-// @ctx: Operator comment command — add comment to ticket
-// @hlv:sec [AUTH_BOUNDARY] — requires operator permissions
+// Operator comment command — add comment to ticket
 
 package ticket
 
@@ -12,10 +10,7 @@ import (
 	"net/http"
 )
 
-// @ctx: comment command — add comment to ticket, creates audit entry
-// @hlv CLI-TICKET-NOT-FOUND
-// @hlv CLI-TICKET-UNAUTHORIZED
-// @hlv CLI-TICKET-AUDIT-FAILED
+// comment command — add comment to ticket, creates audit entry
 func ExecuteComment(apiBase string, ticketID string, commentText string, token string) error {
 	slog.Info("cli.ticket.comment.enter",
 		"ticket_id", ticketID,
@@ -29,7 +24,6 @@ func ExecuteComment(apiBase string, ticketID string, commentText string, token s
 		return fmt.Errorf("CLI-MISSING-REQUIRED-FIELD: comment text is required")
 	}
 
-	// @hlv:sec [AUTH_BOUNDARY] — token required
 	if token == "" {
 		return fmt.Errorf("CLI-TICKET-UNAUTHORIZED: operator token required")
 	}

@@ -1,4 +1,4 @@
-module vedo-core/llm/src/services/api-gateway
+module vedo-core/src/services/api-gateway
 
 go 1.22
 

@@ -1,6 +1,4 @@
-// @hlv:artifact code-cli implements spec-cli-ticket-ops-001
-// @ctx: Operator ticket list command — filter by source, status, category, priority
-// @hlv:sec [AUTH_BOUNDARY] — requires operator permissions for lifecycle commands
+// Operator ticket list command — filter by source, status, category, priority
 
 package ticket
 
@@ -13,9 +11,7 @@ import (
 	"strings"
 )
 
-// @ctx: list command — operator can view both manual and telemetry tickets
-// @hlv CLI-TICKET-UNAUTHORIZED
-// @hlv CLI-TICKET-INVALID-FILTER
+// list command — operator can view both manual and telemetry tickets
 func ExecuteList(apiBase string, source []string, status []string, category []string, priority []string, token string) error {
 	slog.Info("cli.ticket.list.enter",
 		"source", source,
@@ -24,12 +20,11 @@ func ExecuteList(apiBase string, source []string, status []string, category []st
 		"priority", priority,
 	)
 
-	// @hlv:sec [AUTH_BOUNDARY] — token required for operator commands
 	if token == "" {
 		return fmt.Errorf("CLI-TICKET-UNAUTHORIZED: operator token required")
 	}
 
-	// @ctx: build query params
+	// build query params
 	params := url.Values{}
 	for _, s := range source {
 		params.Add("source", s)
@@ -92,7 +87,7 @@ func ExecuteList(apiBase string, source []string, status []string, category []st
 		"total", result.Total,
 	)
 
-	// @ctx: render output
+	// render output
 	renderTicketList(result.Tickets)
 	return nil
 }

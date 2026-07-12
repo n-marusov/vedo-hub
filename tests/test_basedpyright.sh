@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# @ctx: Python typecheck gate — runs basedpyright on all Python services.
+# Python typecheck gate — runs basedpyright on all Python services.
 set -euo pipefail
 
 ROOT="$(realpath "$(dirname "$0")/..")"

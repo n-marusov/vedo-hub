@@ -1,11 +1,10 @@
 #!/bin/bash
-# @ctx: BOLA/BFLA gate — runs auth middleware BOLA/BFLA negative tests
+# BOLA/BFLA gate — runs auth middleware BOLA/BFLA negative tests
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
-# @ctx: detect Go across platforms (Linux, macOS, Windows/Git Bash, WSL)
-# @hlv:sec [AUTH_BOUNDARY] — BOLA/BFLA gate requires Go tests to run
+# detect Go across platforms (Linux, macOS, Windows/Git Bash, WSL)
 detect_go() {
   if command -v go &>/dev/null; then
     echo "go"
@@ -38,13 +37,13 @@ fi
 
 echo "=== Running BOLA/BFLA negative test suite with $GO_CMD ==="
 
-# @ctx: run auth middleware tests with BOLA/BFLA focus (all CT-SEC-* tests)
+# run auth middleware tests with BOLA/BFLA focus (all CT-SEC-* tests)
 cd "$ROOT/src/services/api-gateway" && "$GO_CMD" test ./auth/... -v -count=1 -run "TestCT_SEC|TestProperty|TestInvariant" 2>&1
 
-# @ctx: run org-level access control tests (membership, policies, visibility enforcement)
+# run org-level access control tests (membership, policies, visibility enforcement)
 cd "$ROOT/src/services/auth-service/org" && "$GO_CMD" test ./... -v -count=1 2>&1
 
-# @ctx: run existing BOLA/BFLA fixture tests
+# run existing BOLA/BFLA fixture tests
 cd "$ROOT/tests/security/authorization" && "$GO_CMD" test ./... -v -count=1 2>&1
 
 echo "=== BOLA/BFLA suite complete ==="

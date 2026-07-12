@@ -220,6 +220,12 @@ vdo:affectedBy a owl:ObjectProperty ;
     rdfs:domain vdo:Artifact ;
     rdfs:range vdo:Artifact .
 
+vdo:definedBy a owl:ObjectProperty ;
+    rdfs:label "defined by"@en ;
+    rdfs:comment "An error code is defined by the code artifacts that produce it."@en ;
+    rdfs:domain vdo:ErrorCode ;
+    rdfs:range vdo:CodeArtifact .
+
 # =============================================================================
 # DATA PROPERTIES
 # =============================================================================
@@ -257,13 +263,13 @@ vdo:filePath a owl:DatatypeProperty ;
 base:context/PLAT-LOCAL-002 a vdo:ContextAnnotation ;
     rdfs:label "PLAT-LOCAL-002"@en ;
     rdfs:comment "Platform local development and build context"@en ;
-    vdo:filePath "src/Makefile, tests/*" ;
+    vdo:filePath "src/Makefile", "tests/*" ;
     vdo:annotationType "ctx" .
 
 base:context/DEPLOY-OPS-001 a vdo:ContextAnnotation ;
     rdfs:label "DEPLOY-OPS-001"@en ;
     rdfs:comment "Deployment operations and CI/CD context"@en ;
-    vdo:filePath "deploy/ci/gitlab-ci.yml, deploy/helm/values.yaml" ;
+    vdo:filePath "deploy/ci/gitlab-ci.yml", "deploy/helm/values.yaml" ;
     vdo:annotationType "ctx" .
 
 base:context/OBS-OPS-001 a vdo:ContextAnnotation ;

@@ -10,8 +10,9 @@ import (
 	"strings"
 	"testing"
 
+	"vedo-core/src/services/ticket-api/ticketapi"
+
 	"github.com/gin-gonic/gin"
-	"vedo-core/llm/src/services/ticket-api/ticketapi"
 )
 
 func setupApp() (*gin.Engine, *ticketapi.TicketStore, *ticketapi.AuditStore) {

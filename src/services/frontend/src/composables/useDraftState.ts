@@ -1,6 +1,4 @@
-// @hlv:artifact code-frontend implements spec-gui-ow-001
-// @ctx: Draft state composable — preserves unsaved changes across navigation via Apollo cache
-// @hlv atomicity — draft changes preserved across route navigation
+// Draft state composable — preserves unsaved changes across navigation via Apollo cache
 
 import { computed, ref } from 'vue'
 import { apolloClient } from '../apollo/client'

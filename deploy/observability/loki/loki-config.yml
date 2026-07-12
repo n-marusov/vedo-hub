@@ -1,5 +1,4 @@
-# @ctx: OBS-OPS-001 Loki retention configuration
-# @hlv INV-OBSERVABILITY-OPERATIONS-0114 Default retention policies
+# Loki retention configuration
 auth_enabled: false
 
 server:
@@ -40,7 +39,6 @@ compactor:
   working_directory: /data/loki/compactor
   shared_store: filesystem
 
-# @hlv INV-OBSERVABILITY-OPERATIONS-0114
 # Default retention: app logs 30 days active + 90 days archive,
 # access logs 14 days active + 30 days archive
 # Loki 2.9 dropped `tables` config. Global retention via table_manager.

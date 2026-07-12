@@ -1,6 +1,4 @@
-// @hlv:artifact code-cli implements spec-cli-ticket-ops-001
-// @ctx: Operator show ticket command — retrieve single ticket by ID
-// @hlv:sec [AUTH_BOUNDARY] — requires operator permissions
+// Operator show ticket command — retrieve single ticket by ID
 
 package ticket
 
@@ -11,9 +9,7 @@ import (
 	"net/http"
 )
 
-// @ctx: show command — get ticket details by ID
-// @hlv CLI-TICKET-NOT-FOUND
-// @hlv CLI-TICKET-UNAUTHORIZED
+// show command — get ticket details by ID
 func ExecuteShow(apiBase string, ticketID string, token string) error {
 	slog.Info("cli.ticket.show.enter",
 		"ticket_id", ticketID,
@@ -23,7 +19,6 @@ func ExecuteShow(apiBase string, ticketID string, token string) error {
 		return fmt.Errorf("CLI-MISSING-REQUIRED-FIELD: ticket_id is required")
 	}
 
-	// @hlv:sec [AUTH_BOUNDARY] — token required
 	if token == "" {
 		return fmt.Errorf("CLI-TICKET-UNAUTHORIZED: operator token required")
 	}

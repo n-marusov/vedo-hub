@@ -1,5 +1,4 @@
-# @ctx: OBS-OPS-001 Critical alert rules with P0/P1 severity and routing
-# @hlv INV-OBSERVABILITY-OPERATIONS-0118 P0/P1 alerts map to escalation matrix
+# Critical alert rules with P0/P1 severity and routing
 groups:
   - name: vedo-core-p0
     interval: 30s
@@ -15,7 +14,6 @@ groups:
           summary: "VEDO Core service {{ $labels.job }} is down"
           description: "Service {{ $labels.job }} has been unreachable for more than 1 minute"
           runbook: "https://docs.vedo.dev/runbooks/p0-service-down"
-# @hlv:sec Logs and traces must not contain secrets or PII
 
       - alert: HighErrorRate
         expr: rate(vedo_http_requests_total{status=~"5.."}[5m]) / rate(vedo_http_requests_total[5m]) > 0.05

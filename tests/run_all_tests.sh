@@ -1,5 +1,5 @@
 #!/bin/bash
-# @ctx: Combined test runner — PLAT-LOCAL-002, DEPLOY-OPS-001
+# Combined test runner
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

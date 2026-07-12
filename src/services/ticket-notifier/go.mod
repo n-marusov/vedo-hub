@@ -1,4 +1,4 @@
-module vedo-core/llm/src/services/ticket-notifier
+module vedo-core/src/services/ticket-notifier
 
 go 1.22
 

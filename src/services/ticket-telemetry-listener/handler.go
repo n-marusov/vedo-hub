@@ -11,8 +11,9 @@ import (
 	"regexp"
 	"strings"
 
+	"vedo-core/src/services/ticket-api/ticketapi"
+
 	"github.com/gin-gonic/gin"
-	"vedo-core/llm/src/services/ticket-api/ticketapi"
 )
 
 var (

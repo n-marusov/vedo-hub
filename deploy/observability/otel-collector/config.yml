@@ -1,6 +1,4 @@
-# @ctx: OBS-OPS-001 OpenTelemetry Collector configuration for VEDO Core
-# @hlv INV-OBSERVABILITY-OPERATIONS-0111 OpenTelemetry is part of default stack
-# @hlv INV-OBSERVABILITY-OPERATIONS-0112 Alternative backends via exporters
+# OpenTelemetry Collector configuration for VEDO Core
 receivers:
   otlp:
     protocols:
@@ -32,7 +30,6 @@ processors:
         - 'attributes["http.target"] != nil and IsMatch(attributes["http.target"], "/health")'
         - 'attributes["http.target"] != nil and IsMatch(attributes["http.target"], "/metrics")'
 
-  # @hlv:sec PII masking — redact sensitive log attributes
   attributes/redact:
     actions:
       - key: password

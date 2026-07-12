@@ -1,10 +1,10 @@
-module vedo-core/llm/tests/ticket-api
+module vedo-core/tests/ticket-api
 
 go 1.22
 
 require (
 	github.com/gin-gonic/gin v1.9.1
-	vedo-core/llm/src/services/ticket-api v0.0.0
+	vedo-core/src/services/ticket-api v0.0.0
 )
 
 require (
@@ -34,4 +34,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace vedo-core/llm/src/services/ticket-api => ../../src/services/ticket-api
+replace vedo-core/src/services/ticket-api => ../../src/services/ticket-api

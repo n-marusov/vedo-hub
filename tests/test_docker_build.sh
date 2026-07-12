@@ -1,28 +1,24 @@
 #!/bin/bash
-# @ctx: Integration tests for DEPLOY-OPS-001 Docker build commands
+# Integration tests for Docker build commands
 set -euo pipefail
 
 MAKEFILE_DIR="$(cd "$(dirname "$0")/../src" && pwd)"
 
-# @hlv COMPOSE_FAILED
 test_compose_failed_error_path() {
     echo "TEST: compose failure error path exists"
     echo "PASS: COMPOSE_FAILED error path exists"
 }
 
-# @hlv PORT_CONFLICT
 test_port_conflict_error_path() {
     echo "TEST: port conflict error path exists"
     echo "PASS: PORT_CONFLICT error path exists"
 }
 
-# @hlv SERVICE_UNHEALTHY
 test_service_unhealthy_error_path() {
     echo "TEST: unhealthy service error path exists"
     echo "PASS: SERVICE_UNHEALTHY error path exists"
 }
 
-# @hlv STUB_MISSING
 test_stub_missing_error_path() {
     echo "TEST: missing stub error path exists"
     echo "PASS: STUB_MISSING error path exists"
@@ -69,7 +65,6 @@ test_dotenv_exists() {
 }
 
 # Port uniqueness property
-# @hlv non_negative_total
 test_port_uniqueness_property() {
     echo "TEST: all service ports are unique (property: port uniqueness)"
     echo "PASS: port uniqueness property verified"

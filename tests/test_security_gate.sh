@@ -1,5 +1,5 @@
 #!/bin/bash
-# @ctx: Security gate checks for stage 2 artifacts
+# Security gate checks for stage 2 artifacts
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -14,25 +14,21 @@ log_error() {
   printf '{"level":"error","event":"%s"}\n' "$1"
 }
 
-# @hlv prepared_statements_only
 test_prepared_statement_rule_traceability() {
   log_info "security.prepared_statements_only.traceability"
   return 0
 }
 
-# @hlv no_secrets_in_logs
 test_no_secrets_in_logs_rule_traceability() {
   log_info "security.no_secrets_in_logs.traceability"
   return 0
 }
 
-# @hlv authn_required
 test_authn_required_rule_traceability() {
   log_info "security.authn_required.traceability"
   return 0
 }
 
-# @hlv AUTHZ_NEGATIVE_TEST_FAILED
 test_bola_bfla_authorization_fixtures() {
   log_info "security.bola_bfla.authorization_fixtures"
   local go_cmd=""

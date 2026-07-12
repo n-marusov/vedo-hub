@@ -1,6 +1,5 @@
 # yaml-language-server: $schema=https://golangci-lint.run/jsonschema/golangci.v1.jsonschema.json
-# @ctx: golangci-lint configuration for Go services
-# @hlv:sec [CODE_QUALITY] — enforced by GATE-LINT-GO-001
+# golangci-lint configuration for Go services
 
 run:
   timeout: 5m

@@ -1,3 +1,3 @@
-module vedo-core/llm/src/cli
+module vedo-core/src/cli
 
 go 1.22

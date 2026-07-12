@@ -1,5 +1,4 @@
-// @hlv:artifact code-frontend implements spec-gui-ow-001
-// @ctx: Apollo GraphQL queries and mutations for ontology workspace
+// Apollo GraphQL queries and mutations for ontology workspace
 
 import { gql } from '@apollo/client/core'
 

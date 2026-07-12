@@ -1,12 +1,10 @@
-// @hlv:artifact code-frontend implements spec-gui-ow-001
-// @ctx: Apollo Client setup — single GraphQL client for all frontend data operations
-// @hlv:sec [INPUT_VALIDATION] — no secrets in Apollo Client config, uses HTTP link
+// Apollo Client setup — single GraphQL client for all frontend data operations
 
 import { ApolloClient, InMemoryCache, createHttpLink, from } from '@apollo/client/core'
 import { setContext } from '@apollo/client/link/context'
 import { onError } from '@apollo/client/link/error'
 
-// @ctx: structured logging for Apollo operations (observability constraint)
+// structured logging for Apollo operations (observability constraint)
 const log = {
   info: (_msg: string, _ctx: Record<string, unknown>) => {},
   error: (msg: string, ctx: Record<string, unknown>) => {
@@ -18,7 +16,6 @@ const httpLink = createHttpLink({
   uri: import.meta.env.VITE_GRAPHQL_ENDPOINT || '/graphql'
 })
 
-// @hlv:sec [AUTH_BOUNDARY] — JWT token attached to every GraphQL request
 const authLink = setContext((_, { headers }) => {
   const token = localStorage.getItem('vedo-jwt-token')
   return {
@@ -29,7 +26,6 @@ const authLink = setContext((_, { headers }) => {
   }
 })
 
-// @hlv log_all_errors — every Apollo error logged with full context
 const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
   if (graphQLErrors) {
     for (const err of graphQLErrors) {
