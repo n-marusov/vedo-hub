@@ -1,0 +1,62 @@
+#!/bin/bash
+# @ctx: Compose smoke check for native stub domain services
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+COMPOSE_FILE="$ROOT_DIR/docker-compose.yaml"
+
+services=(
+  "frontend:3000"
+  "publish-browse-ui:3002"
+  "api-gateway:8080"
+  "auth-service:8081"
+  "ontology-service:8082"
+  "versioning-service:8083"
+  "metrics-service:8084"
+  "commenting-service:8085"
+  "publisher-service:8086"
+  "public-browse-api:8087"
+  "ticket-api:8088"
+  "ticket-classifier:8089"
+  "ticket-telemetry-listener:8090"
+  "ticket-notifier:8091"
+)
+
+docker compose -f "$COMPOSE_FILE" up -d --build
+
+deadline=$((SECONDS + 30))
+for target in "${services[@]}"; do
+  service="${target%%:*}"
+  port="${target##*:}"
+  echo "[SMOKE] waiting for $service on $port"
+  ok=0
+  while [ "$SECONDS" -lt "$deadline" ]; do
+    if curl -fsS "http://127.0.0.1:${port}/health" >/dev/null 2>&1; then
+      ok=1
+      break
+    fi
+    sleep 1
+  done
+  if [ "$ok" -ne 1 ]; then
+    echo "[SMOKE] FAIL: ${service} did not become healthy within 30s"
+    exit 1
+  fi
+done
+
+for target in "${services[@]}"; do
+  service="${target%%:*}"
+  port="${target##*:}"
+  payload="$(curl -fsS "http://127.0.0.1:${port}/")"
+  case "$payload" in
+    *'"name"'*'"version"'*'"stub"'* )
+      echo "[SMOKE] PASS: ${service} metadata fields present"
+      ;;
+    *)
+      echo "[SMOKE] FAIL: ${service} metadata missing required fields"
+      echo "$payload"
+      exit 1
+      ;;
+  esac
+done
+
+echo "[SMOKE] PASS: all domain services healthy with metadata"
