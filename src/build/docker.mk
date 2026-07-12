@@ -2,7 +2,7 @@
 # Builds Docker images for all service types using multi-stage Dockerfiles
 # Images tagged: vedo-core/<service>:latest
 
-include $(ROOT)/.env
+-include $(ROOT)/.env
 export
 
 DOCKER_DIR := $(ROOT)/docker

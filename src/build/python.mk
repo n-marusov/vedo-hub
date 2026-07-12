@@ -1,6 +1,6 @@
 # @ctx: Python build/lint/test rules — PLAT-LOCAL-002
 
-PYTHON_DIRS := $(shell find $(ROOT) -maxdepth 2 -name pyproject.toml -not -path "*/node_modules/*" -exec dirname {} \; 2>/dev/null | sort -u)
+PYTHON_DIRS := $(shell find $(ROOT) -maxdepth 4 -name pyproject.toml -not -path "*/node_modules/*" -not -path "*/templates/*" -exec dirname {} \; 2>/dev/null | sort -u)
 
 .PHONY: build-python
 build-python:
