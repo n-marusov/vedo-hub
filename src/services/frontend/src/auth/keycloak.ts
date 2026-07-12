@@ -18,8 +18,8 @@ interface JwtPayload {
 
 const DEFAULT_CONFIG: KeycloakConfig = {
   realm: 'vedo-core',
-  clientId: 'vedo-spa',
-  url: 'http://127.0.0.1:8443',
+  clientId: 'vedo-core-frontend',
+  url: 'http://localhost:8180',
   redirectUri: `${window.location.origin}/auth/callback`
 }
 

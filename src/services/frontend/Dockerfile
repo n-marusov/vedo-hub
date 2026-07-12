@@ -9,8 +9,8 @@ RUN echo "node-linker=hoisted" > .npmrc
 
 # @hlv:sec [SECRET_HANDLING] — Keycloak OIDC config passed via build args, baked into static bundle
 ARG VITE_KEYCLOAK_REALM=vedo-core
-ARG VITE_KEYCLOAK_CLIENT_ID=vedo-spa
-ARG VITE_KEYCLOAK_URL=http://127.0.0.1:8443
+ARG VITE_KEYCLOAK_CLIENT_ID=vedo-core-frontend
+ARG VITE_KEYCLOAK_URL=http://localhost:8180
 
 ENV VITE_KEYCLOAK_REALM=${VITE_KEYCLOAK_REALM}
 ENV VITE_KEYCLOAK_CLIENT_ID=${VITE_KEYCLOAK_CLIENT_ID}
