@@ -1,0 +1,22 @@
+site:
+  title: VEDO Core Docs
+  start_page: user-guide::index.adoc
+
+content:
+  sources:
+    - url: .
+      start_path: user-guide
+    - url: .
+      start_path: developer-guide
+    - url: .
+      start_path: admin-guide
+    - url: .
+      start_path: integrator-guide
+
+ui:
+  bundle:
+    url: https://gitlab.com/antora/antora-ui-default/-/releases/permalink/latest/downloads/ui-bundle.zip
+    snapshot: true
+
+output:
+  dir: ./build/site

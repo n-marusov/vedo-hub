@@ -1,7 +1,0 @@
-= integrator-guide nav
-* xref:index.adoc[Введение]
-* xref:rest-api.adoc[REST API]
-* xref:authentication.adoc[Аутентификация]
-* xref:webhooks.adoc[Вебхуки]
-* xref:sparql-endpoint.adoc[SPARQL Endpoint]
-* xref:integration-patterns.adoc[Паттерны интеграции]

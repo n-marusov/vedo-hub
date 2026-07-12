@@ -1,5 +1,0 @@
-name: integrator-guide
-title: Руководство интегратора VEDO Core
-version: 1.0
-nav:
-  - modules/ROOT/nav.adoc

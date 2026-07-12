@@ -1,5 +1,0 @@
-name: admin-guide
-title: Руководство администратора VEDO Core
-version: 1.0
-nav:
-  - modules/ROOT/nav.adoc

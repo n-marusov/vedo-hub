@@ -1,0 +1,7 @@
+= User Guide
+
+Welcome to the VEDO Core user guide.
+
+== Quick Start
+
+Use Docker Compose to start the local platform and open the frontend.

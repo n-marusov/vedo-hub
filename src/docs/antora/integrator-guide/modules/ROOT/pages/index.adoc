@@ -1,0 +1,7 @@
+= Integrator Guide
+
+Integration entry points, contracts, and environment assumptions.
+
+== API Surface
+
+External routes are exposed through API Gateway under `/api/v1`.

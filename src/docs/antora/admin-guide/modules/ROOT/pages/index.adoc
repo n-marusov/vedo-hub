@@ -1,0 +1,7 @@
+= Admin Guide
+
+Operational procedures, observability checks, and maintenance runbooks.
+
+== Offline Bundle
+
+Ensure static site artifacts are available for disconnected environments.

@@ -1,0 +1,5 @@
+name: developer-guide
+title: Developer Guide
+version: ~
+nav:
+  - modules/ROOT/nav.adoc
