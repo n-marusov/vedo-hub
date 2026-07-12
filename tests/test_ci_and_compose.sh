@@ -99,16 +99,23 @@ test_cli_integration() {
 
 run_all() {
     local failed=0
+    # NOTE: do NOT wrap "$test_fn" in `! ...` — under `set -e` the negation
+    # swallows the function's non-zero exit (bash pitfall) and the test loop
+    # proceeds without recording the failure. Capture the rc explicitly.
     for test_fn in $(declare -F | awk '{print $3}' | grep '^test_'); do
-        if ! "$test_fn"; then
-            echo "FAIL: $test_fn"
+        local rc=0
+        "$test_fn" || rc=$?
+        if [ "$rc" -ne 0 ]; then
+            echo "FAIL: $test_fn (exit $rc)"
             failed=$((failed + 1))
         else
             echo ""
         fi
     done
-    if ! bash "$ROOT_DIR/tests/test_native_stubs.sh"; then
-        echo "FAIL: test_native_stubs.sh"
+    local native_rc=0
+    bash "$ROOT_DIR/tests/test_native_stubs.sh" || native_rc=$?
+    if [ "$native_rc" -ne 0 ]; then
+        echo "FAIL: test_native_stubs.sh (exit $native_rc)"
         failed=$((failed + 1))
     fi
     echo "=== Results: $failed failures ==="

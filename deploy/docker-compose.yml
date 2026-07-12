@@ -136,6 +136,140 @@ services:
       <<: *healthcheck-defaults
       test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/8084; printf \"GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3; grep -q \"200 OK\" <&3'"]
 
+  # Publishing — Vue 3 viewer for published ontologies
+  publish-browse-ui:
+    build:
+      context: ../src/services/publish-browse-ui
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3002"
+    networks:
+      - vedo-network
+    # nginx:alpine — busybox wget, hit /health (served from public/health.json)
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3002/health"]
+
+  # Publishing — Rust publisher service
+  publisher-service:
+    build:
+      context: ../src/services/publisher-service
+    ports:
+      - "8086:8086"
+    environment:
+      - HOST=0.0.0.0
+      - SERVICE_PORT=8086
+    networks:
+      - vedo-network
+    # debian:bookworm-slim runtime has no wget/curl — use bash /dev/tcp
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/8086; printf \"GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3; grep -q \"200 OK\" <&3'"]
+
+  # Public browse — Rust public read-only API
+  public-browse-api:
+    build:
+      context: ../src/services/public-browse-api
+    ports:
+      - "8087:8087"
+    environment:
+      - HOST=0.0.0.0
+      - SERVICE_PORT=8087
+    depends_on:
+      publisher-service:
+        condition: service_healthy
+    networks:
+      - vedo-network
+    # debian:bookworm-slim runtime has no wget/curl — use bash /dev/tcp
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/8087; printf \"GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3; grep -q \"200 OK\" <&3'"]
+
+  # Commenting — Go service
+  commenting-service:
+    build:
+      context: ../src/services/commenting-service
+    ports:
+      - "8085:8085"
+    environment:
+      - HOST=0.0.0.0
+      - SERVICE_PORT=8085
+    networks:
+      - vedo-network
+    # alpine runtime has busybox wget
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8085/health"]
+
+  # Ticket domain — Go (Gin) API
+  ticket-api:
+    build:
+      context: ../src/services/ticket-api
+    ports:
+      - "8088:8088"
+    environment:
+      - STUB_PORT=8088
+      - APP_ENV=development
+      - APP_VERSION=0.2.0
+    networks:
+      - vedo-network
+    # Gin service reads STUB_PORT (not SERVICE_PORT) — alpine wget
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8088/health"]
+
+  # Ticket classifier — Python (reads SERVICE_PORT)
+  ticket-classifier:
+    build:
+      context: ../src/services/ticket-classifier
+    ports:
+      - "8089:8089"
+    environment:
+      - HOST=0.0.0.0
+      - SERVICE_PORT=8089
+    networks:
+      - vedo-network
+    # python:3.12-slim runtime has no wget/curl — use bash /dev/tcp
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/8089; printf \"GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3; grep -q \"200 OK\" <&3'"]
+
+  # Ticket telemetry listener — Go (Gin), reads STUB_PORT + CLASSIFIER_URL.
+  # Dockerfile copies ticket-api/ via go.mod replace -> build context = src/services/.
+  ticket-telemetry-listener:
+    build:
+      context: ../src/services
+      dockerfile: ticket-telemetry-listener/Dockerfile
+    ports:
+      - "8090:8090"
+    environment:
+      - STUB_PORT=8090
+      - CLASSIFIER_URL=http://ticket-classifier:8089
+    depends_on:
+      ticket-classifier:
+        condition: service_healthy
+    networks:
+      - vedo-network
+    # alpine runtime has busybox wget
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8090/health"]
+
+  # Ticket notifier — Go (Gin), reads STUB_PORT
+  ticket-notifier:
+    build:
+      context: ../src/services/ticket-notifier
+    ports:
+      - "8091:8091"
+    environment:
+      - STUB_PORT=8091
+    networks:
+      - vedo-network
+    # alpine runtime has busybox wget
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8091/health"]
+
   # Data Stores
   neo4j:
     image: neo4j:5.15-community
@@ -197,6 +331,25 @@ services:
       <<: *healthcheck-defaults
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
 
+  # Object storage (S3-compatible) for published ontology artifacts
+  minio:
+    image: minio/minio:RELEASE.2024-06-13T22-53-53Z
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - vedo-network
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "mc", "ready", "local"]
+      start_period: 10s
+
   # Vedu CLI build step (compile-only — not a daemon)
   vedo-cli-build:
     profiles: ["local", "ci"]
@@ -243,3 +396,4 @@ volumes:
   postgres_data:
   redis_data:
   rabbitmq_data:
+  minio_data:
