@@ -31,3 +31,4 @@ src/services/publish-browse-ui/dist/
 tests/e2e/playwright/test-results/
 **/debug/
 nul
+.playwright-mcp/
