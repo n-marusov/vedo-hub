@@ -1,0 +1,330 @@
+= Системные требования
+:toc: left
+:toclevels: 3
+:lang: ru
+
+== Поддерживаемые платформы
+
+=== Локальная разработка (Docker Compose)
+
+|===
+| Платформа | Архитектура | Поддержка
+
+| macOS
+| amd64, arm64
+| ✅ Полная
+
+| Linux
+| amd64, arm64
+| ✅ Полная
+
+| Windows
+| amd64
+| ✅ Полная (через WSL2)
+|===
+
+=== Production (Kubernetes)
+
+|===
+| Платформа | Версия K8s | Поддержка
+
+| Любой CNCF-совместимый Kubernetes
+| 1.27+
+| ✅
+
+| K3s (on-premise / edge)
+| 1.27+
+| ✅
+
+| Managed K8s (Yandex Cloud, AWS EKS)
+| 1.27+
+| ✅
+|===
+
+== Аппаратные требования
+
+=== Docker Compose (локальная разработка)
+
+|===
+| Ресурс | Минимально | Рекомендуется
+
+| CPU
+| 4 ядра
+| 8 ядер
+
+| RAM
+| 16 GB
+| 32 GB
+
+| Диск
+| 50 GB SSD
+| 100 GB SSD
+|===
+
+=== Kubernetes (production)
+
+[WARNING]
+====
+Указанные требования — для одного узла кластера. Для отказоустойчивости требуется минимум 3 узла (etcd quorum). Для production-развёртывания рекомендуется выделенный кластер.
+====
+
+|===
+| Компонент | CPU (запрос/лимит) | RAM (запрос/лимит) | Диск
+
+| API Gateway
+| 1 / 2
+| 1 GB / 2 GB
+| —
+
+| Ontology Service
+| 2 / 4
+| 4 GB / 8 GB
+| —
+
+| Versioning Service
+| 2 / 4
+| 4 GB / 8 GB
+| —
+
+| Auth Service
+| 1 / 2
+| 1 GB / 2 GB
+| —
+
+| Metrics Service
+| 1 / 2
+| 2 GB / 4 GB
+| —
+
+| xref:glossary.adoc#neo4j[Neo4j]
+| 4 / 8
+| 8 GB / 16 GB
+| 200 GB NVMe
+
+| xref:glossary.adoc#postgresql[PostgreSQL]
+| 4 / 8
+| 8 GB / 16 GB
+| 200 GB NVMe
+
+| xref:glossary.adoc#redis[Redis]
+| 2 / 4
+| 4 GB / 8 GB
+| 50 GB SSD
+
+| RabbitMQ
+| 1 / 2
+| 2 GB / 4 GB
+| 50 GB SSD
+
+| MinIO / S3-совместимое хранилище
+| 4 / 8
+| 8 GB / 16 GB
+| От 1 TB (зависит от данных)
+|===
+
+=== Требования к узлам Kubernetes
+
+|===
+| Тип узла | Минимум | Рекомендуется
+
+| Control plane
+| 2 vCPU, 4 GB RAM, 50 GB SSD
+| 4 vCPU, 8 GB RAM, 100 GB SSD
+
+| Worker (общий)
+| 4 vCPU, 16 GB RAM, 100 GB SSD
+| 8 vCPU, 32 GB RAM, 200 GB SSD
+
+| Worker (Neo4j/PostgreSQL)
+| 8 vCPU, 32 GB RAM, 500 GB NVMe
+| 16 vCPU, 64 GB RAM, 1 TB NVMe
+|===
+
+== Программные зависимости
+
+=== Для развёртывания
+
+|===
+| Зависимость | Версия | Назначение
+
+| Docker
+| 24+
+| Контейнеризация (локальная разработка)
+
+| Docker Compose
+| 2.20+
+| Оркестрация контейнеров локально
+
+| kubectl
+| 1.27+
+| Управление Kubernetes
+
+| Helm
+| 3.12+
+| Установка VEDO Core в K8s
+
+| xref:glossary.adoc#vedoCli[vedo-cli]
+| последняя
+| Администрирование платформы
+
+| OpenSSL
+| 3.0+
+| Управление TLS-сертификатами
+
+| Neo4j Enterprise (on-premise)
+| 5.x
+| Графовая БД (предоставляется клиентом)
+
+| PostgreSQL (on-premise)
+| 15+
+| Реляционная БД (предоставляется клиентом)
+
+| Redis (on-premise)
+| 7+
+| Кэш и блокировки
+
+| RabbitMQ (on-premise)
+| 3.12+
+| Message queue
+|===
+
+=== Для работы vedo-cli
+
+xref:glossary.adoc#vedoCli[vedo-cli] — single-binary, дополнительные зависимости не требуются.
+
+|===
+| Платформа | Бинарный артефакт
+
+| linux/amd64
+| `vedo-cli-linux-amd64`
+
+| linux/arm64
+| `vedo-cli-linux-arm64`
+
+| darwin/amd64
+| `vedo-cli-darwin-amd64`
+
+| darwin/arm64
+| `vedo-cli-darwin-arm64`
+
+| windows/amd64
+| `vedo-cli-windows-amd64.exe`
+|===
+
+== Сетевые требования
+
+=== Ingress (входящий трафик)
+
+|===
+| Порт | Назначение | Протокол | Источник
+
+| 443
+| HTTPS (API Gateway + SPA)
+| TCP/TLS
+| Клиенты, браузеры
+
+| 80
+| HTTP (редирект на HTTPS)
+| TCP
+| Клиенты
+
+| 22
+| SSH (управление, при необходимости)
+| TCP
+| Администраторы
+|===
+
+=== Egress (исходящий трафик)
+
+|===
+| Назначение | Протокол | Порты
+
+| xref:glossary.adoc#keycloak[Keycloak]
+| HTTPS
+| 443
+
+| SMTP-шлюз
+| SMTP/TLS
+| 587 / 465
+
+| GitLab Issues (опционально)
+| HTTPS
+| 443
+
+| Реестр образов (registry)
+| HTTPS
+| 443
+|===
+
+=== Межсервисное взаимодействие
+
+Для production-среды все внутренние коммуникации должны быть в изолированной сети Kubernetes.
+
+|===
+| Сервисы | Протокол | Порт
+
+| API Gateway ↔ сервисы
+| gRPC
+| 9090-9100
+
+| API Gateway ↔ xref:glossary.adoc#redis[Redis]
+| RESP
+| 6379
+
+| API Gateway ↔ RabbitMQ
+| AMQP
+| 5672
+
+| Ontology Service ↔ xref:glossary.adoc#neo4j[Neo4j]
+| Bolt
+| 7687
+
+| Versioning Service ↔ xref:glossary.adoc#postgresql[PostgreSQL]
+| PostgreSQL
+| 5432
+|===
+
+== Требования к хранилищу
+
+=== Persistent Volumes
+
+|===
+| Компонент | Storage Class | Размер (min) | I/O
+
+| Neo4j data
+| `ssd` / `nvme`
+| 200 GB
+| 5000+ IOPS
+
+| Neo4j logs
+| `ssd`
+| 50 GB
+| 2000+ IOPS
+
+| PostgreSQL data
+| `ssd` / `nvme`
+| 200 GB
+| 5000+ IOPS
+
+| PostgreSQL WAL
+| `ssd`
+| 50 GB
+| 3000+ IOPS
+
+| MinIO / S3 хранилище
+| `hdd` / `ssd`
+| 1 TB+
+| Зависит от нагрузки
+|===
+
+=== Рекомендации по PVC
+
+* Используйте `Retain` reclaim policy для данных БД
+* Настройте снапшоты volumes через CSI Driver
+* Для xref:glossary.adoc#wal[WAL] используйте отдельный том с более высоким IOPS
+* Рассмотрите использование Local SSDs для Neo4j и PostgreSQL в production
+
+[IMPORTANT]
+====
+Для WORM-хранилища и immutable backup требуется S3-совместимое хранилище с поддержкой Object Lock (MinIO Enterprise, AWS S3 Object Lock, Yandex Object Storage с версионированием).
+====

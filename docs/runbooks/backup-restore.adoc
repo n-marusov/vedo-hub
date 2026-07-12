@@ -1,0 +1,189 @@
+= Backup and Restore Operational Runbook
+:toc: left
+:toclevels: 3
+:contracts: BACKUP-001, MIG-ROLLBACK-001
+:owner: platform-team
+
+== Overview
+
+This runbook documents operational backup and restore procedures for VEDO Core.
+It covers scheduled backup execution, restore drills, backup purge lifecycle, and
+pre-migration backup verification.
+
+== Prerequisites
+
+* Authenticated operator with `platform/admin` role
+* Access to backup storage endpoints (varies by deployment model)
+* Pre-migration backup ID for rollback scenarios
+
+== Backup Operations
+
+=== Resolve Backup Policy
+
+`resolve_policy` returns retention, format, storage tier, and restore procedure
+for a given deployment model, data type, and backup class.
+
+.Input
+[source,yaml]
+deploymentModel: saas
+dataType: tbox
+backupClass: active
+
+.Output
+[source,yaml]
+retention: 90 days active + 1 year archive
+format: canonical Turtle (.ttl.gz)
+storageTier: primary_object_storage
+restoreProcedure: PITR plus canonical Turtle import
+
+=== Produce Backup
+
+1. Stop writes or place service in read-only mode.
+2. Execute backup per data-type format:
+   * *TBox:* Serialize to canonical Turtle (`.ttl.gz`)
+   * *ABox:* Full Neo4j dump + WAL/incremental logs
+   * *Version Store:* `pg_dump -Fc` + PostgreSQL WAL
+   * *LFS:* Raw files to versioned object storage
+   * *Audit Logs:* JSON-L format for inspection
+3. Verify backup artifact checksum and size.
+4. Replicate to storage tiers per 3-2-1 policy.
+
+== Restore Drills
+
+=== Local Restore (Primary Tier)
+
+. Place target services in read-only mode.
+. Select latest local fast-restore backup.
+. Restore per data-type procedure:
+   * TBox: Import canonical Turtle via ontology import endpoint
+   * ABox: Restore Neo4j dump + replay WAL for point-in-time
+   * Version Store: `pg_restore -Fc` + replay WAL
+   * LFS: Sync objects from versioned bucket
+. Run integrity checks (schema consistency, reference integrity, checksum verification).
+. Resume traffic when all checks pass.
+
+=== Off-Site / Cold Restore
+
+. Disable local fast-restore access to simulate total loss.
+. Select latest valid off-site or cold backup artifact.
+. Transfer artifact to restore environment:
+   * *SaaS / Private Cloud:* Download from primary object storage or S3-compatible endpoint
+   * *On-Premise:* Transfer from cold archive media
+   * *Air-Gapped:* Use local offline media (no public cloud dependency)
+. Perform restore steps from <<_local_restore_primary_tier>> steps 3-5.
+. Verify backup provenance (signature, manifest checksum).
+
+=== Fast Rollback (60-minute window)
+
+Available within 60 minutes of major-version upgrade execution.
+
+.Input
+[source,yaml]
+migrationId: mig-2026-05-v2
+sourceVersion: "1.4.0"
+targetVersion: "2.0.0"
+rollbackType: fast
+elapsedMinutesAfterUpgrade: 35
+preMigrationBackupId: bkp-123
+
+.Procedure
+
+. Confirm elapsed time <= 60 minutes.
+. Verify pre-migration backup `bkp-123` exists and passes integrity checks.
+. Place services in read-only mode.
+. Restore from pre-migration backup.
+. Run integrity checks.
+. Resume traffic.
+. Target RTO: 30-60 minutes.
+
+== Backup Purge Lifecycle
+
+=== Register Purge Request
+
+. Submit `register_backup_purge` with tenant context and jurisdiction.
+. System computes `earliestDeletionDate` based on SLA:
+   * GDPR SaaS: 30 days
+   * 152-ФЗ SaaS: 90 days
+   * Enterprise / On-Premise: by contract
+. Status set to `pending`.
+
+=== Dry-Run
+
+. Submit `run_backup_purge_dry_run`.
+. Report lists:
+   * *Eligible:* Artifacts past all retention and immutability windows
+   * *Blocked:* Artifacts with active retention, WAL chain dependency, unconfirmed geo-replicas, or cold archive locks
+
+=== Apply
+
+. Submit `run_backup_purge_apply`.
+. System deletes only eligible artifacts.
+. Immutable artifacts remain `pending` until retention expires.
+. Audit evidence emitted for deleted, pending, and failed artifacts.
+. +BACKUP_PURGE_EVIDENCE_MISSING+ returned if evidence collection fails.
+
+== Error Handling
+
+=== Backup Policy Errors
+
+|===
+| Error | HTTP | Action
+
+| BACKUP_POLICY_INVALID
+| 422
+| Review retention, format, and storage configuration per backup-retention.md
+
+| BACKUP_STORAGE_UNSAFE
+| 422
+| Separate backup credentials from primary datastore; enable versioning or overwrite protection
+
+| RESTORE_PROCEDURE_MISSING
+| 422
+| Document restore procedure for cold/off-site backup in backup-storage.md format
+
+| BACKUP_PURGE_NOT_ELIGIBLE
+| 409
+| Wait for immutable retention expiry; check `earliestDeletionDate`
+
+| BACKUP_PURGE_EVIDENCE_MISSING
+| 422
+| Re-run purge apply after ensuring audit sink is operational
+
+| UNAUTHORIZED
+| 401
+| Provide valid operator authentication
+
+| FORBIDDEN
+| 403
+| Request `platform/admin` role escalation
+|===
+
+=== Migration Rollback Errors
+
+|===
+| Error | HTTP | Action
+
+| PRE_MIGRATION_BACKUP_MISSING
+| 422
+| Locate pre-migration backup or recreate environment from snapshot
+
+| INTEGRITY_CHECK_FAILED
+| 409
+| Investigate restore corruption; do not resume traffic
+
+| LATE_ROLLBACK_REQUIRES_ESCALATION
+| 409
+| Escalate to platform leads; apply hotfix or manual migration path
+
+| ROLLBACK_WINDOW_EXPIRED
+| 409
+| Escalate; fast window is 60 minutes; use late rollback procedure
+
+| UNAUTHORIZED
+| 401
+| Provide valid operator authentication
+
+| FORBIDDEN
+| 403
+| Request `platform/admin` role escalation
+|===

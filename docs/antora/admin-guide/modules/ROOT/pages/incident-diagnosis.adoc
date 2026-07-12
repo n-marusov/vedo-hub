@@ -1,0 +1,82 @@
+= Диагностика инцидентов
+:description: Диагностика и устранение инцидентов VEDO Core через vedo-cli и OpenTelemetry
+:keywords: диагностика, инциденты, trace_id, MTTD, vedo-cli
+
+== Введение
+
+VEDO Core предоставляет инструменты для быстрой диагностики инцидентов через vedo-cli и OpenTelemetry stack.
+
+== Предварительные требования
+
+* Доступ к observability stack (Grafana, Tempo, Loki, Prometheus)
+* Установленный vedo-cli
+* Trace ID из P0/P1 алерта
+
+== Диагностика по trace ID
+
+[source,bash]
+----
+# Базовая диагностика
+vedo-cli diagnose trace --id abc123
+
+# Результат:
+# - Загрузка trace из Tempo
+# - Span с ошибкой
+# - Связанные логи из Loki
+# - Метрики CPU, memory, latency, error rate за время инцидента
+----
+
+== LLM-рекомендации
+
+При включённой политике окружения LLM diagnostics:
+
+[source,bash]
+----
+vedo-cli diagnose trace --id abc123 --recommend
+
+# vedo-cli:
+# 1. Маскирует секреты и PII
+# 2. Вызывает LLM для анализа
+# 3. Показывает конкретные рекомендации и команды
+----
+
+== MTTD цели
+
+| Уровень инцидента | Целевое MTTD |
+|------------------|--------------|
+| P0 | ≤ 10 минут |
+| P1 | ≤ 30 минут |
+
+== Runbook типичных инцидентов
+
+=== API Gateway недоступен
+
+. Проверка health endpoint:
++
+[source,bash]
+----
+curl -f http://api-gateway:8080/health
+----
+. Диагностика: `vedo-cli diagnose health --all`
+. При необходимости: `vedo-cli diagnose trace --id <trace_id>`
+
+=== Backup не прошёл verify
+
+. Проверка статуса: `vedo-cli backup list`
+. Повторная верификация: `vedo-cli backup verify --id <backup_id>`
+. При ошибке целостности: создать новый backup
+
+== Примеры
+
+=== Рабочий пример
+
+Получен P0-алерт "Ontology Service unavailable". Инженер выполняет:
+
+. `vedo-cli diagnose health --service ontology`
+. `vedo-cli diagnose trace --id <trace_id_from_alert>`
+. Получает span с ошибкой подключения к Neo4j
+. Перезапускает Neo4j: `vedo-cli emergency restart --service neo4j`
+
+=== Антипример
+
+Попытка диагностики без trace ID: система не может коррелировать данные из Tempo, Loki и Prometheus. Всегда сохраняйте trace ID из алерта.

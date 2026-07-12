@@ -1,0 +1,57 @@
+= Структура репозитория
+:description: Организация кодовой базы VEDO Core
+:keywords: репозиторий, структура, монорепозиторий
+
+== Введение
+
+VEDO Core использует монорепозиторий для хранения кода всех сервисов, документации и артефактов.
+
+== Основные директории
+
+[source]
+----
+vedo-core/
+├── .opencode/          # HLV-конфигурация агентов
+├── human/              # Человеческие артефакты
+│   ├── artifacts/      # Требования, архитектура, ADR
+│   ├── milestones/     # Планы, контракты, тест-спеки
+│   ├── constraints/    # Ограничения (observability, security, performance)
+│   └── glossary.yaml   # Глоссарий терминов
+├── services/           # Микросервисы
+│   ├── api-gateway/    # Go/gin
+│   ├── auth-service/   # Go/gin
+│   ├── ontology-service/  # Rust/actix-web
+│   ├── versioning-service/ # Rust/actix-web
+│   ├── metrics-service/    # Python/FastAPI
+│   ├── commenting-service/ # Go
+│   ├── publisher-service/  # Rust/actix-web
+│   ├── public-browse-api/  # Rust/actix-web
+│   ├── ticket-api/         # Go
+│   └── ...
+├── frontend/           # Vue 3 SPA
+├── cli/                # vedo-cli (Go)
+├── helm-chart/         # Helm charts
+├── docs/               # Документация
+│   ├── antora/         # Antora-компоненты
+│   │   ├── user-guide/
+│   │   ├── developer-guide/
+│   │   ├── admin-guide/
+│   │   └── integrator-guide/
+│   └── ...
+├── design/             # Pencil.dev дизайн-файлы (.pen)
+└── k8s/                # Kubernetes манифесты по окружениям
+    ├── dev/
+    ├── staging/
+    └── prod/
+----
+
+== Политика языка заглушек
+
+Каждый сервис, включая заглушки (stubs), реализуется на том же языке и фреймворке, что и его production-версия. Исключение: инфраструктурные сервисы (PostgreSQL, Neo4j, Redis и др.) остаются официальными Docker-образами.
+
+== Git-ветки
+
+* `main` — стабильная версия
+* `dev` — интеграционная ветка
+* `feature/*` — функциональные ветки
+* `fix/*` — исправления

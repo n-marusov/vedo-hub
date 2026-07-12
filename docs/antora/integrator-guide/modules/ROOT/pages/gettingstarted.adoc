@@ -1,0 +1,126 @@
+= Начало работы
+:description: Получение доступа к API VEDO Core, аутентификация и первый запрос.
+:toc: left
+:toclevels: 2
+
+== Регистрация и получение доступа
+
+Для доступа к API VEDO Core необходимо:
+
+. Зарегистрироваться в системе VEDO Core (через веб-интерфейс или по обращению к администратору)
+. Получить учётную запись в Keycloak (realm `vedo-core`)
+. Запросить доступ к конкретной онтологии (онтологии) у владельца
+
+После регистрации вы сможете получить xref:glossary.adoc#jwt[JWT-токен] для доступа к API.
+
+== Получение JWT-токена через Keycloak
+
+=== Authorization Code Flow (рекомендуется для веб-приложений)
+
+Для веб-приложений используйте стандартный OAuth2 Authorization Code Flow с PKCE.
+
+=== Client Credentials Flow (для M2M-интеграций)
+
+Для серверных интеграций и автоматизации используйте Client Credentials Flow:
+
+[source,bash]
+----
+curl -X POST https://keycloak.vedo.local/realms/vedo-core/protocol/openid-connect/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "client_id=vedo-api-client" \
+  -d "client_secret=<your-client-secret>" \
+  -d "grant_type=client_credentials"
+----
+
+Ответ содержит access_token:
+
+[source,json]
+----
+{
+  "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expires_in": 3600,
+  "token_type": "Bearer"
+}
+----
+
+=== Resource Owner Password Grant (для доверенных клиентов)
+
+Для CLI-инструментов и скриптов:
+
+[source,bash]
+----
+curl -X POST https://keycloak.vedo.local/realms/vedo-core/protocol/openid-connect/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "client_id=vedo-cli" \
+  -d "username=<username>" \
+  -d "password=<password>" \
+  -d "grant_type=password"
+----
+
+[NOTE]
+====
+ROPG не рекомендуется для сторонних приложений. Для production-интеграций используйте Client Credentials или Authorization Code Flow.
+====
+
+== Первый API-запрос
+
+После получения токена выполните запрос к API для получения списка классов онтологии:
+
+[source,bash]
+----
+curl -X GET https://api.vedo.local/api/v1/ontologies/{ontologyId}/classes \
+  -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -H "Accept: application/json"
+----
+
+Ожидаемый ответ:
+
+[source,json]
+----
+{
+  "data": [
+    {
+      "id": "http://example.org/onto#Person",
+      "label": "Person",
+      "description": "A person entity",
+      "type": "class",
+      "abstract": false,
+      "deprecated": false,
+      "parents": ["http://example.org/onto#Agent"],
+      "children_count": 5
+    }
+  ],
+  "pagination": {
+    "endCursor": "cursor_abc123",
+    "hasNextPage": false
+  }
+}
+----
+
+== Проверка работоспособности
+
+Для проверки доступности API используйте health-check endpoint:
+
+[source,bash]
+----
+curl -X GET https://api.vedo.local/api/v1/health
+----
+
+Ответ:
+
+[source,json]
+----
+{
+  "status": "ok",
+  "version": "1.0.0",
+  "uptime_seconds": 123456
+}
+----
+
+== Следующие шаги
+
+* Изучите xref:api-reference.adoc[справочник API] для полного перечня endpoint'ов
+* Ознакомьтесь с xref:sparql.adoc[SPARQL endpoint] для семантических запросов
+* Настройте xref:webhooks.adoc[вебхуки] для получения событий в реальном времени
+* Изучите xref:examples.adoc[примеры интеграции] для типовых сценариев
+* Полный перечень лимитов — xref:limits.adoc[Лимиты и квоты]

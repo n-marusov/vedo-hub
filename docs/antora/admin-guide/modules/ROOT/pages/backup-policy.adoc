@@ -1,0 +1,309 @@
+= Политика резервного копирования
+:toc: left
+:toclevels: 3
+:lang: ru
+
+== Стратегия 3-2-1
+
+VEDO Core реализует стратегию xref:glossary.adoc#threeTwoOne[3-2-1]:
+
+* **3 копии** данных (primary, local backup, off-site backup)
+* **2 разных носителя** (SSD/NVMe для primary, S3-объектное хранилище для backup)
+* **1 копия off-site** (географически удалённое хранилище или WORM-архив)
+
+=== Схема хранения
+
+[source]
+----
+Primary Storage (Neo4j + PostgreSQL)
+       │
+       ├── Local Backup (MinIO/S3) ← 90 дней retention
+       │       │
+       │       └── WORM Archive (Object Lock) ← 1 год+ retention
+       │
+       └── Off-Site Replica (S3, другой регион)
+               │
+               └── Cold Archive (WORM, geo) ← срок по юрисдикции
+----
+
+== Форматы резервных копий
+
+|===
+| Тип данных | Формат | Инструмент
+
+| TBox
+| Canonical Turtle (.ttl.gz)
+| `vedo-cli backup create`
+
+| ABox
+| Neo4j dump + WAL/incremental logs
+| `neo4j-admin dump`
+
+| Version Store
+| pg_dump -Fc + PostgreSQL WAL
+| `pg_dump`
+
+| LFS
+| Versioned object storage
+| S3 sync
+
+| Audit Logs
+| JSON-L
+| `vedo-cli support audit-trail`
+|===
+
+== RTO / RPO Targets
+
+|===
+| Сценарий | xref:glossary.adoc#rto[RTO] | xref:glossary.adoc#rpo[RPO] | Примечание
+
+| Fast rollback (upgrade)
+| 30-60 минут
+| ≤ 1 минута
+| Pre-migration backup
+
+| Standard restore (local)
+| 4 часа
+| 15 минут
+| Последний backup + WAL
+
+| Off-site restore
+| 8 часов
+| 24 часа
+| Перенос из cold storage
+
+| Full DR (total loss)
+| 24 часа
+| 24 часа
+| Восстановление из geo-реплики
+
+| PITR (point-in-time)
+| 4-8 часов
+| 0 (на момент)
+| WAL replay
+|===
+
+== Retention Policy
+
+=== Active backups (S3 Standard)
+
+|===
+| Тип backup | Retention | Частота
+
+| Full (ежедневный)
+| 90 дней
+| Ежедневно в 02:00
+
+| Incremental
+| 14 дней
+| Каждые 4 часа
+
+| Weekly full
+| 6 месяцев
+| Еженедельно (воскресенье)
+
+| Monthly full
+| 1 год
+| Ежемесячно (1-е число)
+|===
+
+=== Archive (WORM / Cold)
+
+|===
+| Тип | Retention | Назначение
+
+| Compliance archive
+| Срок согласно юрисдикции
+| GDPR: 3 года, 152-ФЗ: 6 лет
+
+| Monthly snapshot
+| 3 года
+| Долговременное хранение
+
+| Audit logs
+| 3-6 лет (по юрисдикции)
+| Compliance evidence
+|===
+
+=== Pre-migration backups
+
+|===
+| Тип | Retention | Назначение
+
+| Pre-major-upgrade
+| 30 дней
+| Fast rollback после обновления
+
+| Pre-migration (patch)
+| 7 дней
+| Откат миграции схемы
+|===
+
+== Неизменяемые резервные копии (WORM)
+
+xref:glossary.adoc#worm[WORM] (Write Once Read Many) реализуется через Object Lock в S3/MinIO.
+
+=== Настройка
+
+[source,yaml]
+----
+immutable_backup:
+  enabled: true
+  mode: governance  # или compliance
+  retention_days: 365
+  storage_class: WORM
+----
+
+=== Режимы Object Lock
+
+|===
+| Режим | Описание
+
+| Governance
+| Администратор может снять блокировку при наличии специальных прав
+
+| Compliance
+| Блокировка не может быть снята никем, включая root-пользователя
+|===
+
+=== Защита WORM-данных
+
+* Изолированные S3 credentials (не пересекаются с primary storage)
+* Retention period устанавливается на уровне bucket (min 365 дней)
+* Compliance evidence хранится в WORM с retention по юрисдикции
+
+[IMPORTANT]
+====
+WORM-хранилище использует отдельные credentials, не пересекающиеся с primary storage. Это исключает случайное или злонамеренное удаление compliance-копий.
+====
+
+== Backup Purge Lifecycle
+
+xref:glossary.adoc#backupRetention[Процесс удаления] устаревших backup:
+
+=== 1. Регистрация запроса
+
+[source,bash]
+----
+vedo-cli backup purge-request \
+  --tenant tnt-abc123 \
+  --jurisdiction gdpr
+----
+
+Система вычисляет `earliestDeletionDate`:
+* GDPR SaaS: 30 дней
+* 152-ФЗ SaaS: 90 дней
+* Enterprise / On-Premise: по контракту
+
+### 2. Dry-Run
+
+[source,bash]
+----
+vedo-cli decommission plan --tenant tnt-abc123
+----
+
+Отчёт показывает:
+* **Eligible** — артефакты, готовые к удалению
+* **Blocked** — артефакты с активным retention, WAL chain dependency, неподтверждённые geo-реплики, cold archive locks
+
+=== 3. Apply
+
+[source,bash]
+----
+vedo-cli decommission --purge-data
+----
+
+* Система удаляет только eligible артефакты
+* Immutable артефакты остаются `pending` до истечения retention
+* Audit evidence для deleted, pending, failed артефактов
+
+[CAUTION]
+====
+Операция purge необратима. Требуется cool-down период (G4), полный backup и подтверждение экспорта данных.
+====
+
+== Верификация backup
+
+=== Автоматическая верификация
+
+xref:glossary.adoc#immutableBackup[Верификация] выполняется автоматически после каждого backup:
+
+* Проверка checksum артефакта
+* Проверка размера
+* Spot check: случайная выборка данных на читаемость
+* Совместимость версии
+
+=== Ручная верификация
+
+[source,bash]
+----
+vedo-cli backup verify --id bkp-20260520
+
+# Результат:
+# ✅ Integrity check passed
+# ✅ Version compatibility: OK
+# ✅ Spot check: 5/5 samples readable
+# ✅ Size: 2.4 GB (expected)
+# 📊 Estimated RTO: 45 min (standard restore)
+----
+
+=== Drill: учебное восстановление
+
+Периодические тренировки по восстановлению (xref:glossary.adoc#drill[drill]):
+
+[source,bash]
+----
+# Seed tenant для drill
+vedo-cli tenant seed --profile canonical
+
+# Backup drill-тенанта
+vedo-cli backup create --full --label "drill-$(date +%Y%m%d)"
+
+# Restore drill
+vedo-cli restore --id drill-backup-id
+
+# Проверка
+vedo-cli diagnose
+----
+
+== Обработка ошибок
+
+|===
+| Ошибка | HTTP | Действие
+
+| BACKUP_POLICY_INVALID
+| 422
+| Проверить retention, format, storage config
+
+| BACKUP_STORAGE_UNSAFE
+| 422
+| Разделить backup credentials и primary storage
+
+| RESTORE_PROCEDURE_MISSING
+| 422
+| Документировать restore procedure для cold/off-site backup
+
+| BACKUP_PURGE_NOT_ELIGIBLE
+| 409
+| Дождаться истечения immutable retention
+
+| BACKUP_PURGE_EVIDENCE_MISSING
+| 422
+| Повторить purge после проверки audit sink
+
+| PRE_MIGRATION_BACKUP_MISSING
+| 422
+| Найти pre-migration backup или recreate из snapshot
+
+| INTEGRITY_CHECK_FAILED
+| 409
+| Не возобновлять трафик до расследования
+
+| LATE_ROLLBACK_REQUIRES_ESCALATION
+| 409
+| Эскалировать; применить hotfix или manual migration
+
+| ROLLBACK_WINDOW_EXPIRED
+| 409
+| Эскалировать; fast window 60 минут
+|===

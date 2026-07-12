@@ -1,0 +1,10 @@
+site:
+  title: VEDO Core — Руководство интегратора
+  url: https://example.com/docs/integrator
+content:
+  sources:
+    - url: ./
+      branches: HEAD
+      start_path: docs/antora/integrator-guide
+output:
+  dir: ./build/site/integrator-guide

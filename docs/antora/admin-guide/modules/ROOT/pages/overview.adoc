@@ -1,0 +1,157 @@
+= Обзор системы
+:toc: left
+:toclevels: 3
+:lang: ru
+
+== Назначение
+
+VEDO Core — веб-платформа для многопользовательского редактирования онтологий (графов знаний) с поддержкой до 1 млн аксиом. Предоставляет Git-подобное версионирование, параллельную работу через ветки, REST API для интеграции и xref:glossary.adoc#vedoCli[CLI-утилиту] администрирования.
+
+== Ключевые возможности
+
+* Отклик интерфейса < 1 сек (p95) при работе с крупными онтологиями; p99 < 2 сек
+* Git-подобное управление версиями (коммиты, ветки, слияния, diff) через собственный xref:glossary.adoc#versioningService[Versioning Service]
+* Коллаборация (блокировки узлов, комментарии, уведомления) через WebSocket
+* REST API для интеграции с отраслевыми решениями
+* Импорт/экспорт в форматах Turtle, RDF/XML, OWL
+* Multi-tenant архитектура с изоляцией данных
+* xref:glossary.adoc#keycloak[Keycloak]-интеграция для аутентификации и RBAC
+
+== Архитектура для администратора
+
+=== Микросервисы
+
+Система состоит из следующих микросервисов, развёртываемых в Kubernetes:
+
+|===
+| Сервис | Язык | Назначение | Production реплик
+
+| API Gateway
+| Go
+| Единая точка входа, JWT-валидация, маршрутизация, rate limiting
+| 2+
+
+| Ontology Service
+| Rust
+| CRUD над графом онтологии, валидация OWL 2 DL
+| 3+
+
+| Versioning Service
+| Rust
+| Коммиты, ветки, слияния, Merge Requests
+| 3+
+
+| Auth Service
+| Go
+| JWT, OAuth2, сессии
+| 2+
+
+| Metrics Service
+| Python
+| Сбор метрик RED-метода
+| 2+
+
+| Publisher Service
+| Rust
+| Снапшоты, публикация онтологий
+| 2+
+
+| Ticket API
+| Go
+| Система тикетов (CRUD, жизненный цикл)
+| 2+
+
+| Commenting Service
+| Go
+| Комментарии к сущностям, WebSocket
+| 2+
+|===
+
+=== Слой данных
+
+|===
+| Компонент | Назначение | Production
+
+| xref:glossary.adoc#neo4j[Neo4j]
+| Primary Triple Store (TBox + ABox)
+| 3 core + 2 read replica
+
+| xref:glossary.adoc#postgresql[PostgreSQL]
+| Version Store (коммиты, ветки, дельты JSONB)
+| Primary + 2 standby
+
+| Support DB
+| Support metadata, break-glass audit
+| Multi-AZ кластер
+
+| xref:glossary.adoc#redis[Redis Cluster]
+| Кэш, блокировки, Pub/Sub
+| 3 master + 3 replica
+
+| xref:glossary.adoc#minio[MinIO] / S3
+| Хранилище реплик (WAL, снапшоты)
+| HA с Object Lock
+
+| Vault / KMS
+| Управление ключами и секретами
+| HA
+|===
+
+== Модели развёртывания
+
+=== SaaS (Cloud)
+
+VEDO Core развёртывается в облачном Kubernetes-кластере (Yandex Cloud / AWS). Модель multi-tenant с изолированными БД для каждого тенанта на уровне Support DB.
+
+Характеристики:
+* Полностью управляемая инфраструктура
+* Автоматическое резервное копирование по 3-2-1 стратегии
+* Все компоненты мониторинга (Grafana + Prometheus + Loki + Tempo)
+* WORM для compliance-копий
+* Автоматическое обновление версий
+
+=== On-Premise (Enterprise)
+
+Развёртывание на инфраструктуре клиента. VEDO Core поставляется как Helm-чарт для Kubernetes.
+
+Характеристики:
+* Клиент предоставляет Kubernetes-кластер, БД (Neo4j Enterprise, PostgreSQL), хранилище
+* xref:glossary.adoc#byol[BYOL] для стороннего ПО
+* xref:glossary.adoc#keycloak[Keycloak] клиента или встроенный
+* Поддержка xref:glossary.adoc#ldap[LDAP/AD] синхронизации
+* Кастомизация темы, логотипа через customer-overrides
+
+=== Air-gapped
+
+Развёртывание в изолированном контуре без доступа к Internet.
+
+Характеристики:
+* Доставка образов через `vedo-cli airgap prepare`
+* Offline-сканирование уязвимостей (SCA) с локальными advisory databases
+* Локальный реестр образов
+* Полная автономность без внешних зависимостей
+
+== Область администрирования
+
+Типовые задачи администратора включают:
+
+* Развёртывание и обновление платформы
+* Настройка xref:glossary.adoc#keycloak[Keycloak] (realm, клиенты, пользователи, роли)
+* Управление резервным копированием и восстановлением
+* Мониторинг и реагирование на инциденты
+* Управление тенантами (seed, rename, restore, delete)
+* Управление TLS-сертификатами
+* Проведение миграций схем версионирования
+* Управление emergency-доступом (break-glass)
+* Управление compliance evidence
+* xref:glossary.adoc#sca[SCA]-сканирование и управление SBOM
+
+== Интеграции
+
+VEDO Core интегрируется с:
+* **Keycloak** — Identity Provider (OAuth2/OIDC)
+* **Grafana Stack** — Prometheus, Loki, Tempo
+* **GitLab Issues** — двусторонняя синхронизация тикетов
+* **Git-репозиторий** — экспорт онтологий
+* **SMTP-шлюз** — почтовые уведомления
+* **LDAP/AD** — синхронизация пользователей (on-premise)

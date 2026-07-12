@@ -1,0 +1,263 @@
+= Масштабирование и отказоустойчивость
+:toc: left
+:toclevels: 3
+:lang: ru
+
+== Горизонтальное масштабирование
+
+=== API Gateway
+
+xref:glossary.adoc#apiGateway[API Gateway] — stateless сервис, масштабируется горизонтально через увеличение replicaCount.
+
+[source,bash]
+----
+kubectl scale deployment/api-gateway --replicas=5 -n vedo-system
+----
+
+=== Ontology Service
+
+xref:glossary.adoc#ontologyService[Ontology Service] — stateless (кэш в Redis). Масштабируется горизонтально.
+
+[source,bash]
+----
+kubectl scale deployment/ontology-service --replicas=5 -n vedo-system
+----
+
+[NOTE]
+====
+Увеличение реплик Ontology Service улучшает пропускную способность read-запросов, но write-операции ограничены производительностью Neo4j.
+====
+
+=== Versioning Service
+
+xref:glossary.adoc#versioningService[Versioning Service] — stateless. Масштабируется аналогично Ontology Service.
+
+== Вертикальное масштабирование (Resource Tuning)
+
+|===
+| Компонент | Рекомендуемый лимит | Признак необходимости увеличения
+
+| API Gateway
+| 2 vCPU / 2 GB RAM
+| p95 latency > 200ms, Connection timeouts
+
+| Ontology Service
+| 4 vCPU / 8 GB RAM
+| Медленные graph traversal, cache miss ratio > 20%
+
+| Versioning Service
+| 4 vCPU / 8 GB RAM
+| Медленные commit/merge операции
+
+| Neo4j
+| 8 vCPU / 16 GB RAM
+| Высокая загрузка CPU, медленные запросы
+
+| PostgreSQL
+| 8 vCPU / 16 GB RAM
+| Медленные WAL записи, высокая загрузка диска
+|===
+
+== Neo4j Clustering
+
+=== Архитектура
+
+xref:glossary.adoc#neo4j[Neo4j] развёртывается в кластерной конфигурации:
+* 3 core nodes (raft quorum)
+* 2 read replica nodes
+
+=== Рекомендации
+
+* Core nodes должны быть в разных availability zones
+* Используйте локальные NVMe SSD для core nodes
+* Read replicas могут использовать сетевое хранилище
+* Минимизируйте latency между core nodes (< 5ms RTT)
+
+=== Масштабирование чтения
+
+[source,bash]
+----
+# Добавление read replica
+kubectl scale statefulset/neo4j-read-replica --replicas=3 -n vedo-system
+----
+
+=== Проверка состояния кластера
+
+[source,bash]
+----
+kubectl exec -it statefulset/neo4j -n vedo-system -- \
+  cypher-shell "CALL dbms.cluster.overview()"
+----
+
+== PostgreSQL Replication
+
+=== Архитектура
+
+xref:glossary.adoc#postgresql[PostgreSQL] использует streaming replication:
+* 1 primary (read/write)
+* 2 synchronous standby
+* WAL-архивирование в S3/MinIO
+
+=== Failover
+
+[source,bash]
+----
+# Проверка статуса репликации
+kubectl exec -it statefulset/postgresql-0 -n vedo-system -- \
+  psql -c "SELECT * FROM pg_stat_replication;"
+
+# Promotion standby to primary
+kubectl exec -it statefulset/postgresql-1 -n vedo-system -- \
+  pg_ctl promote
+----
+
+=== PITR (Point-in-Time Recovery)
+
+xref:glossary.adoc#pitr[PITR] использует комбинацию полного backup + WAL-архива для восстановления на любой момент времени.
+
+[source,bash]
+----
+# Восстановление на момент времени
+pg_ctl start -D /var/lib/postgresql/data \
+  -o "-c recovery_target_time='2026-05-20 14:30:00'
+      -c restore_command='aws s3 cp s3://wal-archive/%f %p'"
+----
+
+== Redis Cluster
+
+=== Архитектура
+
+xref:glossary.adoc#redis[Redis Cluster]:
+* 3 master nodes (шардирование)
+* 3 replica nodes (отказоустойчивость)
+* Автоматический failover при отказе мастера
+
+=== Проверка кластера
+
+[source,bash]
+----
+redis-cli -h redis-service -p 6379 cluster info
+redis-cli -h redis-service -p 6379 cluster nodes
+----
+
+=== Тюнинг памяти
+
+Установите `maxmemory-policy allkeys-lru` для production. Настройте `maxmemory` под доступный RAM узла.
+
+== Multi-AZ Deployment
+
+=== Требования
+
+* Kubernetes кластер, распределённый по 3 availability zones
+* Топология StatefulSet с pod anti-affinity
+* Использование topology spread constraints
+
+=== Конфигурация
+
+[source,yaml]
+----
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: DoNotSchedule
+
+podAntiAffinity:
+  requiredDuringScheduling:
+    - labelSelector:
+        matchLabels:
+          app: neo4j
+      topologyKey: topology.kubernetes.io/zone
+----
+
+== Geo-репликация
+
+=== Назначение
+
+xref:glossary.adoc#geoReplication[Geo-репликация] обеспечивает:
+* Disaster recovery между регионами (> 100 км)
+* Снижение latency для географически распределённых команд
+* Соответствие требованиям data residency
+
+=== Passive Geo-Replica
+
+. Настройка passive реплики во втором регионе
+. Асинхронная репликация данных (Neo4j, PostgreSQL)
+. Регулярные verify drills реплики
+. При failover — promotion реплики до primary
+
+[WARNING]
+====
+Geo-репликация является DR-стратегией, не заменяет backup. RPO для geo-реплики зависит от задержки между регионами.
+====
+
+== Failover Procedures
+
+=== Плановый failover
+
+.Procedure
+
+. Уведомить пользователей о maintenance window
+. Перевести систему в read-only режим:
++
+[source,bash]
+----
+vedo-cli emergency readonly
+----
+. Выполнить switchover БД (Neo4j, PostgreSQL, Redis)
+. Перенаправить DNS на второй регион
+. Разогреть кэш в регионе восстановления:
++
+[source,bash]
+----
+vedo-cli cache warmup
+----
+. Снять read-only режим
+
+=== Аварийный failover
+
+.Procedure
+
+. Определить, что регион недоступен
+. Выполнить диагностику региона:
++
+[source,bash]
+----
+vedo-cli diagnose region --region eu-central-1
+----
+. Promote реплик до primary:
++
+[source,bash]
+----
+kubectl exec -it statefulset/neo4j-replica -n vedo-system -- \
+  neo4j-admin cluster designate --role CORE
+
+kubectl exec -it statefulset/postgresql-replica -n vedo-system -- \
+  pg_ctl promote
+----
+. Перенаправить трафик
+. Разогреть кэш:
++
+[source,bash]
+----
+vedo-cli cache warmup
+----
+. Проверить работоспособность:
++
+[source,bash]
+----
+vedo-cli diagnose
+----
+
+=== Восстановление после failover
+
+.Procedure
+
+. Восстановить исходный регион
+. Настроить репликацию обратно (теперь оригинальный регион становится репликой)
+. Выполнить verify drill
+. При необходимости — обратный failover
+
+[IMPORTANT]
+====
+После аварийного failover выполните полный backup новой primary и проверку целостности. Документируйте время начала и окончания инцидента.
+====

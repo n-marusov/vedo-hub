@@ -1,0 +1,65 @@
+= Миграции
+:description: Миграции схем Neo4j и PostgreSQL с поддержкой rollback
+:keywords: миграции, schema, rollback, Neo4j, PostgreSQL
+
+== Введение
+
+VEDO Core поддерживает идемпотентные миграции схем Neo4j и PostgreSQL с возможностью отката.
+
+== Предварительные требования
+
+* Verified pre-migration backup
+* Идемпотентные миграции Neo4j и PostgreSQL
+* Права на выполнение миграций
+
+== Применение миграции
+
+[source,bash]
+----
+# Выполнение миграции
+vedo-cli migrate apply --version 2.0.0
+
+# Система выполняет:
+# 1. Миграции Neo4j и PostgreSQL
+# 2. Integrity checks после миграции
+# 3. Фиксация в audit log
+----
+
+== Откат миграции
+
+[source,bash]
+----
+# Откат при ошибке
+vedo-cli migrate rollback --to pre-migration
+
+# Система:
+# 1. Восстанавливается из pre-migration backup
+# 2. Выполняет post-restore verification
+# 3. Подтверждает целостность
+----
+
+== Управление миграциями
+
+[source,bash]
+----
+# Просмотр истории миграций
+vedo-cli migrate history
+
+# Статус текущей миграции
+vedo-cli migrate status
+----
+
+== Примеры
+
+=== Рабочий пример
+
+Обновление схемы с версии 1.0 до 2.0:
+
+. `vedo-cli backup create --full --name before-migrate-v2`
+. `vedo-cli migrate apply --version 2.0.0`
+. Проверка работоспособности
+. При ошибке: `vedo-cli migrate rollback --to pre-migration`
+
+=== Антипример
+
+Применение миграции без предварительного backup. В случае сбоя восстановление будет невозможно без полной переустановки. Всегда создавайте verified backup перед миграцией.

@@ -1,0 +1,68 @@
+= Резервное копирование и восстановление
+:description: Стратегия backup/restore VEDO Core, RTO/RPO политики
+:keywords: backup, restore, RTO, RPO, WORM, immutable
+
+== Введение
+
+VEDO Core реализует многоуровневую стратегию резервного копирования с WORM-совместимыми immutable backup и drill-тестами восстановления.
+
+== Предварительные требования
+
+* Установленный vedo-cli
+* Настроенное S3/MinIO-compatible хранилище
+* Доступ к Vault/KMS для управления ключами
+
+== Типы backup
+
+| Тип | Состав | Частота |
+|-----|--------|---------|
+| Full | TBox (canonical Turtle) + ABox (Neo4j dump) + WAL | Ежедневно |
+| Incremental | WAL или инкрементальные логи | Каждые 6 часов |
+| Immutable | Full backup в WORM-хранилище | Ежедневно |
+
+== Создание backup
+
+[source,bash]
+----
+# Полный backup
+vedo-cli backup create --full --name pre-upgrade
+
+# Проверка backup
+vedo-cli backup verify --id <backup-id>
+
+# Просмотр списка backup
+vedo-cli backup list
+----
+
+== Восстановление
+
+=== RTO/RPO политика
+
+| Метрика | Целевое значение |
+|---------|-----------------|
+| RTO (Recovery Time Objective) | 2-4 часа |
+| RPO (Recovery Point Objective) | 1 час (инкрементальный) |
+
+=== Восстановление из backup
+
+[source,bash]
+----
+# Restore полного backup
+vedo-cli backup restore --id <backup-id>
+
+# Point-in-Time Recovery
+vedo-cli backup restore-pitr --timestamp "2026-05-20T14:30:00Z"
+----
+
+== Immutable backup
+
+Immutable backup хранятся в S3/MinIO с WORM (Write Once, Read Many) и Object Lock. Изолированные credentials не позволяют удалить или изменить backup даже администратору.
+
+[WARNING]
+====
+Immutable backup нельзя удалить до истечения срока retention. Планируйте retention policy с запасом. Поведение может измениться без предупреждения.
+====
+
+== Аудит
+
+Все операции backup/restore протоколируются в audit log с указанием actor, timestamp, backup_id и результата верификации.

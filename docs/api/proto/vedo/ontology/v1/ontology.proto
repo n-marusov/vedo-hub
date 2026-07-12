@@ -1,0 +1,293 @@
+syntax = "proto3";
+
+package vedo.ontology.v1;
+
+import "vedo/shared/v1/common.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/vedo-core/ontology/v1;ontologyv1";
+option java_package = "com.vedo.core.ontology.v1";
+option java_multiple_files = true;
+
+service OntologyService {
+  rpc GetGraphView(GetGraphViewRequest) returns (GetGraphViewResponse);
+  rpc GetClass(GetClassRequest) returns (GetClassResponse);
+  rpc ListClasses(ListClassesRequest) returns (ListClassesResponse);
+  rpc CreateClass(CreateClassRequest) returns (CreateClassResponse);
+  rpc UpdateClass(UpdateClassRequest) returns (UpdateClassResponse);
+  rpc DeleteClass(DeleteClassRequest) returns (DeleteClassResponse);
+  rpc GetProperty(GetPropertyRequest) returns (GetPropertyResponse);
+  rpc ListProperties(ListPropertiesRequest) returns (ListPropertiesResponse);
+  rpc CreateProperty(CreatePropertyRequest) returns (CreatePropertyResponse);
+  rpc UpdateProperty(UpdatePropertyRequest) returns (UpdatePropertyResponse);
+  rpc DeleteProperty(DeletePropertyRequest) returns (DeletePropertyResponse);
+  rpc GetIndividual(GetIndividualRequest) returns (GetIndividualResponse);
+  rpc ListIndividuals(ListIndividualsRequest) returns (ListIndividualsResponse);
+  rpc CreateIndividual(CreateIndividualRequest) returns (CreateIndividualResponse);
+  rpc UpdateIndividual(UpdateIndividualRequest) returns (UpdateIndividualResponse);
+  rpc DeleteIndividual(DeleteIndividualRequest) returns (DeleteIndividualResponse);
+  rpc Search(SearchRequest) returns (SearchResponse);
+}
+
+message GraphView {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  repeated Class classes = 4;
+  repeated Property properties = 5;
+  repeated Individual individuals = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+  int64 version = 9;
+}
+
+message Class {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string parent_id = 4;
+  repeated string property_ids = 5;
+  map<string, string> metadata = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+message Property {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string class_id = 4;
+  PropertyType property_type = 5;
+  bool required = 6;
+  bool unique = 7;
+  google.protobuf.Value default_value = 8;
+  map<string, string> constraints = 9;
+  map<string, string> metadata = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
+}
+
+enum PropertyType {
+  PROPERTY_TYPE_UNSPECIFIED = 0;
+  PROPERTY_TYPE_STRING = 1;
+  PROPERTY_TYPE_INTEGER = 2;
+  PROPERTY_TYPE_BOOLEAN = 3;
+  PROPERTY_TYPE_DOUBLE = 4;
+  PROPERTY_TYPE_TIMESTAMP = 5;
+  PROPERTY_TYPE_REFERENCE = 6;
+  PROPERTY_TYPE_ARRAY = 7;
+  PROPERTY_TYPE_OBJECT = 8;
+}
+
+message Individual {
+  string id = 1;
+  string class_id = 2;
+  string name = 3;
+  google.protobuf.Struct data = 4;
+  map<string, string> metadata = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
+
+message GetGraphViewRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  string graph_id = 2;
+}
+
+message GetGraphViewResponse {
+  vedo.shared.v1.Error error = 1;
+  GraphView graph_view = 2;
+}
+
+message GetClassRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  string class_id = 2;
+}
+
+message GetClassResponse {
+  vedo.shared.v1.Error error = 1;
+  Class class = 2;
+}
+
+message ListClassesRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  string parent_id = 2;
+  vedo.shared.v1.Pagination pagination = 3;
+}
+
+message ListClassesResponse {
+  vedo.shared.v1.Error error = 1;
+  repeated Class classes = 2;
+  vedo.shared.v1.PaginationResponse pagination = 3;
+}
+
+message CreateClassRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  Class class = 2;
+}
+
+message CreateClassResponse {
+  vedo.shared.v1.Error error = 1;
+  Class class = 2;
+}
+
+message UpdateClassRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  Class class = 2;
+}
+
+message UpdateClassResponse {
+  vedo.shared.v1.Error error = 1;
+  Class class = 2;
+}
+
+message DeleteClassRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  string class_id = 2;
+}
+
+message DeleteClassResponse {
+  vedo.shared.v1.Error error = 1;
+}
+
+message GetPropertyRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  string property_id = 2;
+}
+
+message GetPropertyResponse {
+  vedo.shared.v1.Error error = 1;
+  Property property = 2;
+}
+
+message ListPropertiesRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  string class_id = 2;
+  vedo.shared.v1.Pagination pagination = 3;
+}
+
+message ListPropertiesResponse {
+  vedo.shared.v1.Error error = 1;
+  repeated Property properties = 2;
+  vedo.shared.v1.PaginationResponse pagination = 3;
+}
+
+message CreatePropertyRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  Property property = 2;
+}
+
+message CreatePropertyResponse {
+  vedo.shared.v1.Error error = 1;
+  Property property = 2;
+}
+
+message UpdatePropertyRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  Property property = 2;
+}
+
+message UpdatePropertyResponse {
+  vedo.shared.v1.Error error = 1;
+  Property property = 2;
+}
+
+message DeletePropertyRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  string property_id = 2;
+}
+
+message DeletePropertyResponse {
+  vedo.shared.v1.Error error = 1;
+}
+
+message GetIndividualRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  string individual_id = 2;
+}
+
+message GetIndividualResponse {
+  vedo.shared.v1.Error error = 1;
+  Individual individual = 2;
+}
+
+message ListIndividualsRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  string class_id = 2;
+  vedo.shared.v1.Pagination pagination = 3;
+}
+
+message ListIndividualsResponse {
+  vedo.shared.v1.Error error = 1;
+  repeated Individual individuals = 2;
+  vedo.shared.v1.PaginationResponse pagination = 3;
+}
+
+message CreateIndividualRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  Individual individual = 2;
+}
+
+message CreateIndividualResponse {
+  vedo.shared.v1.Error error = 1;
+  Individual individual = 2;
+}
+
+message UpdateIndividualRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  Individual individual = 2;
+}
+
+message UpdateIndividualResponse {
+  vedo.shared.v1.Error error = 1;
+  Individual individual = 2;
+}
+
+message DeleteIndividualRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  string individual_id = 2;
+}
+
+message DeleteIndividualResponse {
+  vedo.shared.v1.Error error = 1;
+}
+
+message SearchRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  string query = 2;
+  SearchScope scope = 3;
+  vedo.shared.v1.Pagination pagination = 4;
+  repeated string class_ids = 5;
+  map<string, string> filters = 6;
+}
+
+enum SearchScope {
+  SEARCH_SCOPE_UNSPECIFIED = 0;
+  SEARCH_SCOPE_ALL = 1;
+  SEARCH_SCOPE_CLASSES = 2;
+  SEARCH_SCOPE_PROPERTIES = 3;
+  SEARCH_SCOPE_INDIVIDUALS = 4;
+}
+
+message SearchResponse {
+  vedo.shared.v1.Error error = 1;
+  repeated SearchResult results = 2;
+  vedo.shared.v1.PaginationResponse pagination = 3;
+}
+
+message SearchResult {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  ResultType type = 4;
+  float score = 5;
+  google.protobuf.Struct data = 6;
+}
+
+enum ResultType {
+  RESULT_TYPE_UNSPECIFIED = 0;
+  RESULT_TYPE_CLASS = 1;
+  RESULT_TYPE_PROPERTY = 2;
+  RESULT_TYPE_INDIVIDUAL = 3;
+}

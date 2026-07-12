@@ -1,0 +1,90 @@
+= Обзор платформы
+:description: Концепции семантического моделирования, архитектура и ключевые возможности VEDO Core.
+:sectnums:
+:toc: left
+
+== Что такое онтология?
+
+Онтология в информатике — это формальное представление знаний о предметной области. В отличие от традиционных реляционных баз данных, онтология описывает не просто таблицы и столбцы, а *смысл* понятий и связей между ними.
+
+Онтология состоит из:
+
+* **TBox** (Terminology Box) — схема знаний: xref:glossary.adoc#class[классы], xref:glossary.adoc#property[свойства], xref:glossary.adoc#axiom[аксиомы]
+* **ABox** (Assertion Box) — фактические данные: xref:glossary.adoc#individual[индивиды] (экземпляры классов) и их значения
+
+WARNING: В VEDO Core TBox и ABox могут редактироваться независимо. Изменение класса в TBox автоматически наследуется всеми его индивидами в ABox.
+
+=== Онтология vs База данных
+
+|===
+| Характеристика | Реляционная БД | Онтология (RDF/OWL)
+
+| Модель данных
+| Таблицы, строки, столбцы
+| xref:glossary.adoc#triple[Триплеты]: субъект-предикат-объект (граф)
+
+| Схема
+| Фиксированная (DDL)
+| Гибкая (TBox), расширяется без миграций
+
+| Вывод знаний
+| Нет (только явные данные)
+| xref:glossary.adoc#reasoner[Reasoner] делает логические выводы
+
+| Идентификация
+| Суррогатные ключи
+| xref:glossary.adoc#uri[URI/IRI] — глобально уникальные
+
+| Парадигма
+| Закрытый мир (нет данных = ложь)
+| xref:glossary.adoc#openWorldAssumption[Открытый мир] (нет данных = неизвестно)
+
+| Масштабирование
+| Горизонтальное
+| xref:glossary.adoc#tripleStore[Triple Store] + графовые СУБД
+|===
+
+== Проблемы, которые решает VEDO Core
+
+=== Проблема 1: Зависания Protégé
+
+Инженер знаний, работающий в xref:glossary.adoc#protege[Protégé], тратит до 15 минут в день на ожидание открытия узлов. VEDO Core обеспечивает отклик интерфейса менее 1 секунды (p95) благодаря виртуализации списков и ленивой подгрузке графа.
+
+=== Проблема 2: Файловая коллаборация
+
+Группа аналитиков вынуждена пересылать файлы .owl по email и вручную склеивать изменения. VEDO Core заменяет файловый обмен на Git-подобные xref:tasks.adoc#version-control[коммиты, ветки и слияния] с автоматическим разрешением конфликтов.
+
+=== Проблема 3: Нестабильный diff
+
+При сохранении Protégé меняет порядок элементов в RDF/XML, из-за чего Git показывает тысячи изменённых строк, хотя реально добавлена одна аннотация. VEDO Core использует xref:glossary.adoc#canonicalSerialization[каноническую сериализацию] Turtle и xref:glossary.adoc#semanticDiff[Semantic Diff] на уровне сущностей.
+
+=== Проблема 4: Отсутствие рецензирования
+
+В Protégé нет встроенного механизма рецензирования. VEDO Core предоставляет xref:tasks.adoc#merge-requests[Merge Request] с семантическим diff, комментариями к изменениям и workflow утверждения.
+
+== Архитектура платформы
+
+VEDO Core построен по микросервисной архитектуре:
+
+* **Ontology Service** (Rust) — CRUD-операции с xref:glossary.adoc#ontology[онтологией], хранение в xref:glossary.adoc#tripleStore[Neo4j]
+* **Versioning Service** (Rust) — xref:glossary.adoc#ontologyCommit[коммиты], ветки, слияния, diff; хранение в PostgreSQL + JSONB
+* **Collaboration Service** (Go) — блокировки узлов, комментарии, уведомления через WebSocket
+* **Auth Service** (Go) — аутентификация через xref:glossary.adoc#keycloak[Keycloak], xref:glossary.adoc#oauth2[OAuth2/OIDC]
+* **API Gateway** — единая точка входа для REST API, GraphQL и xref:glossary.adoc#sparqlEndpoint[SPARQL endpoint]
+
+NOTE: Для пользователя архитектура прозрачна — всё взаимодействие происходит через веб-интерфейс или REST API.
+
+== Форматы данных
+
+VEDO Core поддерживает стандартные форматы семейства W3C Semantic Web:
+
+* xref:glossary.adoc#turtle[Turtle (.ttl)] — основной формат импорта/экспорта, каноническая сериализация
+* xref:glossary.adoc#rdfXml[RDF/XML (.rdf)] — совместимость с Protégé и legacy-инструментами
+* xref:glossary.adoc#owl[OWL Functional Syntax] — для интеграции с OWL API
+* xref:glossary.adoc#sparql[SPARQL 1.1] — язык семантических запросов
+
+== Связанные разделы
+
+* xref:quickstart.adoc[Быстрый старт] — практическое знакомство с платформой
+* xref:glossary.adoc[Глоссарий] — полный список терминов
+* xref:tasks.adoc[Задачи] — пошаговые инструкции для всех сценариев

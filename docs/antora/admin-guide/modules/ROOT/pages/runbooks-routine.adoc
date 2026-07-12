@@ -1,0 +1,381 @@
+= Плановые операции (Routine Runbooks)
+:toc: left
+:toclevels: 3
+:lang: ru
+
+== Установка и начальная настройка
+
+=== Развёртывание новой инсталляции
+
+.Procedure
+
+. Подготовить инфраструктуру согласно xref:requirements.adoc[системным требованиям]
+. Установить xref:glossary.adoc#vedoCli[vedo-cli]
+. Настроить конфигурацию `~/.vedo/config.yaml`
+. Развернуть xref:glossary.adoc#keycloak[Keycloak]: создать realm `vedo-core`, настроить клиентов, пользователей, роли
+. Установить VEDO Core через Helm:
++
+[source,bash]
+----
+helm install vedo-core vedo/vedo-core \
+  --namespace vedo-system \
+  --create-namespace \
+  --values values-production.yaml
+----
+. Проверить статус всех сервисов:
++
+[source,bash]
+----
+vedo-cli diagnose
+----
+. Выполнить seed эталонного тенанта:
++
+[source,bash]
+----
+vedo-cli tenant seed --profile canonical
+----
+. Настроить backup schedule:
++
+[source,bash]
+----
+vedo-cli backup schedule --cron "0 2 * * *"
+----
+. Настроить мониторинг (Grafana дашборды, алерты)
+
+== Обновление платформы (Upgrade)
+
+=== Мажорное обновление (Major)
+
+[WARNING]
+====
+Перед мажорным обновлением обязательно создайте pre-migration backup. Fast rollback доступен в течение 60 минут.
+====
+
+.Procedure
+
+. Ознакомьтесь с release notes целевой версии
+. Создайте полный backup:
++
+[source,bash]
+----
+vedo-cli backup create --full --label "pre-migration-v2.0.0"
+----
+. Проверьте план миграции:
++
+[source,bash]
+----
+vedo-cli migrate plan
+----
+. Примените миграцию:
++
+[source,bash]
+----
+vedo-cli migrate apply
+----
+. Выполните обновление Helm-чарта:
++
+[source,bash]
+----
+helm upgrade vedo-core vedo/vedo-core \
+  --namespace vedo-system \
+  --values values-production.yaml \
+  --version 2.0.0
+----
+. Проверьте работоспособность:
++
+[source,bash]
+----
+vedo-cli diagnose
+----
+
+=== Минорное обновление (Minor)
+
+.Procedure
+
+. Обновите Helm-чарт:
++
+[source,bash]
+----
+helm upgrade vedo-core vedo/vedo-core \
+  --namespace vedo-system \
+  --values values-production.yaml
+----
+. Дождитесь завершения rolling update
+. Проверьте статус
+
+== Резервное копирование (Backup)
+
+=== Полный backup
+
+[source,bash]
+----
+vedo-cli backup create --full
+----
+
+Процедура выполняет:
+1. Остановка записи (read-only mode)
+2. TBox: сериализация в canonical Turtle (.ttl.gz)
+3. ABox: полный дамп Neo4j + WAL/incremental logs
+4. Version Store: pg_dump -Fc + PostgreSQL WAL
+5. LFS: сырые файлы в versioned object storage
+6. Audit Logs: JSON-L формат
+7. Верификация артефакта (checksum, размер)
+8. Репликация по 3-2-1 политике
+
+=== Инкрементальный backup
+
+[source,bash]
+----
+vedo-cli backup create --incremental \
+  --base-id bkp-20260520
+----
+
+=== Верификация backup
+
+[source,bash]
+----
+vedo-cli backup verify --id bkp-20260520
+----
+
+=== Настройка расписания
+
+[source,bash]
+----
+# Ежедневно в 2:00
+vedo-cli backup schedule --cron "0 2 * * *"
+
+# Еженедельно в воскресенье в 3:00
+vedo-cli backup schedule --cron "0 3 * * 0" --full
+----
+
+== Восстановление (Restore)
+
+=== Локальное восстановление (primary tier)
+
+.Procedure
+
+. Перевести целевые сервисы в read-only режим:
++
+[source,bash]
+----
+vedo-cli emergency readonly
+----
+. Выбрать последний локальный fast-restore backup
+. Восстановить TBox:
++
+[source,bash]
+----
+vedo-cli restore --id bkp-20260520 --data-type tbox
+----
+. Восстановить ABox:
++
+[source,bash]
+----
+vedo-cli restore --id bkp-20260520 --data-type abox
+----
+. Восстановить Version Store:
++
+[source,bash]
+----
+vedo-cli restore --id bkp-20260520 --data-type version-store
+----
+. Восстановить LFS:
++
+[source,bash]
+----
+vedo-cli restore --id bkp-20260520 --data-type lfs
+----
+. Выполнить проверки целостности:
++
+[source,bash]
+----
+vedo-cli backup verify --id bkp-20260520
+vedo-cli diagnose
+----
+. Возобновить трафик:
++
+[source,bash]
+----
+vedo-cli emergency clear
+----
+
+=== Off-site / Cold Restore
+
+.Procedure
+
+. Отключить локальный fast-restore доступ для симуляции полной потери
+. Выбрать последний валидный off-site backup
+. Перенести артефакт в среду восстановления
+. Выполнить шаги 3-8 из <<_локальное_восстановление_primary_tier>>
+. Проверить provenance backup (подпись, checksum манифеста)
+
+=== Fast Rollback (60-минутное окно)
+
+[source,bash]
+----
+# Доступно в течение 60 минут после мажорного обновления
+vedo-cli migrate rollback --backup-id pre-migration-v2.0.0
+----
+
+[IMPORTANT]
+====
+Fast rollback работает только с pre-migration backup. Целевой RTO: 30-60 минут.
+====
+
+== Управление пользователями (Keycloak)
+
+=== Создание пользователя
+
+[source,bash]
+----
+# Через Keycloak Admin CLI
+kcadm.sh create users -r vedo-core \
+  -s username=newuser@vedo.local \
+  -s enabled=true \
+  -s email=newuser@vedo.local
+
+# Установка пароля
+kcadm.sh set-password -r vedo-core \
+  --username newuser@vedo.local \
+  --new-password "secure-password"
+----
+
+=== Назначение ролей
+
+[source,bash]
+----
+# Назначение роли admin
+kcadm.sh add-roles -r vedo-core \
+  --uusername newuser@vedo.local \
+  --rolename admin
+
+# Назначение роли support-engineer
+kcadm.sh add-roles -r vedo-core \
+  --uusername newuser@vedo.local \
+  --rolename support-engineer
+----
+
+Роли VEDO Core в xref:glossary.adoc#keycloak[Keycloak]:
+
+|===
+| Роль | Права
+
+| `admin`
+| Полный доступ ко всем операциям, включая backup/restore, tenant management
+
+| `support-engineer`
+| Диагностика, просмотр tenant-info, audit-trail, emergency-access
+
+| `ontology-admin`
+| Управление онтологиями: экспорт/импорт, transfer-owner
+
+| `maintainer`
+| Ревью и слияние MR, управление protected branches
+
+| `viewer`
+| Только чтение: просмотр дашбордов, логов
+|===
+
+=== Блокировка пользователя
+
+[source,bash]
+----
+kcadm.sh update users/$USER_ID -r vedo-core \
+  -s enabled=false
+----
+
+== Мониторинг и алертинг
+
+=== Настройка дашбордов Grafana
+
+По умолчанию VEDO Core поставляет дашборды Grafana для:
+* RED-метрики всех сервисов (Rate, Errors, Duration)
+* Состояние Neo4j cluster
+* Репликация PostgreSQL
+* Redis cluster stats
+* RabbitMQ queues
+
+TODO: Добавить скриншот дашборда Grafana
+
+=== Ключевые алерты
+
+|===
+| Алерт | Условие | Действие
+
+| ServiceDown
+| service:health == 0 > 30s
+| P0 — немедленная эскалация
+
+| HighLatency
+| p95 latency > 500ms > 5m
+| P1 — диагностика
+
+| DiskSpaceWarning
+| disk_usage > 80%
+| P2 — планирование расширения
+
+| BackupFailed
+| backup:status == failed
+| P1 — повтор backup
+
+| CertificateExpiring
+| cert_expiry < 30 days
+| P2 — обновление сертификата
+|===
+
+=== Grafana Loki: поиск логов
+
+[source,bash]
+----
+# Поиск ошибок в сервисе за последний час
+{service="ontology-service"} |= "ERROR" |= "trace_id=abc123"
+----
+
+=== OpenTelemetry: трассировка
+
+[source,bash]
+----
+# Поиск trace по trace_id
+vedo-cli diagnose trace --id abc123def456
+----
+
+== Управление логами
+
+=== Сбор логов
+
+VEDO Core использует xref:glossary.adoc#opentelemetry[OpenTelemetry] для унифицированного сбора логов, метрик и трейсов. Логи всех сервисов агрегируются в Grafana Loki.
+
+=== Retention логов
+
+|===
+| Уровень | Retention
+
+| Hot (активные логи)
+| 7 дней
+
+| Warm (Loki)
+| 30 дней
+
+| Cold (S3 Archive)
+| 1 год
+
+| Audit logs (WORM)
+| Согласно юрисдикции (GDPR: 3 года, 152-ФЗ: 6 лет)
+|===
+
+=== Audit logging
+
+Все действия xref:glossary.adoc#vedoCli[vedo-cli] фиксируются в audit-логе с struct-форматом:
+
+[source,json]
+----
+{
+  "timestamp": "2026-05-20T14:30:00Z",
+  "actor": "admin@vedo.local",
+  "action": "backup.create",
+  "resource": "tenant/tnt-abc123",
+  "result": "success",
+  "channel": "cli",
+  "trace_id": "abc123def456"
+}
+----

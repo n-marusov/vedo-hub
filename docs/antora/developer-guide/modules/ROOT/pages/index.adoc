@@ -1,0 +1,43 @@
+= Руководство разработчика VEDO Core
+:description: Архитектура, технологический стек и API платформы VEDO Core
+:keywords: VEDO Core, архитектура, разработка, микросервисы, API
+
+== Введение
+
+VEDO Core — микросервисная платформа для многопользовательского редактирования онтологий. Система состоит из пяти доменных микросервисов, API Gateway и CLI-утилиты администрирования.
+
+== Архитектура
+
+Система спроектирована по микросервисной архитектуре с доменной декомпозицией. Подробное описание архитектуры — в разделе xref:architecture.adoc[Архитектура системы].
+
+== Языки реализации
+
+| Сервис | Язык | Фреймворк | Назначение |
+|--------|------|-----------|------------|
+| Ontology Service | Rust | actix-web | Графовые операции, TBox/ABox |
+| Versioning Service | Rust | actix-web | Git-подобное версионирование |
+| Auth Service | Go | gin | JWT, OAuth2, Keycloak |
+| Metrics Service | Python | FastAPI | Сбор и агрегация метрик |
+| API Gateway | Go | gin | Единая точка входа |
+| Frontend | TypeScript | Vue 3 | Веб-интерфейс |
+| vedo-cli | Go | cobra | CLI-администрирование |
+
+Подробнее: xref:tech-stack.adoc[Технологический стек].
+
+== API
+
+Внешние API:
+
+* REST API — для отраслевых приложений (через API Gateway)
+* gRPC — внутренние вызовы между микросервисами
+* WebSocket — realtime коллаборация
+* GraphQL — основной API фронтенда
+* SPARQL 1.1 — семантические запросы
+
+Подробнее: xref:api-protocols.adoc[Протоколы API].
+
+== Ссылки
+
+* xref:user-guide::index.adoc[Руководство пользователя]
+* xref:admin-guide::index.adoc[Руководство администратора]
+* xref:integrator-guide::index.adoc[Руководство интегратора]

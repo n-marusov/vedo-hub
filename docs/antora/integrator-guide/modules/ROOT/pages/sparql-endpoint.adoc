@@ -1,0 +1,97 @@
+= SPARQL Endpoint
+:description: Выполнение SPARQL-запросов к VEDO Core через API
+:keywords: SPARQL, семантические запросы, RDF, endpoint
+
+== Введение
+
+VEDO Core предоставляет SPARQL 1.1 endpoint для семантических запросов к RDF-графу онтологии.
+
+== Предварительные требования
+
+* JWT-токен с правами на чтение
+* Базовое знание SPARQL-синтаксиса
+
+== Endpoint
+
+----
+POST https://api.vedo.example/api/v1/sparql
+----
+
+== Выполнение запроса
+
+[source,bash]
+----
+curl -X POST https://api.vedo.example/api/v1/sparql \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -H "Content-Type: application/sparql-query" \
+  -d "SELECT ?class ?label WHERE {
+    ?class a owl:Class .
+    OPTIONAL { ?class rdfs:label ?label }
+  } LIMIT 100"
+----
+
+== Ограничения
+
+| Ограничение | Значение |
+|-------------|----------|
+| Разрешённые операции | SELECT, ASK |
+| Запрещённые операции | INSERT DATA, DELETE, UPDATE, DROP |
+| Обязательный LIMIT | SELECT без LIMIT отклоняется |
+| Query complexity | Блокировка сложных запросов |
+| Rate limit | N запросов/минуту |
+| Timeout | 30 секунд |
+
+[WARNING]
+====
+INSERT DATA, DELETE, UPDATE и другие модифицирующие SPARQL-запросы блокируются системой безопасности. Для модификации онтологии используйте REST API. Поведение может измениться без предупреждения.
+====
+
+== Форматы ответа
+
+| Формат | Content-Type | Описание |
+|--------|-------------|----------|
+| JSON | `application/sparql-results+json` | Стандартный JSON |
+| CSV | `text/csv` | Табличный формат |
+| Turtle | `text/turtle` | RDF-сериализация |
+
+== Примеры
+
+=== Рабочий пример: список всех классов
+
+[source,sparql]
+----
+SELECT ?class (SAMPLE(?label) AS ?label) (COUNT(?sub) AS ?children)
+WHERE {
+  ?class a owl:Class .
+  OPTIONAL { ?class rdfs:label ?label }
+  OPTIONAL { ?sub rdfs:subClassOf ?class }
+}
+GROUP BY ?class
+LIMIT 50
+----
+
+=== Рабочий пример: индивиды с фильтром
+
+[source,sparql]
+----
+SELECT ?individual ?name ?city
+WHERE {
+  ?individual a :Person .
+  ?individual :fullName ?name .
+  ?individual :city ?city .
+  FILTER(CONTAINS(LCASE(?city), "москва"))
+}
+LIMIT 100
+----
+
+=== Антипример
+
+Запрос без LIMIT на онтологии с 1 млн триплетов:
+
+[source,sparql]
+----
+# Будет отклонён: отсутствует LIMIT
+SELECT ?s ?p ?o WHERE { ?s ?p ?o }
+----
+
+Всегда указывайте LIMIT для SELECT-запросов.

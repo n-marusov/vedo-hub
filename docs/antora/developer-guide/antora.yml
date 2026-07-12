@@ -1,0 +1,5 @@
+name: developer-guide
+title: Руководство разработчика VEDO Core
+version: 1.0
+nav:
+  - modules/ROOT/nav.adoc

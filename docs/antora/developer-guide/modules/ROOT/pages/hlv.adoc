@@ -1,0 +1,145 @@
+= HLV-методология
+:toc: left
+:toclevels: 3
+:icons: font
+:sectnums:
+
+.Source
+Полный текст: `HLV.md`
+
+== Что такое HLV?
+
+**HLV (Human-Led Validation)** — методология разработки, обеспечивающая качество ПО через формальные контракты, прослеживаемость и автоматизированные gates.
+
+.WARNING
+HLV — это методология, а не инструмент. Инструмент `hlv` автоматизирует проверки, но ответственность за качество лежит на человеке.
+
+== Основные принципы
+
+=== 1. Контракты — источник истины
+
+Контракты находятся в `human/milestones/{id}/contracts/`. Каждая строка кода восходит к контракту. Если чего-то нет в контракте — этого не существует.
+
+=== 2. Код — производный артефакт
+
+```
+human artifacts → contracts → code
+```
+
+Код — третьего порядка. Контракты — второго. Артефакты — первого. Код генерируется ИЗ контрактов, никогда не наоборот.
+
+=== 3. Один контракт = один модуль
+
+Каждый контракт отображается ровно на одну директорию. Никаких кросс-контрактных импортов, кроме domain types. Дублирование предпочтительнее связности.
+
+=== 4. Никаких изменений без валидации
+
+После любого изменения контрактов или кода:
+1. `hlv check` должен проходить (структурная валидация)
+2. `/verify` должен проходить (семантическая валидация)
+3. `/validate` должен проходить перед релизом (все mandatory gates)
+
+=== 5. Нет выдуманного поведения
+
+Если информации нет в артефактах или контрактах — не выдумывайте. Добавьте открытый вопрос. Открытые вопросы блокируют `/verify`.
+
+=== 6. Тесты — доказательство с `@hlv`-маркерами
+
+Каждый тест восходит к контракту: инварианту, случаю ошибки или NFR.
+
+```rust
+// @hlv OUT_OF_STOCK        ← код ошибки контракта
+// @hlv atomicity           ← инвариант контракта
+// @hlv prepared_statements_only ← правило constraints
+```
+
+=== 7. Файлы малы и самодостаточны
+
+Цель: < 300 строк на файл, < 10 файлов на фичу. Каждый файл делает одну вещь.
+
+=== 8. Никаких абстракций «на будущее»
+
+Никаких базовых классов, обобщённых фреймворков или плагинов, если контракт явно не требует расширяемости.
+
+=== 9. Обработка ошибок — first-class
+
+Каждая ошибка из таблицы Errors контракта имеет явный код. Никаких catch-all обработчиков. Никаких `unwrap()`/`expect()` в production-коде.
+
+== Структура проекта
+
+```
+project.yaml                 ← читать первым
+milestones.yaml              ← текущий milestone, стадия, история
+HLV.md                       ← правила HLV (auto-generated)
+AGENTS.md                    ← правила проекта (редактируемые)
+human/
+  artifacts/                 ← глобальный контекст проекта
+  glossary.yaml              ← типы домена (канонические)
+  constraints/*.yaml         ← правила безопасности, производительности
+  milestones/
+    {id}/
+      artifacts/             ← артефакты milestone
+      contracts/*.md         ← формальные спецификации
+      test-specs/*.md        ← что тестировать
+      plan.md                ← план milestone
+      stage_N.md             ← задачи для каждой стадии
+      traceability.yaml      ← REQ → CTR → TST → GATE
+      open-questions.md      ← открытые вопросы
+validation/
+  scenarios/*.md             ← интеграционные сценарии
+  gates-policy.yaml          ← пороговые значения gates
+  equivalence-policy.yaml    ← правила регенерации
+  traceability-policy.yaml   ← правила прослеживаемости
+llm/
+  map.yaml                   ← карта файлов
+  src/                       ← сгенерированный код
+```
+
+== Команды (Skills)
+
+|===
+| Команда | Что делает | Когда использовать
+|`/artifacts` | Интерактивное интервью → заполняет artifacts/ | В начале проекта или при добавлении фич
+|`/generate` | Артефакты → Контракты + Валидация + План | После добавления артефактов
+|`/questions` | Интерактивное разрешение открытых вопросов | После `/generate`
+|`/verify` | Структурная + семантическая валидация | После `/generate` или ручных правок
+|`/implement` | План → Код + Тесты | После прохождения `/verify`
+|`/validate` | Все mandatory gates → Решение о релизе | После завершения `/implement`
+|===
+
+== Workflow
+
+```
+/generate → /verify → /implement → /validate → release
+                  ↑              │
+                  │  если blocked:│
+                  │  FIX-* tasks │
+                  └──────────────┘
+```
+
+* **Happy path:** /generate → /verify → /implement → /validate → RELEASE APPROVED
+* **Gate failure:** /validate добавляет FIX-* remediation tasks → /implement → /validate
+* **Human decision needed:** /validate добавляет open question → human → /implement → /validate
+
+The human never runs technical commands. The human writes artifacts, reviews contracts, and answers questions.
+
+== Iron Rules (свод)
+
+1. **Contracts are the source of truth** — каждая строка кода восходит к контракту
+2. **Code is a derived artifact** — human artifacts → contracts → code
+3. **One contract = one module** — никаких кросс-контрактных импортов
+4. **No changes without validation** — `hlv check` + `/verify` + `/validate`
+5. **No invented behavior** — нет в артефактах? Добавь open question
+6. **Tests are proof with `@hlv`** — каждый тест с маркером
+7. **Files are small** — < 300 строк, < 10 файлов на фичу
+8. **No abstractions for the future** — только то, что нужно сейчас
+9. **Error paths are first-class** — никаких `unwrap()` в production
+10. **Deterministic structure** — одинаковый контракт → одинаковая структура
+
+== Ссылки
+
+* [HLV на GitHub](https://github.com/lee-to/hlv)
+* `HLV.md` — этот файл (auto-generated)
+* `AGENTS.md` — правила проекта
+* `human/constraints/security.yaml` — правила безопасности
+* `human/constraints/performance.yaml` — правила производительности

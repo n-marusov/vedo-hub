@@ -1,0 +1,95 @@
+= Аутентификация
+:description: Аутентификация и авторизация для доступа к API VEDO Core
+:keywords: аутентификация, JWT, OAuth2, Keycloak, токены
+
+== Введение
+
+Аутентификация VEDO Core построена на JWT (RS256) через Keycloak с поддержкой OAuth2/OIDC.
+
+== Получение JWT-токена
+
+=== Через Keycloak (OAuth2)
+
+[source,bash]
+----
+# Получение токена через OAuth2
+curl -X POST https://keycloak.vedo.example/auth/realms/vedo/protocol/openid-connect/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "client_id=vedo-api" \
+  -d "username=<user>" \
+  -d "password=<pass>" \
+  -d "grant_type=password"
+----
+
+=== Через OAuth-провайдеров
+
+VEDO Core поддерживает:
+
+* Keycloak (основной)
+* ЕСИА/Госуслуги
+* Яндекс ID
+* VK ID
+* Google OAuth
+
+== Использование токена
+
+Все API-запросы требуют Bearer-токен:
+
+[source,bash]
+----
+curl -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIs..." \
+  https://api.vedo.example/api/v1/ontologies
+----
+
+== Параметры токена
+
+| Параметр | Значение |
+|----------|----------|
+| Алгоритм | RS256 |
+| TTL | 15 минут |
+| Refresh token TTL | 7 дней |
+| Хранилище | Redis Cluster |
+
+== Refresh токена
+
+[source,bash]
+----
+curl -X POST https://keycloak.vedo.example/auth/realms/vedo/protocol/openid-connect/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "client_id=vedo-api" \
+  -d "refresh_token=<refresh_token>" \
+  -d "grant_type=refresh_token"
+----
+
+== MFA (TOTP)
+
+Для критических операций требуется MFA (TOTP). Для аутентификации с MFA используйте ROPG + TOTP:
+
+[source,bash]
+----
+# Login с TOTP (через vedo-cli)
+vedo-cli auth login --username <user> --totp <code>
+----
+
+== Service Account
+
+Для автоматизированных сценариев используйте service account:
+
+[source,bash]
+----
+vedo-cli auth login --service-account <sa-token>
+----
+
+== Примеры
+
+=== Рабочий пример
+
+Автоматизированный импорт онтологии через REST API:
+
+. Получение токена через Keycloak
+. `curl -X POST ... /api/v1/ontologies/{id}/import -H "Authorization: Bearer ${TOKEN}"`
+. Токен действителен 15 минут
+
+=== Антипример
+
+Хранение JWT-токена в коде или конфигурации репозитория. Используйте переменные окружения или secrets manager (Vault, AWS Secrets Manager).

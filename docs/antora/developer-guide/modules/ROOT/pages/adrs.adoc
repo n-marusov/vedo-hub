@@ -1,0 +1,104 @@
+= Архитектурные решения (ADR)
+:description: Реестр архитектурных решений VEDO Core
+:keywords: ADR, архитектурные решения, мониторинг, микросервисы
+
+== Введение
+
+Реестр архитектурных решений (ADR) VEDO Core. Каждое решение имеет статус: ЧЕРНОВИК | ПРЕДЛОЖЕНО | ПРИНЯТО | УСТАРЕЛО | ЗАМЕНЕНО.
+
+== Инфраструктура
+
+=== ADR-DES.INFRA.monolith-vs-microservices
+
+*Статус:* Принято
+*Дата:* 2026-05-08
+
+Выбрана микросервисная архитектура с декомпозицией на пять микросервисов по доменному принципу: Ontology Service (Rust), Versioning Service (Rust), Auth Service (Go), Metrics Service (Python) и API Gateway.
+
+=== ADR-DES.INFRA.otel-observability-strategy
+
+*Статус:* Принято
+
+Выбран OpenTelemetry для унифицированного сбора трейсов, метрик и логов с доставкой в Grafana Stack (Tempo, Prometheus, Loki).
+
+=== ADR-DES.INFRA.airgap-offline-deployment-strategy
+
+*Статус:* Принято
+
+Стратегия air-gapped развёртывания: подготовка офлайн-пакета через vedo-cli, включающего container images, Helm charts, offline документацию и checksums.
+
+=== ADR-DES.INFRA.backup-policy-strategy, ADR-DES.INFRA.recovery-objectives-mandate
+
+*Статус:* Принято
+
+Политика резервного копирования с WORM-совместимыми immutable backup, drill-тестами восстановления и RTO/RPO-протоколом.
+
+=== ADR-DES.INFRA.fault-tolerance-strategy, ADR-DES.INFRA.edge-region-failover-strategy
+
+*Статус:* Принято
+
+Стратегия отказоустойчивости с поддержкой edge region failover, control-plane изоляцией и degraded mode availability.
+
+== UI
+
+=== ADR-DES.UI.wcag-accessibility-strategy
+
+*Статус:* Принято
+
+Обеспечение доступности в соответствии с WCAG 2.1 AA.
+
+=== ADR-IMPL.UI.volt-vs-primevue-vs-vuetify
+
+*Статус:* Принято
+
+Выбор UI-библиотеки: Pencil.dev для генерации компонентов из дизайн-системы.
+
+== API
+
+=== ADR-DES.API.protocol-stack-strategy
+
+*Статус:* Принято
+
+Граница протоколов: внешние REST эндпоинты через API Gateway, внутренние вызовы через gRPC/protobuf.
+
+=== ADR-DES.API.graphql-sparql-split-strategy
+
+*Статус:* Принято
+
+GraphQL для фронтенда (навигация по графу), SPARQL 1.1 для семантических запросов.
+
+== DATA
+
+=== ADR-DES.DATA.storage-stack-strategy
+
+*Статус:* Принято
+
+Neo4j как primary Triple Store, PostgreSQL + JSONB для Version Store, Redis Cluster для кэша.
+
+== SECURITY
+
+=== ADR-DES.SECURITY.gitlab-like-organization-model
+
+*Статус:* Принято
+
+GitLab-подобная модель организации: Group → Ontology, Membership с наследованием ролей, Owner/Maintainer/Editor/Viewer.
+
+=== ADR-DES.SECURITY.break-glass-access-strategy
+
+*Статус:* Принято
+
+Процедура break-glass доступа для emergency ситуаций с аудитом и уведомлениями.
+
+== PROCESS
+
+=== ADR-DES.PROCESS.gitlab-ci-cd-strategy
+
+*Статус:* Принято
+
+GitLab CI как эталонная CI/CD платформа с обязательными стадиями lint, test, build, docs, deploy.
+
+=== ADR-DES.PROCESS.deployment-strategy-policy
+
+*Статус:* Принято
+
+Дифференцированная политика: rolling update для dev/staging, blue-green для production major, canary — опционально.

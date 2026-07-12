@@ -1,0 +1,132 @@
+= Песочница и тестовые данные
+:description: Тестовое окружение VEDO Core для отработки интеграций.
+:toc: left
+:toclevels: 2
+
+== Sandbox Environment
+
+Для отработки интеграций доступно тестовое окружение (sandbox):
+
+[source]
+----
+Base URL: https://api-sandbox.vedo.local/api/v1
+Keycloak: https://keycloak-sandbox.vedo.local
+Swagger UI: https://api-sandbox.vedo.local/api/docs
+----
+
+== Получение тестового доступа
+
+=== Тестовые учётные данные
+
+Для sandbox доступны предварительно созданные учётные данные:
+
+|===
+| Параметр | Значение
+
+| Client ID
+| `vedo-sandbox-client`
+
+| Client Secret
+| запросите у администратора
+
+| Username
+| `integrator@test.vedo.local`
+
+| Password
+| запросите у администратора
+|===
+
+[source,bash]
+----
+curl -X POST https://keycloak-sandbox.vedo.local/realms/vedo-core/protocol/openid-connect/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "client_id=vedo-sandbox-client" \
+  -d "client_secret=<sandbox-secret>" \
+  -d "grant_type=client_credentials"
+----
+
+=== Самостоятельная регистрация
+
+В sandbox-окружении доступна самостоятельная регистрация через веб-интерфейс:
+
+. Откройте `https://sandbox.vedo.local`
+. Нажмите "Зарегистрироваться"
+. Подтвердите email
+. Создайте тестовую онтологию
+
+== Тестовые онтологии
+
+В sandbox предустановлены следующие тестовые онтологии:
+
+=== Базовое моделирование (People)
+
+Небольшая онтология для знакомства с API:
+
+[source]
+----
+ID: ontology_people
+Classes: Thing → Agent → Person, Organization
+Properties: hasName, hasAge, employs (Person → Organization)
+Individuals: John Doe, Jane Smith, Acme Corp
+----
+
+=== Полная онтология (Full)
+
+Онтология, приближенная к Canonical Workload Profile:
+
+[source]
+----
+ID: ontology_full
+Classes: ~5000
+Properties: ~10000
+Individuals: ~10000
+----
+
+=== Пустая онтология
+
+Для тестирования создания сущностей с нуля:
+
+[source]
+----
+ID: ontology_empty
+Classes: 0
+Properties: 0
+----
+
+== Тестовые сценарии
+
+=== Базовые CRUD-операции
+
+. Получите токен
+. Выполните список классов тестовой онтологии
+. Создайте новый класс
+. Создайте свойство
+. Создайте индивид
+. Создайте коммит
+
+=== Импорт/Экспорт
+
+. Экспортируйте тестовую онтологию в Turtle
+. Импортируйте файл в пустую онтологию
+
+=== SPARQL-запросы
+
+. Выполните SELECT-запрос к тестовой онтологии
+. Выполните ASK-запрос
+
+=== Вебхуки
+
+. Создайте webhook-подписку (используйте https://webhook.site для тестирования)
+. Выполните мутирующую операцию
+. Проверьте получение уведомления
+
+== Сброс данных
+
+Sandbox автоматически сбрасывается каждые 24 часа. Для ручного сброса обратитесь к администратору.
+
+== Ограничения sandbox
+
+* Rate limit: 5000 запросов в минуту (выше, чем production)
+* Максимальный размер онтологии: 10K аксиом
+* Данные сбрасываются каждые 24 часа
+* Недоступны: экспорт в Git, production-вебхуки

@@ -1,0 +1,207 @@
+= Data Lifecycle Runbook
+:owner: platform-team
+:contract: DATA-LIFECYCLE-001 v1.0.0
+:toc: left
+
+== Overview
+
+This runbook covers decommission export, account closure, data retention, secure erase, and backup purge workflows for VEDO Core. All procedures follow DATA-LIFECYCLE-001 contract invariants.
+
+== Decommission Export
+
+=== Prerequisites
+
+* Tenant identified for decommission
+* Valid admin credentials with decommission permission
+* Sufficient disk space for export package
+
+=== Procedure
+
+. Run decommission plan (dry-run, no state mutation):
++
+----
+vedo-cli decommission plan --tenant <tenant-id>
+----
++
+. Review export scope, format list, size estimate, retention and backup constraints.
+. Execute full export:
++
+----
+vedo-cli export --format turtle --ontology all --output ontology_dump.ttl
+vedo-cli export --format json-ld --type abox --output abox_data.jsonld
+vedo-cli export --format git --ontology main --output vedo_history.git
+vedo-cli export --format jsonl --type commits --output commits.jsonl
+vedo-cli export --format jsonl --type audit-logs --output audit_logs.jsonl
+vedo-cli export --format yaml --type config --output config.yaml
+vedo-cli export --format json --type rbac --output rbac.json
+----
++
+. Verify manifest and checksums:
++
+----
+vedo-cli decommission verify --package <export-dir>
+----
++
+. If verification fails, investigate and retry. Purge is forbidden until export is verified (INV-DATA-LIFECYCLE-0079).
+. Confirm purge with typed confirmation:
++
+----
+vedo-cli decommission purge --tenant <tenant-id> --confirm "PURGE_<tenant-id>"
+----
+
+=== Export Package Contents
+
+|===
+| Component | Format | Verification
+| TBox (schema, classes, properties, axioms) | Canonical Turtle (.ttl) | SHA-256 checksum
+| ABox (individuals, facts) | Turtle + JSON-LD | SHA-256 checksum
+| Version Store (commits, branches) | Git repository + JSON logs | `git fsck`
+| Audit logs | JSON Lines (.jsonl) | SHA-256 checksum
+| LFS objects | Raw files (source format) | SHA-256 checksum
+| Configuration + RBAC | YAML + JSON | SHA-256 checksum
+|===
+
+== Account Closure
+
+=== 30-Day Cooling-Off Period
+
+. Account is deactivated immediately. Data is preserved (INV-DATA-LIFECYCLE-0072).
+. Within 30 days: account can be restored by customer.
+. Owner transfer check: if user is sole owner of shared ontologies, closure is blocked (OWNER_TRANSFER_REQUIRED).
+. After 30 days:
+  * GDPR: personal data deleted within 30 days of request (INV-DATA-LIFECYCLE-0073).
+  * 152-FZ: personal data anonymized, audit logs preserved for 5 years without direct user linkage (INV-DATA-LIFECYCLE-0081).
+
+=== Procedure
+
+----
+# Initiate closure
+vedo-cli account close --account-id <user-id> --jurisdiction <gdpr|ru_152fz>
+
+# Check owner transfer prerequisites
+vedo-cli account check-ownership --account-id <user-id>
+
+# Transfer ownership if blocked
+vedo-cli ontology transfer-owner --ontology-id <id> --new-owner <new-user-id>
+
+# Confirm closure
+vedo-cli account close --account-id <user-id> --confirm <username>
+----
+
+== Secure Erase
+
+=== Scope by Deployment Model
+
+|===
+| Model | Logical Purge | Physical Destruction | Responsibility
+| SaaS | VEDO Core | Cloud provider (evidence available) | VEDO provides cloud provider destruction cert
+| Private Cloud | VEDO Core | Customer (unless contracted) | By contract or customer-managed
+| On-Premise | VEDO Core | Customer (unless contracted) | Customer-managed
+| Air-Gapped | VEDO Core | Customer | Customer-managed
+|===
+
+Physical destruction outside VEDO managed scope raises PHYSICAL_ERASE_OUT_OF_SCOPE (INV-DATA-LIFECYCLE-0074).
+
+=== Secure Erase Evidence
+
+----
+vedo-cli decommission erase-evidence --tenant <tenant-id> --deployment-model <model>
+----
+
+For SaaS with managed contract, cloud provider destruction certificate is required evidence.
+
+== Tenant and Ontology Deletion Protection
+
+=== Soft-Delete Quarantine (SaaS)
+
+. Tenant/ontology deletion requires `force=true` (API) or typed name confirmation (UI). Without these, DELETE_CONFIRMATION_REQUIRED is returned (INV-DATA-LIFECYCLE-0076).
+. On confirmed delete: `deleted_at = now()`, `permanent_delete_at = now() + 30 days` (INV-DATA-LIFECYCLE-0075).
+. During quarantine: ordinary reads and writes exclude quarantined objects.
+. Hard-delete never executes immediately; daily cleanup job removes after quarantine expiry.
+
+=== Restore from Quarantine
+
+----
+vedo-cli tenant restore --tenant-id <tenant-id>
+vedo-cli ontology restore --ontology-id <ontology-id>
+----
+
+Restore clears `deleted_at` and `permanent_delete_at` markers, returns to active state (INV-DATA-LIFECYCLE-0077).
+
+=== Restore after Hard-Delete
+
+If quarantine expired and hard-delete executed:
+
+----
+vedo-cli backup restore --backup-ref <ref> --new-tenant-suffix restored-<YYYY-MM-DD>
+vedo-cli tenant rename --tenant-id <new-id> --name <desired-name>
+----
+
+Backup restore creates a new tenant/ontology id with `-restored-YYYY-MM-DD` suffix (INV-DATA-LIFECYCLE-0082). Target RTO: 4 hours (P0).
+
+== Backup Purge
+
+=== SLA by Jurisdiction
+
+|===
+| Jurisdiction | Deployment | Purge SLA | Source
+| GDPR | SaaS | <= 30 days | backup-retention.md
+| 152-FZ | SaaS | <= 90 days | backup-retention.md
+| Enterprise / On-Premise | By contract | Contract-defined | backup-retention.md
+|===
+
+=== Procedure
+
+----
+vedo-cli backup purge-request --tenant <tenant-id> --jurisdiction <jurisdiction>
+----
+
+Returns BACKUP_PURGE_PENDING_RETENTION with `backupPurgeSlaDays` and earliest deletion date. Immutable media remains until retention expiry; status tracked as pending (INV-DATA-LIFECYCLE-0078, INV-DATA-LIFECYCLE-0083).
+
+== Decommission Drills
+
+=== Internal Drill (P0/P1)
+
+. Requires isolated staging cluster with canonical workload profile (1M axioms, 100K individuals).
+. Identical software version, full network/database isolation (INV-DATA-LIFECYCLE-0087).
+. CI/CD from same pipeline with distinct `values.yaml`.
+
+=== Customer Acceptance Drill
+
+. Requires full verified backup, test tenant isolation, infrastructure namespace isolation, explicit CLI environment guard (INV-DATA-LIFECYCLE-0088).
+. Production read-only mode during destructive phases.
+
+=== Canonical Profile Seed
+
+----
+vedo-cli tenant seed --profile canonical
+----
+
+Deploys deterministic workload: 1M axioms, 100K individuals, class hierarchy, ObjectProperty, DatatypeProperty, individuals, commit history (INV-DATA-LIFECYCLE-0089).
+
+=== Acceptance Criteria (DUS-1 per INV-DATA-LIFECYCLE-0083)
+
+* 100% success rate for 3 independent runs on canonical profile
+* <= 4 hours execution time
+* Zero critical operator errors
+* Zero L2/L3 support escalations
+
+== Status Model (DUS-2 per INV-DATA-LIFECYCLE-0084)
+
+|===
+| State | Label | Next Action
+| export_pending | Export Pending | Run `vedo-cli decommission export`
+| verification_required | Verification Required | Run `vedo-cli decommission verify`
+| deactivation_pending | Deactivation Pending | Wait for cooling-off period
+| quarantine | Quarantine | Restore or wait for hard-delete
+| restored | Restored | Verify data access
+| anonymized | Anonymized | No action needed
+| purged | Purged | Review evidence
+| customer_action_required | Customer Action Required | Review earliest deletion date
+|===
+
+Failed state includes `reason:` field and safe retry command.
+
+== Runbook Versioning
+
+This runbook is owned by the VEDO Core team, versioned with product releases, validated before every release, and shipped in the air-gap offline package (INV-DATA-LIFECYCLE-0090).

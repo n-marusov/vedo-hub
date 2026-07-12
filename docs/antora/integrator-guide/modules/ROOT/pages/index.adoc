@@ -1,0 +1,35 @@
+= Руководство интегратора VEDO Core
+:description: REST API, вебхуки, SPARQL endpoint и паттерны интеграции с VEDO Core
+:keywords: интеграция, API, REST, вебхуки, SPARQL, SDK
+
+== Введение
+
+Руководство интегратора VEDO Core предназначено для разработчиков, интегрирующих внешние системы с VEDO Core через REST API, вебхуки, SPARQL endpoint и другие протоколы.
+
+== Предварительные требования
+
+* Доступ к VEDO Core API Gateway
+* JWT-токен или API-ключ с ролью Developer
+* Понимание REST, JSON, OAuth2
+
+== API VEDO Core
+
+| Интерфейс | Назначение | Документация |
+|-----------|-----------|-------------|
+| REST API | CRUD для классов, свойств, индивидов | xref:rest-api.adoc[REST API] |
+| Аутентификация | JWT, OAuth2 | xref:authentication.adoc[Аутентификация] |
+| Вебхуки | События интеграции | xref:webhooks.adoc[Вебхуки] |
+| SPARQL Endpoint | Семантические запросы | xref:sparql-endpoint.adoc[SPARQL Endpoint] |
+| GraphQL | API для фронтенда | По запросу |
+
+== Сценарии интеграции
+
+* Интеграция с ERP/PLM/MES через REST API
+* Автоматический импорт онтологий из внешних систем
+* Синхронизация данных через вебхуки
+* Семантические запросы через SPARQL
+
+== Ссылки
+
+* xref:developer-guide::api-protocols.adoc[Протоколы API]
+* xref:developer-guide::tech-stack.adoc[Технологический стек]

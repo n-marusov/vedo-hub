@@ -1,0 +1,5 @@
+name: user-guide
+title: Руководство пользователя VEDO Core
+version: 1.0
+nav:
+  - modules/ROOT/nav.adoc

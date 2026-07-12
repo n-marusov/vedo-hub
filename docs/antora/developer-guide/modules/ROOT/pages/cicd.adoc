@@ -1,0 +1,290 @@
+= CI/CD
+:toc: left
+:toclevels: 3
+:icons: font
+:sectnums:
+
+== Обзор
+
+VEDO Core использует GitLab CI с мультиязычными пайплайнами (Rust, Go, Python, TypeScript).
+
+```mermaid
+graph LR
+    subgraph "CI Pipeline"
+        LINT["Lint"]
+        TEST["Test"]
+        BUILD["Build"]
+        DOCS["Docs"]
+    end
+    subgraph "CD Pipeline"
+        STAGE["Deploy Staging"]
+        E2E["E2E Tests"]
+        PROD["Deploy Production"]
+    end
+    LINT --> TEST --> BUILD
+    BUILD --> DOCS
+    DOCS --> STAGE --> E2E --> PROD
+```
+
+== GitLab CI Pipeline
+
+=== Стадии
+
+|===
+| Стадия | Длительность | Что делает
+| `lint` | 2–5 мин | Линтеры для всех языков (clippy, golangci-lint, ruff, eslint)
+| `test` | 5–15 мин | Юнит-тесты, интеграционные тесты, property-based тесты
+| `build` | 5–20 мин | Сборка Docker-образов
+| `docs` | 2–3 мин | Сборка Antora документации
+| `deploy` | 5–10 мин | Деплой в staging/production
+|===
+
+=== Пример `.gitlab-ci.yml`
+
+```yaml
+image: rust:1.80
+
+stages:
+  - lint
+  - test
+  - build
+  - docs
+  - deploy
+
+variables:
+  CARGO_TERM_COLOR: always
+
+rust-lint:
+  stage: lint
+  script:
+    - rustup component add clippy rustfmt
+    - cargo fmt --check
+    - cargo clippy -- -W clippy::pedantic -W clippy::nursery
+
+go-lint:
+  stage: lint
+  image: golang:1.22
+  script:
+    - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+    - golangci-lint run ./...
+
+python-lint:
+  stage: lint
+  image: python:3.12
+  script:
+    - pip install ruff
+    - ruff check .
+    - ruff format --check .
+
+frontend-lint:
+  stage: lint
+  image: node:20
+  script:
+    - corepack enable && corepack prepare pnpm@9 --activate
+    - cd frontend && pnpm install
+    - pnpm lint
+
+rust-test:
+  stage: test
+  script:
+    - cargo test
+  coverage: '/^\d+\.\d+%/'  # coverage from tarpaulin
+
+go-test:
+  stage: test
+  image: golang:1.22
+  script:
+    - go test -race -shuffle=on ./...
+
+python-test:
+  stage: test
+  image: python:3.12
+  script:
+    - pip install pytest pytest-cov
+    - pytest --cov=.
+
+frontend-test:
+  stage: test
+  image: node:20
+  script:
+    - cd frontend && pnpm install
+    - pnpm test:unit
+
+security-sast:
+  stage: test
+  script:
+    - pip install semgrep
+    - semgrep --config=auto --error .
+
+security-sca:
+  stage: test
+  script:
+    - apt-get update && apt-get install -y trivy
+    - trivy fs --severity CRITICAL,HIGH --exit-code 1 .
+
+build-images:
+  stage: build
+  script:
+    - docker build -t vedo/ontology-service:$CI_COMMIT_SHA -f services/ontology-service/Dockerfile .
+    - docker build -t vedo/versioning-service:$CI_COMMIT_SHA -f services/versioning-service/Dockerfile .
+    - docker build -t vedo/api-gateway:$CI_COMMIT_SHA -f services/api-gateway/Dockerfile .
+    - docker build -t vedo/frontend:$CI_COMMIT_SHA -f frontend/Dockerfile .
+
+build-docs:
+  stage: docs
+  script:
+    - cd llm/src/docs && for pb in playbook-admin.yml playbook-dev.yml playbook-integrator.yml playbook-user.yml; do npx @antora/cli --fetch "$pb"; done
+
+deploy-staging:
+  stage: deploy
+  environment: staging
+  only:
+    - main
+  script:
+    - helm upgrade --install vedo-core ./deploy/charts/vedo-core
+      --set image.tag=$CI_COMMIT_SHA
+      --namespace vedo-staging
+
+e2e-staging:
+  stage: deploy
+  script:
+    - pnpm exec playwright test --reporter=github
+  needs: [deploy-staging]
+
+deploy-production:
+  stage: deploy
+  environment: production
+  only:
+    - tags
+  when: manual
+  script:
+    - helm upgrade --install vedo-core ./deploy/charts/vedo-core
+      --set image.tag=$CI_COMMIT_TAG
+      --namespace vedo-production
+```
+
+== Pre-commit Hooks
+
+```yaml
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: detect-private-key
+  - repo: local
+    hooks:
+      - id: cargo-fmt
+        name: cargo fmt
+        entry: cargo fmt --check
+        language: system
+        files: \.rs$
+      - id: cargo-clippy
+        name: cargo clippy
+        entry: cargo clippy
+        language: system
+        files: \.rs$
+```
+
+```bash
+pip install pre-commit && pre-commit install
+```
+
+== Стратегии деплоя
+
+=== Rolling Update
+
+Обновление экземпляров один за другим без downtime.
+
+```bash
+kubectl set image deployment/ontology-service \
+  ontology-service=vedo/ontology-service:$TAG
+```
+
+=== Blue-Green
+
+Два идентичных окружения (blue — текущее, green — новое).
+
+```mermaid
+graph LR
+    LB["Load Balancer"]
+    BLUE["Blue (v1.0)"]
+    GREEN["Green (v2.0)"]
+    LB --> BLUE
+    LB -.->|switch| GREEN
+```
+
+=== Canary
+
+Постепенное переключение трафика на новую версию.
+
+```bash
+# 10% трафика на canary
+kubectl set image deployment/ontology-service-canary \
+  ontology-service=vedo/ontology-service:$TAG
+# После мониторинга — 50%
+# Затем — 100% и удаление canary
+```
+
+=== GitOps с Helm
+
+```yaml
+# deploy/charts/vedo-core/values.yaml
+replicas: 2
+image:
+  repository: vedo/ontology-service
+  tag: latest
+
+service:
+  ports:
+    grpc: 50051
+    http: 8080
+
+resources:
+  limits:
+    cpu: "2"
+    memory: 2Gi
+  requests:
+    cpu: "500m"
+    memory: 1Gi
+
+observability:
+  tracing:
+    enabled: true
+    exporter: otlp
+  metrics:
+    enabled: true
+```
+
+```bash
+# Установка/обновление
+helm upgrade --install vedo-core ./deploy/charts/vedo-core -f values-prod.yaml
+
+# Откат
+helm rollback vedo-core 1
+```
+
+== Environment Guards
+
+* **Production:** manual deploy только из тегов, обязательный E2E-прогон на staging, одобрение DevOps
+* **Staging:** автоматический деплой из `main`, E2E-тесты после деплоя
+* **Development:** автоматический деплой из любой ветки
+
+== Quality Gates
+
+Перед релизом (`/validate`):
+
+|===
+| Gate | Инструмент | Порог
+| Code style | clippy / ruff / eslint | Zero warnings
+| Unit tests | cargo test / pytest | ≥ 80% coverage
+| SAST | Semgrep | Zero critical/high
+| SCA | Trivy | Zero critical, ≤ 2 high
+| Performance | k6 | p95 < 1 sec, error rate < 0.1%
+| Documentation | Antora build | Zero build errors, zero broken links
+| HLV check | hlv check | Все маркеры покрыты
+|===

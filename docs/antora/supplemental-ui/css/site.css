@@ -1,0 +1,10 @@
+/* VEDO Core — Supplemental UI Styles */
+:root {
+  --vedo-primary: #2563eb;
+  --vedo-primary-dark: #1d4ed8;
+  --vedo-secondary: #64748b;
+  --vedo-accent: #0ea5e9;
+  --vedo-success: #22c55e;
+  --vedo-warning: #f59e0b;
+  --vedo-danger: #ef4444;
+}

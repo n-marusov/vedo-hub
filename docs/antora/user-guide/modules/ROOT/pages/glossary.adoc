@@ -1,0 +1,162 @@
+= Глоссарий
+:description: Основные термины семантического моделирования и платформы VEDO Core.
+:sectnums:
+:toc: left
+
+== A
+
+=== ABox (Assertion Box)
+xref:glossary.adoc#abox[ABox] — часть онтологии, содержащая фактические данные об индивидах: их принадлежность к классам и значения свойств. Противопоставляется xref:glossary.adoc#tbox[TBox].
+
+См. также: xref:tasks.adoc#manage-individuals[Управление индивидами].
+
+== B
+
+=== Blank Node (Пустой узел)
+xref:glossary.adoc#blankNode[Blank Node] — узел в RDF-графе без глобального URI-идентификатора. Используется для анонимных ресурсов.
+
+== C
+
+=== Class (Класс)
+xref:glossary.adoc#class[Класс] — понятие, обозначающее совокупность объектов с общими свойствами. Классы образуют иерархию (xref:glossary.adoc#taxonomy[таксономию]).
+
+См. также: xref:tasks.adoc#manage-classes[Управление классами].
+
+=== Commit (Коммит онтологии)
+xref:glossary.adoc#ontologyCommit[Commit] — фиксация изменений онтологии с сообщением и хэшем SHA-256. Хранит дельту (список добавленных/удалённых триплетов).
+
+См. также: xref:tasks.adoc#version-control[Управление версиями].
+
+=== Cursor Pagination (Курсорная пагинация)
+xref:glossary.adoc#cursorPagination[Курсорная пагинация] — механизм постраничной навигации, при котором клиент передаёт непрозрачный курсор. Исключает пропуск и дублирование данных при параллельных изменениях.
+
+== D
+
+=== Datatype Property (Свойство-литерал)
+xref:glossary.adoc#datatypeProperty[DatatypeProperty] — свойство, значением которого является литерал (строка, число, дата, логическое значение).
+
+См. также: xref:tasks.adoc#manage-properties[Управление свойствами].
+
+=== Description Logic (Дескрипционная логика)
+xref:glossary.adoc#descriptionLogic[Description Logic] — семейство формальных языков представления знаний, лежащих в основе OWL. Характеризуется разрешимостью вычислений.
+
+== I
+
+=== Individual (Индивидуальный объект)
+xref:glossary.adoc#individual[Individual] — конкретный объект, экземпляр класса. Является «атомом» модели, не может содержать другие экземпляры.
+
+См. также: xref:tasks.adoc#manage-individuals[Управление индивидами].
+
+=== Introspection
+xref:glossary.adoc#introspection[Introspection] — возможность получить метаданные текущей онтологии: список классов, свойств и типов данных. Используется визуальным конструктором SPARQL-запросов.
+
+== K
+
+=== Keycloak
+xref:glossary.adoc#keycloak[Keycloak] — система аутентификации и управления доступом, используемая VEDO Core. Поддерживает OAuth2/OIDC, SSO, RBAC.
+
+== M
+
+=== Merge Request (MR)
+xref:glossary.adoc#mergeRequest[Merge Request] — механизм рецензирования изменений перед слиянием веток. Включает semantic diff, комментарии и workflow утверждения.
+
+См. также: xref:tasks.adoc#merge-requests[Работа с Merge Request].
+
+== O
+
+=== Object Property (Ссылочное свойство)
+xref:glossary.adoc#property[ObjectProperty] — свойство, связывающее два класса. Может иметь характеристики: транзитивность, симметричность, функциональность, инверсность.
+
+=== Ontology (Онтология)
+xref:glossary.adoc#ontology[Ontology] — формальная спецификация разделяемой концептуализации. В контексте VEDO Core — структура данных, содержащая классы, свойства, индивиды и аксиомы.
+
+=== Open World Assumption (OWA)
+xref:glossary.adoc#openWorldAssumption[OWA] — парадигма открытого мира: отсутствие факта в онтологии не означает его ложности. Принята в OWL и логическом выводе.
+
+=== OWL (Web Ontology Language)
+xref:glossary.adoc#owl[OWL] — язык описания онтологий W3C. Расширяет RDF/RDFS аксиомами: эквивалентность классов, кардинальность, характеристики свойств.
+
+== R
+
+=== RBox (Role Box)
+xref:glossary.adoc#rbox[RBox] — компонент онтологии, содержащий аксиомы об объектных свойствах: иерархию ролей, характеристики (транзитивность, симметричность) и цепочки свойств.
+
+=== RDF (Resource Description Framework)
+xref:glossary.adoc#rdf[RDF] — стандарт W3C для описания ресурсов в виде графа. Модель данных основана на xref:glossary.adoc#triple[триплетах].
+
+=== RDFS (RDF Schema)
+xref:glossary.adoc#rdfs[RDFS] — стандартный словарь для RDF: классы, свойства, иерархия, домен/диапазон.
+
+=== RDF/XML
+xref:glossary.adoc#rdfXml[RDF/XML] — XML-сериализация RDF-графа. Используется для совместимости с xref:glossary.adoc#protege[Protégé] и legacy-инструментами.
+
+=== Reasoner (Машина логического вывода)
+xref:glossary.adoc#reasoner[Reasoner] — компонент для вычисления логических следствий. Проверяет консистентность, выводит принадлежность индивидов к классам.
+
+== S
+
+=== Semantic Diff (Семантическое сравнение)
+xref:glossary.adoc#semanticDiff[Semantic Diff] — сравнение версий онтологии на уровне сущностей: какие классы, свойства и индивиды добавлены, удалены или изменены. В отличие от построчного diff файла, показывает изменения в терминах онтологии.
+
+См. также: xref:tasks.adoc#version-control[Сравнение версий].
+
+=== SHACL (Shapes Constraint Language)
+xref:glossary.adoc#shacl[SHACL] — язык W3C для валидации RDF-графов. Позволяет описывать ограничения на структуру данных и значения свойств.
+
+См. также: xref:tasks.adoc#shacl-validation[Валидация SHACL].
+
+=== SPARQL
+xref:glossary.adoc#sparql[SPARQL] — язык запросов к RDF-графам и протокол передачи запросов. Аналог SQL для семантических данных.
+
+См. также: xref:tasks.adoc#sparql[SPARQL-запросы].
+
+=== SPARQL Endpoint
+xref:glossary.adoc#sparqlEndpoint[SPARQL Endpoint] — сетевой интерфейс для выполнения SPARQL-запросов через HTTP. Адрес: `/api/v1/sparql`. Только чтение (SELECT/ASK), с аутентификацией и ограничениями.
+
+=== SWRL (Semantic Web Rule Language)
+xref:glossary.adoc#swrl[SWRL] — язык правил логического вывода для OWL онтологий. Правила вида «Если (условия), То (следствие)».
+
+== T
+
+=== TBox (Terminology Box)
+xref:glossary.adoc#tbox[TBox] — терминологическая часть онтологии: классы, свойства, аксиомы. Задаёт схему знаний предметной области.
+
+См. также: xref:tasks.adoc#manage-classes[Управление классами].
+
+=== Taxonomy (Таксономия)
+xref:glossary.adoc#taxonomy[Taxonomy] — иерархическая структура классов, основанная на отношении обобщения/специализации (is-a).
+
+=== Triple (Триплет)
+xref:glossary.adoc#triple[Triple] — фундаментальная единица RDF: {Субъект, Предикат, Объект}. Лежит в основе семантических графов.
+
+=== Triple Store (RDF Store)
+xref:glossary.adoc#tripleStore[Triple Store] — специализированная база данных для хранения RDF-графов. В VEDO Core используется Neo4j.
+
+=== Turtle (Terse RDF Triple Language)
+xref:glossary.adoc#turtle[Turtle] — текстовый формат сериализации RDF. Компактный, читаемый, используется VEDO Core для канонической сериализации, импорта, экспорта и стабильного diff.
+
+== U
+
+=== URI / IRI
+xref:glossary.adoc#uri[URI] — унифицированный идентификатор ресурса. В Semantic Web используется для глобальной идентификации классов, свойств и индивидов.
+
+== V
+
+=== VEDO Core
+xref:glossary.adoc#vedoCore[VEDO Core] — веб-платформа для многопользовательского редактирования онтологий с Git-подобным версионированием.
+
+=== Branch (Ветка онтологии)
+xref:glossary.adoc#ontologyBranch[Branch] — независимая линия разработки онтологии. Позволяет параллельно работать над разными версиями.
+
+=== vedo-cli
+xref:glossary.adoc#vedoCli[vedo-cli] — CLI-утилита для администрирования: backup/restore, миграции, диагностика.
+
+== W
+
+=== WebSocket
+xref:glossary.adoc#webSocket[WebSocket] — протокол двунаправленной связи. В VEDO Core используется для уведомлений о комментариях и событиях версионирования.
+
+== X
+
+=== XSD (XML Schema Definition)
+xref:glossary.adoc#xsd[XSD] — набор стандартных типов данных (string, integer, double, dateTime, boolean), используемых для значений DatatypeProperty.

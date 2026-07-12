@@ -1,0 +1,268 @@
+= Тестирование и QA
+:toc: left
+:toclevels: 3
+:icons: font
+:sectnums:
+
+== Стратегия тестирования
+
+VEDO Core использует многоуровневую стратегию тестирования — от юнит-тестов до E2E и security-тестирования.
+
+```mermaid
+graph TB
+    subgraph "Пирамида тестирования"
+        E2E["E2E (Playwright)<br/>5%"]
+        INT["Integration Tests<br/>15%"]
+        UNIT["Unit Tests<br/>60%"]
+        PBT["Property-Based Tests<br/>10%"]
+        SEC["Security Tests<br/>10%"]
+    end
+    UNIT --> INT --> E2E
+    PBT --> UNIT
+    SEC --> INT
+```
+
+== Юнит-тесты
+
+* **Цель:** Проверка отдельного модуля/функции в изоляции
+* **Запуск:** `cargo test` (Rust), `go test ./...` (Go), `pytest` (Python), `vitest` (Vue)
+* **Покрытие:** ≥ 80% для бизнес-логики
+
+=== Rust
+
+```bash
+cargo test                    # все тесты
+cargo test -- --nocapture     # с выводом
+cargo test test_create_class  # конкретный тест
+```
+
+=== Go
+
+```bash
+go test ./...                 # все тесты
+go test -v ./...              # verbose
+go test -bench=. ./...        # бенчмарки
+```
+
+=== Python
+
+```bash
+pytest                        # все тесты
+pytest -v                     # verbose
+pytest tests/unit/            # конкретная директория
+```
+
+=== Vue 3
+
+```bash
+pnpm test:unit                # vitest
+pnpm test:unit --coverage     # с покрытием
+```
+
+== Интеграционные тесты
+
+* **Цель:** Проверка взаимодействия между компонентами (сервис + БД, сервис + сервис)
+* **Инструменты:** `testcontainers`, Docker Compose, интеграционные тесты в `tests/`
+
+```rust
+// Пример: интеграционный тест Rust
+#[tokio::test]
+async fn test_ontology_service_with_neo4j() {
+    let neo4j = Neo4jContainer::new().await;
+    let service = OntologyService::new(neo4j.uri());
+    
+    let node = service.create_node("TestClass").await.unwrap();
+    assert_eq!(node.label, "TestClass");
+    
+    let found = service.get_node(&node.id).await.unwrap();
+    assert_eq!(found.id, node.id);
+}
+```
+
+=== Neo4j Test Container
+
+```go
+// Пример: Go-тест с testcontainers
+func TestOntologyService(t *testing.T) {
+    ctx := context.Background()
+    neo4j, err := testcontainers.NewContainer(ctx, "neo4j:5")
+    require.NoError(t, err)
+    defer neo4j.Terminate(ctx)
+    
+    svc := NewOntologyService(neo4j.URI())
+    node, err := svc.CreateClass(ctx, "Test")
+    assert.NoError(t, err)
+    assert.NotEmpty(t, node.ID)
+}
+```
+
+== E2E-тесты (Playwright)
+
+* **Цель:** Сквозное тестирование пользовательских сценариев через браузер
+* **Инструмент:** Playwright
+* **Покрытие:** Ключевые user journeys (US-1, US-4, US-8, US-11, US-18, etc.)
+
+```typescript
+// Пример: E2E-тест создания класса
+import { test, expect } from '@playwright/test';
+
+test('US-1: Create class with parent', async ({ page }) => {
+  // Login
+  await page.goto('/login');
+  await page.fill('[data-testid="username"]', 'knowledge-engineer');
+  await page.fill('[data-testid="password"]', 'password');
+  await page.click('[data-testid="login-button"]');
+
+  // Open ontology
+  await page.goto('/ontologies/test-ontology');
+  await page.waitForSelector('[data-testid="class-tree"]');
+
+  // Create class
+  await page.click('[data-testid="create-class"]');
+  await page.fill('[data-testid="class-name"]', 'PneumaticCylinder');
+  await page.click('[data-testid="save-class"]');
+
+  // Verify
+  await expect(page.locator('[data-testid="class-tree"]'))
+    .toContainText('PneumaticCylinder');
+});
+```
+
+=== Запуск
+
+```bash
+# Установка браузеров
+pnpm exec playwright install
+
+# Запуск всех E2E-тестов
+pnpm test:e2e
+
+# С UI-режимом
+pnpm test:e2e --ui
+
+# В CI
+pnpm test:e2e --reporter=github
+```
+
+== Property-Based Testing
+
+* **Цель:** Проверка инвариантов с автоматической генерацией входных данных (≥ 10 000 генераций)
+* **Инструменты:** `proptest` (Rust), `quickcheck` / `gopter` (Go), `hypothesis` (Python)
+
+```rust
+// Rust: проверка инварианта таксономии
+use proptest::prelude::*;
+
+proptest! {
+    #[test]
+    fn test_taxonomy_invariant(
+        parent in "[A-Z][a-z]{1,10}",
+        child in "[A-Z][a-z]{1,10}",
+    ) {
+        // Транзитивность: если A subclassOf B и B subclassOf C, то A subclassOf C
+        // Это свойство должно сохраняться после любых операций
+    }
+}
+```
+
+```python
+# Python: проверка свойства валидации имён
+from hypothesis import given, strategies as st
+
+@given(st.text(min_size=1, max_size=100))
+def test_validate_name(name):
+    result = validate_name(name)
+    # Имя не должно содержать пробелов
+    if " " in name:
+        assert result.is_err()
+    else:
+        assert result.is_ok()
+```
+
+== Security-тестирование
+
+=== SAST (Static Application Security Testing)
+
+* **Инструмент:** Semgrep
+* **Запуск:** `semgrep --config=auto .`
+* **Правила:** Кастомные правила для SPARQL-инъекций, утечки секретов
+
+```bash
+semgrep --config=auto --error .
+```
+
+=== DAST (Dynamic Application Security Testing)
+
+* **Инструмент:** OWASP ZAP
+* **Цель:** Развёрнутый экземпляр VEDO Core
+
+=== SCA (Software Composition Analysis)
+
+* **Инструмент:** Trivy
+* **Запуск:** `trivy fs .`
+
+```bash
+trivy fs --severity CRITICAL,HIGH --exit-code 1 .
+```
+
+=== BOLA / BFLA
+
+* **Цель:** Проверка авторизации на уровне объектов и функций
+* **Техника:** Negative Authorization Tests — запросы от пользователя без прав
+
+=== OWASP ASVS
+
+* **Уровень:** ASVS Level 2 (обязательный)
+* **Верификация:** Automated + Manual для критичных сценариев
+
+== Фаззинг-тестирование
+
+* **Цель:** Поиск ошибок через генерацию случайных входных данных
+* **Инструменты:** `cargo fuzz` (Rust), `go-fuzz` (Go)
+
+```rust
+// Rust: фаззинг SPARQL-парсера
+#![no_main]
+use libfuzzer_sys::fuzz_target;
+
+fuzz_target!(|data: &[u8]| {
+    if let Ok(input) = std::str::from_utf8(data) {
+        let _ = parse_sparql_query(input);
+    }
+});
+```
+
+== Мониторинг производительности (Performance Baseline)
+
+* **Инструмент:** k6 для нагрузочного тестирования
+* **Метрики:** p50, p90, p99 latency, throughput, error rate
+* **Canonical Workload Profile:** единица масштаба для бенчмарков
+
+```bash
+# Запуск нагрузочного теста
+k6 run tests/performance/canonical-workload.js
+```
+
+== HLV-тесты
+
+Каждый тест содержит `@hlv <ID>` маркер, связывающий его с контрактом.
+
+```rust
+#[test]
+// @hlv OUT_OF_STOCK
+fn test_cart_rejects_out_of_stock_item() {
+    // ...
+}
+
+#[test]
+// @hlv atomicity
+fn test_commit_creates_delta_atomically() {
+    // ...
+}
+```
+
+Проверка покрытия:
+
+```bash
+hlv check  # сканирует src/ и tests/ на наличие @hlv маркеров
+```

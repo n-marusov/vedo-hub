@@ -1,0 +1,31 @@
+= Руководство администратора VEDO Core
+:description: Развёртывание, администрирование и эксплуатация VEDO Core
+:keywords: VEDO Core, администрирование, DevOps, развёртывание, backup
+
+== Введение
+
+Руководство администратора VEDO Core предназначено для DevOps-инженеров, администраторов и инженеров поддержки. Содержит инструкции по развёртыванию, настройке, резервному копированию, диагностике и эксплуатации платформы.
+
+== Предварительные требования
+
+* Доступ к инфраструктуре (Kubernetes или Docker)
+* Установленный Docker и kubectl/helm
+* Доступ к Container Registry
+* Понимание микросервисной архитектуры
+
+== Разделы руководства
+
+* xref:deployment.adoc[Развёртывание] — установка и настройка VEDO Core
+* xref:vedo-cli.adoc[vedo-cli] — CLI-утилита администрирования
+* xref:backup-restore.adoc[Резервное копирование и восстановление]
+* xref:migration.adoc[Миграции]
+* xref:airgap.adoc[Air-gapped развёртывание]
+* xref:monitoring.adoc[Мониторинг и наблюдаемость]
+* xref:security.adoc[Безопасность]
+* xref:infrastructure.adoc[Инфраструктура SaaS]
+* xref:incident-diagnosis.adoc[Диагностика инцидентов]
+
+== Ссылки
+
+* xref:developer-guide::architecture.adoc[Архитектура системы]
+* xref:user-guide::index.adoc[Руководство пользователя]

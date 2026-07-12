@@ -1,0 +1,86 @@
+= Глоссарий API
+:description: API-ориентированный глоссарий терминов платформы VEDO Core.
+:toc: left
+:toclevels: 2
+
+Неполный перечень терминов. Полный глоссарий см. в `human/artifacts/glossary.md`.
+
+== REST API
+
+**REST (Representational State Transfer)** — архитектурный стиль взаимодействия компонентов распределённого приложения. VEDO Core предоставляет RESTful API с JSON в качестве формата данных. Все endpoint'ы доступны через xref:api-reference.adoc#api-gateway[API Gateway].
+
+== GraphQL
+
+**GraphQL** — язык запросов к API, позволяющий клиенту явно запрашивать нужную структуру данных. В VEDO Core используется как основной API фронтенда для навигации по графу онтологии: подгрузки порций графа, cursor pagination, вложенных запросов. Динамические свойства онтологии возвращаются через контейнеры `propertyValues`, `outgoingEdges` и `incomingEdges`.
+
+== gRPC
+
+**gRPC** — высокопроизводительный протокол вызова удалённых процедур (RPC) с бинарной сериализацией Protocol Buffers. В VEDO Core используется для внутренних вызовов между микросервисами (Ontology Service, Versioning Service). Для внешней интеграции рекомендуется REST API.
+
+== WebSocket
+
+**WebSocket** — протокол двунаправленной связи поверх HTTP. В VEDO Core используется для уведомлений о событиях версионирования и комментариях к Merge Request'ам.
+
+== JWT (JSON Web Token)
+
+**JWT** — компактный и самодостаточный способ передачи данных между сторонами в виде JSON-объекта. Все запросы к API VEDO Core требуют передачи JWT в заголовке `Authorization: Bearer <token>`. Токен выдаётся через Keycloak.
+
+== OAuth2 / OIDC
+
+**OAuth2** — протокол делегированной авторизации. **OIDC (OpenID Connect)** — слой аутентификации поверх OAuth2. VEDO Core использует OAuth2/OIDC через Keycloak с поддержкой Authorization Code Flow (для веб-интерфейса) и Client Credentials Flow (для M2M-интеграций).
+
+== SPARQL
+
+**SPARQL (SPARQL Protocol and RDF Query Language)** — язык запросов к RDF-графам, стандарт W3C. VEDO Core предоставляет SPARQL endpoint `/api/v1/sparql` только для запросов чтения (SELECT/ASK). INSERT/DELETE блокируются на уровне шлюза.
+
+== OpenAPI
+
+**OpenAPI** — машиночитаемая спецификация REST API в формате YAML/JSON. VEDO Core публикует OpenAPI-спецификацию по адресу `/api/v1/openapi.yaml`. Спецификация доступна для просмотра через Swagger UI.
+
+== Swagger UI
+
+**Swagger UI** — веб-интерфейс для просмотра и интерактивного тестирования REST API на основе OpenAPI-спецификации. Доступен по адресу `/api/docs`.
+
+== Rate Limiting (ограничение частоты запросов)
+
+Механизм защиты API от чрезмерной нагрузки. VEDO Core ограничивает количество запросов от одного клиента на основе JWT-токена или IP-адреса. Подробнее — xref:limits.adoc[Лимиты и квоты].
+
+== Cursor Pagination (курсорная пагинация)
+
+Механизм пагинации, при котором клиент передаёт непрозрачный курсор — строку, указывающую на позицию в списке. Исключает проблемы пропуска и дублирования при параллельных изменениях, характерные для offset-пагинации. Параметры: `first`, `after`, `endCursor`, `hasNextPage`.
+
+== Webhook (вебхук)
+
+Механизм асинхронного уведомления внешних систем о событиях в онтологии. Внешняя система подписывается на события, указывая URL для доставки. При наступлении события VEDO Core отправляет POST-запрос с JSON-payload на указанный URL.
+
+== RBAC (Role-Based Access Control)
+
+Модель управления доступом на основе ролей. В VEDO Core роли `Viewer`, `Editor`, `Maintainer`, `Owner` определяют права пользователя. `Owner` управляет членством, `Maintainer` управляет workflow онтологии (review, merge).
+
+== M2M Token (Machine-to-Machine token)
+
+Токен доступа для автоматизированного взаимодействия между системами без участия человека. Получается через Client Credentials Flow в Keycloak. Используется в CI/CD-пайплайнах и серверной автоматизации.
+
+== Service Account
+
+Учётная запись в Keycloak для неинтерактивной аутентификации. Использует Client Credentials Grant. Scope ограничен предопределённым набором операций. Audit логирует `actor=service-account:<client_id>`.
+
+== Ontology Service
+
+Микросервис на Rust, ядро VEDO Core. Обеспечивает CRUD-операции над узлами и связями графа онтологии, валидацию OWL-конструкций.
+
+== Versioning Service
+
+Микросервис (Rust), реализующий Git-подобное управление версиями: коммиты, ветки, слияние, Semantic Diff.
+
+== API Gateway
+
+Единая точка входа для всех клиентских запросов. Реализует маршрутизацию, аутентификацию (JWT, Keycloak), rate limiting и сбор метрик. Доступен через Keycloak для OAuth2/OIDC.
+
+== Auth Service
+
+Микросервис аутентификации и авторизации. Отвечает за проверку JWT, интеграцию с Keycloak/OAuth/OIDC и emergency fallback.
+
+== Keycloak
+
+Identity Provider (IdP) с открытым исходным кодом. Используется в VEDO Core как централизованный сервис аутентификации с поддержкой SSO, LDAP/AD интеграции и OAuth2/OIDC. Доступен по адресу `/auth`.

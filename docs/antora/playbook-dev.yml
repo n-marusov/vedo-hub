@@ -1,0 +1,10 @@
+site:
+  title: VEDO Core — Руководство разработчика
+  url: https://example.com/docs/dev
+content:
+  sources:
+    - url: ./
+      branches: HEAD
+      start_path: docs/antora/developer-guide
+output:
+  dir: ./build/site/developer-guide

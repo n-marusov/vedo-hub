@@ -1,0 +1,330 @@
+= Пользовательские истории
+:toc: left
+:toclevels: 3
+:icons: font
+:sectnums:
+
+.Source
+Полный текст: `human/artifacts/user-stories.md`
+
+Все пользовательские истории оформлены в формате Gherkin и прослеживаются до xref:usecases.adoc[прецедентов использования] и функциональных доменов.
+
+== Матрица связей
+
+|===
+| US ID | UC ID | Приоритет
+| US-1 | UC-editor.classes.manage-class-lifecycle | P0
+| US-2 | UC-editor.classes.manage-class-lifecycle | P0
+| US-3 | UC-editor.classes.manage-class-lifecycle | P0
+| US-4 | UC-editor.properties.manage-property-lifecycle | P0
+| US-5 | UC-editor.properties.manage-property-lifecycle | P0
+| US-6 | UC-editor.properties.manage-ontology-annotations | P1
+| US-7 | UC-abox.individuals.manage-individual-lifecycle | P1
+| US-8 | UC-browse.tree.view-ontology-tree-and-graph | P0
+| US-9 | UC-browse.search.search-ontology-elements | P0
+| US-10 | UC-browse.search.search-ontology-elements | P0
+| US-11 | UC-git.commits.manage-commit-history | P1
+| US-12 | UC-git.commits.manage-commit-history | P1
+| US-13 | UC-team.reviews.review-merge-request | P1
+| US-14 | UC-team.comments.discuss-merge-request-changes | P1
+| US-15 | UC-editor.classes.validate-ontology-with-shacl | P1
+| US-16 | UC-editor.classes.manage-data-quality-rules | P1
+| US-17 | UC-editor.classes.manage-data-quality-rules | P1
+| US-18 | UC-io.import.import-and-export-ontology-data | P0
+| US-19 | UC-io.import.import-and-export-ontology-data | P0
+| US-20 | UC-api.integration.integrate-through-platform-apis | P1
+| US-21 | UC-admin.system.manage-platform-configuration | P1
+| US-22 | UC-admin.access.manage-membership-and-permissions | P0
+| US-23 | UC-git.branches.manage-branch-workflow | P2
+| US-24 | UC-git.commits.compare-ontology-versions | P2
+| US-25 | UC-admin.backup.manage-backup-and-restore-via-cli | P0
+| US-26 | UC-admin.migration.apply-migrations-with-rollback-via-cli | P0
+| US-27 | UC-admin.airgap.prepare-air-gapped-package-via-cli | P1
+| US-28 | UC-diagnostics.trace.diagnose-incident-by-trace-id | P0
+| US-29 | UC-diagnostics.trace.diagnose-incident-by-trace-id | P1
+| US-30 | UC-admin.migration.transfer-and-diff-ontologies-via-cli | P1
+| US-31 | UC-admin.migration.transfer-and-diff-ontologies-via-cli | P1
+| US-32 | UC-browse.graph.view-ontology-graph-with-pagination | P0
+| US-33 | UC-io.publish.publish-ontology-snapshot | P1
+| US-34 | UC-browse.public.view-published-ontology | P1
+| US-35–US-73 | WCAG + прочие сценарии | P0–P2
+|===
+
+== Gherkin-сценарии
+
+[discrete]
+=== US-1: Создание класса с несколькими родителями
+
+```gherkin
+@US-1 @UC-editor.classes.manage-class-lifecycle @P0
+Feature: US-1 Создание класса с несколькими родителями
+
+  Background:
+    Given пользователь авторизован как инженер знаний
+    And открыта онтология "TestOntology"
+
+  Scenario: Пользователь создаёт класс с двумя родителями
+    Given выбран корневой класс owl:Thing
+    When пользователь нажимает "Создать класс"
+    And вводит название "Пневматический цилиндр"
+    And выбирает родительские классы "Актуатор" и "Пневматика"
+    Then класс "Пневматический цилиндр" создан
+    And он наследует свойства обоих родителей
+    And граф онтологии обновлён
+```
+
+[discrete]
+=== US-2: Создание подкласса
+
+```gherkin
+@US-2 @UC-editor.classes.manage-class-lifecycle @P0
+Feature: US-2 Создание подкласса
+
+  Scenario: Пользователь создаёт подкласс существующего класса
+    Given выбран класс "Механический привод"
+    When пользователь нажимает "Создать подкласс"
+    And вводит название "Цилиндрический редуктор"
+    Then создан подкласс класса "Механический привод"
+```
+
+[discrete]
+=== US-3: Удаление класса с подтверждением
+
+```gherkin
+@US-3 @UC-editor.classes.manage-class-lifecycle @P0
+Feature: US-3 Удаление класса с подтверждением
+
+  Scenario: Пользователь удаляет класс без зависимостей
+    Given выбран класс "Устаревший компонент"
+    When пользователь нажимает "Удалить"
+    Then система запрашивает подтверждение
+    When пользователь подтверждает удаление
+    Then класс "Устаревший компонент" удалён
+    And граф обновлён
+
+  Scenario: Пользователь пытается удалить класс с индивидами
+    Given выбран класс "Клиент" с существующими индивидами
+    When пользователь нажимает "Удалить"
+    Then система показывает предупреждение о наличии дочерних элементов
+    And предлагает каскадное удаление или отмену
+```
+
+[discrete]
+=== US-4: Создание DatatypeProperty
+
+```gherkin
+@US-4 @UC-editor.properties.manage-property-lifecycle @P0
+Feature: US-4 Создание DatatypeProperty
+
+  Scenario: Пользователь создаёт DatatypeProperty
+    Given выбран класс "Сотрудник"
+    When пользователь создаёт DatatypeProperty
+    And вводит название "табельныйНомер"
+    And выбирает тип xsd:string
+    Then свойство создано
+    And привязано к классу "Сотрудник"
+```
+
+[discrete]
+=== US-5: Создание ObjectProperty
+
+```gherkin
+@US-5 @UC-editor.properties.manage-property-lifecycle @P0
+Feature: US-5 Создание ObjectProperty
+
+  Scenario: Пользователь создаёт ObjectProperty
+    Given выбран класс "Сотрудник"
+    When пользователь создаёт ObjectProperty с названием "работаетВ"
+    And указывает range "Отдел"
+    Then свойство создано
+    And доступно для linking индивидов
+```
+
+[discrete]
+=== US-6: Добавление аннотации
+
+```gherkin
+@US-6 @UC-editor.properties.manage-ontology-annotations @P1
+Feature: US-6 Добавление аннотации
+
+  Scenario: Пользователь добавляет описание к классу
+    Given выбран класс "Сотрудник"
+    When пользователь добавляет rdfs:comment "Представляет сотрудника организации"
+    Then аннотация сохранена
+    And отображается в карточке класса
+```
+
+[discrete]
+=== US-7: Создание индивида
+
+```gherkin
+@US-7 @UC-abox.individuals.manage-individual-lifecycle @P1
+Feature: US-7 Создание индивида
+
+  Scenario: Пользователь создаёт экземпляр класса
+    Given выбран класс "Сотрудник"
+    When пользователь нажимает "Создать индивид"
+    And заполняет обязательные поля
+    Then индивид создан
+    And отображается в списке индивидов класса
+```
+
+[discrete]
+=== US-8: Просмотр дерева классов
+
+```gherkin
+@US-8 @UC-browse.tree.view-ontology-tree-and-graph @P0
+Feature: US-8 Просмотр дерева классов
+
+  Scenario: Пользователь просматривает дерево классов
+    Given открыта онтология с иерархией классов
+    When пользователь открывает левую панель навигации
+    Then он видит иерархическое дерево классов
+    And может раскрывать и сворачивать узлы
+```
+
+[discrete]
+=== US-9: Поиск элемента
+
+```gherkin
+@US-9 @UC-browse.search.search-ontology-elements @P0
+Feature: US-9 Поиск элемента
+
+  Scenario: Пользователь ищет класс по названию
+    Given открыта онтология с классами
+    When пользователь вводит "Цилиндр" в строку поиска
+    Then система отображает найденные классы
+```
+
+[discrete]
+=== US-10: Параметрический поиск
+
+```gherkin
+@US-10 @UC-browse.search.search-ontology-elements @P0
+Feature: US-10 Параметрический поиск
+
+  Scenario: Пользователь ищет индивиды по свойству
+    Given выбран класс "Сотрудник"
+    When пользователь заполняет фильтр "должность = Инженер"
+    Then система отображает всех инженеров
+```
+
+[discrete]
+=== US-11: Фиксация изменений (коммит)
+
+```gherkin
+@US-11 @UC-git.commits.manage-commit-history @P1
+Feature: US-11 Фиксация изменений
+
+  Scenario: Пользователь фиксирует изменения
+    Given в онтологии есть несохранённые изменения
+    When пользователь нажимает "Зафиксировать изменения"
+    And вводит сообщение коммита "Добавлен класс Пневматический цилиндр"
+    Then система создаёт коммит с SHA-256 хэшем
+    And дельта изменений сохранена
+    And история обновлена
+```
+
+[discrete]
+=== US-12: Откат к предыдущей версии
+
+```gherkin
+@US-12 @UC-git.commits.manage-commit-history @P1
+Feature: US-12 Откат к предыдущей версии
+
+  Scenario: Пользователь откатывает изменения
+    Given открыта история коммитов
+    When пользователь выбирает коммит и нажимает "Откатить"
+    Then система создаёт новый коммит с инвертированным diff
+    And активная ветка обновлена
+```
+
+[discrete]
+=== US-13: Создание Merge Request
+
+```gherkin
+@US-13 @UC-team.reviews.review-merge-request @P1
+Feature: US-13 Создание Merge Request
+
+  Scenario: Пользователь создаёт MR
+    Given пользователь завершил правки в ветке feature/new-module
+    When пользователь создаёт Merge Request в ветку main
+    Then система строит семантический diff
+    And MR доступен для ревью
+```
+
+[discrete]
+=== US-14: Комментирование в MR
+
+```gherkin
+@US-14 @UC-team.comments.discuss-merge-request-changes @P1
+Feature: US-14 Комментирование в MR
+
+  Scenario: Ревьюер оставляет комментарий
+    Given открыт Merge Request
+    When ревьюер добавляет комментарий к изменению
+    Then автор получает уведомление
+```
+
+[discrete]
+=== US-18: Импорт онтологии
+
+```gherkin
+@US-18 @UC-io.import.import-and-export-ontology-data @P0
+Feature: US-18 Импорт онтологии
+
+  Scenario: Пользователь импортирует файл Turtle
+    Given пользователь открыл страницу импорта
+    When пользователь выбирает файл ontology.ttl
+    And выбирает стратегию "Слияние"
+    Then система парсит Turtle
+    And валидирует OWL 2 DL
+    And импортирует в Neo4j
+    And создаёт коммит с дельтой
+```
+
+[discrete]
+=== US-25: Backup через vedo-cli
+
+```gherkin
+@US-25 @UC-admin.backup.manage-backup-and-restore-via-cli @P0
+Feature: US-25 Backup через vedo-cli
+
+  Scenario: DevOps запускает backup
+    Given настроен доступ к VEDO Core
+    When DevOps выполняет `vedo-cli backup --output ./backup`
+    Then система создаёт резервную копию всех хранилищ
+    And проверяет целостность
+    And сохраняет в указанную директорию
+```
+
+[discrete]
+=== US-28: Диагностика по trace_id
+
+```gherkin
+@US-28 @UC-diagnostics.trace.diagnose-incident-by-trace-id @P0
+Feature: US-28 Диагностика по trace_id
+
+  Scenario: Инженер поддержки диагностирует инцидент
+    Given есть trace_id инцидента
+    When инженер выполняет `vedo-cli diagnose --trace-id abc123`
+    Then система отображает цепочку вызовов
+    And показывает длительность каждого шага
+    And выявляет аномалии
+```
+
+[discrete]
+=== US-32: Просмотр графа с пагинацией
+
+```gherkin
+@US-32 @UC-browse.graph.view-ontology-graph-with-pagination @P0
+Feature: US-32 Просмотр графа с пагинацией
+
+  Scenario: Пользователь просматривает граф крупной онтологии
+    Given открыта онтология с 500 000 триплетов
+    When пользователь открывает визуализацию графа
+    Then система загружает корневые классы
+    When пользователь кликает по узлу
+    Then система подгружает дочерние элементы порционно
+    And использует cursor pagination
+```

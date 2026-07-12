@@ -1,0 +1,234 @@
+= SPARQL Endpoint
+:description: Документация SPARQL endpoint VEDO Core — семантические запросы к RDF-графу.
+:toc: left
+:toclevels: 2
+
+== Обзор
+
+SPARQL endpoint позволяет выполнять семантические запросы к RDF-графу онтологии. Доступен по адресу:
+
+[source]
+----
+POST https://api.vedo.local/api/v1/sparql
+----
+
+[WARNING]
+====
+SPARQL endpoint VEDO Core поддерживает **только запросы чтения**: `SELECT` и `ASK`. Запросы `INSERT`, `DELETE`, `INSERT DATA`, `DELETE DATA`, `DELETE WHERE`, `INSERT...DELETE` (UPDATE) блокируются на уровне API Gateway с кодом `400 Bad Request`.
+====
+
+== Аутентификация
+
+Все запросы к SPARQL endpoint требуют JWT-токен:
+
+[source,bash]
+----
+curl -X POST https://api.vedo.local/api/v1/sparql \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/sparql-query" \
+  -H "Accept: application/sparql-results+json" \
+  -d "SELECT * WHERE { ?s ?p ?o } LIMIT 10"
+----
+
+== Форматы запроса и ответа
+
+=== Заголовки запроса
+
+|===
+| Content-Type | Описание
+
+| `application/sparql-query`
+| SPARQL-запрос в теле запроса (текст)
+
+| `application/x-www-form-urlencoded`
+| Передача запроса в параметре `query`
+|===
+
+=== Форматы ответа
+
+|===
+| Accept | Формат ответа
+
+| `application/sparql-results+json`
+| JSON (рекомендуемый)
+
+| `application/sparql-results+xml`
+| XML
+
+| `text/csv`
+| CSV
+
+| `text/tab-separated-values`
+| TSV
+
+| `application/json`
+| JSON-LD (только для CONSTRUCT/DESCRIBE)
+|===
+
+== Поддерживаемые операции
+
+=== SELECT
+
+Выборка данных с возвратом таблицы результатов:
+
+[source,sparql]
+----
+PREFIX ex: <http://example.org/onto#>
+SELECT ?person ?name
+WHERE {
+  ?person a ex:Person .
+  ?person ex:fullName ?name .
+}
+LIMIT 50
+----
+
+[WARNING]
+====
+Запросы SELECT без `LIMIT` отклоняются. Максимальный `LIMIT`: 10000 записей. Подробнее — xref:limits.adoc[Лимиты].
+====
+
+=== ASK
+
+Проверка существования данных (возвращает `true`/`false`):
+
+[source,sparql]
+----
+PREFIX ex: <http://example.org/onto#>
+ASK { ?person a ex:Person . ?person ex:fullName "John Doe" }
+----
+
+== Ограничения
+
+=== Query complexity
+
+Сложные запросы могут быть отклонены до выполнения. Система оценивает:
+
+* Количество triple patterns
+* Вложенность `OPTIONAL` и `UNION`
+* Использование `FILTER NOT EXISTS` и `MINUS`
+* Количество `JOIN`-узлов
+
+Превышение порога (настраивается, по умолчанию 50) возвращает ошибку `429 Too Many Requests`.
+
+=== Rate limiting
+
+* Максимум 100 запросов в минуту на один JWT-токен (настраивается для клиента)
+* Дополнительные квоты — xref:limits.adoc[Лимиты и квоты]
+
+=== Timeout
+
+Максимальное время выполнения запроса: 30 секунд. Для длительных запросов используйте экспорт онтологии.
+
+== Introspection
+
+SPARQL endpoint поддерживает introspection — получение метаданных текущей онтологии для динамического построения запросов:
+
+[source,sparql]
+----
+-- List all classes
+SELECT DISTINCT ?class ?label
+WHERE {
+  ?class a owl:Class .
+  OPTIONAL { ?class rdfs:label ?label }
+}
+LIMIT 100
+----
+
+[source,sparql]
+----
+-- List all properties
+SELECT DISTINCT ?property ?type ?label
+WHERE {
+  { ?property a owl:ObjectProperty . BIND("objectProperty" AS ?type) }
+  UNION
+  { ?property a owl:DatatypeProperty . BIND("datatypeProperty" AS ?type) }
+  OPTIONAL { ?property rdfs:label ?label }
+}
+LIMIT 100
+----
+
+== Примеры
+
+=== Получить все классы с их подклассами
+
+[source,bash]
+----
+curl -X POST https://api.vedo.local/api/v1/sparql \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/sparql-query" \
+  -H "Accept: application/sparql-results+json" \
+  -d '
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?class ?label ?parent ?parentLabel
+WHERE {
+  ?class a owl:Class .
+  ?class rdfs:subClassOf ?parent .
+  OPTIONAL { ?class rdfs:label ?label }
+  OPTIONAL { ?parent rdfs:label ?parentLabel }
+}
+LIMIT 100'
+----
+
+=== Поиск индивидов по классу и свойству
+
+[source,bash]
+----
+curl -X POST https://api.vedo.local/api/v1/sparql \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/sparql-query" \
+  -H "Accept: application/sparql-results+json" \
+  -d '
+PREFIX ex: <http://example.org/onto#>
+SELECT ?individual ?name ?age
+WHERE {
+  ?individual a ex:Person .
+  ?individual ex:fullName ?name .
+  OPTIONAL { ?individual ex:age ?age }
+  FILTER(?age > 18)
+}
+ORDER BY ?name
+LIMIT 50'
+----
+
+=== Проверка существования класса
+
+[source,bash]
+----
+curl -X POST https://api.vedo.local/api/v1/sparql \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/sparql-query" \
+  -H "Accept: application/sparql-results+json" \
+  -d '
+PREFIX ex: <http://example.org/onto#>
+ASK { ex:Person a owl:Class }'
+----
+
+== Коды ошибок
+
+|===
+| HTTP Status | Код ошибки | Описание
+
+| `400`
+| `SPARQL_SYNTAX_ERROR`
+| Ошибка синтаксиса запроса
+
+| `400`
+| `SPARQL_WRITE_NOT_ALLOWED`
+| Попытка выполнения INSERT/DELETE
+
+| `400`
+| `SPARQL_MISSING_LIMIT`
+| Отсутствует LIMIT в SELECT-запросе
+
+| `429`
+| `SPARQL_QUERY_TOO_COMPLEX`
+| Превышен лимит сложности запроса
+
+| `429`
+| `RATE_LIMIT_EXCEEDED`
+| Превышен rate limit
+
+| `408`
+| `SPARQL_TIMEOUT`
+| Превышено время выполнения запроса
+|===

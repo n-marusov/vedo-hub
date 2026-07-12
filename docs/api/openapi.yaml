@@ -1,0 +1,3379 @@
+openapi: 3.1.0
+info:
+  title: VEDO Core REST API
+  version: 1.0.0
+  description: |
+    REST API управления онтологиями VEDO Core, предоставляющий полный набор операций CRUD
+    для онтологий, классов, свойств, индивидов, версионирования (коммиты, ветки),
+    поиска, импорта/экспорта, веб-хуков, политик доступа и администрирования.
+
+    Все эндпоинты требуют аутентификации JWT Bearer, если не отмечены как публичные.
+
+    ## Версионирование
+    Данный API следует семантическому версионированию с указанием мажорных версий в пути.
+    Текущая версия: v1
+    Ломающие изменения будут вводиться в новых мажорных версиях с предупреждениями
+    об устаревании, возвращаемыми в заголовках ответа.
+
+    ## Ограничения скорости
+    Стандартные эндпоинты: 1000 запросов/минуту
+    Импорт эндпоинты: 5 запросов/час
+    Экспорт эндпоинты: 20 запросов/час
+    SPARQL эндпоинт: 10 запросов/минуту
+  license:
+    name: MIT
+    identifier: MIT
+
+servers:
+  - url: https://api.vedo-core.example.com/api/v1
+    description: Прод сервер
+  - url: http://http://localhost:8080/api/v1
+    description: Тестовый сервер
+
+tags:
+  - name: ontologies
+    description: Управление онтологиями
+  - name: classes
+    description: Управление классами (TBox)
+  - name: properties
+    description: Управление свойствами (ObjectProperty, DatatypeProperty)
+  - name: individuals
+    description: Управление индивидами (ABox)
+  - name: graph
+    description: Просмотр и навигация по графу
+  - name: search
+    description: Поисковые операции
+  - name: commits
+    description: Коммиты системы контроля версий
+  - name: branches
+    description: Ветки системы контроля версий
+  - name: locks
+    description: Блокировка узлов для совместной работы
+  - name: import-export
+    description: RDF импорт и экспорт
+  - name: webhooks
+    description: Подписки на веб-хуки
+  - name: access-policies
+    description: Политики доступа RBAC
+  - name: admin
+    description: Операции администрирования
+
+paths:
+  /ontologies:
+    get:
+      tags: [ontologies]
+      operationId: listOntologies
+      summary: Получить список онтологий
+      description: Возвращает пагинированный список онтологий, доступных аутентифицированному пользователю.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, archived]
+      responses:
+        '200':
+          description: Успешный ответ
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OntologyListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+    post:
+      tags: [ontologies]
+      operationId: createOntology
+      summary: Создать онтологию
+      description: Создаёт новую онтологию с указанной конфигурацией.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOntologyRequest'
+      responses:
+        '201':
+          description: Онтология создана
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ontology'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/ResourceConflict'
+
+  /ontologies/{ontologyId}:
+    parameters:
+      - $ref: '#/components/parameters/ontologyId'
+    get:
+      tags: [ontologies]
+      operationId: getOntology
+      summary: Получить онтологию по ID
+      description: Возвращает полную информацию об онтологии, включая метаданные, статус и временные метки создания и обновления. Используйте ETag для оптимистичного параллелизма при последующих обновлениях.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешный ответ
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ontology'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+    put:
+      tags: [ontologies]
+      operationId: updateOntology
+      summary: Обновить онтологию
+      description: Обновляет метаданные онтологии. Не влияет на содержимое TBox/ABox.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOntologyRequest'
+      responses:
+        '200':
+          description: Онтология обновлена
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ontology'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '409':
+          $ref: '#/components/responses/ResourceConflict'
+    delete:
+      tags: [ontologies]
+      operationId: deleteOntology
+      summary: Удалить онтологию
+      description: Мягко удаляет онтологию. Данные сохраняются согласно политике хранения.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Онтология удалена
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+
+  /ontologies/{ontologyId}/graph:
+    parameters:
+      - $ref: '#/components/parameters/ontologyId'
+    get:
+      tags: [graph]
+      operationId: getOntologyGraph
+      summary: Получить структуру графа онтологии
+      description: Возвращает дерево, узлы и рёбра для визуализации графа.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: depth
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10
+            default: 3
+        - name: focusClassId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Данные графа
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OntologyGraph'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+
+  /ontologies/{ontologyId}/tree:
+    parameters:
+      - $ref: '#/components/parameters/ontologyId'
+    get:
+      tags: [graph]
+      operationId: getOntologyTree
+      summary: Получить дерево иерархии классов
+      description: Возвращает иерархическую древовидную структуру связей классов.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: depth
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10
+            default: 3
+        - name: showDeprecated
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Структура дерева
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassTreeNode'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+
+  /ontologies/{ontologyId}/classes:
+    parameters:
+      - $ref: '#/components/parameters/ontologyId'
+    get:
+      tags: [classes]
+      operationId: listClasses
+      summary: Получить список классов онтологии
+      description: Возвращает пагинированный список классов с фильтрацией по ветке, родительскому классу, абстрактности и статусу устаревания. Результаты отсортированы по умолчанию по дате создания в порядке убывания.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+        - name: branchId
+          in: query
+          schema:
+            type: string
+        - name: parentId
+          in: query
+          schema:
+            type: string
+        - name: isAbstract
+          in: query
+          schema:
+            type: boolean
+        - name: deprecated
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Список классов
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClassListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+    post:
+      tags: [classes]
+      operationId: createClass
+      summary: Создать класс
+      description: Создаёт новый класс в TBox онтологии. Автоматически создаёт коммит.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: branchId
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateClassRequest'
+      responses:
+        '201':
+          description: Класс создан
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Class'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '409':
+          $ref: '#/components/responses/ResourceConflict'
+        '423':
+          $ref: '#/components/responses/LockRequired'
+
+  /ontologies/{ontologyId}/classes/{classId}:
+    parameters:
+      - $ref: '#/components/parameters/ontologyId'
+      - $ref: '#/components/parameters/classId'
+    get:
+      tags: [classes]
+      operationId: getClass
+      summary: Получить класс по ID
+      description: Возвращает детальную информацию о классе, включая локализованные метки, комментарии, родительские классы и временные метки. Учитывайте параметр If-None-Match для кэширования с использованием ETag.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Детали класса
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Class'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+    put:
+      tags: [classes]
+      operationId: updateClass
+      summary: Обновить класс
+      description: Обновляет свойства класса. Автоматически создаёт коммит.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: branchId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: expectedHeadCommitId
+          in: query
+          schema:
+            type: string
+        - name: lockId
+          in: query
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateClassRequest'
+      responses:
+        '200':
+          description: Класс обновлён
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Class'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '409':
+          $ref: '#/components/responses/ResourceConflict'
+        '423':
+          $ref: '#/components/responses/LockRequired'
+    delete:
+      tags: [classes]
+      operationId: deleteClass
+      summary: Удалить класс
+      description: Удаляет класс. Требуется, чтобы индивиды этого класса отсутствовали.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: branchId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: expectedHeadCommitId
+          in: query
+          schema:
+            type: string
+        - name: lockId
+          in: query
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Класс удалён
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '409':
+          $ref: '#/components/responses/ResourceConflict'
+        '423':
+          $ref: '#/components/responses/LockRequired'
+
+  /ontologies/{ontologyId}/properties:
+    parameters:
+      - $ref: '#/components/parameters/ontologyId'
+    get:
+      tags: [properties]
+      operationId: listProperties
+      summary: Получить список свойств онтологии
+      description: Возвращает пагинированный список свойств с фильтрацией по типу (ObjectProperty, DatatypeProperty) и области определения (domainClassId). Поддерживает фильтрацию по ветке для многоуровневых онтологий.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+        - name: branchId
+          in: query
+          schema:
+            type: string
+        - name: propertyType
+          in: query
+          schema:
+            type: string
+            enum: [ObjectProperty, DatatypeProperty]
+        - name: domainClassId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Список свойств
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PropertyListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+    post:
+      tags: [properties]
+      operationId: createProperty
+      summary: Создать свойство
+      description: Создаёт ObjectProperty или DatatypeProperty. Автоматически создаёт коммит.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: branchId
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePropertyRequest'
+      responses:
+        '201':
+          description: Свойство создано
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Property'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '409':
+          $ref: '#/components/responses/ResourceConflict'
+        '423':
+          $ref: '#/components/responses/LockRequired'
+
+  /ontologies/{ontologyId}/properties/{propertyId}:
+    parameters:
+      - $ref: '#/components/parameters/ontologyId'
+      - $ref: '#/components/parameters/propertyId'
+    get:
+      tags: [properties]
+      operationId: getProperty
+      summary: Получить свойство по ID
+      description: Возвращает полную информацию о свойстве, включая тип (ObjectProperty/DatatypeProperty), область определения, диапазон значений, характеристики (транзитивность, симметричность, функциональность) и обратное свойство.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Детали свойства
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Property'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+    put:
+      tags: [properties]
+      operationId: updateProperty
+      summary: Обновить свойство
+      description: Обновляет определение свойства. Автоматически создаёт коммит.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: branchId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: expectedHeadCommitId
+          in: query
+          schema:
+            type: string
+        - name: lockId
+          in: query
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePropertyRequest'
+      responses:
+        '200':
+          description: Свойство обновлено
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Property'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '409':
+          $ref: '#/components/responses/ResourceConflict'
+        '423':
+          $ref: '#/components/responses/LockRequired'
+    delete:
+      tags: [properties]
+      operationId: deleteProperty
+      summary: Удалить свойство
+      description: Удаляет свойство без возможности восстановления. Операция требует обязательного параметра branchId. Если свойство используется индивидами, удаление будет заблокировано с ошибкой 409. Для полного удаления может потребоваться снятие блокировки с параметром lockId.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: branchId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: expectedHeadCommitId
+          in: query
+          schema:
+            type: string
+        - name: lockId
+          in: query
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Свойство удалено
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '409':
+          $ref: '#/components/responses/ResourceConflict'
+        '423':
+          $ref: '#/components/responses/LockRequired'
+
+  /ontologies/{ontologyId}/individuals:
+    parameters:
+      - $ref: '#/components/parameters/ontologyId'
+    get:
+      tags: [individuals]
+      operationId: listIndividuals
+      summary: Получить список индивидов онтологии
+      description: Возвращает пагинированный список индивидов с фильтрацией по классу и статусу устаревания. Индивиды — это экземпляры классов со значениями свойств. Поддерживает фильтрацию по ветке.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+        - name: branchId
+          in: query
+          schema:
+            type: string
+        - name: classId
+          in: query
+          schema:
+            type: string
+        - name: deprecated
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Список индивидов
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IndividualListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+    post:
+      tags: [individuals]
+      operationId: createIndividual
+      summary: Создать индивид
+      description: Создаёт экземпляр класса со значениями свойств. Автоматически создаёт коммит.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: branchId
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateIndividualRequest'
+      responses:
+        '201':
+          description: Индивид создан
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Individual'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '409':
+          $ref: '#/components/responses/ResourceConflict'
+        '423':
+          $ref: '#/components/responses/LockRequired'
+
+  /ontologies/{ontologyId}/individuals/{individualId}:
+    parameters:
+      - $ref: '#/components/parameters/ontologyId'
+      - name: individualId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [individuals]
+      operationId: getIndividual
+      summary: Получить индивид по ID
+      description: Возвращает полную информацию об индивиде, включая типы (классы), локализованные метки, комментарии и все значения свойств (объектных и дататипных). Учитывайте ETag для оптимистичного параллелизма.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Детали индивида
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Individual'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+    put:
+      tags: [individuals]
+      operationId: updateIndividual
+      summary: Обновить индивид
+      description: Обновляет значения свойств индивида. Автоматически создаёт коммит.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: branchId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: expectedHeadCommitId
+          in: query
+          schema:
+            type: string
+        - name: lockId
+          in: query
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateIndividualRequest'
+      responses:
+        '200':
+          description: Индивид обновлён
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Individual'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '409':
+          $ref: '#/components/responses/ResourceConflict'
+        '423':
+          $ref: '#/components/responses/LockRequired'
+    delete:
+      tags: [individuals]
+      operationId: deleteIndividual
+      summary: Удалить индивид
+      description: Удаляет индивид без возможности восстановления. Требует обязательного параметра branchId. Все связанные значения свойств будут удалены. Для предотвращения конфликтов используйте параметр expectedHeadCommitId. Может потребоваться lockId для активных блокировок.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: branchId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: expectedHeadCommitId
+          in: query
+          schema:
+            type: string
+        - name: lockId
+          in: query
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Индивид удалён
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '409':
+          $ref: '#/components/responses/ResourceConflict'
+        '423':
+          $ref: '#/components/responses/LockRequired'
+
+  /ontologies/{ontologyId}/search:
+    parameters:
+      - $ref: '#/components/parameters/ontologyId'
+    get:
+      tags: [search]
+      operationId: searchOntology
+      summary: Поиск сущностей онтологии
+      description: Выполняет полнотекстовый поиск по всем сущностям онтологии (классам, свойствам, индивидам) с учётом языка интерфейса. Поддерживает фильтрацию по типу сущности, ограничение количества результатов и многоязычный поиск по локализованным меткам и комментариям. Результаты ранжируются по релевантности.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          description: Поисковый запрос
+        - name: type
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [Class, ObjectProperty, DatatypeProperty, Individual]
+        - name: language
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Результаты поиска
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+
+  /ontologies/{ontologyId}/commits:
+    parameters:
+      - $ref: '#/components/parameters/ontologyId'
+    get:
+      tags: [commits]
+      operationId: listCommits
+      summary: Получить список коммитов онтологии
+      description: Возвращает историю коммитов с фильтрацией по ветке и временному диапазону. Каждый коммит содержит информацию об изменениях (добавлено/удалено/изменено узлов), авторе и сообщении. Результаты отсортированы по времени создания в порядке убывания.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+        - name: branchId
+          in: query
+          schema:
+            type: string
+        - name: fromDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: toDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Список коммитов
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommitListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+    post:
+      tags: [commits]
+      operationId: createCommit
+      summary: Создать коммит
+      description: Создаёт новый коммит с текущими изменениями.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCommitRequest'
+      responses:
+        '201':
+          description: Коммит создан
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Commit'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '409':
+          $ref: '#/components/responses/ResourceConflict'
+        '423':
+          $ref: '#/components/responses/LockRequired'
+
+  /ontologies/{ontologyId}/commits/{commitId}:
+    parameters:
+      - $ref: '#/components/parameters/ontologyId'
+      - name: commitId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [commits]
+      operationId: getCommit
+      summary: Получить коммит по ID
+      description: Возвращает детальную информацию о коммите, включая полную статистику изменений (добавлено/удалено/изменено узлов), информацию об авторе (userId, displayName), родительские коммиты и временную метку. Используется для анализа истории изменений онтологии.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Детали коммита
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Commit'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+
+  /ontologies/{ontologyId}/commits/{commitId}/diff:
+    parameters:
+      - $ref: '#/components/parameters/ontologyId'
+      - name: commitId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [commits]
+      operationId: getCommitDiff
+      summary: Получить diff коммита
+      description: Возвращает дельту, внесённую этим коммитом.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Diff коммита
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommitDiff'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+
+  /ontologies/{ontologyId}/branches:
+    parameters:
+      - $ref: '#/components/parameters/ontologyId'
+    get:
+      tags: [branches]
+      operationId: listBranches
+      summary: Получить список веток онтологии
+      description: Возвращает все ветки онтологии с информацией о HEAD коммите, статусе защиты и создателе. Ветки позволяют изолированно работать над разными версиями онтологии. Защищённые ветки имеют дополнительные ограничения на удаление и изменение.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: Список веток
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BranchListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+    post:
+      tags: [branches]
+      operationId: createBranch
+      summary: Создать ветку
+      description: Создаёт новую ветку из исходной ветки.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBranchRequest'
+      responses:
+        '201':
+          description: Ветка создана
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Branch'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '409':
+          $ref: '#/components/responses/ResourceConflict'
+
+  /ontologies/{ontologyId}/branches/{branchId}:
+    parameters:
+      - $ref: '#/components/parameters/ontologyId'
+      - name: branchId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [branches]
+      operationId: getBranch
+      summary: Получить ветку по ID
+      description: Возвращает информацию о ветке, включая текущий HEAD коммит, статус защиты, дату создания и создателя. Защищённые ветки не могут быть удалены и имеют ограничения на прямые коммиты.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Детали ветки
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Branch'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+    delete:
+      tags: [branches]
+      operationId: deleteBranch
+      summary: Удалить ветку
+      description: Удаляет ветку. Защищённые ветки удалить нельзя.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Ветка удалена
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+
+  /ontologies/{ontologyId}/merges:
+    parameters:
+      - $ref: '#/components/parameters/ontologyId'
+    post:
+      tags: [branches]
+      operationId: mergeBranch
+      summary: Слить ветки
+      description: Сливает исходную ветку в целевую ветку.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MergeBranchRequest'
+      responses:
+        '201':
+          description: Слияние завершено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MergeResult'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '409':
+          $ref: '#/components/responses/ResourceConflict'
+
+  /ontologies/{ontologyId}/locks:
+    parameters:
+      - $ref: '#/components/parameters/ontologyId'
+    get:
+      tags: [locks]
+      operationId: listLocks
+      summary: Получить список активных блокировок
+      description: Возвращает активные блокировки для онтологии.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список блокировок
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Lock'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+    post:
+      tags: [locks]
+      operationId: acquireLock
+      summary: Получить блокировку
+      description: Получает эксклюзивную блокировку на узел.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcquireLockRequest'
+      responses:
+        '201':
+          description: Блокировка получена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lock'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '409':
+          $ref: '#/components/responses/ResourceConflict'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+
+  /ontologies/{ontologyId}/locks/{lockId}:
+    parameters:
+      - $ref: '#/components/parameters/ontologyId'
+      - name: lockId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      tags: [locks]
+      operationId: releaseLock
+      summary: Снять блокировку
+      description: Снимает полученную блокировку.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Блокировка снята
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+
+  /ontologies/{ontologyId}/export:
+    parameters:
+      - $ref: '#/components/parameters/ontologyId'
+    get:
+      tags: [import-export]
+      operationId: exportOntology
+      summary: Экспорт онтологии
+      description: Экспортирует онтологию в указанном RDF формате.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: format
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [turtle, rdf-xml, owl, nt]
+        - name: branchId
+          in: query
+          schema:
+            type: string
+        - name: compression
+          in: query
+          schema:
+            type: string
+            enum: [none, gzip]
+            default: none
+      responses:
+        '200':
+          description: Экспорт онтологии
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+            Content-Type:
+              schema:
+                type: string
+                enum: [application/x-turtle, application/rdf+xml, application/gzip]
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+
+  /ontologies/{ontologyId}/import:
+    parameters:
+      - $ref: '#/components/parameters/ontologyId'
+    post:
+      tags: [import-export]
+      operationId: importOntology
+      summary: Импорт онтологии
+      description: Импортирует RDF содержимое в онтологию. Создаёт автоматический коммит.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ImportOntologyRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImportOntologyJsonRequest'
+      responses:
+        '200':
+          description: Импорт завершён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportResult'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+        '409':
+          $ref: '#/components/responses/ResourceConflict'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '423':
+          $ref: '#/components/responses/LockRequired'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+
+  /webhooks/subscriptions:
+    get:
+      tags: [webhooks]
+      operationId: listWebhookSubscriptions
+      summary: Получить список подписок на веб-хуки
+      description: Возвращает все активные и неактивные подписки на веб-хуки для текущего тенанта. Каждая подписка содержит целевой URL, список событий и статус активности. Используйте для управления уведомлениями о событиях системы.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Список подписок
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WebhookSubscription'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [webhooks]
+      operationId: createWebhookSubscription
+      summary: Создать подписку на веб-хук
+      description: Создаёт новую подписку на указанные события.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWebhookSubscriptionRequest'
+      responses:
+        '201':
+          description: Подписка создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookSubscription'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /webhooks/subscriptions/{subscriptionId}:
+    parameters:
+      - name: subscriptionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [webhooks]
+      operationId: getWebhookSubscription
+      summary: Получить подписку на веб-хук
+      description: Возвращает детальную информацию о подписке, включая целевой URL, полный список событий, статус активности и дату создания. Используйте для проверки конфигурации конкретной подписки.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Детали подписки
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookSubscription'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+    put:
+      tags: [webhooks]
+      operationId: updateWebhookSubscription
+      summary: Обновить подписку на веб-хук
+      description: Обновляет конфигурацию существующей подписки. Можно изменить целевой URL, список событий и статус активности. Изменение активности влияет на доставку уведомлений немедленно.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWebhookSubscriptionRequest'
+      responses:
+        '200':
+          description: Подписка обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookSubscription'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+    delete:
+      tags: [webhooks]
+      operationId: deleteWebhookSubscription
+      summary: Удалить подписку на веб-хук
+      description: Удаляет подписку без возможности восстановления. Все ожидающие уведомления будут отменены. Рекомендуется сначала деактивировать подписку (active=false) для плавного завершения перед удалением.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Подписка удалена
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+
+  /access-policies:
+    get:
+      tags: [access-policies]
+      operationId: listAccessPolicies
+      summary: Получить список политик доступа
+      description: Возвращает политики доступа для тенанта.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: Список политик доступа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessPolicyListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [access-policies]
+      operationId: createAccessPolicy
+      summary: Создать политику доступа
+      description: Создаёт новую политику доступа RBAC.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccessPolicyRequest'
+      responses:
+        '201':
+          description: Политика доступа создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessPolicy'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /access-policies/{policyId}:
+    parameters:
+      - name: policyId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [access-policies]
+      operationId: getAccessPolicy
+      summary: Получить политику доступа
+      description: Возвращает детальную информацию о политике доступа, включая субъект (пользователь, группа, сервисный аккаунт), область действия (онтология, класс, атрибут), разрешения и роль. Используйте для проверки прав доступа конкретного субъекта.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Детали политики доступа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessPolicy'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+    put:
+      tags: [access-policies]
+      operationId: updateAccessPolicy
+      summary: Обновить политику доступа
+      description: Обновляет разрешения и/или роль существующей политики доступа. Изменения вступают в силу немедленно и влияют на доступ субъекта к указанным ресурсам. Удалите политику и создайте новую для изменения области действия.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAccessPolicyRequest'
+      responses:
+        '200':
+          description: Политика доступа обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessPolicy'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+    delete:
+      tags: [access-policies]
+      operationId: deleteAccessPolicy
+      summary: Удалить политику доступа
+      description: Удаляет политику доступа без возможности восстановления. Субъект немедленно теряет доступ, предоставленный этой политикой. Рекомендуется сначала проверить, что субъект не нуждается в доступе, так как удаление необратимо.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Политика доступа удалена
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+
+  /admin/access-points:
+    post:
+      tags: [admin]
+      operationId: createAccessPoint
+      summary: Создать точку доступа
+      description: Создает новую точку доступа для тенанта.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccessPointRequest'
+      responses:
+        '201':
+          description: Точка доступа создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminResult'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/storage-bindings:
+    post:
+      tags: [admin]
+      operationId: bindStorage
+      summary: Привязать хранилище
+      description: Привязывает физическое хранилище к тенанту.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BindStorageRequest'
+      responses:
+        '201':
+          description: Хранилище привязано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminResult'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/quotas:
+    get:
+      tags: [admin]
+      operationId: getQuota
+      summary: Получить квоту тенанта
+      description: Возвращает текущие квоты ресурсов для указанного тенанта. Квоты включают ограничения на хранилище, вычисления, количество объектов и другие ресурсы.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tenantId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Текущие квоты тенанта
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quota'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+    put:
+      tags: [admin]
+      operationId: setQuota
+      summary: Установить квоту тенанта
+      description: Устанавливает или обновляет квоты ресурсов для указанного тенанта. При установке квоты все существующие ограничения перезаписываются.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetQuotaRequest'
+      responses:
+        '200':
+          description: Квота обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminResult'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/backup-policy:
+    get:
+      tags: [admin]
+      operationId: getBackupPolicy
+      summary: Получить политику резервного копирования
+      description: Возвращает текущую конфигурацию резервного копирования.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tenantId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Политика резервного копирования
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BackupPolicy'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/ResourceNotFound'
+    put:
+      tags: [admin]
+      operationId: configureBackupPolicy
+      summary: Настроить политику резервного копирования
+      description: Обновляет параметры резервного копирования.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfigureBackupPolicyRequest'
+      responses:
+        '200':
+          description: Политика резервного копирования настроена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminResult'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Аутентификация JWT Bearer токеном. Обязательна для всех эндпоинтов.
+
+  headers:
+    X-RateLimit-Limit:
+      description: Максимальное количество запросов за период
+      schema:
+        type: integer
+    X-RateLimit-Remaining:
+      description: Оставшиеся запросы в текущем периоде
+      schema:
+        type: integer
+    X-RateLimit-Reset:
+      description: Unix timestamp сброса ограничения скорости
+      schema:
+        type: integer
+    ETag:
+      description: Тег сущности для кэширования
+      schema:
+        type: string
+
+  parameters:
+    ontologyId:
+      name: ontologyId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Идентификатор онтологии
+    classId:
+      name: classId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Идентификатор класса
+    propertyId:
+      name: propertyId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Идентификатор свойства
+    page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+      description: Номер страницы
+    pageSize:
+      name: pageSize
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 50
+      description: Размер страницы
+
+  responses:
+    Unauthorized:
+      description: Требуется аутентификация или токен недействителен
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorUnauthorized'
+    Forbidden:
+      description: Недостаточно прав
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorForbidden'
+    ResourceNotFound:
+      description: Ресурс не найден
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResourceNotFound'
+    ResourceConflict:
+      description: Конфликт ресурсов
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResourceConflict'
+    ValidationError:
+      description: Неверные данные запроса
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorValidation'
+    RateLimitExceeded:
+      description: Превышен лимит запросов
+      headers:
+        X-RateLimit-Limit:
+          $ref: '#/components/headers/X-RateLimit-Limit'
+        X-RateLimit-Remaining:
+          $ref: '#/components/headers/X-RateLimit-Remaining'
+        X-RateLimit-Reset:
+          $ref: '#/components/headers/X-RateLimit-Reset'
+        Retry-After:
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorRateLimit'
+    LockRequired:
+      description: Для операции требуется блокировка
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorLockRequired'
+    PayloadTooLarge:
+      description: Тело запроса слишком большое
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorPayloadTooLarge'
+
+  schemas:
+    MultilingualLabel:
+      type: object
+      additionalProperties:
+        type: string
+      description: "Локализованные метки {ru: 'Текст', en: 'Text'}"
+
+    MultilingualComment:
+      type: object
+      additionalProperties:
+        type: array
+        items:
+          type: string
+      description: Локализованные комментарии по языкам
+
+    PaginationMeta:
+      type: object
+      description: Метаданные пагинации
+      properties:
+        total:
+          type: integer
+          description: Всего записей
+        page:
+          type: integer
+          description: Текущая страница
+        pageSize:
+          type: integer
+          description: Размер страницы
+        nextPage:
+          type: string
+          format: uri
+          description: URL следующей страницы
+
+    Ontology:
+      type: object
+      description: Онтология — контейнер для классов, свойств и индивидов
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Идентификатор онтологии
+        name:
+          type: string
+          description: Название
+        description:
+          type: string
+          description: Описание
+        status:
+          type: string
+          enum: [active, archived]
+          description: Статус
+        createdAt:
+          type: string
+          format: date-time
+          description: Дата создания
+        updatedAt:
+          type: string
+          format: date-time
+          description: Дата обновления
+        version:
+          type: string
+          description: Версия
+
+    OntologyListResponse:
+      type: object
+      description: Ответ со списком онтологий и пагинацией
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Ontology'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    CreateOntologyRequest:
+      type: object
+      required: [name]
+      description: Запрос на создание онтологии
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Название онтологии
+        description:
+          type: string
+          description: Описание
+        baseUri:
+          type: string
+          format: uri
+          description: Базовый URI
+
+    UpdateOntologyRequest:
+      type: object
+      description: Запрос на обновление онтологии
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Название
+        description:
+          type: string
+          description: Описание
+        status:
+          type: string
+          enum: [active, archived]
+          description: Статус
+
+    OntologyGraph:
+      type: object
+      description: Графовая структура онтологии с узлами и рёбрами
+      properties:
+        tree:
+          $ref: '#/components/schemas/ClassTreeNode'
+          description: Иерархическое дерево классов
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphNode'
+          description: Узлы графа
+        edges:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphEdge'
+          description: Рёбра графа
+
+    ClassTreeNode:
+      type: object
+      description: Узел иерархического дерева классов
+      properties:
+        id:
+          type: string
+          description: Идентификатор
+        label:
+          $ref: '#/components/schemas/MultilingualLabel'
+          description: Локализованная метка
+        type:
+          type: string
+          enum: [Class, ObjectProperty, DatatypeProperty, Individual]
+          description: Тип узла
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClassTreeNode'
+          description: Дочерние узлы
+
+    GraphNode:
+      type: object
+      description: Узел графа онтологии
+      properties:
+        id:
+          type: string
+          description: Идентификатор
+        label:
+          type: string
+          description: Отображаемое имя
+        type:
+          type: string
+          description: Тип элемента
+        isAbstract:
+          type: boolean
+          description: Является абстрактным
+        isDeprecated:
+          type: boolean
+          description: Помечен как устаревший
+
+    GraphEdge:
+      type: object
+      description: Ребро графа, связывающее два узла
+      properties:
+        source:
+          type: string
+          description: Идентификатор исходного узла
+        target:
+          type: string
+          description: Идентификатор целевого узла
+        type:
+          type: string
+          enum: [SUBCLASS_OF, DOMAIN, RANGE]
+          description: Тип связи
+
+    Class:
+      type: object
+      description: Класс онтологии (элемент TBox)
+      properties:
+        id:
+          type: string
+          description: Идентификатор класса
+        label:
+          $ref: '#/components/schemas/MultilingualLabel'
+          description: Локализованная метка
+        comment:
+          $ref: '#/components/schemas/MultilingualComment'
+          description: Локализованные комментарии
+        parents:
+          type: array
+          items:
+            type: string
+          description: Родительские классы
+        isAbstract:
+          type: boolean
+          description: Является абстрактным
+        isDeprecated:
+          type: boolean
+          description: Помечен как устаревший
+        createdAt:
+          type: string
+          format: date-time
+          description: Дата создания
+        version:
+          type: string
+          description: Версия
+
+    ClassListResponse:
+      type: object
+      description: Ответ со списком классов и пагинацией
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Class'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    CreateClassRequest:
+      type: object
+      required: [label, commitMessage]
+      description: Запрос на создание класса
+      properties:
+        id:
+          type: string
+          pattern: '^[A-Za-zА-Яа-яЁё0-9_]+$'
+          description: Идентификатор класса
+        label:
+          $ref: '#/components/schemas/MultilingualLabel'
+          description: Локализованная метка
+        comment:
+          $ref: '#/components/schemas/MultilingualComment'
+          description: Локализованные комментарии
+        parents:
+          type: array
+          items:
+            type: string
+          description: Родительские классы
+        isAbstract:
+          type: boolean
+          default: false
+          description: Является абстрактным
+        commitMessage:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: Сообщение коммита
+
+    UpdateClassRequest:
+      type: object
+      required: [commitMessage]
+      description: Запрос на обновление класса
+      properties:
+        label:
+          $ref: '#/components/schemas/MultilingualLabel'
+          description: Локализованная метка
+        comment:
+          $ref: '#/components/schemas/MultilingualComment'
+          description: Локализованные комментарии
+        parents:
+          type: array
+          items:
+            type: string
+          description: Родительские классы
+        isAbstract:
+          type: boolean
+          description: Является абстрактным
+        deprecated:
+          type: boolean
+          description: Помечен как устаревший
+        commitMessage:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: Сообщение коммита
+
+    Property:
+      type: object
+      description: Свойство онтологии (ObjectProperty или DatatypeProperty)
+      properties:
+        id:
+          type: string
+          description: Идентификатор свойства
+        label:
+          $ref: '#/components/schemas/MultilingualLabel'
+          description: Локализованная метка
+        comment:
+          $ref: '#/components/schemas/MultilingualComment'
+          description: Локализованные комментарии
+        propertyType:
+          type: string
+          enum: [ObjectProperty, DatatypeProperty]
+          description: Тип свойства
+        domain:
+          type: array
+          items:
+            type: string
+          description: Классы области определения
+        range:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: string
+              enum: [string, boolean, integer, double, date, dateTime]
+          description: Диапазон значений
+        characteristics:
+          type: object
+          properties:
+            transitive:
+              type: boolean
+              description: Транзитивность
+            symmetric:
+              type: boolean
+              description: Симметричность
+            functional:
+              type: boolean
+              description: Функциональность
+        inverseOf:
+          type: string
+          description: Обратное свойство
+        multilingual:
+          type: boolean
+          description: Поддержка мультиязычности
+        createdAt:
+          type: string
+          format: date-time
+          description: Дата создания
+
+    PropertyListResponse:
+      type: object
+      description: Ответ со списком свойств и пагинацией
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Property'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    CreatePropertyRequest:
+      type: object
+      required: [label, propertyType, domain, range, commitMessage]
+      description: Запрос на создание свойства
+      properties:
+        id:
+          type: string
+          description: Идентификатор свойства
+        label:
+          $ref: '#/components/schemas/MultilingualLabel'
+          description: Локализованная метка
+        comment:
+          $ref: '#/components/schemas/MultilingualComment'
+          description: Локализованные комментарии
+        propertyType:
+          type: string
+          enum: [ObjectProperty, DatatypeProperty]
+          description: Тип свойства
+        domain:
+          type: array
+          items:
+            type: string
+          minItems: 1
+          description: Классы области определения
+        range:
+          oneOf:
+            - type: array
+              items:
+                type: string
+              minItems: 1
+            - type: string
+              enum: [string, boolean, integer, double, date, dateTime]
+          description: Диапазон значений
+        characteristics:
+          type: object
+          properties:
+            transitive:
+              type: boolean
+              description: Транзитивность
+            symmetric:
+              type: boolean
+              description: Симметричность
+            functional:
+              type: boolean
+              description: Функциональность
+        inverseOf:
+          type: string
+          description: Обратное свойство
+        multilingual:
+          type: boolean
+          default: false
+          description: Поддержка мультиязычности
+        commitMessage:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: Сообщение коммита
+
+    UpdatePropertyRequest:
+      type: object
+      required: [commitMessage]
+      description: Запрос на обновление свойства
+      properties:
+        label:
+          $ref: '#/components/schemas/MultilingualLabel'
+          description: Локализованная метка
+        comment:
+          $ref: '#/components/schemas/MultilingualComment'
+          description: Локализованные комментарии
+        domain:
+          type: array
+          items:
+            type: string
+          description: Классы области определения
+        range:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: string
+              enum: [string, boolean, integer, double, date, dateTime]
+          description: Диапазон значений
+        characteristics:
+          type: object
+          description: Характеристики свойства
+        inverseOf:
+          type: string
+          description: Обратное свойство
+        commitMessage:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: Сообщение коммита
+
+    Individual:
+      type: object
+      description: Индивид онтологии (элемент ABox) — экземпляр класса
+      properties:
+        id:
+          type: string
+          description: Идентификатор индивида
+        label:
+          $ref: '#/components/schemas/MultilingualLabel'
+          description: Локализованная метка
+        comment:
+          $ref: '#/components/schemas/MultilingualComment'
+          description: Локализованные комментарии
+        types:
+          type: array
+          items:
+            type: string
+          minItems: 1
+          description: Классы индивида
+        properties:
+          type: object
+          properties:
+            objectProperty:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
+              description: Значения объектных свойств
+            datatypeProperty:
+              type: object
+              additionalProperties: true
+              description: Значения дататипных свойств
+        deprecated:
+          type: boolean
+          description: Помечен как устаревший
+        createdAt:
+          type: string
+          format: date-time
+          description: Дата создания
+        version:
+          type: string
+          description: Версия
+
+    IndividualListResponse:
+      type: object
+      description: Ответ со списком индивидов и пагинацией
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Individual'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    CreateIndividualRequest:
+      type: object
+      required: [label, types, commitMessage]
+      description: Запрос на создание индивида
+      properties:
+        id:
+          type: string
+          description: Идентификатор индивида
+        label:
+          $ref: '#/components/schemas/MultilingualLabel'
+          description: Локализованная метка
+        comment:
+          $ref: '#/components/schemas/MultilingualComment'
+          description: Локализованные комментарии
+        types:
+          type: array
+          items:
+            type: string
+          minItems: 1
+          description: Классы индивида
+        properties:
+          type: object
+          properties:
+            objectProperty:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
+              description: Значения объектных свойств
+            datatypeProperty:
+              type: object
+              additionalProperties: true
+              description: Значения дататипных свойств
+        commitMessage:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: Сообщение коммита
+
+    UpdateIndividualRequest:
+      type: object
+      required: [commitMessage]
+      description: Запрос на обновление индивида
+      properties:
+        label:
+          $ref: '#/components/schemas/MultilingualLabel'
+          description: Локализованная метка
+        comment:
+          $ref: '#/components/schemas/MultilingualComment'
+          description: Локализованные комментарии
+        types:
+          type: array
+          items:
+            type: string
+          description: Классы индивида
+        properties:
+          type: object
+          description: Значения свойств
+        deprecated:
+          type: boolean
+          description: Помечен как устаревший
+        commitMessage:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: Сообщение коммита
+
+    SearchResult:
+      type: object
+      required: [id, type, label, match]
+      description: Результат поиска одной сущности
+      properties:
+        id:
+          type: string
+          description: Идентификатор
+        type:
+          type: string
+          enum: [Class, ObjectProperty, DatatypeProperty, Individual]
+          description: Тип сущности
+        label:
+          $ref: '#/components/schemas/MultilingualLabel'
+          description: Локализованная метка
+        match:
+          type: string
+          enum: [id, label, comment, property]
+          description: Тип совпадения
+        score:
+          type: number
+          description: Релевантность
+
+    SearchResponse:
+      type: object
+      description: Ответ с результатами поиска
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchResult'
+          description: Результаты поиска
+        total:
+          type: integer
+          description: Всего найдено
+
+    Commit:
+      type: object
+      description: Коммит — снимок состояния онтологии с изменениями
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Идентификатор коммита
+        ontologyId:
+          type: string
+          description: Идентификатор онтологии
+        branchId:
+          type: string
+          description: Идентификатор ветки
+        message:
+          type: string
+          description: Сообщение коммита
+        author:
+          type: object
+          properties:
+            userId:
+              type: string
+              description: Идентификатор пользователя
+            displayName:
+              type: string
+              description: Отображаемое имя
+          description: Автор коммита
+        timestamp:
+          type: string
+          format: date-time
+          description: Время создания
+        parentIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Идентификаторы родительских коммитов
+        stats:
+          type: object
+          properties:
+            nodesAdded:
+              type: integer
+              description: Добавлено узлов
+            nodesRemoved:
+              type: integer
+              description: Удалено узлов
+            nodesModified:
+              type: integer
+              description: Изменено узлов
+          description: Статистика изменений
+
+    CommitListResponse:
+      type: object
+      description: Ответ со списком коммитов и пагинацией
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Commit'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    CreateCommitRequest:
+      type: object
+      required: [branchId, expectedHeadCommitId, message]
+      description: Запрос на создание коммита
+      properties:
+        branchId:
+          type: string
+          description: Идентификатор ветки
+        expectedHeadCommitId:
+          type: string
+          description: Ожидаемый идентификатор HEAD коммита
+        message:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: Сообщение коммита
+        lockIds:
+          type: array
+          items:
+            type: string
+          description: Идентификаторы активных блокировок
+
+    CommitDiff:
+      type: object
+      description: Diff коммита — добавленные, удалённые и изменённые элементы
+      properties:
+        commitId:
+          type: string
+          format: uuid
+          description: Идентификатор коммита
+        additions:
+          type: array
+          items:
+            type: object
+          description: Добавленные элементы
+        deletions:
+          type: array
+          items:
+            type: object
+          description: Удалённые элементы
+        modifications:
+          type: array
+          items:
+            type: object
+          description: Изменённые элементы
+
+    Branch:
+      type: object
+      description: Ветка — независимая линия разработки онтологии
+      properties:
+        id:
+          type: string
+          description: Идентификатор ветки
+        name:
+          type: string
+          description: Название ветки
+        ontologyId:
+          type: string
+          description: Идентификатор онтологии
+        head:
+          type: string
+          description: HEAD коммит ветки
+        isProtected:
+          type: boolean
+          description: Защищённая ветка
+        createdAt:
+          type: string
+          format: date-time
+          description: Дата создания
+        createdBy:
+          type: string
+          description: Создатель
+
+    BranchListResponse:
+      type: object
+      description: Ответ со списком веток и пагинацией
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Branch'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    CreateBranchRequest:
+      type: object
+      required: [name]
+      description: Запрос на создание ветки
+      properties:
+        name:
+          type: string
+          pattern: '^[a-zA-Z0-9-_./]+$'
+          minLength: 1
+          maxLength: 255
+          description: Название ветки
+        sourceBranch:
+          type: string
+          description: Исходная ветка
+        isProtected:
+          type: boolean
+          default: false
+          description: Защищённая ветка
+
+    MergeBranchRequest:
+      type: object
+      required: [sourceBranch, targetBranch, message]
+      description: Запрос на слияние веток
+      properties:
+        sourceBranch:
+          type: string
+          description: Исходная ветка
+        targetBranch:
+          type: string
+          description: Целевая ветка
+        message:
+          type: string
+          minLength: 1
+          description: Сообщение коммита слияния
+
+    MergeResult:
+      type: object
+      description: Результат слияния веток
+      properties:
+        commitId:
+          type: string
+          format: uuid
+          description: Идентификатор коммита слияния
+        mergeType:
+          type: string
+          enum: [merge-commit, fast-forward]
+          description: Тип слияния
+        conflicts:
+          type: array
+          items:
+            type: object
+          description: Конфликты
+
+    Lock:
+      type: object
+      description: Блокировка — временное ограничение на редактирование узла
+      properties:
+        lockId:
+          type: string
+          format: uuid
+          description: Идентификатор блокировки
+        nodeId:
+          type: string
+          description: Идентификатор узла
+        nodeType:
+          type: string
+          enum: [Class, ObjectProperty, DatatypeProperty, Individual]
+          description: Тип узла
+        userId:
+          type: string
+          description: Идентификатор пользователя
+        expiresAt:
+          type: string
+          format: date-time
+          description: Время истечения
+        status:
+          type: string
+          enum: [active, expired, released]
+          description: Статус
+
+    AcquireLockRequest:
+      type: object
+      required: [nodeId, nodeType]
+      description: Запрос на получение блокировки
+      properties:
+        nodeId:
+          type: string
+          description: Идентификатор узла
+        nodeType:
+          type: string
+          enum: [Class, ObjectProperty, DatatypeProperty, Individual]
+          description: Тип узла
+        duration:
+          type: integer
+          minimum: 60
+          maximum: 1800
+          default: 300
+          description: Длительность в секундах
+
+    ImportOntologyRequest:
+      type: object
+      required: [file, format]
+      description: Запрос на импорт онтологии из файла
+      properties:
+        file:
+          type: string
+          format: binary
+          description: RDF файл
+        format:
+          type: string
+          enum: [turtle, rdf-xml, owl, nt]
+          description: Формат RDF
+        mode:
+          type: string
+          enum: [merge, replace, validate-only]
+          default: merge
+          description: Режим импорта
+        branchId:
+          type: string
+          description: Идентификатор ветки
+        expectedHeadCommitId:
+          type: string
+          description: Ожидаемый идентификатор HEAD коммита
+        lockId:
+          type: string
+          description: Идентификатор блокировки
+        createCommit:
+          type: boolean
+          const: true
+          description: Создать коммит
+        commitMessage:
+          type: string
+          description: Сообщение коммита
+
+    ImportOntologyJsonRequest:
+      type: object
+      required: [content, format]
+      description: Запрос на импорт онтологии из JSON тела
+      properties:
+        content:
+          type: string
+          description: RDF содержимое
+        format:
+          type: string
+          enum: [turtle, rdf-xml, owl, nt]
+          description: Формат RDF
+        mode:
+          type: string
+          enum: [merge, replace, validate-only]
+          default: merge
+          description: Режим импорта
+        branchId:
+          type: string
+          description: Идентификатор ветки
+        expectedHeadCommitId:
+          type: string
+          description: Ожидаемый идентификатор HEAD коммита
+        lockId:
+          type: string
+          description: Идентификатор блокировки
+        createCommit:
+          type: boolean
+          const: true
+          description: Создать коммит
+        commitMessage:
+          type: string
+          description: Сообщение коммита
+        options:
+          type: object
+          properties:
+            baseUri:
+              type: string
+              description: Базовый URI
+            includeImports:
+              type: boolean
+              description: Включить импорты
+            compression:
+              type: string
+              enum: [none, gzip]
+              description: Сжатие
+          description: Дополнительные опции
+
+    ImportResult:
+      type: object
+      description: Результат импорта онтологии
+      properties:
+        success:
+          type: boolean
+          description: Успешно
+        format:
+          type: string
+          description: Формат
+        fileSize:
+          type: integer
+          description: Размер файла
+        tripleCount:
+          type: integer
+          description: Количество триплетов
+        commitId:
+          type: string
+          format: uuid
+          description: Идентификатор коммита
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                description: Код ошибки
+              line:
+                type: integer
+                description: Номер строки
+              message:
+                type: string
+                description: Сообщение
+          description: Ошибки импорта
+
+    WebhookEvent:
+      type: string
+      enum:
+        - class.created
+        - class.updated
+        - class.deleted
+        - property.created
+        - property.updated
+        - property.deleted
+        - individual.created
+        - commit.created
+        - branch.created
+      description: Событие веб-хука
+
+    WebhookSubscription:
+      type: object
+      description: Подписка на события веб-хуков
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Идентификатор подписки
+        targetUrl:
+          type: string
+          format: uri
+          description: Целевой URL
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebhookEvent'
+          description: События
+        active:
+          type: boolean
+          description: Активна
+        createdAt:
+          type: string
+          format: date-time
+          description: Дата создания
+
+    CreateWebhookSubscriptionRequest:
+      type: object
+      required: [targetUrl, events]
+      description: Запрос на создание подписки на веб-хук
+      properties:
+        targetUrl:
+          type: string
+          format: uri
+          description: Целевой URL
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebhookEvent'
+          minItems: 1
+          description: События
+        secretRef:
+          type: string
+          description: Секрет для подписи
+        active:
+          type: boolean
+          default: true
+          description: Активна
+
+    UpdateWebhookSubscriptionRequest:
+      type: object
+      description: Запрос на обновление подписки на веб-хук
+      properties:
+        targetUrl:
+          type: string
+          format: uri
+          description: Целевой URL
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebhookEvent'
+          description: События
+        active:
+          type: boolean
+          description: Активна
+
+    SubjectType:
+      type: string
+      enum: [user, group, service_account, originator]
+      description: Тип субъекта
+
+    Permission:
+      type: string
+      enum: [read, write, review, admin]
+      description: Разрешение
+
+    Role:
+      type: string
+      enum: [viewer, editor, reviewer, admin, service]
+      description: Роль
+
+    AccessPolicyScope:
+      type: object
+      properties:
+        ontologyId:
+          type: string
+          format: uuid
+          description: Идентификатор онтологии
+        classId:
+          type: string
+          description: Идентификатор класса
+        attributeId:
+          type: string
+          description: Идентификатор атрибута
+      description: Область политики
+
+    AccessPolicy:
+      type: object
+      description: Политика доступа RBAC
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Идентификатор политики
+        tenantId:
+          type: string
+          description: Идентификатор тенанта
+        subjectId:
+          type: string
+          description: Идентификатор субъекта
+        subjectType:
+          $ref: '#/components/schemas/SubjectType'
+          description: Тип субъекта
+        scope:
+          $ref: '#/components/schemas/AccessPolicyScope'
+          description: Область
+        permission:
+          $ref: '#/components/schemas/Permission'
+          description: Разрешение
+        role:
+          $ref: '#/components/schemas/Role'
+          description: Роль
+        createdAt:
+          type: string
+          format: date-time
+          description: Дата создания
+
+    AccessPolicyListResponse:
+      type: object
+      description: Ответ со списком политик доступа и пагинацией
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccessPolicy'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    CreateAccessPolicyRequest:
+      type: object
+      required: [tenantId, subjectId, subjectType, scope, permission]
+      description: Запрос на создание политики доступа
+      properties:
+        tenantId:
+          type: string
+          description: Идентификатор тенанта
+        subjectId:
+          type: string
+          description: Идентификатор субъекта
+        subjectType:
+          $ref: '#/components/schemas/SubjectType'
+          description: Тип субъекта
+        scope:
+          $ref: '#/components/schemas/AccessPolicyScope'
+          description: Область
+        permission:
+          $ref: '#/components/schemas/Permission'
+          description: Разрешение
+        role:
+          $ref: '#/components/schemas/Role'
+          description: Роль
+
+    UpdateAccessPolicyRequest:
+      type: object
+      description: Запрос на обновление политики доступа
+      properties:
+        permission:
+          $ref: '#/components/schemas/Permission'
+          description: Разрешение
+        role:
+          $ref: '#/components/schemas/Role'
+          description: Роль
+
+    AdminResult:
+      type: object
+      description: Результат административной операции
+      properties:
+        status:
+          type: string
+          enum: [created, updated, rejected]
+          description: Статус
+        adminResourceId:
+          type: string
+          description: Идентификатор ресурса
+        effectivePolicy:
+          type: object
+          description: Применённая политика
+
+    AccessPoint:
+      type: object
+      description: Точка доступа к онтологии
+      properties:
+        prefix:
+          type: string
+          description: Префикс
+        rootClassId:
+          type: string
+          description: Идентификатор корневого класса
+
+    CreateAccessPointRequest:
+      type: object
+      required: [tenantId]
+      description: Запрос на создание точки доступа
+      properties:
+        tenantId:
+          type: string
+          description: Идентификатор тенанта
+        accessPoint:
+          $ref: '#/components/schemas/AccessPoint'
+          description: Точка доступа
+
+    StorageBinding:
+      type: object
+      description: Привязка хранилища данных
+      properties:
+        storageType:
+          type: string
+          enum: [neo4j, postgresql, fuseki, mongodb]
+          description: Тип хранилища
+        target:
+          type: string
+          description: Цель подключения
+
+    BindStorageRequest:
+      type: object
+      required: [tenantId]
+      description: Запрос на привязку хранилища
+      properties:
+        tenantId:
+          type: string
+          description: Идентификатор тенанта
+        storageBinding:
+          $ref: '#/components/schemas/StorageBinding'
+          description: Привязка хранилища
+
+    Quota:
+      type: object
+      description: Квота ресурсов тенанта
+      properties:
+        tenantId:
+          type: string
+          description: Идентификатор тенанта
+        maxStorageGb:
+          type: integer
+          description: Макс. хранилище (ГБ)
+        maxClasses:
+          type: integer
+          description: Макс. классов
+        maxIndividuals:
+          type: integer
+          description: Макс. индивидов
+        maxCommits:
+          type: integer
+          description: Макс. коммитов
+
+    SetQuotaRequest:
+      type: object
+      required: [tenantId]
+      description: Запрос на установку квоты тенанта
+      properties:
+        tenantId:
+          type: string
+          description: Идентификатор тенанта
+        quota:
+          type: object
+          properties:
+            maxStorageGb:
+              type: integer
+              description: Макс. хранилище (ГБ)
+            maxClasses:
+              type: integer
+              description: Макс. классов
+            maxIndividuals:
+              type: integer
+              description: Макс. индивидов
+            maxCommits:
+              type: integer
+              description: Макс. коммитов
+          description: Квота
+
+    BackupPolicy:
+      type: object
+      description: Политика резервного копирования тенанта
+      properties:
+        tenantId:
+          type: string
+          description: Идентификатор тенанта
+        retentionActive:
+          type: integer
+          description: Срок хранения активных (дни)
+        retentionArchive:
+          type: integer
+          description: Срок хранения архивных (дни)
+        format:
+          type: string
+          description: Формат резервных копий
+        storage:
+          type: string
+          description: Хранилище
+
+    ConfigureBackupPolicyRequest:
+      type: object
+      required: [tenantId]
+      description: Запрос на настройку политики резервного копирования
+      properties:
+        tenantId:
+          type: string
+          description: Идентификатор тенанта
+        backupPolicy:
+          $ref: '#/components/schemas/BackupPolicy'
+          description: Политика резервного копирования
+
+    ErrorResourceNotFound:
+      type: object
+      description: Ошибка — ресурс не найден
+      properties:
+        error:
+          type: string
+          const: RESOURCE_NOT_FOUND
+        message:
+          type: string
+          description: Сообщение об ошибке
+        resourceType:
+          type: string
+          description: Тип ресурса
+        resourceId:
+          type: string
+          description: Идентификатор ресурса
+
+    ErrorResourceConflict:
+      type: object
+      description: Ошибка — конфликт ресурсов
+      properties:
+        error:
+          type: string
+          description: Код ошибки
+        message:
+          type: string
+          description: Сообщение
+        details:
+          type: object
+          description: Детали
+
+    ErrorValidation:
+      type: object
+      description: Ошибка валидации данных
+      properties:
+        error:
+          type: string
+          const: VALIDATION_ERROR
+        message:
+          type: string
+          description: Сообщение
+        field:
+          type: string
+          description: Поле
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                description: Поле
+              message:
+                type: string
+                description: Сообщение
+          description: Детали валидации
+
+    ErrorUnauthorized:
+      type: object
+      description: Ошибка — требуется аутентификация
+      properties:
+        error:
+          type: string
+          const: UNAUTHORIZED
+        message:
+          type: string
+          description: Сообщение об ошибке
+
+    ErrorForbidden:
+      type: object
+      description: Ошибка — недостаточно прав
+      properties:
+        error:
+          type: string
+          const: FORBIDDEN
+        message:
+          type: string
+          description: Сообщение об ошибке
+
+    ErrorRateLimit:
+      type: object
+      description: Ошибка — превышен лимит запросов
+      properties:
+        error:
+          type: string
+          const: RATE_LIMIT_EXCEEDED
+        message:
+          type: string
+          description: Сообщение
+        retryAfter:
+          type: integer
+          description: Секунды до повтора
+
+    ErrorLockRequired:
+      type: object
+      description: Ошибка — требуется блокировка для выполнения операции
+      properties:
+        error:
+          type: string
+          const: LOCK_REQUIRED
+        message:
+          type: string
+          description: Сообщение
+
+    ErrorPayloadTooLarge:
+      type: object
+      description: Ошибка — тело запроса слишком большое
+      properties:
+        error:
+          type: string
+          const: FILE_TOO_LARGE
+        message:
+          type: string
+          description: Сообщение
+        maxSize:
+          type: string
+          description: Макс. размер

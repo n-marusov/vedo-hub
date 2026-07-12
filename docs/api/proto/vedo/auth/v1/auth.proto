@@ -1,0 +1,230 @@
+syntax = "proto3";
+
+package vedo.auth.v1;
+
+import "vedo/shared/v1/common.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/vedo-core/auth/v1;authv1";
+option java_package = "com.vedo.core.auth.v1";
+option java_multiple_files = true;
+
+service AuthService {
+  rpc Authorize(AuthorizeRequest) returns (AuthorizeResponse);
+  rpc CheckPermission(CheckPermissionRequest) returns (CheckPermissionResponse);
+  rpc ListPermissions(ListPermissionsRequest) returns (ListPermissionsResponse);
+  rpc AssignRole(AssignRoleRequest) returns (AssignRoleResponse);
+  rpc RevokeRole(RevokeRoleRequest) returns (RevokeRoleResponse);
+  rpc CreateToken(CreateTokenRequest) returns (CreateTokenResponse);
+  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+  rpc RevokeToken(RevokeTokenRequest) returns (RevokeTokenResponse);
+  rpc GetUserRoles(GetUserRolesRequest) returns (GetUserRolesResponse);
+  rpc ListRolePermissions(ListRolePermissionsRequest) returns (ListRolePermissionsResponse);
+}
+
+message Role {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  RoleType role_type = 4;
+  string workspace_id = 5;
+  repeated Permission permissions = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+  bool is_system = 9;
+}
+
+enum RoleType {
+  ROLE_TYPE_UNSPECIFIED = 0;
+  ROLE_TYPE_OWNER = 1;
+  ROLE_TYPE_ADMIN = 2;
+  ROLE_TYPE_EDITOR = 3;
+  ROLE_TYPE_VIEWER = 4;
+  ROLE_TYPE_CUSTOM = 5;
+}
+
+message Permission {
+  string id = 1;
+  string resource = 2;
+  Action action = 3;
+  string conditions_json = 4;
+}
+
+enum Action {
+  ACTION_UNSPECIFIED = 0;
+  ACTION_CREATE = 1;
+  ACTION_READ = 2;
+  ACTION_UPDATE = 3;
+  ACTION_DELETE = 4;
+  ACTION_ADMIN = 5;
+  ACTION_EXECUTE = 6;
+}
+
+message UserRoleAssignment {
+  string id = 1;
+  string user_id = 2;
+  string role_id = 3;
+  string workspace_id = 4;
+  string assigned_by = 5;
+  google.protobuf.Timestamp assigned_at = 6;
+  google.protobuf.Timestamp expires_at = 7;
+}
+
+message Token {
+  string access_token = 1;
+  string refresh_token = 2;
+  TokenType token_type = 3;
+  google.protobuf.Timestamp issued_at = 4;
+  google.protobuf.Timestamp expires_at = 5;
+  int32 expires_in_seconds = 6;
+  repeated string scopes = 7;
+  string user_id = 8;
+  string workspace_id = 9;
+}
+
+enum TokenType {
+  TOKEN_TYPE_UNSPECIFIED = 0;
+  TOKEN_TYPE_BEARER = 1;
+  TOKEN_TYPE_REFRESH = 2;
+  TOKEN_TYPE_API_KEY = 3;
+}
+
+message AuthorizeRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  string user_id = 2;
+  string workspace_id = 3;
+  string resource = 4;
+  Action action = 5;
+  map<string, string> context = 6;
+}
+
+message AuthorizeResponse {
+  vedo.shared.v1.Error error = 1;
+  bool authorized = 2;
+  string reason = 3;
+  repeated string denied_reasons = 4;
+}
+
+message CheckPermissionRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  string user_id = 2;
+  string workspace_id = 3;
+  string permission_id = 4;
+}
+
+message CheckPermissionResponse {
+  vedo.shared.v1.Error error = 1;
+  bool has_permission = 2;
+  Role effective_role = 3;
+}
+
+message ListPermissionsRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  string workspace_id = 2;
+  vedo.shared.v1.Pagination pagination = 3;
+}
+
+message ListPermissionsResponse {
+  vedo.shared.v1.Error error = 1;
+  repeated Permission permissions = 2;
+  vedo.shared.v1.PaginationResponse pagination = 3;
+}
+
+message AssignRoleRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  string user_id = 2;
+  string role_id = 3;
+  string workspace_id = 4;
+  google.protobuf.Timestamp expires_at = 5;
+}
+
+message AssignRoleResponse {
+  vedo.shared.v1.Error error = 1;
+  UserRoleAssignment assignment = 2;
+}
+
+message RevokeRoleRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  string user_id = 2;
+  string role_id = 3;
+  string workspace_id = 4;
+}
+
+message RevokeRoleResponse {
+  vedo.shared.v1.Error error = 1;
+  bool revoked = 2;
+}
+
+message CreateTokenRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  string user_id = 2;
+  TokenType token_type = 3;
+  repeated string scopes = 4;
+  int32 expires_in_seconds = 5;
+  string workspace_id = 6;
+}
+
+message CreateTokenResponse {
+  vedo.shared.v1.Error error = 1;
+  Token token = 2;
+}
+
+message ValidateTokenRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  string access_token = 2;
+}
+
+message ValidateTokenResponse {
+  vedo.shared.v1.Error error = 1;
+  bool valid = 2;
+  string user_id = 3;
+  string workspace_id = 4;
+  repeated string scopes = 5;
+  google.protobuf.Timestamp expires_at = 6;
+}
+
+message RefreshTokenRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  string refresh_token = 2;
+}
+
+message RefreshTokenResponse {
+  vedo.shared.v1.Error error = 1;
+  Token token = 2;
+}
+
+message RevokeTokenRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  string access_token = 2;
+}
+
+message RevokeTokenResponse {
+  vedo.shared.v1.Error error = 1;
+  bool revoked = 2;
+}
+
+message GetUserRolesRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  string user_id = 2;
+  string workspace_id = 3;
+}
+
+message GetUserRolesResponse {
+  vedo.shared.v1.Error error = 1;
+  repeated UserRoleAssignment assignments = 2;
+  repeated Role roles = 3;
+}
+
+message ListRolePermissionsRequest {
+  vedo.shared.v1.RequestMetadata metadata = 1;
+  string role_id = 2;
+  vedo.shared.v1.Pagination pagination = 3;
+}
+
+message ListRolePermissionsResponse {
+  vedo.shared.v1.Error error = 1;
+  Role role = 2;
+  repeated Permission permissions = 3;
+  vedo.shared.v1.PaginationResponse pagination = 4;
+}

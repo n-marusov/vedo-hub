@@ -1,0 +1,48 @@
+= SDK и клиентские библиотеки
+:description: Статус SDK и клиентских библиотек для VEDO Core API.
+:toc: left
+
+== Официальные SDK
+
+В настоящее время официальных SDK для VEDO Core API **не существует**.
+
+API VEDO Core использует стандартные протоколы (REST + JSON, SPARQL, WebSocket) и совместим с любым HTTP-клиентом.
+
+== Рекомендуемые HTTP-клиенты
+
+=== Python
+
+* `requests` — HTTP-клиент для синхронных запросов
+* `httpx` — HTTP-клиент с поддержкой async/await
+
+=== JavaScript / Node.js
+
+* Встроенный `fetch` (Node.js 18+) или `node-fetch`
+* `axios` — популярный HTTP-клиент
+
+=== Go
+
+* Стандартный `net/http`
+* `go-resty` — REST-клиент с удобным API
+
+=== Java
+
+* `java.net.http.HttpClient` (Java 11+)
+* `OkHttp` / `Retrofit`
+
+=== Rust
+
+* `reqwest` — HTTP-клиент с async-поддержкой
+
+== Postman
+
+Для тестирования и отладки API используйте Postman с импортированной OpenAPI-спецификацией (см. xref:examples.adoc[Примеры]).
+
+== Будущие SDK
+
+Планируется выпуск официальных SDK для следующих языков:
+
+* **Python** — `vedo-sdk-python`
+* **JavaScript / TypeScript** — `vedo-sdk-js`
+
+Статус и сроки уточняйте у команды VEDO Core.

@@ -1,0 +1,48 @@
+= CI/CD
+:description: CI/CD конвейер VEDO Core, GitLab CI, сборка документации
+:keywords: CI/CD, GitLab CI, сборка, тестирование, развёртывание
+
+== Введение
+
+VEDO Core использует GitLab CI как эталонную CI/CD платформу. Конфигурация поставляется как reference implementation в `.gitlab-ci.yml`.
+
+== Стадии конвейера
+
+. lint — линтинг всех языков (Rust, Go, Python, TypeScript)
+. test — модульные и интеграционные тесты
+. build — сборка Docker-образов
+. docs — сборка документации Antora
+. deploy-dev — автоматический деплой в dev
+. deploy-staging — ручной деплой в staging
+. deploy-prod — ручной деплой в production
+
+== Сборка документации
+
+Документация Antora собирается на стадии docs:
+
+[source,bash]
+----
+# Сборка всех playbook-ов
+antora generate docs/antora/playbook-user.yml
+antora generate docs/antora/playbook-dev.yml
+antora generate docs/antora/playbook-admin.yml
+antora generate docs/antora/playbook-integrator.yml
+----
+
+== Проверки документации
+
+| Проверка | Инструмент |
+|----------|-----------|
+| Spell/style lint | typos, vale |
+| Link checker | linkchecker, htmltest |
+| Antora build | antora generate |
+| Командные snippets | shell smoke scripts |
+
+== Политика развёртывания
+
+* Rolling update для dev, staging и production minor/patch
+* Blue-green для production major updates
+* Canary — опционально для крупных инсталляций
+* Production switch требует ручного подтверждения
+
+Подробнее: xref:admin-guide::deployment.adoc[Развёртывание] в руководстве администратора.

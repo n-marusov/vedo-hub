@@ -1,0 +1,80 @@
+= Развёртывание
+:description: Инструкции по развёртыванию VEDO Core в различных окружениях
+:keywords: развёртывание, Docker, Kubernetes, Helm, on-premise
+
+== Введение
+
+VEDO Core поддерживает три модели развёртывания: SaaS (облако), on-premise (инфраструктура заказчика) и локальная разработка (Docker Compose).
+
+== Предварительные требования
+
+* Docker 24+ и Docker Compose
+* Kubernetes 1.28+ (для production)
+* Helm 3.12+
+* Минимум 4 vCPU / 16 GB RAM для одного узла
+
+== Docker Compose (локальная разработка)
+
+[source,bash]
+----
+git clone <repo-url>
+cd vedo-core
+docker compose up -d
+----
+
+Сервисы будут доступны по адресу `http://localhost:8080`.
+
+== Kubernetes (production)
+
+=== Установка Helm-чарта
+
+[source,bash]
+----
+helm repo add vedo https://charts.vedo.example
+helm install vedo-core vedo/vedo-core \
+  --values k8s/prod/values.yaml \
+  --namespace vedo-system \
+  --create-namespace
+----
+
+=== Конфигурация окружений
+
+Конфигурация хранится в файлах values для каждого окружения:
+
+* `k8s/dev/values.yaml`
+* `k8s/staging/values.yaml`
+* `k8s/prod/values.yaml`
+
+=== Стратегии развёртывания
+
+| Тип обновления | Стратегия | Условия |
+|---------------|-----------|---------|
+| Minor/patch | Rolling update | По умолчанию |
+| Major | Blue-green | Включается через `bluegreen.enabled=true` |
+| Крупные инсталляции | Canary | Опционально, `canary.enabled=true` |
+
+== On-premise развёртывание
+
+Для on-premise используйте Helm-чарты с адаптацией под инфраструктуру заказчика. Для изолированных сред используйте xref:airgap.adoc[air-gapped развёртывание].
+
+== SaaS-инфраструктура
+
+Стоимость инфраструктуры MVP:
+
+| Провайдер | Инфраструктура/мес |
+|-----------|-------------------|
+| Selectel (Premium) | ~132 000 руб. |
+| Timeweb Cloud (Budget) | ~43 000 руб. |
+
+Подробнее: xref:infrastructure.adoc[Инфраструктура SaaS].
+
+== Проверка развёртывания
+
+[source,bash]
+----
+# Проверка статуса сервисов
+curl http://localhost:8080/health
+
+# Проверка через vedo-cli
+vedo-cli diagnose health --all
+----

@@ -1,0 +1,105 @@
+= Поддержка
+:description: Каналы связи, получение помощи и обратная связь по VEDO Core.
+:sectnums:
+:toc: left
+
+== Портал поддержки
+
+Для создания и отслеживания тикетов используйте портал поддержки VEDO Core.
+
+[.ref]
+ID прецедента: xref:glossary.adoc#uc-pattern[UC-support.tickets.create-and-track-support-ticket]
+
+. Откройте сайдбар → *Помощь* → *Поддержка*.
+. Заполните форму:
+   * **Тема** — краткое описание проблемы
+   * **Описание** — подробное описание с шагами воспроизведения
+   * **Категория** — Bug, Feature Request, Question
+   * **Severity** — Critical, Major, Minor
+. Приложите файлы (скриншоты, логи) при необходимости.
+. Нажмите *Отправить*.
+
+Статусы тикета: New → In Review → In Progress → Resolved → Closed.
+
+TIP: Перед созданием тикета проверьте xref:faq.adoc[FAQ] и xref:troubleshooting.adoc[Устранение неполадок] — возможно, решение уже описано.
+
+== SLA (для Enterprise-клиентов)
+
+|===
+| Уровень | Время реакции | Время решения | Доступность
+| P0 (Критичный)
+| ≤ 15 минут
+| Continuous
+| 24/7
+| P1 (Высокий)
+| ≤ 1 час
+| 8 часов
+| 24/7
+| P2 (Средний)
+| ≤ 8 часов
+| 3 дня
+| Рабочее время
+| P3 (Низкий)
+| ≤ 24 часа
+| 5 дней
+| Рабочее время
+|===
+
+== База знаний
+
+[.ref]
+ID прецедента: xref:glossary.adoc#uc-pattern[UC-support.knowledge.search-knowledge-base-and-faq]
+
+Используйте базу знаний для поиска ответов на типовые вопросы без обращения в поддержку:
+
+* xref:faq.adoc[FAQ] — часто задаваемые вопросы
+* xref:troubleshooting.adoc[Устранение неполадок] — решение типовых проблем
+* xref:tasks.adoc[Задачи] — пошаговые инструкции
+* xref:howto.adoc[How-to] — практические рецепты
+
+== Обратная связь
+
+[.ref]
+ID прецедента: xref:glossary.adoc#uc-pattern[UC-support.feedback.submit-in-app-feedback-and-nps]
+
+VEDO Core собирает обратную связь для улучшения продукта:
+
+* **In-app NPS** — оцените вероятность рекомендации платформы
+* **Виджет отзывов** — сообщите о проблеме или предложите улучшение
+* **Телеметрия** (opt-in) — анонимные данные об использовании функций
+
+Чтобы отправить отзыв:
+. Нажмите на иконку *Обратная связь* (обычно в правом нижнем углу).
+. Выберите тип: Bug, Improvement, Question.
+. Заполните форму.
+. Отправьте.
+
+== Сообщество
+
+[.ref]
+ID прецедента: xref:glossary.adoc#uc-pattern[UC-support.community.participate-in-community-forum]
+
+* **Форум сообщества** — обсуждение вопросов и обмен опытом
+* **Публичный roadmap** — голосование за приоритеты развития (xref:glossary.adoc#uc-pattern[UC-support.roadmap.vote-and-comment-roadmap-items])
+
+== Статус-страница
+
+[.ref]
+ID прецедента: xref:glossary.adoc#uc-pattern[UC-support.status.view-public-status-page]
+
+Текущее состояние сервисов VEDO Core доступно на публичной статус-странице:
+
+* Текущие инциденты и плановые обслуживания
+* История инцидентов
+* Время аптайма
+
+// TODO: add link to status page
+
+== Контакты
+
+* **Портал поддержки**: https://support.vedo-core.io
+* **Email**: support@vedo-core.io
+* **Документация**: https://docs.vedo-core.io
+* **Статус-страница**: https://status.vedo-core.io
+
+// TODO: update links after deployment

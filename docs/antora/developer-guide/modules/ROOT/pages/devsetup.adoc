@@ -1,0 +1,206 @@
+= Настройка окружения разработчика
+:toc: left
+:toclevels: 3
+:icons: font
+:sectnums:
+
+.Source
+Технологический стек: `human/artifacts/stack.md`
+
+== Требования к системе
+
+|===
+| Компонент | Версия | Назначение
+| Rust toolchain | ≥ 1.80 | Компиляция Ontology Service, Versioning Service
+| Go | ≥ 1.22 | Компиляция Auth Service, API Gateway, vedo-cli
+| Python | ≥ 3.12 | Metrics Service, Notification Service
+| Node.js | ≥ 20 LTS | Фронтенд (Vue 3)
+| pnpm | ≥ 9 | Управление зависимостями фронтенда
+| Docker | ≥ 24 | Контейнеризация
+| Docker Compose | ≥ 2.24 | Локальный запуск инфраструктуры
+| Make | ≥ 4 | Автоматизация задач
+| Just | ≥ 1.30 | Альтернативный task runner
+|===
+
+== Клонирование репозитория
+
+[source,bash]
+----
+git clone https://github.com/vedo/vedo-core.git
+cd vedo-core
+----
+
+== Локальный запуск через Docker Compose
+
+.WARNING
+Для первого запуска может потребоваться до 5 минут на скачивание образов.
+
+[source,bash]
+----
+# Запуск всех сервисов
+docker compose up -d
+
+# Проверка статуса
+docker compose ps
+
+# Просмотр логов
+docker compose logs -f
+----
+
+Docker Compose поднимает:
+
+|===
+| Сервис | Порт | Назначение
+| API Gateway | 8080 | Единая точка входа
+| Ontology Service | 50051 | gRPC-сервер
+| Versioning Service | 50052 | gRPC-сервер
+| Auth Service | 50053 | gRPC-сервер
+| Collaboration Service | 50054 | gRPC-сервер
+| Metrics Service | 8000 | HTTP API
+| Neo4j | 7687 | Bolt-протокол
+| PostgreSQL | 5432 | Version Store
+| Redis | 6379 | Кэш
+| RabbitMQ | 5672 | Message queue
+| Keycloak | 8081 | Identity Provider
+| MinIO | 9000 | S3-совместимое хранилище
+|===
+
+.TIP
+Для UI-библиотеки Pencil.dev требуется отдельная установка. См. `docs/pencil/README.md`.
+
+== Запуск фронтенда
+
+[source,bash]
+----
+cd frontend
+pnpm install
+pnpm dev
+----
+
+Фронтенд будет доступен на `http://localhost:5173`.
+
+.WARNING
+Фронтенд требует работающего API Gateway (порт 8080). Убедитесь, что `docker compose up -d` выполнен.
+
+== Запуск отдельных сервисов
+
+=== Rust-сервисы
+
+[source,bash]
+----
+# Ontology Service
+cd services/ontology-service
+cargo build
+cargo run
+
+# Versioning Service
+cd services/versioning-service
+cargo build
+cargo run
+----
+
+=== Go-сервисы
+
+[source,bash]
+----
+# API Gateway
+cd services/api-gateway
+go build -o bin/gateway .
+./bin/gateway
+
+# Auth Service
+cd services/auth-service
+go build -o bin/auth .
+./bin/auth
+----
+
+=== Python-сервисы
+
+[source,bash]
+----
+# Metrics Service
+cd services/metrics-service
+poetry install
+poetry run python -m metrics_service
+
+# Notification Service
+cd services/notification-service
+poetry install
+poetry run python -m notification_service
+----
+
+=== vedo-cli
+
+[source,bash]
+----
+cd tools/vedo-cli
+go build -o bin/vedo-cli .
+./bin/vedo-cli --help
+----
+
+== Переменные окружения
+
+Создайте файл `.env` в корне проекта:
+
+[source,bash]
+----
+# База данных
+NEO4J_URI=bolt://localhost:7687
+POSTGRES_URI=postgres://vedo:vedo@localhost:5432/vedo
+REDIS_URI=redis://localhost:6379
+RABBITMQ_URI=amqp://guest:guest@localhost:5672
+
+# Аутентификация
+KEYCLOAK_URL=http://localhost:8081
+KEYCLOAK_REALM=vedo
+KEYCLOAK_CLIENT_ID=vedo-core
+
+# Наблюдаемость
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
+OTEL_SERVICE_NAME=vedo-development
+----
+
+== Health Check
+
+После запуска проверьте работоспособность:
+
+[source,bash]
+----
+# API Gateway
+curl http://localhost:8080/health
+
+# Ontology Service
+grpcurl -plaintext localhost:50051 ontology.Health/Check
+
+# Neo4j
+cypher-shell -a bolt://localhost:7687 -u neo4j -p password "RETURN 1"
+----
+
+== Типичные проблемы
+
+=== Порт занят
+
+Если порт 8080 уже используется, измените в `docker-compose.yml`:
+
+[source,yaml]
+----
+services:
+  api-gateway:
+    ports:
+      - "8081:8080"  # меняем внешний порт
+----
+
+=== Rust собирается долго
+
+Первый билд Rust может занять 10+ минут. Используйте `cargo build --release` только для production.
+
+=== Neo4j не запускается
+
+Проверьте, что не занят порт 7687. Увеличьте `NEO4J_dbms_memory_heap_max__size` в `docker-compose.yml`.
+
+=== PostgreSQL требует инициализации
+
+[source,bash]
+----
+docker compose exec postgres psql -U vedo -d vedo -f migrations/init.sql
+----

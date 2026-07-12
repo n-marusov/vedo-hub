@@ -1,0 +1,10 @@
+= developer-guide nav
+* xref:index.adoc[Введение]
+* xref:architecture.adoc[Архитектура системы]
+* xref:tech-stack.adoc[Технологический стек]
+* xref:adrs.adoc[Архитектурные решения (ADR)]
+* xref:api-protocols.adoc[Протоколы API]
+* xref:data-layer.adoc[Слой данных]
+* xref:observability.adoc[Наблюдаемость]
+* xref:ci-cd.adoc[CI/CD]
+* xref:repository-layout.adoc[Структура репозитория]
