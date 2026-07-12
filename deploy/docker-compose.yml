@@ -14,6 +14,12 @@ services:
     build:
       context: ../src/services/frontend
       dockerfile: Dockerfile
+      args:
+        # Browser-facing Keycloak — compose publishes 8180:8080 on the host.
+        # Realm `vedo-core` declares client `vedo-core-frontend` (not `vedo-spa`).
+        - VITE_KEYCLOAK_REALM=vedo-core
+        - VITE_KEYCLOAK_CLIENT_ID=vedo-core-frontend
+        - VITE_KEYCLOAK_URL=http://localhost:8180
     ports:
       - "3000:3000"
     environment:
@@ -103,7 +109,12 @@ services:
     environment:
       - HOST=0.0.0.0
       - SERVICE_PORT=8081
+      # Keycloak OIDC for JWT introspection (RFC 7662). The `vedo-core-api`
+      # confidential client and its secret live in deploy/keycloak/vedo-core-realm.json.
       - KEYCLOAK_URL=http://keycloak:8080
+      - KEYCLOAK_REALM=vedo-core
+      - KEYCLOAK_CLIENT_ID=vedo-core-api
+      - KEYCLOAK_CLIENT_SECRET=vedo-core-api-secret
     depends_on:
       keycloak:
         condition: service_healthy
@@ -375,7 +386,17 @@ services:
       - KEYCLOAK_ADMIN=admin
       - KEYCLOAK_ADMIN_PASSWORD=admin
       - KC_HEALTH_ENABLED=true
+      # Canonical hostname so every token carries the browser-facing issuer.
+      # Otherwise tokens minted via http://127.0.0.1:8180 carry a different
+      # issuer than backchannel introspect requests reach (http://keycloak:8080),
+      # and Keycloak marks them inactive during RFC 7662 introspection.
+      - KC_HOSTNAME=localhost
+      - KC_HOSTNAME_PORT=8180
+      - KC_HTTP_ENABLED=true
     volumes:
+      # Persist H2 DB + realm state across restarts so `down/up` does not wipe
+      # sessions or re-import the realm from scratch every time.
+      - keycloak_data:/opt/keycloak/data
       - ./keycloak/vedo-core-realm.json:/opt/keycloak/data/import/vedo-core-realm.json:ro
     command: start-dev --import-realm
     networks:
@@ -397,3 +418,4 @@ volumes:
   redis_data:
   rabbitmq_data:
   minio_data:
+  keycloak_data:
