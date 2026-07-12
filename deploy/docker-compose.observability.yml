@@ -1,0 +1,111 @@
+services:
+  prometheus:
+    profiles: ["obs"]
+    image: prom/prometheus:v2.47.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../llm/src/observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    networks:
+      - vedo-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:9090/-/healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  grafana:
+    profiles: ["obs"]
+    image: grafana/grafana:10.2.0
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ../llm/src/observability/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ../llm/src/observability/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ../llm/src/observability/grafana/dashboards:/etc/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    networks:
+      - vedo-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  loki:
+    profiles: ["obs"]
+    image: grafana/loki:2.9.0
+    user: root
+    ports:
+      - "3100:3100"
+    volumes:
+      - ../llm/src/observability/loki/loki-config.yml:/etc/loki/config.yml:ro
+      - loki_data:/data/loki
+    command:
+      - -config.file=/etc/loki/config.yml
+      - -querier.max-query-lookback=2880h
+    networks:
+      - vedo-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:3100/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  tempo:
+    profiles: ["obs"]
+    image: grafana/tempo:2.2.0
+    ports:
+      - "3200:3200"
+      - "4317:4317"
+      - "4318:4318"
+    volumes:
+      - ../llm/src/observability/tempo/tempo-config.yml:/etc/tempo/config.yml:ro
+      - tempo_data:/data/tempo
+    command: -config.file=/etc/tempo/config.yml
+    networks:
+      - vedo-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:3200/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  otel-collector:
+    profiles: ["obs"]
+    image: otel/opentelemetry-collector-contrib:0.91.0
+    ports:
+      - "8888:8888"
+      - "8889:8889"
+    volumes:
+      - ../llm/src/observability/otel-collector/config.yml:/etc/otel-collector/config.yml:ro
+    command: --config /etc/otel-collector/config.yml
+    depends_on:
+      prometheus:
+        condition: service_healthy
+      loki:
+        condition: service_healthy
+      tempo:
+        condition: service_healthy
+    networks:
+      - vedo-network
+    healthcheck:
+      test: ["CMD", "/otelcol-contrib", "--version"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  prometheus_data:
+  grafana_data:
+  loki_data:
+  tempo_data:

@@ -1,0 +1,89 @@
+# @ctx: OBS-OPS-001 OpenTelemetry Collector configuration for VEDO Core
+# @hlv INV-OBSERVABILITY-OPERATIONS-0111 OpenTelemetry is part of default stack
+# @hlv INV-OBSERVABILITY-OPERATIONS-0112 Alternative backends via exporters
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+
+  attributes:
+    actions:
+      - key: vedo.service
+        action: insert
+        from_attribute: service.name
+
+  filter:
+    error_mode: ignore
+    traces:
+      span:
+        - 'attributes["http.target"] != nil and IsMatch(attributes["http.target"], "/health")'
+        - 'attributes["http.target"] != nil and IsMatch(attributes["http.target"], "/metrics")'
+
+  # @hlv:sec PII masking — redact sensitive log attributes
+  attributes/redact:
+    actions:
+      - key: password
+        action: delete
+      - key: secret
+        action: delete
+      - key: token
+        action: delete
+      - key: authorization
+        action: delete
+      - key: cookie
+        action: delete
+      - key: set-cookie
+        action: delete
+
+exporters:
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    namespace: vedo
+
+  otlphttp/prometheus:
+    endpoint: http://prometheus:9090/api/v1/otlp
+    tls:
+      insecure: true
+
+  otlp/tempo:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+
+  loki:
+    endpoint: http://loki:3100/loki/api/v1/push
+    tls:
+      insecure: true
+
+  debug:
+    verbosity: detailed
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [prometheus, otlphttp/prometheus, debug]
+
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, filter]
+      exporters: [otlp/tempo, debug]
+
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, attributes/redact]
+      exporters: [loki, debug]

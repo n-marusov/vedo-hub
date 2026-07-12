@@ -1,0 +1,61 @@
+{
+  "id": null,
+  "uid": "vedo-error-rate",
+  "title": "VEDO Core - Error Rate",
+  "tags": ["vedo", "error-rate", "observability"],
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "version": 1,
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Error Rate by Service",
+      "type": "timeseries",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "sum(rate(vedo_http_requests_total{status=~\"5..\"}[5m])) by (service) / sum(rate(vedo_http_requests_total[5m])) by (service)", "legendFormat": "{{ service }}" }
+      ],
+      "description": "5xx error rate as fraction of total requests per service"
+    },
+    {
+      "id": 2,
+      "title": "HTTP Status Breakdown",
+      "type": "timeseries",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "sum(rate(vedo_http_requests_total{status=~\"2..\"}[5m]))", "legendFormat": "2xx" },
+        { "expr": "sum(rate(vedo_http_requests_total{status=~\"4..\"}[5m]))", "legendFormat": "4xx" },
+        { "expr": "sum(rate(vedo_http_requests_total{status=~\"5..\"}[5m]))", "legendFormat": "5xx" }
+      ],
+      "description": "Aggregate HTTP status code rate across all services"
+    },
+    {
+      "id": 3,
+      "title": "Top Error Endpoints",
+      "type": "table",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "topk(10, sum(rate(vedo_http_requests_total{status=~\"5..\"}[5m])) by (service, endpoint))", "legendFormat": "{{ service }} / {{ endpoint }}" }
+      ],
+      "description": "Top 10 endpoints by 5xx error rate"
+    },
+    {
+      "id": 4,
+      "title": "4xx Client Errors by Service",
+      "type": "timeseries",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "sum(rate(vedo_http_requests_total{status=~\"4..\"}[5m])) by (service)", "legendFormat": "{{ service }}" }
+      ],
+      "description": "4xx client error rate per service"
+    }
+  ]
+}

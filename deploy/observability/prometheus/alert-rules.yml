@@ -1,0 +1,98 @@
+# @ctx: OBS-OPS-001 Critical alert rules with P0/P1 severity and routing
+# @hlv INV-OBSERVABILITY-OPERATIONS-0118 P0/P1 alerts map to escalation matrix
+groups:
+  - name: vedo-core-p0
+    interval: 30s
+    rules:
+      - alert: VedoServicesDown
+        expr: up{job=~"vedo-.*"} == 0
+        for: 1m
+        labels:
+          severity: P0
+          team: platform-team
+          route: p0-escalation
+        annotations:
+          summary: "VEDO Core service {{ $labels.job }} is down"
+          description: "Service {{ $labels.job }} has been unreachable for more than 1 minute"
+          runbook: "https://docs.vedo.dev/runbooks/p0-service-down"
+# @hlv:sec Logs and traces must not contain secrets or PII
+
+      - alert: HighErrorRate
+        expr: rate(vedo_http_requests_total{status=~"5.."}[5m]) / rate(vedo_http_requests_total[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: P0
+          team: platform-team
+          route: p0-escalation
+        annotations:
+          summary: "High error rate on {{ $labels.service }}"
+          description: "Error rate on {{ $labels.service }} exceeds 5% over 5 minutes"
+
+      - alert: ApiGatewayLatencySpike
+        expr: histogram_quantile(0.99, rate(vedo_http_request_duration_seconds_bucket{service="api-gateway"}[5m])) > 5
+        for: 2m
+        labels:
+          severity: P0
+          team: platform-team
+          route: p0-escalation
+        annotations:
+          summary: "API Gateway p99 latency exceeds 5s"
+          description: "API Gateway p99 latency is {{ $value }}s"
+
+      - alert: Neo4jDown
+        expr: vedo_neo4j_up == 0
+        for: 30s
+        labels:
+          severity: P0
+          team: platform-team
+          route: p0-escalation
+        annotations:
+          summary: "Neo4j database is down"
+          description: "Neo4j connectivity lost on ontology-service"
+
+  - name: vedo-core-p1
+    interval: 60s
+    rules:
+      - alert: HighLatencyWarning
+        expr: histogram_quantile(0.99, rate(vedo_http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: P1
+          team: platform-team
+          route: p1-escalation
+        annotations:
+          summary: "p99 latency exceeds 2s on {{ $labels.service }}"
+          description: "Service {{ $labels.service }} p99 latency is {{ $value }}s"
+
+      - alert: ErrorRateWarning
+        expr: rate(vedo_http_requests_total{status=~"5.."}[5m]) / rate(vedo_http_requests_total[5m]) > 0.02
+        for: 5m
+        labels:
+          severity: P1
+          team: platform-team
+          route: p1-escalation
+        annotations:
+          summary: "Elevated error rate on {{ $labels.service }}"
+          description: "Error rate on {{ $labels.service }} exceeds 2% over 5 minutes"
+
+      - alert: DiskSpaceWarning
+        expr: vedo_disk_usage_percent > 80
+        for: 10m
+        labels:
+          severity: P1
+          team: platform-team
+          route: p1-escalation
+        annotations:
+          summary: "Disk usage exceeds 80% on {{ $labels.instance }}"
+          description: "Disk usage is {{ $value }}%"
+
+      - alert: TraceSampleRateDrop
+        expr: rate(vedo_traces_received_total[5m]) / rate(vedo_traces_expected_total[5m]) < 0.9
+        for: 5m
+        labels:
+          severity: P1
+          team: platform-team
+          route: p1-escalation
+        annotations:
+          summary: "Trace sample rate dropped below 90%"
+          description: "Trace sampling rate is {{ $value | humanizePercentage }}"

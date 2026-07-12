@@ -1,0 +1,40 @@
+# @ctx: OBS-OPS-001 Tempo trace configuration
+# @hlv INV-OBSERVABILITY-OPERATIONS-0111 Tempo is part of default stack
+server:
+  http_listen_port: 3200
+  grpc_listen_port: 9096
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+
+ingester:
+  trace_idle_period: 10s
+  max_block_duration: 30m
+  lifecycler:
+    ring:
+      kvstore:
+        store: inmemory
+      replication_factor: 1
+
+compactor:
+  compaction:
+    block_retention: 168h
+
+storage:
+  trace:
+    backend: local
+    local:
+      path: /data/tempo/traces
+    wal:
+      path: /data/tempo/wal
+
+# @hlv INV-OBSERVABILITY-OPERATIONS-0114
+# Default retention: traces 7 days active
+overrides:
+  max_traces_per_user: 10000

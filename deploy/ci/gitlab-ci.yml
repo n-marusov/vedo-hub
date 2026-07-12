@@ -1,0 +1,352 @@
+# @ctx: DEPLOY-OPS-001 GitLab CI pipeline definition
+# @hlv INV-DEPLOYMENT-OPERATIONS-0091 Documentation CI includes Antora build, link checking, spell/style lint
+# @hlv INV-DEPLOYMENT-OPERATIONS-0100 Deployment evidence captured automatically for every release
+# @hlv:sec Secrets must come from environment or secret stores, not Git
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+  CARGO_HOME: ${CI_PROJECT_DIR}/.cargo
+  NPM_CACHE_DIR: ${CI_PROJECT_DIR}/.npm
+  PIP_CACHE_DIR: ${CI_PROJECT_DIR}/.pip
+  GO_CACHE_DIR: ${CI_PROJECT_DIR}/.go
+  RUSTFLAGS: "-D warnings"
+  REGISTRY: ${CI_REGISTRY_IMAGE}
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - .cargo/
+    - .npm/
+    - .pip/
+    - .go/
+
+stages:
+  - lint
+  - test
+  - build
+  - integration
+  - security
+  - deploy
+
+# --- Lint Stage ---
+
+frontend-lint:
+  stage: lint
+  image: node:20-alpine
+  script:
+    - cd llm/src/frontend
+    - npm ci
+    - npm run lint
+  rules:
+    - changes:
+        - llm/src/frontend/**/*
+
+rust-lint:
+  stage: lint
+  image: rust:1.77-slim-bookworm
+  script:
+    - cd llm/src/ontology-service && cargo clippy --lib -- -D warnings
+    - cd llm/src/versioning-service && cargo clippy --lib -- -D warnings
+  rules:
+    - changes:
+        - llm/src/**/Cargo.toml
+        - llm/src/**/*.rs
+
+go-lint:
+  stage: lint
+  image: golang:1.22-alpine
+  script:
+    - cd llm/src/api-gateway && go vet ./...
+    - cd llm/src/auth-service && go vet ./...
+  rules:
+    - changes:
+        - llm/src/**/*.go
+
+docs-lint:
+  stage: lint
+  image: node:20-alpine
+  script:
+    - npm install -g @antora/cli@3.1 @antora/site-generator-default@3.1 asciidoctor-kroki
+    - cd llm/src/docs && for pb in playbook-admin-guides.yml playbook-developer-guides.yml playbook-operator-runbooks.yml playbook-user-guides.yml; do antora --fetch "$pb"; done
+    - node llm/src/docs/scripts/check-links.mjs
+    - node llm/src/docs/scripts/check-style.mjs
+    - node llm/src/docs/scripts/check-snippets.mjs
+  rules:
+    - changes:
+        - docs/**/*.adoc
+        - docs/**/*.md
+        - llm/src/docs/**/*
+
+# --- Test Stage ---
+
+contract-tests-frontend:
+  stage: test
+  image: node:20-alpine
+  script:
+    - cd llm/src/frontend
+    - npm ci
+    - npm test -- --run
+  artifacts:
+    reports:
+      junit: llm/src/frontend/junit.xml
+
+contract-tests-rust:
+  stage: test
+  image: rust:1.77-slim-bookworm
+  script:
+    - cd llm/src/ontology-service && cargo test --lib
+    - cd llm/src/versioning-service && cargo test --lib
+  artifacts:
+    reports:
+      junit: llm/target/nextest/junit.xml
+
+contract-tests-go:
+  stage: test
+  image: golang:1.22-alpine
+  script:
+    - cd llm/src/api-gateway && go test ./...
+    - cd llm/src/auth-service && go test ./...
+  artifacts:
+    reports:
+      junit: llm/src/**/junit.xml
+
+contract-tests-python:
+  stage: test
+  image: python:3.12-slim
+  script:
+    - cd llm/src/metrics-service
+    - pip install -e ".[test]"
+    - pytest tests/
+  artifacts:
+    reports:
+      junit: llm/src/metrics-service/junit.xml
+
+vitest-contract-tests:
+  stage: test
+  image: node:20-alpine
+  script:
+    - npm ci
+    - npx vitest run --config vitest.config.ts
+  artifacts:
+    reports:
+      junit: junit.xml
+
+docs-build:
+  stage: build
+  image: node:20-alpine
+  script:
+    - npm install -g @antora/cli@3.1 @antora/site-generator-default@3.1 asciidoctor-kroki
+    - node llm/src/docs/scripts/build-docs.mjs
+  artifacts:
+    paths:
+      - llm/src/docs/_site/
+      - llm/src/docs/_offline-bundle/
+    expire_in: 30 days
+  rules:
+    - changes:
+        - docs/**/*
+        - llm/src/docs/**/*
+
+# --- Build Stage ---
+
+build-frontend:
+  stage: build
+  image: docker:24.0-cli
+  services:
+    - docker:24.0-dind
+  script:
+    - docker build -t ${REGISTRY}/vedo-frontend:${CI_COMMIT_SHORT_SHA} -t ${REGISTRY}/vedo-frontend:latest llm/src/frontend
+    - docker push ${REGISTRY}/vedo-frontend:${CI_COMMIT_SHORT_SHA}
+    - docker push ${REGISTRY}/vedo-frontend:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+build-api-gateway:
+  stage: build
+  image: docker:24.0-cli
+  services:
+    - docker:24.0-dind
+  script:
+    - docker build -t ${REGISTRY}/vedo-api-gateway:${CI_COMMIT_SHORT_SHA} -t ${REGISTRY}/vedo-api-gateway:latest -f llm/src/api-gateway/Dockerfile llm/src/
+    - docker push ${REGISTRY}/vedo-api-gateway:${CI_COMMIT_SHORT_SHA}
+    - docker push ${REGISTRY}/vedo-api-gateway:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+build-ontology-service:
+  stage: build
+  image: docker:24.0-cli
+  services:
+    - docker:24.0-dind
+  script:
+    - docker build -t ${REGISTRY}/vedo-ontology-service:${CI_COMMIT_SHORT_SHA} -t ${REGISTRY}/vedo-ontology-service:latest llm/src/ontology-service
+    - docker push ${REGISTRY}/vedo-ontology-service:${CI_COMMIT_SHORT_SHA}
+    - docker push ${REGISTRY}/vedo-ontology-service:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+build-versioning-service:
+  stage: build
+  image: docker:24.0-cli
+  services:
+    - docker:24.0-dind
+  script:
+    - docker build -t ${REGISTRY}/vedo-versioning-service:${CI_COMMIT_SHORT_SHA} -t ${REGISTRY}/vedo-versioning-service:latest llm/src/versioning-service
+    - docker push ${REGISTRY}/vedo-versioning-service:${CI_COMMIT_SHORT_SHA}
+    - docker push ${REGISTRY}/vedo-versioning-service:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+build-auth-service:
+  stage: build
+  image: docker:24.0-cli
+  services:
+    - docker:24.0-dind
+  script:
+    - docker build -t ${REGISTRY}/vedo-auth-service:${CI_COMMIT_SHORT_SHA} -t ${REGISTRY}/vedo-auth-service:latest llm/src/auth-service
+    - docker push ${REGISTRY}/vedo-auth-service:${CI_COMMIT_SHORT_SHA}
+    - docker push ${REGISTRY}/vedo-auth-service:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+build-metrics-service:
+  stage: build
+  image: docker:24.0-cli
+  services:
+    - docker:24.0-dind
+  script:
+    - docker build -t ${REGISTRY}/vedo-metrics-service:${CI_COMMIT_SHORT_SHA} -t ${REGISTRY}/vedo-metrics-service:latest llm/src/metrics-service
+    - docker push ${REGISTRY}/vedo-metrics-service:${CI_COMMIT_SHORT_SHA}
+    - docker push ${REGISTRY}/vedo-metrics-service:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+# --- Integration Stage ---
+
+integration-tests:
+  stage: integration
+  image: node:20-alpine
+  script:
+    - cd llm/src/frontend
+    - npm ci
+    - npm test -- --run tests/api-compatibility/api-compatibility.spec.ts tests/backup-restore/backup-restore-integration.spec.ts tests/observability/observability.spec.ts tests/data-lifecycle/data-lifecycle.spec.ts tests/administration/administration.spec.ts tests/deployment/deployment-operations.spec.ts
+  needs:
+    - contract-tests-frontend
+    - contract-tests-rust
+    - contract-tests-go
+    - contract-tests-python
+
+property-based-tests:
+  stage: integration
+  image: rust:1.77-slim-bookworm
+  script:
+    - cd llm/src/ontology-service && cargo test --lib
+    - cd llm/src/versioning-service && cargo test --lib
+  needs:
+    - contract-tests-frontend
+    - contract-tests-rust
+
+# --- Platform Integrity Stage ---
+
+platform-integrity-checks:
+  stage: integration
+  image: docker:24.0-cli
+  services:
+    - docker:24.0-dind
+  before_script:
+    - apk add --no-cache go bash
+  script:
+    - chmod +x llm/tests/integration/check-platform-integrity.sh
+    - ./llm/tests/integration/check-platform-integrity.sh
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  needs:
+    - contract-tests-frontend
+    - contract-tests-rust
+    - contract-tests-go
+    - contract-tests-python
+
+platform-integrity-contract-tests:
+  stage: test
+  image: golang:1.21-alpine
+  script:
+    - cd llm/src/platform-integrity
+    - go mod tidy
+    - go vet ./...
+    - go test ./... -v -count=1
+  rules:
+    - changes:
+        - llm/src/platform-integrity/**/*
+
+# --- Security Stage ---
+
+security-sast:
+  stage: security
+  image: docker:24.0-cli
+  services:
+    - docker:24.0-dind
+  script:
+    - docker run --rm -v ${CI_PROJECT_DIR}:/code aquasec/trivy:latest filesystem --severity CRITICAL,HIGH /code/llm/src
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  allow_failure: true
+
+security-dast:
+  stage: security
+  image: node:20-alpine
+  script:
+    - npm install -g zaproxy
+    - echo "DAST scan placeholder — requires running environment"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  allow_failure: true
+
+security-dependency-scan:
+  stage: security
+  image: node:20-alpine
+  script:
+    - cd llm/src/frontend && npm audit --audit-level=high
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  allow_failure: true
+
+# --- Deploy Stage ---
+
+deploy-staging:
+  stage: deploy
+  image: alpine/helm:3.14
+  script:
+    - helm upgrade --install vedo-core ./deploy/helm --namespace vedo --values ./deploy/helm/values.yaml --set global.environment=staging
+  environment:
+    name: staging
+    url: https://staging.vedo.dev
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  needs:
+    - build-frontend
+    - build-api-gateway
+    - build-ontology-service
+    - build-versioning-service
+    - build-auth-service
+    - build-metrics-service
+    - docs-build
+    - integration-tests
+    - security-sast
+
+deploy-docs:
+  stage: deploy
+  image: alpine:latest
+  script:
+    - echo "Deploying documentation site..."
+    - cp -r llm/src/docs/_site/* public/
+  environment:
+    name: docs
+    url: https://docs.vedo.dev
+  artifacts:
+    paths:
+      - public/
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  needs:
+    - docs-build

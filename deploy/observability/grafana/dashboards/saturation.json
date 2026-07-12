@@ -1,0 +1,59 @@
+{
+  "id": null,
+  "uid": "vedo-saturation",
+  "title": "VEDO Core - Saturation",
+  "tags": ["vedo", "saturation", "observability"],
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "version": 1,
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "CPU Usage by Service",
+      "type": "timeseries",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "rate(process_cpu_seconds_total{job=~\"vedo-.*\"}[5m])", "legendFormat": "{{ job }}" }
+      ],
+      "description": "CPU time rate per VEDO Core service"
+    },
+    {
+      "id": 2,
+      "title": "Memory Usage by Service",
+      "type": "timeseries",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "process_resident_memory_bytes{job=~\"vedo-.*\"}", "legendFormat": "{{ job }}" }
+      ],
+      "description": "Resident memory in bytes per service"
+    },
+    {
+      "id": 3,
+      "title": "Disk Usage",
+      "type": "gauge",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "vedo_disk_usage_percent", "legendFormat": "Disk {{ instance }}" }
+      ],
+      "description": "Disk usage percentage per instance"
+    },
+    {
+      "id": 4,
+      "title": "Throughput by Service",
+      "type": "timeseries",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "sum(rate(vedo_http_requests_total[5m])) by (service)", "legendFormat": "{{ service }}" }
+      ],
+      "description": "Request throughput per service"
+    }
+  ]
+}

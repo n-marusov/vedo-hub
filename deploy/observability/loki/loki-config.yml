@@ -1,0 +1,50 @@
+# @ctx: OBS-OPS-001 Loki retention configuration
+# @hlv INV-OBSERVABILITY-OPERATIONS-0114 Default retention policies
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9095
+
+ingester:
+  lifecycler:
+    ring:
+      kvstore:
+        store: inmemory
+      replication_factor: 1
+
+schema_config:
+  configs:
+    - from: 2025-01-01
+      store: boltdb-shipper
+      object_store: filesystem
+      schema: v11
+      index:
+        prefix: index_
+        period: 24h
+
+storage_config:
+  boltdb_shipper:
+    active_index_directory: /data/loki/index
+    cache_location: /data/loki/cache
+    shared_store: filesystem
+  filesystem:
+    directory: /data/loki/chunks
+
+limits_config:
+  reject_old_samples: true
+  reject_old_samples_max_age: 168h
+  max_entries_limit_per_query: 5000
+
+compactor:
+  working_directory: /data/loki/compactor
+  shared_store: filesystem
+
+# @hlv INV-OBSERVABILITY-OPERATIONS-0114
+# Default retention: app logs 30 days active + 90 days archive,
+# access logs 14 days active + 30 days archive
+# Loki 2.9 dropped `tables` config. Global retention via table_manager.
+# Per-stream retention uses selector labels at ingestion.
+table_manager:
+  retention_deletes_enabled: true
+  retention_period: 744h
