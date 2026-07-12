@@ -1,0 +1,215 @@
+{
+  "version": "2.13",
+  "imports": {
+    "B": "../ui-kit.lib.pen"
+  },
+  "children": [
+    {
+      "type": "frame",
+      "id": "G83Yfe",
+      "x": 4006,
+      "y": -1314,
+      "name": "Merge Requests",
+      "width": 1920,
+      "height": 1080,
+      "fill": "$B:background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "t6Ipe",
+          "type": "ref",
+          "ref": "B:qpgfz",
+          "width": "fill_container",
+          "height": 56,
+          "name": "mrHeader"
+        },
+        {
+          "type": "frame",
+          "id": "A2al6v",
+          "name": "mrMain",
+          "width": "fill_container",
+          "height": "fill_container",
+          "children": [
+            {
+              "id": "w5NENV",
+              "type": "ref",
+              "ref": "B:W5vtj",
+              "width": 256,
+              "height": "fill_container",
+              "name": "mrSidebar"
+            },
+            {
+              "type": "frame",
+              "id": "SeTb1",
+              "name": "mrContent",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "padding": [
+                24,
+                32
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "mrTitleRow",
+                  "name": "Title Row",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "mrTitleLeft",
+                      "name": "Title Left",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "mrBreadcrumbs",
+                          "name": "Breadcrumbs",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "mrCrumbHome",
+                              "fill": "$B:muted-foreground",
+                              "content": "Workspace",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "icon",
+                              "id": "mrCrumbSep",
+                              "width": 12,
+                              "height": 12,
+                              "icon": "chevron-right",
+                              "library": "lucide",
+                              "fill": "$B:muted-foreground"
+                            },
+                            {
+                              "type": "text",
+                              "id": "mrCrumbLabel",
+                              "fill": "$B:muted-foreground",
+                              "content": "Merge request",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "mrTitleText",
+                          "fill": "$B:foreground",
+                          "content": "Merge Requests",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 24,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "mrProjectSelect",
+                      "name": "Project Select",
+                      "height": 36,
+                      "cornerRadius": 6,
+                      "stroke": "$B:border",
+                      "strokeWidth": 1,
+                      "strokeAlignment": "inner",
+                      "padding": [
+                        0,
+                        12
+                      ],
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "mrProjectSelectInner",
+                          "gap": 6,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "mrProjectSelectText",
+                              "fill": "$B:muted-foreground",
+                              "content": "Select project to create merge request",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "icon",
+                              "id": "mrProjectSelectChevron",
+                              "width": 12,
+                              "height": 12,
+                              "icon": "chevron-down",
+                              "library": "lucide",
+                              "fill": "$B:muted-foreground"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "mrTabsRef",
+                  "type": "ref",
+                  "ref": "B:DMyKv",
+                  "name": "Component/Tabs",
+                  "width": "fill_container",
+                  "height": "fit_content",
+                  "descendants": {
+                    "IXtXH": {
+                      "fill": "$B:secondary"
+                    },
+                    "9NBN9": {
+                      "content": "Active"
+                    },
+                    "E5CaJ": {
+                      "fill": "$B:card"
+                    },
+                    "Q1czS": {
+                      "content": "Merged"
+                    },
+                    "TA3ab": {
+                      "fill": "$B:card"
+                    },
+                    "tab3t": {
+                      "content": "Search"
+                    }
+                  }
+                },
+                {
+                  "id": "mrSectionsRef",
+                  "type": "ref",
+                  "ref": "B:orgMergeRequests",
+                  "name": "Organism/MergeRequests",
+                  "width": "fill_container",
+                  "height": "fit_content",
+                  "fill": {
+                    "type": "color",
+                    "color": "$B:card",
+                    "enabled": false
+                  },
+                  "stroke": {
+                    "type": "color",
+                    "color": "$B:border",
+                    "enabled": false
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

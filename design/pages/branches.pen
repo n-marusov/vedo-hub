@@ -1,0 +1,78 @@
+{
+  "version": "2.13",
+  "imports": {
+    "B": "../ui-kit.lib.pen"
+  },
+  "children": [
+    {
+      "type": "frame",
+      "id": "joJk5",
+      "x": 1986,
+      "y": -2494,
+      "name": "Branches",
+      "width": 1920,
+      "height": 1080,
+      "fill": "$B:background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "J5Onx6",
+          "type": "ref",
+          "ref": "B:qpgfz",
+          "width": "fill_container",
+          "height": 56,
+          "name": "bHeader"
+        },
+        {
+          "type": "frame",
+          "id": "G1YAk",
+          "name": "bMain",
+          "width": "fill_container",
+          "height": "fill_container",
+          "children": [
+            {
+              "id": "ntcRw",
+              "type": "ref",
+              "ref": "B:W5vtj",
+              "width": 256,
+              "height": "fill_container",
+              "name": "bSidebar"
+            },
+            {
+              "type": "frame",
+              "id": "JXByG",
+              "name": "bContent",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "padding": [
+                24,
+                32
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "TwYl8",
+                  "name": "bTitle",
+                  "fill": "$B:foreground",
+                  "content": "Branches",
+                  "fontFamily": "Inter",
+                  "fontSize": 24,
+                  "fontWeight": "bold"
+                },
+                {
+                  "id": "wKZ1b",
+                  "type": "ref",
+                  "ref": "B:tTpUr",
+                  "width": "fill_container",
+                  "name": "bOrg"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

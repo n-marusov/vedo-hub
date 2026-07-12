@@ -1,0 +1,193 @@
+{
+  "version": "2.13",
+  "imports": {
+    "B": "../ui-kit.lib.pen"
+  },
+  "children": [
+    {
+      "type": "frame",
+      "id": "shaclR",
+      "x": 1986,
+      "y": -134,
+      "name": "SHACL Rule Builder",
+      "width": 1920,
+      "height": 1080,
+      "fill": "$B:background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "G0UTZ",
+          "type": "ref",
+          "ref": "B:qpgfz",
+          "name": "Organism/Header",
+          "width": "fill_container"
+        },
+        {
+          "type": "frame",
+          "id": "dAted",
+          "name": "Horizontal Split",
+          "width": "fill_container",
+          "height": 1024,
+          "children": [
+            {
+              "id": "gBRMU",
+              "type": "ref",
+              "ref": "B:W5vtj",
+              "name": "Organism/Sidebar",
+              "width": 256,
+              "height": "fill_container"
+            },
+            {
+              "type": "frame",
+              "id": "nfRSX",
+              "name": "Content Area",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 20,
+              "padding": [
+                24,
+                32
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "VqxT0",
+                  "name": "Page Header",
+                  "width": "fill_container",
+                  "padding": [
+                    0,
+                    0,
+                    16,
+                    0
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "ItJ0q",
+                      "name": "Title Left",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "PiYsp",
+                          "name": "srTitleIcon",
+                          "width": 20,
+                          "height": 20,
+                          "icon": "file-text",
+                          "library": "lucide",
+                          "fill": "$B:primary"
+                        },
+                        {
+                          "type": "text",
+                          "id": "XvABB",
+                          "name": "srTitleText",
+                          "fill": "$B:foreground",
+                          "content": "SHACL Rule Builder",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 20,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "utBh2",
+                  "name": "Ontology Context",
+                  "width": "fill_container",
+                  "fill": "#1414144D",
+                  "cornerRadius": 6,
+                  "gap": 12,
+                  "padding": [
+                    8,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "cjWKL",
+                      "name": "ctxFolder",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "folder",
+                      "library": "lucide",
+                      "fill": "$B:muted-foreground"
+                    },
+                    {
+                      "type": "text",
+                      "id": "jsbuU",
+                      "name": "ctxText",
+                      "fill": "$B:muted-foreground",
+                      "content": "Creating rules for:",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "id": "Zafm8",
+                      "type": "ref",
+                      "ref": "B:Pw7LN",
+                      "name": "Ontology Badge",
+                      "fill": "$B:primary",
+                      "descendants": {
+                        "B:eek9M": {
+                          "content": "ProductOntology"
+                        }
+                      }
+                    },
+                    {
+                      "type": "icon",
+                      "id": "gEBH0",
+                      "name": "ctxBranchIcon",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "git-branch",
+                      "library": "lucide",
+                      "fill": "$B:muted-foreground"
+                    },
+                    {
+                      "id": "UCJZa",
+                      "type": "ref",
+                      "ref": "B:Pw7LN",
+                      "name": "Branch Badge",
+                      "fill": "#000000",
+                      "descendants": {
+                        "B:eek9M": {
+                          "content": "main"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "CvV9z",
+                  "type": "ref",
+                  "ref": "B:shRB",
+                  "name": "Organism/SHACLRuleBuilder",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "descendants": {
+                    "shRBEx": {
+                      "width": 984,
+                      "height": 543,
+                      "flipX": false,
+                      "flipY": false,
+                      "x": 20,
+                      "y": 953
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

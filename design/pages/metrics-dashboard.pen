@@ -1,0 +1,210 @@
+{
+  "version": "2.13",
+  "imports": {
+    "B": "../ui-kit.lib.pen"
+  },
+  "children": [
+    {
+      "type": "frame",
+      "id": "metDas",
+      "x": 1986,
+      "y": -4854,
+      "name": "Metrics Dashboard",
+      "width": 1920,
+      "height": 2260,
+      "fill": "$B:background",
+      "layout": "none",
+      "children": [
+        {
+          "id": "qJIkc",
+          "type": "ref",
+          "ref": "B:qpgfz",
+          "name": "Organism/Header",
+          "width": 1920,
+          "height": 56,
+          "x": 0,
+          "y": 0
+        },
+        {
+          "type": "frame",
+          "id": "boOGv",
+          "x": 0,
+          "y": 56,
+          "name": "Horizontal Split",
+          "width": 1920,
+          "height": 1024,
+          "children": [
+            {
+              "id": "J8ldt",
+              "type": "ref",
+              "ref": "B:W5vtj",
+              "name": "Organism/Sidebar",
+              "width": 256,
+              "height": 1024,
+              "x": 0,
+              "y": 0
+            },
+            {
+              "type": "frame",
+              "id": "A2hCtZ",
+              "name": "Content Area",
+              "width": 1664,
+              "height": 1024,
+              "layout": "vertical",
+              "gap": 20,
+              "padding": [
+                24,
+                32
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "m95Mc",
+                  "name": "Page Header",
+                  "width": "fill_container",
+                  "padding": [
+                    0,
+                    0,
+                    16,
+                    0
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "H8pXxk",
+                      "name": "Title Left",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "AQnXQ",
+                          "name": "mdTitleIcon",
+                          "width": 20,
+                          "height": 20,
+                          "icon": "chart-column",
+                          "library": "lucide",
+                          "fill": "$B:primary"
+                        },
+                        {
+                          "type": "text",
+                          "id": "kbHGT",
+                          "name": "mdTitleText",
+                          "fill": "$B:foreground",
+                          "content": "Metrics Dashboard",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 20,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "PYlhU",
+                  "name": "Ontology Context",
+                  "width": "fill_container",
+                  "fill": "#1414144D",
+                  "cornerRadius": 6,
+                  "gap": 12,
+                  "padding": [
+                    8,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "QBm8O",
+                      "name": "mdCtxFolder",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "folder",
+                      "library": "lucide",
+                      "fill": "$B:muted-foreground"
+                    },
+                    {
+                      "type": "text",
+                      "id": "ynHfp",
+                      "name": "mdCtxText",
+                      "fill": "$B:muted-foreground",
+                      "content": "Analyzing ontology:",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "id": "AEd2g",
+                      "type": "ref",
+                      "ref": "B:Pw7LN",
+                      "name": "Ontology Badge",
+                      "fill": "$B:primary",
+                      "descendants": {
+                        "B:eek9M": {
+                          "content": "ProductOntology"
+                        }
+                      }
+                    },
+                    {
+                      "type": "icon",
+                      "id": "D5RwY6",
+                      "name": "mdBranchIcon",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "git-branch",
+                      "library": "lucide",
+                      "fill": "$B:muted-foreground"
+                    },
+                    {
+                      "id": "UTZl0",
+                      "type": "ref",
+                      "ref": "B:Pw7LN",
+                      "name": "Branch Badge",
+                      "fill": "#000000",
+                      "descendants": {
+                        "B:eek9M": {
+                          "content": "main"
+                        }
+                      }
+                    },
+                    {
+                      "type": "icon",
+                      "id": "WPMCq",
+                      "name": "mdCalIcon",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "calendar",
+                      "library": "lucide",
+                      "fill": "$B:muted-foreground"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Lv5SG",
+                      "name": "mdUpdatedText",
+                      "fill": "$B:muted-foreground",
+                      "content": "Last updated: May 15, 2026",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "id": "Y2Iwc",
+                  "type": "ref",
+                  "ref": "B:mtrD",
+                  "name": "Organism/MetricsDashboard",
+                  "width": "fill_container",
+                  "height": "fill_container"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

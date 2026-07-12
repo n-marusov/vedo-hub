@@ -1,0 +1,134 @@
+{
+  "version": "2.13",
+  "imports": {
+    "B": "../ui-kit.lib.pen"
+  },
+  "children": [
+    {
+      "type": "frame",
+      "id": "commentsPage",
+      "x": 4006,
+      "y": -4554,
+      "name": "Comments",
+      "width": 1920,
+      "height": 1080,
+      "fill": "$B:background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "commentsHeader",
+          "type": "ref",
+          "ref": "B:qpgfz",
+          "width": "fill_container",
+          "height": 56,
+          "name": "Organism/Header"
+        },
+        {
+          "type": "frame",
+          "id": "commentsSplit",
+          "name": "Horizontal Split",
+          "width": "fill_container",
+          "height": 1024,
+          "children": [
+            {
+              "id": "commentsSidebar",
+              "type": "ref",
+              "ref": "B:W5vtj",
+              "width": 256,
+              "height": "fill_container",
+              "name": "Organism/Sidebar"
+            },
+            {
+              "type": "frame",
+              "id": "commentsContent",
+              "name": "Content Area",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "padding": [
+                24,
+                32
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "commentsPageHeader",
+                  "name": "Page Header",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "commentsBreadcrumbs",
+                      "name": "Breadcrumbs",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "commentsCrumbWorkspace",
+                          "fill": "$B:muted-foreground",
+                          "content": "Workspace",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "icon",
+                          "id": "commentsCrumbSep",
+                          "width": 12,
+                          "height": 12,
+                          "icon": "chevron-right",
+                          "library": "lucide",
+                          "fill": "$B:muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "id": "commentsCrumbCurrent",
+                          "fill": "$B:muted-foreground",
+                          "content": "Comments",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "commentsPageTitle",
+                      "fill": "$B:foreground",
+                      "content": "Comments",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 24,
+                      "fontWeight": 600
+                    }
+                  ]
+                },
+                {
+                  "id": "commentsOrganism",
+                  "type": "ref",
+                  "ref": "B:orgComments",
+                  "name": "Organism/Comments",
+                  "width": "fill_container",
+                  "height": "fit_content",
+                  "stroke": {
+                    "type": "color",
+                    "color": "$B:border",
+                    "enabled": false
+                  },
+                  "fill": {
+                    "type": "color",
+                    "color": "$B:card",
+                    "enabled": false
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

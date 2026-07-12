@@ -1,0 +1,134 @@
+{
+  "version": "2.13",
+  "children": [
+    {
+      "type": "frame",
+      "id": "rcPage",
+      "x": 4006,
+      "y": -2554,
+      "name": "Recent Commits",
+      "width": 1920,
+      "height": 1080,
+      "fill": "$B:background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "rcHeader",
+          "type": "ref",
+          "ref": "B:qpgfz",
+          "width": "fill_container",
+          "height": 56,
+          "name": "Organism/Header"
+        },
+        {
+          "type": "frame",
+          "id": "rcSplit",
+          "name": "Horizontal Split",
+          "width": "fill_container",
+          "height": 1024,
+          "children": [
+            {
+              "id": "rcSidebar",
+              "type": "ref",
+              "ref": "B:W5vtj",
+              "width": 256,
+              "height": "fill_container",
+              "name": "Organism/Sidebar"
+            },
+            {
+              "type": "frame",
+              "id": "rcContent",
+              "name": "Content Area",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 24,
+              "padding": [
+                24,
+                32
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "rcPageHeader",
+                  "name": "Page Header",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "rcBreadcrumbs",
+                      "name": "Breadcrumbs",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "rcCrumbWorkspace",
+                          "fill": "$B:muted-foreground",
+                          "content": "Workspace",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "icon",
+                          "id": "rcCrumbSep",
+                          "width": 12,
+                          "height": 12,
+                          "icon": "chevron-right",
+                          "library": "lucide",
+                          "fill": "$B:muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "id": "rcCrumbCommits",
+                          "fill": "$B:muted-foreground",
+                          "content": "Commits",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "rcPageTitle",
+                      "fill": "$B:foreground",
+                      "content": "Commits",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 24,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "id": "rcRecentCommits",
+                  "type": "ref",
+                  "ref": "B:orgRecentCommits",
+                  "name": "Organism/RecentCommits",
+                  "width": "fill_container",
+                  "height": "fit_content",
+                  "stroke": {
+                    "type": "color",
+                    "color": "$B:border",
+                    "enabled": false
+                  },
+                  "fill": {
+                    "type": "color",
+                    "color": "$B:card",
+                    "enabled": false
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "imports": {
+    "B": "../ui-kit.lib.pen"
+  }
+}

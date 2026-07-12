@@ -1,0 +1,1387 @@
+{
+  "version": "2.13",
+  "imports": {
+    "B": "../ui-kit.lib.pen"
+  },
+  "children": [
+    {
+      "type": "frame",
+      "id": "dashB",
+      "x": 1986,
+      "y": -6034,
+      "name": "Dashboard",
+      "width": 1920,
+      "height": 1080,
+      "fill": "$B:background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "dashBH",
+          "type": "ref",
+          "ref": "B:qpgfz",
+          "name": "Organism/Header instance",
+          "width": "fill_container"
+        },
+        {
+          "type": "frame",
+          "id": "dashMain",
+          "name": "Horizontal Split",
+          "width": "fill_container",
+          "height": "fill_container",
+          "children": [
+            {
+              "id": "dashSidebar",
+              "type": "ref",
+              "ref": "B:W5vtj",
+              "name": "Organism/Sidebar instance",
+              "width": 256,
+              "height": "fill_container"
+            },
+            {
+              "type": "frame",
+              "id": "dashContent",
+              "name": "contentArea",
+              "clip": true,
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 24,
+              "padding": [
+                24,
+                32
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "dashBreadcrumbs",
+                  "name": "Breadcrumbs",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "dashCrumbHome",
+                      "fill": "$B:muted-foreground",
+                      "content": "Workspace",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "dashCrumbSep",
+                      "width": 12,
+                      "height": 12,
+                      "icon": "chevron-right",
+                      "library": "lucide",
+                      "fill": "$B:muted-foreground"
+                    },
+                    {
+                      "type": "text",
+                      "id": "dashCrumbHomeLabel",
+                      "fill": "$B:muted-foreground",
+                      "content": "Home",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "dashGreeting",
+                  "name": "Greeting",
+                  "width": "fill_container",
+                  "fill": "$B:card",
+                  "cornerRadius": 12,
+                  "stroke": "$B:border",
+                  "strokeWidth": 1,
+                  "strokeAlignment": "inner",
+                  "gap": 16,
+                  "padding": 20,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "dashAvatar",
+                      "type": "ref",
+                      "ref": "B:ztFq7",
+                      "width": 64,
+                      "height": 64,
+                      "cornerRadius": 32,
+                      "descendants": {
+                        "B:u5zHU": {
+                          "width": 24,
+                          "height": 24,
+                          "icon": "user"
+                        }
+                      }
+                    },
+                    {
+                      "type": "frame",
+                      "id": "dashGreetingText",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "dashGreetingName",
+                          "fill": "$B:foreground",
+                          "content": "Nikolay Marusov",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 20,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "dashGreetingRole",
+                          "fill": "$B:muted-foreground",
+                          "content": "Knowledge Engineer",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "dashStatusButtonWrap",
+                      "height": 32,
+                      "gap": 6,
+                      "padding": [
+                        0,
+                        10
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "dashStatusIcon",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "smile",
+                          "library": "lucide",
+                          "fill": "$B:muted-foreground"
+                        },
+                        {
+                          "id": "dashStatusBtn",
+                          "type": "ref",
+                          "ref": "B:kLoW9",
+                          "height": 30,
+                          "descendants": {
+                            "B:aTVi9": {
+                              "content": "Set status",
+                              "fontSize": 12
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "dashWidgets",
+                  "name": "Collaboration widgets",
+                  "width": "fill_container",
+                  "gap": 16,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "dashW1",
+                      "clip": true,
+                      "width": "fill_container",
+                      "fill": "$B:card",
+                      "cornerRadius": 12,
+                      "stroke": "$B:border",
+                      "strokeWidth": 1,
+                      "strokeAlignment": "inner",
+                      "layout": "vertical",
+                      "gap": 14,
+                      "padding": 18,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "dashW1Top",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "dashW1Title",
+                              "fill": "$B:muted-foreground",
+                              "content": "Merge requests",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 13,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "icon",
+                              "id": "dashW1Icon",
+                              "width": 20,
+                              "height": 20,
+                              "icon": "git-merge",
+                              "library": "lucide",
+                              "fill": "$B:primary"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "dashW1Body",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "dashW1Value",
+                              "fill": "$B:foreground",
+                              "content": "2",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 32,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "dashW1Sub",
+                              "fill": "$B:foreground",
+                              "content": "Waiting for your review",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "dashW1Time",
+                              "fill": "$B:muted-foreground",
+                              "content": "Just now",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "dashW2",
+                      "clip": true,
+                      "width": "fill_container",
+                      "fill": "$B:card",
+                      "cornerRadius": 12,
+                      "stroke": "$B:border",
+                      "strokeWidth": 1,
+                      "strokeAlignment": "inner",
+                      "layout": "vertical",
+                      "gap": 14,
+                      "padding": 18,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "dashW2Top",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "dashW2Title",
+                              "fill": "$B:muted-foreground",
+                              "content": "Merge requests",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 13,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "icon",
+                              "id": "dashW2Icon",
+                              "width": 20,
+                              "height": 20,
+                              "icon": "user-check",
+                              "library": "lucide",
+                              "fill": "$B:primary"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "dashW2Body",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "dashW2Value",
+                              "fill": "$B:foreground",
+                              "content": "1",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 32,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "dashW2Sub",
+                              "fill": "$B:foreground",
+                              "content": "Assigned to you",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "dashW2Time",
+                              "fill": "$B:muted-foreground",
+                              "content": "Just now",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "dashW5",
+                      "clip": true,
+                      "width": "fill_container",
+                      "fill": "$B:card",
+                      "cornerRadius": 12,
+                      "stroke": "$B:border",
+                      "strokeWidth": 1,
+                      "strokeAlignment": "inner",
+                      "layout": "vertical",
+                      "gap": 14,
+                      "padding": 18,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "dashW5Top",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "dashW5Title",
+                              "fill": "$B:muted-foreground",
+                              "content": "Active Comments",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 13,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "icon",
+                              "id": "dashW5Icon",
+                              "width": 20,
+                              "height": 20,
+                              "icon": "message-square",
+                              "library": "lucide",
+                              "fill": "$B:warning"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "dashW5Body",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "dashW5Value",
+                              "fill": "$B:foreground",
+                              "content": "3",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 32,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "dashW5Sub",
+                              "fill": "$B:foreground",
+                              "content": "Awaiting your reply",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "dashW5Time",
+                              "fill": "$B:muted-foreground",
+                              "content": "2 hours ago",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "dashTwoCol",
+                  "name": "Recent Ontologies + Activity + Quick Access",
+                  "width": "fill_container",
+                  "gap": 24,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "dashLeftColumn",
+                      "name": "Recent ontology + activity",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 24,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "dashAttention",
+                          "name": "Items that need your attention",
+                          "width": "fill_container",
+                          "fill": "$B:card",
+                          "cornerRadius": 12,
+                          "stroke": "$B:border",
+                          "strokeWidth": 1,
+                          "strokeAlignment": "inner",
+                          "layout": "vertical",
+                          "gap": 14,
+                          "padding": 18,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "dashAttentionHeader",
+                              "width": "fill_container",
+                              "justifyContent": "space_between",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "dashAttentionTitle",
+                                  "fill": "$B:foreground",
+                                  "content": "Items that need your attention",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 15,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "dashAttentionFilter",
+                                  "height": 28,
+                                  "cornerRadius": 6,
+                                  "stroke": "$B:border",
+                                  "strokeWidth": 1,
+                                  "strokeAlignment": "inner",
+                                  "padding": [
+                                    0,
+                                    10
+                                  ],
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "dashAttentionFilterInner",
+                                      "gap": 6,
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "dashAttentionFilterText",
+                                          "fill": "$B:muted-foreground",
+                                          "content": "Everything",
+                                          "fontFamily": "IBM Plex Mono",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        },
+                                        {
+                                          "type": "icon",
+                                          "id": "dashAttentionFilterChevron",
+                                          "width": 10,
+                                          "height": 10,
+                                          "icon": "chevron-down",
+                                          "library": "lucide",
+                                          "fill": "$B:muted-foreground"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "dashAttentionItem1",
+                              "width": "fill_container",
+                              "gap": 10,
+                              "padding": [
+                                10,
+                                0
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "dashAttentionItem1Dot",
+                                  "width": 6,
+                                  "height": 6,
+                                  "fill": "#ef4444",
+                                  "cornerRadius": 3
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "dashAttentionItem1Text",
+                                  "fill": "$B:foreground",
+                                  "content": "Pipeline failed in sparql-gateway",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 12,
+                                  "fontWeight": "500"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "dashAttentionItem1Time",
+                                  "fill": "$B:muted-foreground",
+                                  "content": "15 min ago",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "dashAttentionItem2",
+                              "width": "fill_container",
+                              "gap": 10,
+                              "padding": [
+                                10,
+                                0
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "dashAttentionItem2Dot",
+                                  "width": 6,
+                                  "height": 6,
+                                  "fill": "#f59e0b",
+                                  "cornerRadius": 3
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "dashAttentionItem2Text",
+                                  "fill": "$B:foreground",
+                                  "content": "MR !42 has merge conflicts",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 12,
+                                  "fontWeight": "500"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "dashAttentionItem2Time",
+                                  "fill": "$B:muted-foreground",
+                                  "content": "1 hour ago",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "dashAttentionItem3",
+                              "width": "fill_container",
+                              "gap": 10,
+                              "padding": [
+                                10,
+                                0
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "dashAttentionItem3Dot",
+                                  "width": 6,
+                                  "height": 6,
+                                  "fill": "#ef4444",
+                                  "cornerRadius": 3
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "dashAttentionItem3Text",
+                                  "fill": "$B:foreground",
+                                  "content": "Deploy failed in billing-demo",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 12,
+                                  "fontWeight": "500"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "dashAttentionItem3Time",
+                                  "fill": "$B:muted-foreground",
+                                  "content": "3 hours ago",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "dashTeamActivity",
+                          "name": "Team Activity",
+                          "width": "fill_container",
+                          "fill": "$B:card",
+                          "cornerRadius": 12,
+                          "stroke": "$B:border",
+                          "strokeWidth": 1,
+                          "strokeAlignment": "inner",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "padding": 20,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "dashTeamActivityHeader",
+                              "width": "fill_container",
+                              "justifyContent": "space_between",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "dashTeamActivityTitle",
+                                  "fill": "$B:foreground",
+                                  "content": "Team Activity",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 15,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "dashTeamActivityToggle",
+                                  "height": 28,
+                                  "fill": "$B:muted",
+                                  "cornerRadius": 6,
+                                  "gap": 2,
+                                  "padding": [
+                                    0,
+                                    2
+                                  ],
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "frame",
+                                      "id": "dashTeamActivityToggleAll",
+                                      "height": 24,
+                                      "fill": "$B:card",
+                                      "cornerRadius": 4,
+                                      "padding": [
+                                        0,
+                                        8
+                                      ],
+                                      "justifyContent": "center",
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "dashTeamActivityToggleAllText",
+                                          "fill": "$B:foreground",
+                                          "content": "All team",
+                                          "fontFamily": "IBM Plex Mono",
+                                          "fontSize": 11,
+                                          "fontWeight": "500"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "frame",
+                                      "id": "dashTeamActivityToggleMine",
+                                      "height": 24,
+                                      "padding": [
+                                        0,
+                                        8
+                                      ],
+                                      "justifyContent": "center",
+                                      "alignItems": "center",
+                                      "children": [
+                                        {
+                                          "type": "text",
+                                          "id": "dashTeamActivityToggleMineText",
+                                          "fill": "$B:muted-foreground",
+                                          "content": "Mine",
+                                          "fontFamily": "IBM Plex Mono",
+                                          "fontSize": 11,
+                                          "fontWeight": "normal"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "dashTeamActDivider1",
+                              "width": "fill_container",
+                              "height": 1,
+                              "fill": "$B:border"
+                            },
+                            {
+                              "type": "text",
+                              "id": "dashTeamGroupToday",
+                              "fill": "$B:foreground",
+                              "content": "Today",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 11,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "dashTeamAct1",
+                              "width": "fill_container",
+                              "gap": 10,
+                              "padding": [
+                                8,
+                                0
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "dashTeamAct1IconWrap",
+                                  "width": 24,
+                                  "height": 24,
+                                  "fill": "#6366f11A",
+                                  "cornerRadius": 6,
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "icon",
+                                      "id": "dashTeamAct1Icon",
+                                      "width": 12,
+                                      "height": 12,
+                                      "icon": "git-merge",
+                                      "library": "lucide",
+                                      "fill": "#6366f1"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "dashTeamAct1Text",
+                                  "fill": "$B:foreground",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "vedo-core — Opened MR: fix/shacl-validation",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "dashTeamAct1User",
+                                  "fill": "$B:muted-foreground",
+                                  "content": "@alice",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "dashTeamAct1Time",
+                                  "fill": "$B:muted-foreground",
+                                  "content": "3h ago",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "dashTeamAct2",
+                              "width": "fill_container",
+                              "gap": 10,
+                              "padding": [
+                                8,
+                                0
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "dashTeamAct2IconWrap",
+                                  "width": 24,
+                                  "height": 24,
+                                  "fill": "#f59e0b1A",
+                                  "cornerRadius": 6,
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "icon",
+                                      "id": "dashTeamAct2Icon",
+                                      "width": 12,
+                                      "height": 12,
+                                      "icon": "message-square",
+                                      "library": "lucide",
+                                      "fill": "#f59e0b"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "dashTeamAct2Text",
+                                  "fill": "$B:foreground",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "ontology-engine — Comment on MR !42",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "dashTeamAct2User",
+                                  "fill": "$B:muted-foreground",
+                                  "content": "@bob",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "dashTeamAct2Time",
+                                  "fill": "$B:muted-foreground",
+                                  "content": "5h ago",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "dashTeamActSep1",
+                              "width": "fill_container",
+                              "height": 1,
+                              "fill": "$B:border"
+                            },
+                            {
+                              "type": "text",
+                              "id": "dashTeamGroupYesterday",
+                              "fill": "$B:foreground",
+                              "content": "Yesterday",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 11,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "dashTeamAct3",
+                              "width": "fill_container",
+                              "gap": 10,
+                              "padding": [
+                                8,
+                                0
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "dashTeamAct3IconWrap",
+                                  "width": 24,
+                                  "height": 24,
+                                  "fill": "#6366f11A",
+                                  "cornerRadius": 6,
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "icon",
+                                      "id": "dashTeamAct3Icon",
+                                      "width": 12,
+                                      "height": 12,
+                                      "icon": "git-merge",
+                                      "library": "lucide",
+                                      "fill": "#6366f1"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "dashTeamAct3Text",
+                                  "fill": "$B:foreground",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "vedo-core — Merged MR: feat/rdf-optimization",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "dashTeamAct3User",
+                                  "fill": "$B:muted-foreground",
+                                  "content": "@nikolay",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "dashTeamAct3Time",
+                                  "fill": "$B:muted-foreground",
+                                  "content": "1d ago",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "dashTeamAct4",
+                              "width": "fill_container",
+                              "gap": 10,
+                              "padding": [
+                                8,
+                                0
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "dashTeamAct4IconWrap",
+                                  "width": 24,
+                                  "height": 24,
+                                  "fill": "#ef44441A",
+                                  "cornerRadius": 6,
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "icon",
+                                      "id": "dashTeamAct4Icon",
+                                      "width": 12,
+                                      "height": 12,
+                                      "icon": "alert-circle",
+                                      "library": "lucide",
+                                      "fill": "#ef4444"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "dashTeamAct4Text",
+                                  "fill": "$B:foreground",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "sparql-gateway — Pipeline failure",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "dashTeamAct4Time",
+                                  "fill": "$B:muted-foreground",
+                                  "content": "1d ago",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "dashTeamActSep2",
+                              "width": "fill_container",
+                              "height": 1,
+                              "fill": "$B:border"
+                            },
+                            {
+                              "type": "text",
+                              "id": "dashTeamGroupEarlier",
+                              "fill": "$B:foreground",
+                              "content": "Earlier",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 11,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "dashTeamAct5",
+                              "width": "fill_container",
+                              "gap": 10,
+                              "padding": [
+                                8,
+                                0
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "dashTeamAct5IconWrap",
+                                  "width": 24,
+                                  "height": 24,
+                                  "fill": "#f59e0b1A",
+                                  "cornerRadius": 6,
+                                  "justifyContent": "center",
+                                  "alignItems": "center",
+                                  "children": [
+                                    {
+                                      "type": "icon",
+                                      "id": "dashTeamAct5Icon",
+                                      "width": 12,
+                                      "height": 12,
+                                      "icon": "message-square",
+                                      "library": "lucide",
+                                      "fill": "#f59e0b"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "dashTeamAct5Text",
+                                  "fill": "$B:foreground",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "vedo-core — Comment on commit a3f2c1",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "dashTeamAct5User",
+                                  "fill": "$B:muted-foreground",
+                                  "content": "@nikolay",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "dashTeamAct5Time",
+                                  "fill": "$B:muted-foreground",
+                                  "content": "3d ago",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "dashQuickAccess",
+                      "name": "Recent Ontologies",
+                      "width": 460,
+                      "height": "fill_container",
+                      "fill": "$B:card",
+                      "cornerRadius": 12,
+                      "stroke": "$B:border",
+                      "strokeWidth": 1,
+                      "strokeAlignment": "inner",
+                      "layout": "vertical",
+                      "gap": 16,
+                      "padding": 20,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "dashQuickHeader",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "dashQuickTitle",
+                              "fill": "$B:foreground",
+                              "content": "Recent Ontologies",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 16,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "icon",
+                              "id": "dashQuickSettings",
+                              "width": 16,
+                              "height": 16,
+                              "icon": "settings",
+                              "library": "lucide",
+                              "fill": "$B:muted-foreground"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "dashQuickOntoList",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 6,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "dashQuickOnto1",
+                              "width": "fill_container",
+                              "cornerRadius": 6,
+                              "gap": 8,
+                              "padding": [
+                                8,
+                                10
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "dashQuickOnto1Icon",
+                                  "width": 14,
+                                  "height": 14,
+                                  "icon": "file-text",
+                                  "library": "lucide",
+                                  "fill": "$B:primary"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "dashQuickOnto1Body",
+                                  "width": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 2,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "dashQuickOnto1Name",
+                                      "fill": "$B:foreground",
+                                      "content": "ProductOntology",
+                                      "fontFamily": "IBM Plex Mono",
+                                      "fontSize": 12,
+                                      "fontWeight": "500"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "dashQuickOnto1Meta",
+                                      "fill": "$B:muted-foreground",
+                                      "content": "2h ago · ontologies/product/",
+                                      "fontFamily": "IBM Plex Mono",
+                                      "fontSize": 10,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "icon",
+                                  "id": "dashQuickOnto1Chevron",
+                                  "width": 12,
+                                  "height": 12,
+                                  "icon": "chevron-right",
+                                  "library": "lucide",
+                                  "fill": "$B:muted-foreground"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "dashQuickOnto2",
+                              "width": "fill_container",
+                              "cornerRadius": 6,
+                              "gap": 8,
+                              "padding": [
+                                8,
+                                10
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "dashQuickOnto2Icon",
+                                  "width": 14,
+                                  "height": 14,
+                                  "icon": "file-text",
+                                  "library": "lucide",
+                                  "fill": "$B:primary"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "dashQuickOnto2Body",
+                                  "width": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 2,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "dashQuickOnto2Name",
+                                      "fill": "$B:foreground",
+                                      "content": "OrganizationOntology",
+                                      "fontFamily": "IBM Plex Mono",
+                                      "fontSize": 12,
+                                      "fontWeight": "500"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "dashQuickOnto2Meta",
+                                      "fill": "$B:muted-foreground",
+                                      "content": "yesterday · ontologies/organization/",
+                                      "fontFamily": "IBM Plex Mono",
+                                      "fontSize": 10,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "icon",
+                                  "id": "dashQuickOnto2Chevron",
+                                  "width": 12,
+                                  "height": 12,
+                                  "icon": "chevron-right",
+                                  "library": "lucide",
+                                  "fill": "$B:muted-foreground"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "dashQuickOnto3",
+                              "width": "fill_container",
+                              "cornerRadius": 6,
+                              "gap": 8,
+                              "padding": [
+                                8,
+                                10
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "dashQuickOnto3Icon",
+                                  "width": 14,
+                                  "height": 14,
+                                  "icon": "file-text",
+                                  "library": "lucide",
+                                  "fill": "$B:primary"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "dashQuickOnto3Body",
+                                  "width": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 2,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "dashQuickOnto3Name",
+                                      "fill": "$B:foreground",
+                                      "content": "CustomerOntology",
+                                      "fontFamily": "IBM Plex Mono",
+                                      "fontSize": 12,
+                                      "fontWeight": "500"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "dashQuickOnto3Meta",
+                                      "fill": "$B:muted-foreground",
+                                      "content": "3d ago · ontologies/customer/",
+                                      "fontFamily": "IBM Plex Mono",
+                                      "fontSize": 10,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "icon",
+                                  "id": "dashQuickOnto3Chevron",
+                                  "width": 12,
+                                  "height": 12,
+                                  "icon": "chevron-right",
+                                  "library": "lucide",
+                                  "fill": "$B:muted-foreground"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "dashQuickOnto4",
+                              "width": "fill_container",
+                              "cornerRadius": 6,
+                              "gap": 8,
+                              "padding": [
+                                8,
+                                10
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "dashQuickOnto4Icon",
+                                  "width": 14,
+                                  "height": 14,
+                                  "icon": "file-text",
+                                  "library": "lucide",
+                                  "fill": "$B:primary"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "dashQuickOnto4Body",
+                                  "width": "fill_container",
+                                  "layout": "vertical",
+                                  "gap": 2,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "dashQuickOnto4Name",
+                                      "fill": "$B:foreground",
+                                      "content": "Billing Demo / Master",
+                                      "fontFamily": "IBM Plex Mono",
+                                      "fontSize": 12,
+                                      "fontWeight": "500"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "dashQuickOnto4Meta",
+                                      "fill": "$B:muted-foreground",
+                                      "content": "6d ago · billing-demo/master/",
+                                      "fontFamily": "IBM Plex Mono",
+                                      "fontSize": 10,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "icon",
+                                  "id": "dashQuickOnto4Chevron",
+                                  "width": 12,
+                                  "height": 12,
+                                  "icon": "chevron-right",
+                                  "library": "lucide",
+                                  "fill": "$B:muted-foreground"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

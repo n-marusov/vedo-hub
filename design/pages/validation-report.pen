@@ -1,0 +1,253 @@
+{
+  "version": "2.13",
+  "imports": {
+    "B": "../ui-kit.lib.pen"
+  },
+  "children": [
+    {
+      "type": "frame",
+      "id": "valRep",
+      "x": -34,
+      "y": -2494,
+      "name": "Validation Report",
+      "width": 1920,
+      "height": 1080,
+      "fill": "$B:background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "vU3FX",
+          "type": "ref",
+          "ref": "B:qpgfz",
+          "name": "Organism/Header",
+          "width": "fill_container"
+        },
+        {
+          "type": "frame",
+          "id": "w2Ajlo",
+          "name": "Horizontal Split",
+          "width": "fill_container",
+          "height": 1024,
+          "children": [
+            {
+              "id": "XrrYF",
+              "type": "ref",
+              "ref": "B:W5vtj",
+              "name": "Organism/Sidebar",
+              "width": 256,
+              "height": "fill_container"
+            },
+            {
+              "type": "frame",
+              "id": "ROtz8",
+              "name": "Content Area",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 20,
+              "padding": [
+                24,
+                32
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "TO5xL",
+                  "name": "Page Header",
+                  "width": "fill_container",
+                  "padding": [
+                    0,
+                    0,
+                    16,
+                    0
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "O3GdG1",
+                      "name": "Title Left",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "qcTxD",
+                          "name": "vrTitleIcon",
+                          "width": 20,
+                          "height": 20,
+                          "icon": "shield",
+                          "library": "lucide",
+                          "fill": "$B:warning"
+                        },
+                        {
+                          "type": "text",
+                          "id": "S77VoR",
+                          "name": "vrTitleText",
+                          "fill": "$B:foreground",
+                          "content": "Validation Report",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 20,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "rfQfb",
+                  "name": "Ontology Context",
+                  "width": "fill_container",
+                  "fill": "#1414144D",
+                  "cornerRadius": 6,
+                  "gap": 12,
+                  "padding": [
+                    8,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "sJwA2",
+                      "name": "ctxFolder",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "folder",
+                      "library": "lucide",
+                      "fill": "$B:muted-foreground"
+                    },
+                    {
+                      "type": "text",
+                      "id": "TW6UZ",
+                      "name": "ctxText",
+                      "fill": "$B:muted-foreground",
+                      "content": "Validating ontology:",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "id": "Y94L2",
+                      "type": "ref",
+                      "ref": "B:Pw7LN",
+                      "name": "Ontology Badge",
+                      "fill": "$B:primary",
+                      "descendants": {
+                        "B:eek9M": {
+                          "content": "ProductOntology"
+                        }
+                      }
+                    },
+                    {
+                      "type": "icon",
+                      "id": "fIyBh",
+                      "name": "ctxBranchIcon",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "git-branch",
+                      "library": "lucide",
+                      "fill": "$B:muted-foreground"
+                    },
+                    {
+                      "id": "pyt1H",
+                      "type": "ref",
+                      "ref": "B:Pw7LN",
+                      "name": "Branch Badge",
+                      "fill": "#000000",
+                      "descendants": {
+                        "B:eek9M": {
+                          "content": "main"
+                        }
+                      }
+                    },
+                    {
+                      "type": "icon",
+                      "id": "OJ1XQ",
+                      "name": "ctxCal",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "calendar",
+                      "library": "lucide",
+                      "fill": "$B:muted-foreground"
+                    },
+                    {
+                      "type": "text",
+                      "id": "BFk59",
+                      "name": "ctxTime",
+                      "fill": "$B:muted-foreground",
+                      "content": "Last validation: May 15, 2026 14:32:15",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "LlddM",
+                  "name": "Run Validation Row",
+                  "width": "fill_container",
+                  "padding": [
+                    0,
+                    0,
+                    8,
+                    0
+                  ],
+                  "justifyContent": "end",
+                  "children": [
+                    {
+                      "id": "h0D8sj",
+                      "type": "ref",
+                      "ref": "B:3CI7c",
+                      "name": "Run validation button",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "Rh843",
+                          "name": "runLabel",
+                          "gap": 6,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "E0S3OO",
+                              "width": 14,
+                              "height": 14,
+                              "icon": "play",
+                              "library": "lucide",
+                              "fill": "$B:primary-foreground"
+                            },
+                            {
+                              "type": "text",
+                              "id": "E0RbRv",
+                              "fill": "$B:primary-foreground",
+                              "content": "Run validation",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 14,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "jjGs6",
+                  "type": "ref",
+                  "ref": "B:valR",
+                  "name": "Organism/ValidationReport",
+                  "width": "fill_container",
+                  "height": "fill_container"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

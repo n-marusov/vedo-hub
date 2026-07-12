@@ -1,0 +1,78 @@
+{
+  "version": "2.13",
+  "imports": {
+    "B": "../ui-kit.lib.pen"
+  },
+  "children": [
+    {
+      "type": "frame",
+      "id": "n3Hs7",
+      "x": 1986,
+      "y": -1314,
+      "name": "Repository Graph",
+      "width": 1920,
+      "height": 1080,
+      "fill": "$B:background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "g4G5X",
+          "type": "ref",
+          "ref": "B:qpgfz",
+          "width": "fill_container",
+          "height": 56,
+          "name": "rgHeader"
+        },
+        {
+          "type": "frame",
+          "id": "R4xTZ",
+          "name": "rgMain",
+          "width": "fill_container",
+          "height": "fill_container",
+          "children": [
+            {
+              "id": "FYGcE",
+              "type": "ref",
+              "ref": "B:W5vtj",
+              "width": 256,
+              "height": "fill_container",
+              "name": "rgSidebar"
+            },
+            {
+              "type": "frame",
+              "id": "EFmqU",
+              "name": "rgContent",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "padding": [
+                24,
+                32
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "uVu9P",
+                  "name": "rgTitle",
+                  "fill": "$B:foreground",
+                  "content": "Repository Graph",
+                  "fontFamily": "Inter",
+                  "fontSize": 24,
+                  "fontWeight": "bold"
+                },
+                {
+                  "id": "ZuOiQ",
+                  "type": "ref",
+                  "ref": "B:repoG",
+                  "width": "fill_container",
+                  "name": "rgOrg"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

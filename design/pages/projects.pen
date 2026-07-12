@@ -1,0 +1,180 @@
+{
+  "version": "2.13",
+  "imports": {
+    "B": "../ui-kit.lib.pen"
+  },
+  "children": [
+    {
+      "type": "frame",
+      "id": "Tk0TV",
+      "x": 6026,
+      "y": -6034,
+      "name": "Projects",
+      "width": 1920,
+      "height": 1080,
+      "fill": "$B:background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "kI4Fb",
+          "type": "ref",
+          "ref": "B:qpgfz",
+          "name": "pHeader",
+          "width": "fill_container",
+          "height": 56
+        },
+        {
+          "type": "frame",
+          "id": "HDr5s",
+          "name": "pMain",
+          "width": "fill_container",
+          "height": "fill_container",
+          "children": [
+            {
+              "id": "Vpa7g",
+              "type": "ref",
+              "ref": "B:W5vtj",
+              "name": "pSidebar",
+              "width": 256,
+              "height": "fill_container"
+            },
+            {
+              "type": "frame",
+              "id": "GaVyW",
+              "name": "pContent",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "padding": [
+                24,
+                32
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "C4aUEC",
+                  "name": "pTop",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "aG8i2",
+                      "name": "pTitleCol",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "s113Vb",
+                          "name": "pBreadcrumbs",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "x9zXn",
+                              "fill": "$B:muted-foreground",
+                              "content": "Workspace",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "icon",
+                              "id": "Ot5yb",
+                              "width": 12,
+                              "height": 12,
+                              "icon": "chevron-right",
+                              "library": "lucide",
+                              "fill": "$B:muted-foreground"
+                            },
+                            {
+                              "type": "text",
+                              "id": "YAhkh",
+                              "fill": "$B:muted-foreground",
+                              "content": "Projects",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "EnzBt",
+                          "fill": "$B:foreground",
+                          "content": "Projects",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 24,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "M7i2xl",
+                      "type": "ref",
+                      "ref": "B:3CI7c",
+                      "name": "pNewBtn",
+                      "descendants": {
+                        "B:wMRLg": {
+                          "content": "New project"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "i4slFH",
+                  "name": "pToolbar",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "VEdW8",
+                      "type": "ref",
+                      "ref": "B:mGrpSch",
+                      "name": "Molecule/ProjectsToolbarSearch",
+                      "width": "fill_container",
+                      "height": 36
+                    },
+                    {
+                      "id": "Jyk6z",
+                      "type": "ref",
+                      "ref": "B:mGrpSrt",
+                      "name": "Molecule/ProjectsToolbarSort",
+                      "width": 372,
+                      "height": 36
+                    }
+                  ]
+                },
+                {
+                  "id": "opListRef",
+                  "type": "ref",
+                  "ref": "B:orgProjects",
+                  "name": "Organism/Projects",
+                  "width": "fill_container",
+                  "height": "fit_content",
+                  "fill": {
+                    "type": "color",
+                    "color": "$B:card",
+                    "enabled": false
+                  },
+                  "stroke": {
+                    "type": "color",
+                    "color": "$B:border",
+                    "enabled": false
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,177 @@
+{
+  "version": "2.13",
+  "children": [
+    {
+      "type": "frame",
+      "id": "grpPg",
+      "x": 4006,
+      "y": -134,
+      "name": "Groups",
+      "width": 1920,
+      "height": 1080,
+      "fill": "$B:background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "grpPgHeader",
+          "type": "ref",
+          "ref": "B:qpgfz",
+          "width": "fill_container",
+          "height": 56,
+          "name": "gHeader"
+        },
+        {
+          "type": "frame",
+          "id": "grpPgMain",
+          "name": "gMain",
+          "width": "fill_container",
+          "height": "fill_container",
+          "children": [
+            {
+              "id": "TTa7N",
+              "type": "ref",
+              "ref": "B:W5vtj",
+              "name": "gSidebar",
+              "width": 256,
+              "height": "fill_container"
+            },
+            {
+              "type": "frame",
+              "id": "grpPgContent",
+              "name": "gContent",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "padding": [
+                24,
+                32
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "grpPgTop",
+                  "name": "topWidget",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "grpPgTitleCol",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "grpPgBreadcrumbs",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "grpPgCrumbHome",
+                              "fill": "$B:muted-foreground",
+                              "content": "Workspace",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "icon",
+                              "id": "grpPgCrumbSep",
+                              "width": 12,
+                              "height": 12,
+                              "icon": "chevron-right",
+                              "library": "lucide",
+                              "fill": "$B:muted-foreground"
+                            },
+                            {
+                              "type": "text",
+                              "id": "grpPgCrumbGroups",
+                              "fill": "$B:muted-foreground",
+                              "content": "Groups",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "grpPgTitle",
+                          "fill": "$B:foreground",
+                          "content": "Groups",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 24,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "grpPgNewBtn",
+                      "type": "ref",
+                      "ref": "B:3CI7c",
+                      "descendants": {
+                        "B:wMRLg": {
+                          "content": "New group"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "grpPgToolbar",
+                  "name": "toolbar",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "grpPgSearchMolRef",
+                      "type": "ref",
+                      "ref": "B:mGrpSch",
+                      "name": "Molecule/GroupsToolbarSearch instance",
+                      "width": "fill_container",
+                      "height": 36
+                    },
+                    {
+                      "id": "grpPgSortMolRef",
+                      "type": "ref",
+                      "ref": "B:mGrpSrt",
+                      "name": "Molecule/GroupsToolbarSort instance",
+                      "width": 372,
+                      "height": 36
+                    }
+                  ]
+                },
+                {
+                  "id": "ogTableRef",
+                  "type": "ref",
+                  "ref": "B:orgGroups",
+                  "name": "Organism/Groups",
+                  "width": "fill_container",
+                  "height": "fit_content",
+                  "fill": {
+                    "type": "color",
+                    "color": "$B:card",
+                    "enabled": false
+                  },
+                  "stroke": {
+                    "type": "color",
+                    "color": "$B:border",
+                    "enabled": false
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "imports": {
+    "B": "../ui-kit.lib.pen"
+  }
+}

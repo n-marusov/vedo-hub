@@ -1,0 +1,192 @@
+{
+  "version": "2.13",
+  "imports": {
+    "B": "../ui-kit.lib.pen"
+  },
+  "children": [
+    {
+      "type": "frame",
+      "id": "memPan",
+      "x": -34,
+      "y": -134,
+      "name": "Members Panel",
+      "width": 1920,
+      "height": 1080,
+      "fill": "$B:background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "wQtX5",
+          "type": "ref",
+          "ref": "B:qpgfz",
+          "name": "Organism/Header",
+          "width": "fill_container"
+        },
+        {
+          "type": "frame",
+          "id": "zGOtM",
+          "name": "Horizontal Split",
+          "width": "fill_container",
+          "height": 1024,
+          "children": [
+            {
+              "id": "nT1tr",
+              "type": "ref",
+              "ref": "B:W5vtj",
+              "name": "Organism/Sidebar",
+              "width": 256,
+              "height": "fill_container"
+            },
+            {
+              "type": "frame",
+              "id": "g6Yoe",
+              "name": "Content Area",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 20,
+              "padding": [
+                24,
+                32
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "A6kb7Q",
+                  "name": "Page Header",
+                  "width": "fill_container",
+                  "padding": [
+                    0,
+                    0,
+                    16,
+                    0
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "a69Nv",
+                      "name": "Title Left",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "ODdUg",
+                          "name": "mpTitleIcon",
+                          "width": 20,
+                          "height": 20,
+                          "icon": "users",
+                          "library": "lucide",
+                          "fill": "$B:primary"
+                        },
+                        {
+                          "type": "text",
+                          "id": "YP7xO",
+                          "name": "mpTitleText",
+                          "fill": "$B:foreground",
+                          "content": "Members",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 20,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "e7MSIc",
+                      "type": "ref",
+                      "ref": "B:Pw7LN",
+                      "name": "Members Count Badge",
+                      "descendants": {
+                        "B:eek9M": {
+                          "content": "4"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "BkHSX",
+                  "name": "Ontology Context",
+                  "width": "fill_container",
+                  "fill": "#1414144D",
+                  "cornerRadius": 6,
+                  "gap": 12,
+                  "padding": [
+                    8,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "A4KQmr",
+                      "name": "ctxFolder",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "folder",
+                      "library": "lucide",
+                      "fill": "$B:muted-foreground"
+                    },
+                    {
+                      "type": "text",
+                      "id": "qP0RR",
+                      "name": "ctxText",
+                      "fill": "$B:muted-foreground",
+                      "content": "Managing access for:",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "id": "Yyeav",
+                      "type": "ref",
+                      "ref": "B:Pw7LN",
+                      "name": "Ontology Badge",
+                      "fill": "$B:primary",
+                      "descendants": {
+                        "B:eek9M": {
+                          "content": "ProductOntology"
+                        }
+                      }
+                    },
+                    {
+                      "type": "icon",
+                      "id": "pKepI",
+                      "name": "ctxShield",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "shield",
+                      "library": "lucide",
+                      "fill": "$B:muted-foreground"
+                    },
+                    {
+                      "type": "text",
+                      "id": "zchnM",
+                      "name": "ctxNote",
+                      "fill": "$B:info",
+                      "content": "Only owners can manage members",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "id": "Z7wHCX",
+                  "type": "ref",
+                  "ref": "B:membP",
+                  "name": "Organism/MembersPanel",
+                  "width": "fill_container",
+                  "height": "fill_container"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

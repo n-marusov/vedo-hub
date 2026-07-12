@@ -1,0 +1,78 @@
+{
+  "version": "2.13",
+  "imports": {
+    "B": "../ui-kit.lib.pen"
+  },
+  "children": [
+    {
+      "type": "frame",
+      "id": "u2YR0",
+      "x": 4006,
+      "y": -2494,
+      "name": "Compare Revisions",
+      "width": 1920,
+      "height": 1080,
+      "fill": "$B:background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "z7vBYj",
+          "type": "ref",
+          "ref": "B:qpgfz",
+          "width": "fill_container",
+          "height": 56,
+          "name": "compHeader"
+        },
+        {
+          "type": "frame",
+          "id": "cWFqY",
+          "name": "compMain",
+          "width": "fill_container",
+          "height": "fill_container",
+          "children": [
+            {
+              "id": "UlH2U",
+              "type": "ref",
+              "ref": "B:W5vtj",
+              "width": 256,
+              "height": "fill_container",
+              "name": "compSidebar"
+            },
+            {
+              "type": "frame",
+              "id": "WT4nV",
+              "name": "compContent",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "padding": [
+                24,
+                32
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "syMVs",
+                  "name": "compTitle",
+                  "fill": "$B:foreground",
+                  "content": "Compare Revisions",
+                  "fontFamily": "Inter",
+                  "fontSize": 24,
+                  "fontWeight": "bold"
+                },
+                {
+                  "id": "AGzaX",
+                  "type": "ref",
+                  "ref": "B:c86ae7",
+                  "width": "fill_container",
+                  "name": "compOrg"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,247 @@
+{
+  "version": "2.13",
+  "imports": {
+    "B": "../ui-kit.lib.pen"
+  },
+  "children": [
+    {
+      "type": "frame",
+      "id": "pubOnt",
+      "x": 4006,
+      "y": -4854,
+      "name": "Public Ontology View",
+      "width": 1920,
+      "height": 1080,
+      "fill": "$B:background",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "iktAW",
+          "name": "publicHeader",
+          "width": "fill_container",
+          "height": 56,
+          "fill": "$B:card",
+          "stroke": "$B:border",
+          "strokeWidth": 1,
+          "strokeAlignment": "inner",
+          "padding": [
+            0,
+            24
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "XEXxO",
+              "name": "publicHeaderLeft",
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "PUBdV",
+                  "name": "logoBox",
+                  "width": 32,
+                  "height": 32,
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "../vedo-core-logo-1.jpg",
+                    "mode": "fit"
+                  },
+                  "cornerRadius": 6,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "TTXeJ",
+                      "x": 10.5,
+                      "y": 4.5,
+                      "name": "logoText",
+                      "enabled": false,
+                      "fill": "$B:primary-foreground",
+                      "content": "V",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 18,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "kCgP6",
+                  "name": "brandText",
+                  "fill": "$B:foreground",
+                  "content": "VEDO Core",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "t3nQP",
+              "name": "headerCenter",
+              "fill": "$B:muted-foreground",
+              "content": "Public Ontology View",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "grH7K",
+              "name": "publicHeaderRight",
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "hLeHS",
+                  "type": "ref",
+                  "ref": "B:NwwhS",
+                  "name": "readOnlyBadge",
+                  "fill": "#000000",
+                  "descendants": {
+                    "B:TFJjY": {
+                      "content": "Read-only"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ivfBx",
+          "name": "publicMain",
+          "width": "fill_container",
+          "height": "fill_container",
+          "children": [
+            {
+              "id": "TI5yr",
+              "type": "ref",
+              "ref": "B:sl8av",
+              "name": "Organism/ClassTree",
+              "width": 320,
+              "height": "fill_container",
+              "fill": "$B:card",
+              "stroke": "$B:border",
+              "strokeWidth": {
+                "right": 1
+              },
+              "strokeLinejoin": "miter",
+              "strokeLinecap": "butt",
+              "strokeAlignment": "inner",
+              "descendants": {
+                "IgDIr": {
+                  "enabled": false
+                },
+                "ymVEn": {
+                  "enabled": false
+                },
+                "T4SbP6": {
+                  "enabled": false
+                }
+              }
+            },
+            {
+              "id": "oCOld",
+              "type": "ref",
+              "ref": "B:RKIbA",
+              "name": "Organism/GraphVisualization",
+              "width": "fill_container",
+              "height": "fill_container"
+            },
+            {
+              "id": "X8BBoL",
+              "type": "ref",
+              "ref": "B:c0wXES",
+              "name": "Organism/PropertyPanel",
+              "width": 372,
+              "height": "fill_container",
+              "fill": "$B:card",
+              "stroke": "$B:border",
+              "strokeWidth": {
+                "left": 1
+              },
+              "strokeLinejoin": "miter",
+              "strokeLinecap": "butt",
+              "strokeAlignment": "inner",
+              "descendants": {
+                "jT6X7": {
+                  "enabled": false
+                },
+                "C2QuS": {
+                  "enabled": false
+                },
+                "xKp53": {
+                  "enabled": false
+                },
+                "X6wlaV": {
+                  "enabled": false
+                },
+                "gFngc": {
+                  "enabled": false
+                },
+                "aOsb6": {
+                  "enabled": false
+                },
+                "WSIw0": {
+                  "enabled": false
+                },
+                "k1RCbl": {
+                  "enabled": false
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "VI8Fd",
+          "name": "publicBanner",
+          "width": "fill_container",
+          "fill": "$B:muted",
+          "stroke": "$B:border",
+          "strokeWidth": {
+            "top": 1
+          },
+          "strokeAlignment": "inner",
+          "gap": 8,
+          "padding": [
+            8,
+            16
+          ],
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "Iy39x",
+              "name": "bannerIcon",
+              "width": 14,
+              "height": 14,
+              "icon": "globe",
+              "library": "lucide",
+              "fill": "$B:muted-foreground"
+            },
+            {
+              "type": "text",
+              "id": "VWlsn",
+              "name": "bannerText",
+              "fill": "$B:muted-foreground",
+              "content": "You are viewing a published snapshot. Edits are disabled.",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

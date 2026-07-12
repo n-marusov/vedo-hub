@@ -1,0 +1,195 @@
+{
+  "version": "2.13",
+  "imports": {
+    "B": "../ui-kit.lib.pen"
+  },
+  "children": [
+    {
+      "type": "frame",
+      "id": "spqBld",
+      "x": -34,
+      "y": -4854,
+      "name": "SPARQL Query Builder",
+      "width": 1920,
+      "height": 2260,
+      "fill": "$B:background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "Td5dU",
+          "type": "ref",
+          "ref": "B:qpgfz",
+          "name": "Organism/Header",
+          "width": "fill_container"
+        },
+        {
+          "type": "frame",
+          "id": "E90FSw",
+          "name": "Horizontal Split",
+          "width": "fill_container",
+          "height": "fill_container",
+          "children": [
+            {
+              "id": "ILzXy",
+              "type": "ref",
+              "ref": "B:W5vtj",
+              "name": "Organism/Sidebar",
+              "width": 256,
+              "height": "fill_container"
+            },
+            {
+              "type": "frame",
+              "id": "tpclN",
+              "name": "Content Area",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 20,
+              "padding": [
+                24,
+                32
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "B0drX",
+                  "name": "Page Header",
+                  "width": "fill_container",
+                  "padding": [
+                    0,
+                    0,
+                    16,
+                    0
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "a8gKuY",
+                      "name": "Title Left",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "m5FEL",
+                          "name": "spqTitleIcon",
+                          "width": 20,
+                          "height": 20,
+                          "icon": "search",
+                          "library": "lucide",
+                          "fill": "$B:primary"
+                        },
+                        {
+                          "type": "text",
+                          "id": "kCLUe",
+                          "name": "spqTitleText",
+                          "fill": "$B:foreground",
+                          "content": "SPARQL Query Builder",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 20,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "Graq8",
+                      "type": "ref",
+                      "ref": "B:NwwhS",
+                      "name": "Read-only queries only",
+                      "fill": "$B:info",
+                      "descendants": {
+                        "B:TFJjY": {
+                          "content": "Read-only queries only"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "gUQHC",
+                  "name": "Ontology Context",
+                  "width": "fill_container",
+                  "fill": "$B:muted",
+                  "cornerRadius": 6,
+                  "gap": 12,
+                  "padding": [
+                    8,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "pzsOp",
+                      "name": "spqCtxFolder",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "folder",
+                      "library": "lucide",
+                      "fill": "$B:muted-foreground"
+                    },
+                    {
+                      "type": "text",
+                      "id": "gYpYH",
+                      "name": "spqCtxText",
+                      "fill": "$B:muted-foreground",
+                      "content": "Querying ontology:",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "id": "CFdjH",
+                      "type": "ref",
+                      "ref": "B:Pw7LN",
+                      "name": "Ontology Badge",
+                      "fill": "$B:primary",
+                      "descendants": {
+                        "B:eek9M": {
+                          "content": "ProductOntology"
+                        }
+                      }
+                    },
+                    {
+                      "type": "icon",
+                      "id": "R9At9g",
+                      "name": "spqCtxBranchIcon",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "git-branch",
+                      "library": "lucide",
+                      "fill": "$B:muted-foreground"
+                    },
+                    {
+                      "id": "OyMht",
+                      "type": "ref",
+                      "ref": "B:Pw7LN",
+                      "name": "Branch Badge",
+                      "fill": "#000000",
+                      "descendants": {
+                        "B:eek9M": {
+                          "content": "main"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "rbvhp",
+                  "type": "ref",
+                  "ref": "B:spqlE",
+                  "name": "Organism/SPARQLQueryEditor",
+                  "width": "fill_container",
+                  "height": "fill_container"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

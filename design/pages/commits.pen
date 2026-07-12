@@ -1,0 +1,249 @@
+{
+  "version": "2.13",
+  "imports": {
+    "B": "../ui-kit.lib.pen"
+  },
+  "children": [
+    {
+      "type": "frame",
+      "id": "ErMOb",
+      "x": 4006,
+      "y": -3674,
+      "name": "Commits",
+      "width": 1920,
+      "height": 1080,
+      "fill": "$B:background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "FGhlF",
+          "type": "ref",
+          "ref": "B:qpgfz",
+          "width": "fill_container",
+          "height": 56,
+          "name": "Organism/Header"
+        },
+        {
+          "type": "frame",
+          "id": "P1SIin",
+          "name": "Horizontal Split",
+          "width": "fill_container",
+          "height": 1024,
+          "children": [
+            {
+              "id": "ejAmw",
+              "type": "ref",
+              "ref": "B:W5vtj",
+              "width": 256,
+              "height": "fill_container",
+              "name": "Organism/Sidebar"
+            },
+            {
+              "type": "frame",
+              "id": "K5NycQ",
+              "name": "Content Area",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 20,
+              "padding": [
+                24,
+                32
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "KqihK",
+                  "name": "Page Title",
+                  "width": "fill_container",
+                  "padding": [
+                    0,
+                    0,
+                    16,
+                    0
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "aXRdI",
+                      "fill": "$B:foreground",
+                      "content": "Commit History",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 20,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "id": "x77GHK",
+                      "type": "ref",
+                      "ref": "B:Pw7LN",
+                      "name": "Current Branch Badge",
+                      "fill": "$B:primary",
+                      "descendants": {
+                        "B:eek9M": {
+                          "content": "main"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "H09WH",
+                  "name": "Filter Panel",
+                  "width": "fill_container",
+                  "gap": 16,
+                  "padding": [
+                    0,
+                    0,
+                    16,
+                    0
+                  ],
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Armt3",
+                      "name": "Branch Selector",
+                      "width": 180,
+                      "gap": 6,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "H29tr",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "git-branch",
+                          "library": "lucide",
+                          "fill": "$B:muted-foreground"
+                        },
+                        {
+                          "id": "Rmn6h",
+                          "type": "ref",
+                          "ref": "B:K5sXB",
+                          "name": "Branch Select",
+                          "width": "fill_container",
+                          "descendants": {
+                            "B:SKPVU": {
+                              "content": "main",
+                              "textAlign": "left"
+                            },
+                            "B:3Fqj2": {
+                              "content": "main",
+                              "textAlign": "left"
+                            },
+                            "B:ZSVhE": {
+                              "content": "develop",
+                              "textAlign": "left"
+                            },
+                            "B:AJyq3": {
+                              "content": "feature/new-property",
+                              "textAlign": "left"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ufIwb",
+                      "name": "Toolbar Spacer",
+                      "width": "fill_container",
+                      "height": 1
+                    },
+                    {
+                      "type": "frame",
+                      "id": "r8s6T8",
+                      "name": "Author Selector",
+                      "width": 220,
+                      "gap": 6,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "fYu5J",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "user",
+                          "library": "lucide",
+                          "fill": "$B:muted-foreground"
+                        },
+                        {
+                          "id": "neu33",
+                          "type": "ref",
+                          "ref": "B:K5sXB",
+                          "name": "Author Select",
+                          "width": "fill_container",
+                          "descendants": {
+                            "B:SKPVU": {
+                              "content": "All authors",
+                              "textAlign": "left"
+                            },
+                            "B:3Fqj2": {
+                              "content": "All authors",
+                              "textAlign": "left"
+                            },
+                            "B:ZSVhE": {
+                              "content": "Nikolay Marushin",
+                              "textAlign": "left"
+                            },
+                            "B:AJyq3": {
+                              "content": "Anna Petrova",
+                              "textAlign": "left"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "rorKi",
+                      "name": "Search Field",
+                      "width": 520,
+                      "gap": 6,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "ctTjy",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "search",
+                          "library": "lucide",
+                          "fill": "$B:muted-foreground"
+                        },
+                        {
+                          "id": "Tcimx",
+                          "type": "ref",
+                          "ref": "B:yA4l7",
+                          "name": "Search Input",
+                          "width": "fill_container",
+                          "descendants": {
+                            "B:xAwdW": {
+                              "content": "Search by message...",
+                              "textAlign": "left"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "W8uiV",
+                  "type": "ref",
+                  "ref": "B:Mg9Hs",
+                  "name": "Organism/CommitHistory",
+                  "width": "fill_container",
+                  "height": "fit_content"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

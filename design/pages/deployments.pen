@@ -1,0 +1,129 @@
+{
+  "version": "2.13",
+  "imports": {
+    "B": "../ui-kit.lib.pen"
+  },
+  "children": [
+    {
+      "type": "frame",
+      "id": "deployPage",
+      "x": 4006,
+      "y": -3554,
+      "name": "Deployments",
+      "width": 1920,
+      "height": 1080,
+      "fill": "$B:background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "deployHeader",
+          "type": "ref",
+          "ref": "B:qpgfz",
+          "width": "fill_container",
+          "height": 56,
+          "name": "Organism/Header"
+        },
+        {
+          "type": "frame",
+          "id": "deploySplit",
+          "name": "Horizontal Split",
+          "width": "fill_container",
+          "height": 1024,
+          "children": [
+            {
+              "id": "deploySidebar",
+              "type": "ref",
+              "ref": "B:W5vtj",
+              "width": 256,
+              "height": "fill_container",
+              "name": "Organism/Sidebar"
+            },
+            {
+              "type": "frame",
+              "id": "deployContent",
+              "name": "Content Area",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "padding": [24, 32],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "deployTitleRow",
+                  "name": "Title Row",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "deployTitleLeft",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "deployBreadcrumbs",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "deployCrumbHome",
+                              "fill": "$B:muted-foreground",
+                              "content": "Workspace",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "icon",
+                              "id": "deployCrumbSep",
+                              "width": 12,
+                              "height": 12,
+                              "icon": "chevron-right",
+                              "library": "lucide",
+                              "fill": "$B:muted-foreground"
+                            },
+                            {
+                              "type": "text",
+                              "id": "deployCrumbLabel",
+                              "fill": "$B:muted-foreground",
+                              "content": "Deployments",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "deployTitleText",
+                          "fill": "$B:foreground",
+                          "content": "Deployments",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 24,
+                          "fontWeight": 600
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "deployOrganism",
+                  "type": "ref",
+                  "ref": "B:orgDeployments",
+                  "name": "Organism/Deployments",
+                  "width": "fill_container",
+                  "height": "fit_content",
+                  "fill": { "type": "color", "color": "$B:card", "enabled": false },
+                  "stroke": { "type": "color", "color": "$B:border", "enabled": false }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
