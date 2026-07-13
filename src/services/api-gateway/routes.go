@@ -1,80 +1,66 @@
 package main
 
 import (
-	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
+
+	"vedo-core/src/services/api-gateway/handlers"
+	"vedo-core/src/services/api-gateway/proxy"
 )
 
-// RegisterRoutes defines all API route groups.
-// Actual proxy handlers are implemented in Phase 6 (Task 6.1).
-// These placeholder handlers return 501 Not Implemented.
+// RegisterRoutes defines all API route groups and wires them to the proxy handlers.
+// The proxies are configured via environment variables pointing to upstream services.
 func RegisterRoutes(r *gin.Engine) {
+	// Initialize upstream proxies
+	ontologyProxy := mustNewProxy(
+		getEnv("ONTOLOGY_SERVICE_URL", "http://localhost:8082"),
+		"ontology-service",
+	)
+	versioningProxy := mustNewProxy(
+		getEnv("VERSIONING_SERVICE_URL", "http://localhost:8083"),
+		"versioning-service",
+	)
+
 	// API v1 routes — auth middleware applied at engine level (see main.go)
 	api := r.Group("/api/v1")
 
-	// Ontology service proxy routes
+	// Ontology service proxy — all /api/v1/ontologies/* routes
 	ontology := api.Group("/ontologies")
 	{
-		ontology.POST("", notImplemented("POST /api/v1/ontologies"))
-		ontology.GET("", notImplemented("GET /api/v1/ontologies"))
-		ontology.GET("/:id", notImplemented("GET /api/v1/ontologies/:id"))
-
-		// Classes
-		ontology.POST("/:id/classes", notImplemented("POST /api/v1/ontologies/:id/classes"))
-		ontology.GET("/:id/classes", notImplemented("GET /api/v1/ontologies/:id/classes"))
-		ontology.GET("/:id/classes/:classId", notImplemented("GET /api/v1/ontologies/:id/classes/:classId"))
-		ontology.PUT("/:id/classes/:classId", notImplemented("PUT /api/v1/ontologies/:id/classes/:classId"))
-		ontology.DELETE("/:id/classes/:classId", notImplemented("DELETE /api/v1/ontologies/:id/classes/:classId"))
-
-		// Properties
-		ontology.POST("/:id/properties", notImplemented("POST /api/v1/ontologies/:id/properties"))
-		ontology.GET("/:id/properties", notImplemented("GET /api/v1/ontologies/:id/properties"))
-		ontology.PUT("/:id/properties/:propId", notImplemented("PUT /api/v1/ontologies/:id/properties/:propId"))
-		ontology.DELETE("/:id/properties/:propId", notImplemented("DELETE /api/v1/ontologies/:id/properties/:propId"))
-
-		// Individuals
-		ontology.POST("/:id/individuals", notImplemented("POST /api/v1/ontologies/:id/individuals"))
-		ontology.GET("/:id/individuals", notImplemented("GET /api/v1/ontologies/:id/individuals"))
-		ontology.PUT("/:id/individuals/:indivId", notImplemented("PUT /api/v1/ontologies/:id/individuals/:indivId"))
-		ontology.DELETE("/:id/individuals/:indivId", notImplemented("DELETE /api/v1/ontologies/:id/individuals/:indivId"))
-
-		// Import/Export
-		ontology.POST("/:id/import", notImplemented("POST /api/v1/ontologies/:id/import"))
-		ontology.GET("/:id/export", notImplemented("GET /api/v1/ontologies/:id/export"))
+		ontology.Any("/*path", gin.WrapH(ontologyProxy))
+		ontology.Any("", gin.WrapH(ontologyProxy))
 	}
 
-	// Versioning service proxy routes
+	// Versioning service proxy — all /api/v1/versioning/* routes
 	versioning := api.Group("/versioning")
 	{
-		versioning.POST("/:ontologyId/branches", notImplemented("POST /api/v1/versioning/:ontologyId/branches"))
-		versioning.GET("/:ontologyId/branches", notImplemented("GET /api/v1/versioning/:ontologyId/branches"))
-		versioning.DELETE("/:ontologyId/branches/:branchId", notImplemented("DELETE /api/v1/versioning/:ontologyId/branches/:branchId"))
-
-		versioning.POST("/:ontologyId/commits", notImplemented("POST /api/v1/versioning/:ontologyId/commits"))
-		versioning.GET("/:ontologyId/commits", notImplemented("GET /api/v1/versioning/:ontologyId/commits"))
-		versioning.GET("/:ontologyId/commits/:commitId", notImplemented("GET /api/v1/versioning/:ontologyId/commits/:commitId"))
-
-		versioning.POST("/:ontologyId/checkout", notImplemented("POST /api/v1/versioning/:ontologyId/checkout"))
-		versioning.POST("/:ontologyId/rollback", notImplemented("POST /api/v1/versioning/:ontologyId/rollback"))
+		versioning.Any("/*path", gin.WrapH(versioningProxy))
+		versioning.Any("", gin.WrapH(versioningProxy))
 	}
 
-	// Query routes
-	api.POST("/sparql", notImplemented("POST /api/v1/sparql"))
-	api.POST("/cypher", notImplemented("POST /api/v1/cypher"))
+	// Query routes — SPARQL/CYPHER with read-only enforcement and rate limiting
+	queryHandler := handlers.NewQueryHandler(ontologyProxy, 1000)
+	api.POST("/sparql", queryHandler.HandleSPARQL)
+	api.POST("/cypher", queryHandler.HandleCYPHER)
 
-	// OpenAPI spec
-	api.GET("/openapi.json", notImplemented("GET /api/v1/openapi.json"))
+	// OpenAPI spec — served by ontology service
+	api.GET("/openapi.json", gin.WrapH(ontologyProxy))
 }
 
-// notImplemented returns a Gin handler that returns 501 Not Implemented.
-func notImplemented(route string) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.JSON(http.StatusNotImplemented, gin.H{
-			"error": gin.H{
-				"code":    "GATEWAY-NOT-IMPLEMENTED",
-				"message": "Route " + route + " is not yet implemented",
-			},
-		})
+// mustNewProxy creates a new proxy or panics on invalid upstream URL.
+func mustNewProxy(upstreamURL, serviceName string) *proxy.Proxy {
+	p, err := proxy.New(upstreamURL, 0, nil, serviceName)
+	if err != nil {
+		panic("invalid upstream URL for " + serviceName + ": " + err.Error())
 	}
+	return p
+}
+
+// getEnv returns the value of the environment variable or the fallback.
+func getEnv(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
 }

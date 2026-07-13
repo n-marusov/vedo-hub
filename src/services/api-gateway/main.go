@@ -60,7 +60,10 @@ func main() {
 	// Apply auth middleware to all routes except exempt paths
 	r.Use(auth.NewMiddleware(authConfig))
 
-	// Register API route groups with placeholder handlers
+	// Timeout middleware for upstream requests (30s default)
+	r.Use(corsmw.Timeout(0))
+
+	// Register API route groups with proxy handlers
 	RegisterRoutes(r)
 
 	// Start server

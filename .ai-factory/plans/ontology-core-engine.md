@@ -247,7 +247,7 @@ Phase 1-9: Implementation
 ## Tasks
 
 - [ ] <!-- Progress tracking block — update [ ] to [x] as tasks are completed -->
-- [x] **Total: 28 tasks** | **Completed: 15** | **In progress: 0**
+- [x] **Total: 28 tasks** | **Completed: 19** | **In progress: 0**
 
 ---
 
@@ -734,7 +734,7 @@ Phase 1-9: Implementation
 
 ### Phase 5: Import/Export
 
-- [ ] **Task 5.1: Implement Turtle and RDF/XML export**
+- [x] **Task 5.1: Implement Turtle and RDF/XML export**
     Write unit tests first: test serialization of known ontology to Turtle, RDF/XML, canonical sorting, streaming, empty ontology.
     
     Then implement: Add `oxrdf`/`riot` crates. Full graph traversal → RDF triples. Turtle: `rio_turtle::TurtleWriter` with canonical sorting. RDF/XML: `rio_xml` alternative. Streaming for >100K triples (chunks of 10K).
@@ -757,7 +757,7 @@ Phase 1-9: Implementation
     
     Dependencies: Task 2.3 (full graph traversal)
 
-- [ ] **Task 5.2: Implement Turtle and RDF/XML import**
+- [x] **Task 5.2: Implement Turtle and RDF/XML import**
     Write unit tests first: test file parsing (valid/invalid), schema validation (unknown classes), import report, auto-commit.
     
     Then implement:
@@ -789,7 +789,7 @@ Phase 1-9: Implementation
 
 ### Phase 6: API Gateway — Service Proxy & Endpoints
 
-- [ ] **Task 6.1: Implement proxy routing to ontology and versioning services**
+- [x] **Task 6.1: Implement proxy routing to ontology and versioning services**
     Write unit tests first: test proxy forwarding with correct headers, response passthrough, timeout, auth middleware invocation before proxy, upstream error handling.
     
     Then implement reverse proxy:
@@ -818,7 +818,7 @@ Phase 1-9: Implementation
     
     Dependencies: Task 1.4
 
-- [ ] **Task 6.2: Implement SPARQL and CYPHER query endpoints**
+- [x] **Task 6.2: Implement SPARQL and CYPHER query endpoints**
     Write unit tests first: test query forwarding, read-only enforcement (reject INSERT/DELETE), mandatory LIMIT injection, rate limiting, audit log format.
     
     Then implement:
@@ -1073,8 +1073,8 @@ Total: 28 tasks
 ├── Phase 2: TBox CRUD           [x] 3/3 — classes, properties, graph queries
 ├── Phase 3: Versioning          [x] 3/3 — commits, branches, checkout
 ├── Phase 4: ABox                [x] 1/1 — individuals
-├── Phase 5: Import/Export       [ ] 0/2 — Turtle, RDF/XML
-├── Phase 6: API Gateway         [ ] 0/3 — proxy, SPARQL, REST API
+├── Phase 5: Import/Export       [x] 2/2 — Turtle, RDF/XML
+├── Phase 6: API Gateway         [x] 2/3 — proxy, SPARQL, REST API
 ├── Phase 7: Integration Tests   [ ] 0/3 — Neo4j, PG, Gateway interfaces
 ├── Phase 8: Frontend Wiring     [ ] 0/1 — Apollo → real backend
 └── Phase 9: Docs & Trace        [ ] 0/2 — traceability.ttl, Antora docs
