@@ -4,6 +4,7 @@
 //! and shared state into a single axum `Router`.
 
 pub mod classes;
+pub mod error;
 pub mod graphql;
 pub mod handlers;
 pub mod individuals;

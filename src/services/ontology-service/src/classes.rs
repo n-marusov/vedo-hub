@@ -141,14 +141,19 @@ pub enum ClassError {
 impl axum::response::IntoResponse for ClassError {
     fn into_response(self) -> axum::response::Response {
         let (status, code) = match &self {
-            ClassError::NotFound(_) => (StatusCode::NOT_FOUND, "CLASS_NOT_FOUND"),
-            ClassError::AlreadyExists(_) => (StatusCode::CONFLICT, "CLASS_ALREADY_EXISTS"),
-            ClassError::ParentNotFound(_) => (StatusCode::UNPROCESSABLE_ENTITY, "PARENT_NOT_FOUND"),
-            ClassError::HasDependents { .. } => (StatusCode::CONFLICT, "CLASS_HAS_DEPENDENTS"),
-            ClassError::CascadeError(_) => (StatusCode::INTERNAL_SERVER_ERROR, "CASCADE_ERROR"),
-            ClassError::Database(_) => (StatusCode::INTERNAL_SERVER_ERROR, "DATABASE_ERROR"),
+            ClassError::NotFound(_) => (StatusCode::NOT_FOUND, "ONT-CLASS-NOT-FOUND"),
+            ClassError::AlreadyExists(_) => (StatusCode::CONFLICT, "ONT-CLASS-ALREADY-EXISTS"),
+            ClassError::ParentNotFound(_) => (
+                StatusCode::UNPROCESSABLE_ENTITY,
+                "ONT-CLASS-PARENT-NOT-FOUND",
+            ),
+            ClassError::HasDependents { .. } => (StatusCode::CONFLICT, "ONT-CLASS-HAS-DEPENDENTS"),
+            ClassError::CascadeError(_) => {
+                (StatusCode::INTERNAL_SERVER_ERROR, "ONT-CLASS-CASCADE-ERROR")
+            }
+            ClassError::Database(_) => (StatusCode::INTERNAL_SERVER_ERROR, "ONT-DATABASE-ERROR"),
             ClassError::Neo4jNotConfigured => {
-                (StatusCode::SERVICE_UNAVAILABLE, "NEO4J_NOT_CONFIGURED")
+                (StatusCode::SERVICE_UNAVAILABLE, "ONT-NEO4J-NOT-CONFIGURED")
             }
         };
         let body = serde_json::json!({

@@ -300,30 +300,46 @@ pub enum PropertyError {
 impl axum::response::IntoResponse for PropertyError {
     fn into_response(self) -> axum::response::Response {
         let (status, code) = match &self {
-            PropertyError::NotFound(_) => (StatusCode::NOT_FOUND, "PROPERTY_NOT_FOUND"),
-            PropertyError::AlreadyExists(_) => (StatusCode::CONFLICT, "PROPERTY_ALREADY_EXISTS"),
-            PropertyError::DomainClassNotFound(_) => {
-                (StatusCode::UNPROCESSABLE_ENTITY, "DOMAIN_CLASS_NOT_FOUND")
+            PropertyError::NotFound(_) => (StatusCode::NOT_FOUND, "ONT-PROPERTY-NOT-FOUND"),
+            PropertyError::AlreadyExists(_) => {
+                (StatusCode::CONFLICT, "ONT-PROPERTY-ALREADY-EXISTS")
             }
-            PropertyError::RangeClassNotFound(_) => {
-                (StatusCode::UNPROCESSABLE_ENTITY, "RANGE_CLASS_NOT_FOUND")
+            PropertyError::DomainClassNotFound(_) => (
+                StatusCode::UNPROCESSABLE_ENTITY,
+                "ONT-PROPERTY-DOMAIN-NOT-FOUND",
+            ),
+            PropertyError::RangeClassNotFound(_) => (
+                StatusCode::UNPROCESSABLE_ENTITY,
+                "ONT-PROPERTY-RANGE-NOT-FOUND",
+            ),
+            PropertyError::InvalidXsdType(_) => (
+                StatusCode::UNPROCESSABLE_ENTITY,
+                "ONT-PROPERTY-INVALID-XSD-TYPE",
+            ),
+            PropertyError::MissingRange => (
+                StatusCode::UNPROCESSABLE_ENTITY,
+                "ONT-PROPERTY-MISSING-RANGE",
+            ),
+            PropertyError::MissingDomain => (
+                StatusCode::UNPROCESSABLE_ENTITY,
+                "ONT-PROPERTY-MISSING-DOMAIN",
+            ),
+            PropertyError::AnnotationNotFound(_) => {
+                (StatusCode::NOT_FOUND, "ONT-PROPERTY-ANNOTATION-NOT-FOUND")
             }
-            PropertyError::InvalidXsdType(_) => {
-                (StatusCode::UNPROCESSABLE_ENTITY, "INVALID_XSD_TYPE")
-            }
-            PropertyError::MissingRange => (StatusCode::UNPROCESSABLE_ENTITY, "MISSING_RANGE"),
-            PropertyError::MissingDomain => (StatusCode::UNPROCESSABLE_ENTITY, "MISSING_DOMAIN"),
-            PropertyError::AnnotationNotFound(_) => (StatusCode::NOT_FOUND, "ANNOTATION_NOT_FOUND"),
             PropertyError::PropertyTypeMismatch { .. } => {
-                (StatusCode::CONFLICT, "PROPERTY_TYPE_MISMATCH")
+                (StatusCode::CONFLICT, "ONT-PROPERTY-TYPE-MISMATCH")
             }
             PropertyError::HasDependents { .. } => {
-                (StatusCode::CONFLICT, "PROPERTY_HAS_DEPENDENTS")
+                (StatusCode::CONFLICT, "ONT-PROPERTY-HAS-DEPENDENTS")
             }
-            PropertyError::CascadeError(_) => (StatusCode::INTERNAL_SERVER_ERROR, "CASCADE_ERROR"),
-            PropertyError::Database(_) => (StatusCode::INTERNAL_SERVER_ERROR, "DATABASE_ERROR"),
+            PropertyError::CascadeError(_) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "ONT-PROPERTY-CASCADE-ERROR",
+            ),
+            PropertyError::Database(_) => (StatusCode::INTERNAL_SERVER_ERROR, "ONT-DATABASE-ERROR"),
             PropertyError::Neo4jNotConfigured => {
-                (StatusCode::SERVICE_UNAVAILABLE, "NEO4J_NOT_CONFIGURED")
+                (StatusCode::SERVICE_UNAVAILABLE, "ONT-NEO4J-NOT-CONFIGURED")
             }
         };
         let body = serde_json::json!({
