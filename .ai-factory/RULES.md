@@ -34,6 +34,15 @@
 2. **Always run change impact analysis via traceability.ttl** — before modifying any artifact, query the traceability graph to identify all dependent artifacts that may be affected.
 3. **Use the VEDO ontology vocabulary** — all traceability relationships (implements, validates, satisfies, constrains, deploys, monitors, affectedBy) must use the vdo: prefix defined in traceability.ttl.
 
+## Testing (TDD)
+
+1. **Follow TDD methodology** — tests act as the reference for behavior verification; subsequent implementation must conform to the behavior described in tests, alongside requirements.
+2. **Plan tests in order via `$aif-plan`** — unit tests per-task first, then integration tests as needed, then E2E tests for the whole feature.
+3. **Major-feature plans start with E2E tests** — a plan for a major feature must begin by implementing the E2E tests for that feature.
+4. **Plan integration tests for external interfaces** — if a feature touches external interfaces, the plan must include integration tests.
+5. **Write unit tests just-in-time per task** — the plan must specify that unit tests are written immediately before each individual task adding new functionality; do not draft all unit tests for a milestone upfront.
+6. **Update traceability for tests** — when tests are written or modified, reflect them in the artifact traceability ontology (`.ai-factory/traceability/traceability.ttl`).
+
 ## Documentation
 
 1. **User-facing documentation must use Antora** — all user, developer, administrator, and operator documentation must be authored in AsciiDoc format under `src/docs/antora/` and organized as Antora component modules. This documentation is intended for publication via Antora site generation.
