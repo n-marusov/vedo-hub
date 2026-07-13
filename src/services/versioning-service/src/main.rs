@@ -1,66 +1,184 @@
+mod postgres;
+
 use std::env;
-use std::io::{Read, Write};
-use std::net::{TcpListener, TcpStream};
-use std::sync::atomic::{AtomicU64, Ordering};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::net::SocketAddr;
+use std::sync::Arc;
+
+use axum::{extract::State, routing::get, Json, Router};
+use serde::Serialize;
+use tower_http::trace::TraceLayer;
 
 const SERVICE_NAME: &str = "versioning-service";
 const DEFAULT_PORT: &str = "8083";
 
-static REQUEST_TOTAL: AtomicU64 = AtomicU64::new(0);
+/// Application state shared across handlers.
+#[derive(Clone)]
+struct AppState {
+    pg: Option<postgres::PgPoolWrapper>,
+}
 
-fn resolve_id(value: Option<&str>) -> String {
-    match value {
-        Some(v) if !v.is_empty() => v.to_string(),
-        _ => SystemTime::now().duration_since(UNIX_EPOCH).map_or_else(|_| "0".to_string(), |d| d.as_nanos().to_string()),
+#[derive(Serialize)]
+struct RootResponse {
+    name: &'static str,
+    version: &'static str,
+    description: &'static str,
+}
+
+async fn root_handler() -> Json<RootResponse> {
+    tracing::debug!("Root endpoint requested");
+    Json(RootResponse {
+        name: SERVICE_NAME,
+        version: "0.2.0",
+        description: "Versioning service — Git-like commits, branches, diffs",
+    })
+}
+
+async fn pg_health_handler(State(state): State<Arc<AppState>>) -> Json<serde_json::Value> {
+    match &state.pg {
+        Some(pool) => {
+            let healthy = postgres::health_check(pool).await;
+            Json(serde_json::json!({
+                "status": if healthy { "healthy" } else { "degraded" },
+                "database": "postgresql",
+                "connected": healthy,
+            }))
+        }
+        None => Json(serde_json::json!({
+            "status": "disabled",
+            "database": "postgresql",
+            "connected": false,
+            "message": "PostgreSQL not configured",
+        })),
     }
 }
 
-fn response(status: &str, body: &str, content_type: &str) -> String {
-    format!("HTTP/1.1 {}\r\nContent-Type: {}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}", status, content_type, body.len(), body)
-}
+#[tokio::main]
+async fn main() {
+    vedo_shared::tracing::init_tracing(SERVICE_NAME);
+    let port = env::var("SERVICE_PORT").unwrap_or_else(|_| DEFAULT_PORT.to_string());
 
-fn handle(mut stream: TcpStream) {
-    let mut buffer = [0_u8; 8192];
-    let read = match stream.read(&mut buffer) { Ok(0) | Err(_) => return, Ok(n) => n };
-    let request = String::from_utf8_lossy(&buffer[..read]);
-    let mut lines = request.lines();
-    let first = lines.next().unwrap_or_default();
-    let mut parts = first.split_whitespace();
-    let method = parts.next().unwrap_or_default();
-    let path = parts.next().unwrap_or("/");
-    let mut trace_id = String::new();
-    let mut correlation_id = String::new();
-    for line in lines {
-        let lower = line.to_ascii_lowercase();
-        if lower.starts_with("x-trace-id:") { trace_id = line.split_once(':').map(|(_, v)| v.trim().to_string()).unwrap_or_default(); }
-        if lower.starts_with("x-correlation-id:") { correlation_id = line.split_once(':').map(|(_, v)| v.trim().to_string()).unwrap_or_default(); }
-        if line.is_empty() { break; }
-    }
-    let trace_id = resolve_id(Some(trace_id.as_str()));
-    let correlation_id = resolve_id(Some(correlation_id.as_str()));
-    REQUEST_TOTAL.fetch_add(1, Ordering::Relaxed);
-
-    let known = matches!(path, "/" | "/health" | "/ready" | "/metrics");
-    let (status, body, content_type) = if !known {
-        ("404 Not Found", format!("{{\"error\":\"ENDPOINT_NOT_FOUND\",\"message\":\"The requested endpoint {path} does not exist\",\"available\":[\"/\",\"/health\",\"/ready\",\"/metrics\"]}}"), "application/json")
-    } else if method != "GET" {
-        ("405 Method Not Allowed", format!("{{\"error\":\"METHOD_NOT_ALLOWED\",\"message\":\"Method {method} not allowed on {path}\",\"available\":[\"/\",\"/health\",\"/ready\",\"/metrics\"]}}"), "application/json")
-    } else {
-        match path {
-            "/" => ("200 OK", format!("{{\"name\":\"{SERVICE_NAME}\",\"version\":\"0.2.0\",\"description\":\"Versioning service\",\"stub\":false}}"), "application/json"),
-            "/health" => ("200 OK", "{\"status\":\"healthy\"}".to_string(), "application/json"),
-            "/ready" => ("200 OK", "{\"status\":\"ready\"}".to_string(), "application/json"),
-            _ => ("200 OK", format!("# HELP vedo_service_requests_total Total service requests\n# TYPE vedo_service_requests_total counter\nvedo_service_requests_total{{service=\"{SERVICE_NAME}\"}} {}\n", REQUEST_TOTAL.load(Ordering::Relaxed)), "text/plain; version=0.0.4"),
+    // Initialize PostgreSQL connection pool
+    let pg_config = postgres::PgConfig::from_env();
+    let pg_pool = match postgres::create_pool(&pg_config).await {
+        Ok(pool) => {
+            // Run manual migrations
+            match postgres::run_manual_migrations(pool.pool()).await {
+                Ok(_) => tracing::info!("PostgreSQL migrations applied successfully"),
+                Err(e) => tracing::warn!(error = %e, "Migration warning, continuing"),
+            }
+            tracing::info!("PostgreSQL pool initialized successfully");
+            Some(pool)
+        }
+        Err(e) => {
+            tracing::warn!(error = %e, "Failed to connect to PostgreSQL, running without database");
+            None
         }
     };
 
-    let _ = stream.write_all(response(status, &body, content_type).as_bytes());
-    println!("{{\"service\":\"{SERVICE_NAME}\",\"path\":\"{path}\",\"status\":{},\"trace_id\":\"{trace_id}\",\"correlation_id\":\"{correlation_id}\"}}", status.split_whitespace().next().unwrap_or("0"));
+    let state = Arc::new(AppState { pg: pg_pool });
+
+    // Build stateless routes
+    let app = Router::new()
+        .route("/", get(root_handler))
+        .layer(TraceLayer::new_for_http());
+
+    // Build stateful routes separately and merge after providing state
+    let app = app.merge(
+        Router::new()
+            .route("/health/db", get(pg_health_handler))
+            .with_state(state),
+    );
+
+    // Add shared health, ready, and metrics routes
+    let app = vedo_shared::add_health_routes(app, SERVICE_NAME);
+    let app = app.route("/metrics", get(vedo_shared::metrics_handler));
+
+    let addr: SocketAddr = format!("0.0.0.0:{port}").parse().expect("invalid address");
+    tracing::info!(port = %port, "Starting versioning-service");
+    let listener = tokio::net::TcpListener::bind(addr)
+        .await
+        .expect("bind failed");
+    axum::serve(listener, app.into_make_service())
+        .await
+        .expect("server failed");
 }
 
-fn main() {
-    let port = env::var("SERVICE_PORT").unwrap_or_else(|_| DEFAULT_PORT.to_string());
-    let listener = TcpListener::bind(format!("0.0.0.0:{port}")).expect("bind failed");
-    for stream in listener.incoming().flatten() { handle(stream); }
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::{
+        body::Body,
+        http::{Request, StatusCode},
+    };
+    use tower::ServiceExt;
+
+    fn test_state() -> Arc<AppState> {
+        Arc::new(AppState { pg: None })
+    }
+
+    #[tokio::test]
+    async fn test_root_returns_service_info() {
+        let app = Router::new().route("/", get(root_handler)).merge(
+            Router::new()
+                .route("/health/db", get(pg_health_handler))
+                .with_state(test_state()),
+        );
+        let response = app
+            .oneshot(Request::builder().uri("/").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+        let body: serde_json::Value = serde_json::from_slice(
+            &axum::body::to_bytes(response.into_body(), usize::MAX)
+                .await
+                .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(body["name"], SERVICE_NAME);
+    }
+
+    #[tokio::test]
+    async fn test_pg_health_degraded_when_no_db() {
+        let app = Router::new().route("/", get(root_handler)).merge(
+            Router::new()
+                .route("/health/db", get(pg_health_handler))
+                .with_state(test_state()),
+        );
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/health/db")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+        let body: serde_json::Value = serde_json::from_slice(
+            &axum::body::to_bytes(response.into_body(), usize::MAX)
+                .await
+                .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(body["status"], "disabled");
+    }
+
+    #[tokio::test]
+    async fn test_root_rejects_unknown_routes() {
+        let app = Router::new().route("/", get(root_handler)).merge(
+            Router::new()
+                .route("/health/db", get(pg_health_handler))
+                .with_state(test_state()),
+        );
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/unknown")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    }
 }
