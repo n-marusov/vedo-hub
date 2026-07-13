@@ -15,6 +15,10 @@ thiserror.workspace = true
 tower-http.workspace = true
 tower.workspace = true
 neo4rs = "0.7"
+oxiri = "0.2"
+rio_api = "0.8"
+rio_turtle = "0.8"
+rio_xml = "0.8"
 vedo-shared = { path = "../shared" }
 
 [lints.clippy]

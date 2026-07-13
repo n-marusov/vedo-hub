@@ -1,7 +1,9 @@
 mod classes;
+mod handlers;
 mod individuals;
 mod neo4j;
 mod properties;
+mod services;
 
 use std::env;
 use std::net::SocketAddr;
@@ -170,6 +172,20 @@ async fn main() {
 
     // Merge individual routes with the app state
     let app = app.merge(individual_routes.with_state(state.clone()));
+
+    // Export routes
+    let export_routes = Router::new().route(
+        "/api/v1/ontologies/{ontology_id}/export",
+        get(handlers::export_handler::export_ontology_handler),
+    );
+    let app = app.merge(export_routes.with_state(state.clone()));
+
+    // Import routes
+    let import_routes = Router::new().route(
+        "/api/v1/ontologies/{ontology_id}/import",
+        post(handlers::import_handler::import_ontology_handler),
+    );
+    let app = app.merge(import_routes.with_state(state.clone()));
 
     let addr: SocketAddr = format!("0.0.0.0:{port}").parse().expect("invalid address");
     tracing::info!(port = %port, "Starting ontology-service");
