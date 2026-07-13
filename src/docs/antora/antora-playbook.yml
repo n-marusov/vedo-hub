@@ -12,6 +12,8 @@ content:
       start_path: admin-guide
     - url: .
       start_path: integrator-guide
+    - url: .
+      start_path: ontology-editor
 
 ui:
   bundle:

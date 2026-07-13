@@ -247,7 +247,7 @@ Phase 1-9: Implementation
 ## Tasks
 
 - [ ] <!-- Progress tracking block — update [ ] to [x] as tasks are completed -->
-- [x] **Total: 28 tasks** | **Completed: 23** | **In progress: 0**
+- [x] **Total: 28 tasks** | **Completed: 26** | **In progress: 0**
 
 ---
 
@@ -966,7 +966,7 @@ Phase 1-9: Implementation
 
 ### Phase 8: Frontend Wiring
 
-- [ ] **Task 8.1: Connect frontend Apollo queries to real backend data**
+- [x] **Task 8.1: Connect frontend Apollo queries to real backend data**
     Write unit tests first: test Apollo client config, GraphQL query against mock server, response parsing, error handling with retry, loading state rendering.
     
     Then implement:
@@ -1014,7 +1014,7 @@ Phase 1-9: Implementation
 
 ### Phase 9: Traceability & Documentation
 
-- [ ] **Task 9.1: Update traceability.ttl with new and modified M1 artifacts**
+- [x] **Task 9.1: Update traceability.ttl with new and modified M1 artifacts**
     Update `.ai-factory/traceability/traceability.ttl` to reflect:
     - New service declarations for shared cargo workspace (`vdo:Service`)
     - Updated ontology-service, versioning-service, api-gateway, frontend declarations (new coverage levels: `"partial"` or `"full"`)
@@ -1033,7 +1033,7 @@ Phase 1-9: Implementation
     
     Dependencies: All previous phases
 
-- [ ] **Task 9.2: Create Antora user documentation for M1 features**
+- [x] **Task 9.2: Create Antora user documentation for M1 features**
     Write AsciiDoc documentation under `src/docs/antora/` using Antora component structure. Create component `ontology-editor` with:
     - Component descriptor (`antora.yml`)
     - Quick start guide: create and edit an ontology
@@ -1076,8 +1076,8 @@ Total: 28 tasks
 ├── Phase 5: Import/Export       [x] 2/2 — Turtle, RDF/XML
 ├── Phase 6: API Gateway         [x] 3/3 — proxy, SPARQL, REST API
 ├── Phase 7: Integration Tests   [x] 3/3 — Neo4j, PG, Gateway interfaces
-├── Phase 8: Frontend Wiring     [ ] 0/1 — Apollo → real backend
-└── Phase 9: Docs & Trace        [ ] 0/2 — traceability.ttl, Antora docs
+├── Phase 8: Frontend Wiring     [x] 1/1 — Apollo → real backend
+├── Phase 9: Docs & Trace        [x] 2/2 — traceability.ttl, Antora docs
 ```
 
 ## Next Steps

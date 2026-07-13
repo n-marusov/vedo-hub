@@ -5,7 +5,7 @@
 ## Milestones
 
 - [x] **M0: Foundation & Infrastructure** — Microservices architecture, Docker Compose orchestration, CI/CD pipeline, basic observability (OTEL/Grafana/Prometheus/Loki/Tempo), Keycloak auth, CLI tool (`vedo-cli` with ticket management, secret rotation, guardrail controls)
-- [ ] **M1: Ontology Core Engine** — Graph browser and navigation (tree of classes, property lists, basic 2D visualization), ontology editor TBox (CRUD for classes, ObjectProperty, DatatypeProperty, annotations), individual management ABox (class instances, property values), Git-like versioning (commits, history, branches, rollback), import/export (Turtle, RDF/XML), REST API for read/write operations, SPARQL endpoint
+- [x] **M1: Ontology Core Engine** — Graph browser and navigation (tree of classes, property lists, basic 2D visualization), ontology editor TBox (CRUD for classes, ObjectProperty, DatatypeProperty, annotations), individual management ABox (class instances, property values), Git-like versioning (commits, history, branches, rollback), import/export (Turtle, RDF/XML), REST API for read/write operations, SPARQL endpoint
 - [ ] **M2: Collaboration & Social Hub** — Comments and discussions on entities, social hub features (profiles, stars, forks, issues), LLM generation of ontologies from natural language (NL → OWL), visual SPARQL query builder (drag-n-drop), flexible graph queries (SPARQL/CYPHER editors with autocomplete, NL mode, MCP server) with unified response format and saved query library
 - [ ] **M3: CLI Administration & Operations** — `vedo-cli` production operations: scheduled backup/restore with verify, Neo4j/PostgreSQL migrations with rollback, ontology export/import between environments, `diff` of two ontology versions, incident diagnosis by `trace_id` with LLM-assisted recommendations, portal support (ticket intake, in-app feedback widget with metadata, NPS collection), knowledge base (Antora docs), public status page
 - [ ] **M4: API as Infrastructure Layer** — Semantic search across public ontologies, SPARQL endpoint as managed service, webhooks for change notifications, CRUD ontology operations via API, CI/CD webhook automation, ontology template library, Excel import → OWL via LLM, saved SPARQL query sharing
@@ -18,6 +18,7 @@
 | Milestone | Date |
 |-----------|------|
 | M0: Foundation & Infrastructure | 2026-07-12 |
+| M1: Ontology Core Engine | 2026-07-14 |
 
 ## Roadmap Notes
 

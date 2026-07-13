@@ -1,0 +1,67 @@
+= Quick Start Guide
+:toc: left
+:icons: font
+:source-highlighter: rouge
+
+This guide walks through creating your first ontology, adding classes and properties,
+and making your first commit.
+
+== Prerequisites
+
+* VEDO Core is deployed and accessible (see xref:admin-guide::deployment.adoc[])
+* You have a user account with appropriate permissions
+* You have a web browser (Chrome, Firefox, Edge, or Safari)
+
+== Step 1: Create an Ontology
+
+. Navigate to the VEDO Core dashboard.
+. Click *New Ontology* in the top navigation bar.
+. Enter a name for your ontology (e.g., `ProductOntology`).
+. Optionally add a description.
+. Click *Create*.
+
+The ontology workspace opens with a default `owl:Thing` class and a main branch.
+
+== Step 2: Add Classes
+
+. In the left *Class Tree* panel, click the + icon next to the root node.
+. Enter a class name (e.g., `Person`).
+. Click *Create*.
+. Repeat to add more classes: `Organization`, `Product`, `Order`.
+
+TIP: Classes can have multiple parents. Use the class edit dialog to add parent
+relationships.
+
+== Step 3: Add Properties
+
+. Switch to the *Properties* tab in the right panel.
+. Click *Create Property*.
+. Choose property type:
+   * *ObjectProperty* — relates individuals to individuals (e.g., `hasEmployee`)
+   * *DatatypeProperty* — relates individuals to literal values (e.g., `age`)
+. Set domain and range classes.
+. Click *Create*.
+
+== Step 4: Create Individuals
+
+. Select a class in the class tree (e.g., `Person`).
+. In the right panel, click *Add Individual*.
+. Enter a label (e.g., `Alice_Johnson`).
+. Optionally add property values.
+. Click *Create*.
+
+== Step 5: Commit Changes
+
+. Click the *Commit* button in the toolbar.
+. Enter a commit message (e.g., "Initial ontology structure").
+. Click *Commit*.
+
+Your changes are now saved as a versioned commit. You can view the commit history
+in the *Versioning* tab.
+
+== Next Steps
+
+* xref:classes.adoc[Working with Classes] — advanced class operations
+* xref:properties.adoc[Working with Properties] — property characteristics and annotations
+* xref:individuals.adoc[Working with Individuals] — managing instances
+* xref:versioning.adoc[Versioning] — branches, checkout, and rollback

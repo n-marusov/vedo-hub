@@ -896,11 +896,40 @@ base:design/frontend vdo:affectedBy base:service/frontend .
 # Changing deployment affects:
 base:deploy/docker-compose vdo:affectedBy base:service/api-gateway, base:service/ontology-service, base:service/versioning-service, base:service/auth-service, base:service/frontend, base:service/metrics-service .
 
-# =============================================================================
-# TRACEABILITY COVERAGE SUMMARY
-# =============================================================================
+# --- GraphQL Artifacts (M1) ---
 
-base:coverage/summary a vdo:Artifact ;
+base:graphql/ontology-schema a vdo:CodeArtifact ;
+    rdfs:label "Ontology GraphQL Schema"@en ;
+    rdfs:comment "async-graphql schema for ontology CRUD, class/property/individual queries exposed at /api/v1/graphql"@en ;
+    vdo:filePath "src/services/ontology-service/src/graphql/" ;
+    vdo:implements base:spec/gui-ow-001 .
+
+base:graphql/query-resolver a vdo:CodeArtifact ;
+    rdfs:label "Ontology GraphQL Query Resolvers"@en ;
+    rdfs:comment "Query resolvers delegating to ClassRepository, PropertyRepository, IndividualRepository"@en ;
+    vdo:filePath "src/services/ontology-service/src/graphql/query.rs" ;
+    vdo:implements base:spec/gui-ow-001 .
+
+base:graphql/gateway-proxy a vdo:CodeArtifact ;
+    rdfs:label "GraphQL Gateway Proxy Route"@en ;
+    rdfs:comment "API Gateway route forwarding /api/v1/graphql to ontology-service"@en ;
+    vdo:filePath "src/services/api-gateway/routes.go" .
+
+base:graphql/frontend-queries a vdo:CodeArtifact ;
+    rdfs:label "Frontend Apollo Queries"@en ;
+    rdfs:comment "Apollo Client GraphQL queries and mutations matching ontology-service schema"@en ;
+    vdo:filePath "src/services/frontend/src/apollo/queries.ts" ;
+    vdo:implements base:spec/gui-ow-001 .
+
+base:graphql/apollo-client a vdo:CodeArtifact ;
+    rdfs:label "Apollo Client Configuration"@en ;
+    rdfs:comment "Apollo Client setup with retry link, auth link, and API Gateway endpoint"@en ;
+    vdo:filePath "src/services/frontend/src/apollo/client.ts" ;
+    vdo:implements base:spec/gui-ow-001 .
+
+# --- Update coverage summary metrics ---
+# GraphQL artifacts: 5 (100% traced)
+
     rdfs:label "Traceability Coverage Summary"@en ;
     rdfs:comment "Summary of traceability coverage across artifact domains"@en .
 
