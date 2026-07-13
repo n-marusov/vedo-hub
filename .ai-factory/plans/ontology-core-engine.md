@@ -247,7 +247,7 @@ Phase 1-9: Implementation
 ## Tasks
 
 - [ ] <!-- Progress tracking block — update [ ] to [x] as tasks are completed -->
-- [x] **Total: 28 tasks** | **Completed: 19** | **In progress: 0**
+- [x] **Total: 28 tasks** | **Completed: 23** | **In progress: 0**
 
 ---
 
@@ -848,7 +848,7 @@ Phase 1-9: Implementation
     
     Dependencies: Task 6.1
 
-- [ ] **Task 6.3: Add REST read API endpoints and OpenAPI documentation**
+- [x] **Task 6.3: Add REST read API endpoints and OpenAPI documentation**
     Write unit tests first: test GET endpoint response format, pagination, error codes, OpenAPI spec generation.
     
     Then implement REST read endpoints:
@@ -887,7 +887,7 @@ Phase 1-9: Implementation
 
 > Per RULES.md: "Plan integration tests for external interfaces — if a feature touches external interfaces, the plan must include integration tests."
 
-- [ ] **Task 7.1: Integration tests for ontology service — Neo4j and RDF interfaces**
+- [x] **Task 7.1: Integration tests for ontology service — Neo4j and RDF interfaces**
     Write integration tests (real Neo4j via Docker Compose test profile):
     - Class CRUD with Cypher verification (read directly from Neo4j after API operations)
     - Property CRUD with domain/range verification
@@ -913,7 +913,7 @@ Phase 1-9: Implementation
     
     Dependencies: Phase 2, Phase 4, Phase 5
 
-- [ ] **Task 7.2: Integration tests for versioning service — PostgreSQL and sync interfaces**
+- [x] **Task 7.2: Integration tests for versioning service — PostgreSQL and sync interfaces**
     Write integration tests (real PostgreSQL via Docker Compose):
     - Commit creation and delta storage verification (read from PG)
     - Branch creation, listing, deletion
@@ -937,7 +937,7 @@ Phase 1-9: Implementation
     
     Dependencies: Phase 3
 
-- [ ] **Task 7.3: Integration tests for API Gateway — proxy and auth middleware integration**
+- [x] **Task 7.3: Integration tests for API Gateway — proxy and auth middleware integration**
     Write integration tests (API Gateway + ontology-service + versioning-service):
     - Auth middleware: valid JWT → 200, expired → 401, missing → 401, insufficient role → 403
     - Ontology proxy: GET classes through gateway vs direct (results match)
@@ -1074,8 +1074,8 @@ Total: 28 tasks
 ├── Phase 3: Versioning          [x] 3/3 — commits, branches, checkout
 ├── Phase 4: ABox                [x] 1/1 — individuals
 ├── Phase 5: Import/Export       [x] 2/2 — Turtle, RDF/XML
-├── Phase 6: API Gateway         [x] 2/3 — proxy, SPARQL, REST API
-├── Phase 7: Integration Tests   [ ] 0/3 — Neo4j, PG, Gateway interfaces
+├── Phase 6: API Gateway         [x] 3/3 — proxy, SPARQL, REST API
+├── Phase 7: Integration Tests   [x] 3/3 — Neo4j, PG, Gateway interfaces
 ├── Phase 8: Frontend Wiring     [ ] 0/1 — Apollo → real backend
 └── Phase 9: Docs & Trace        [ ] 0/2 — traceability.ttl, Antora docs
 ```
