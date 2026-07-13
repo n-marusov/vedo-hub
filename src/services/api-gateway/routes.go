@@ -63,6 +63,9 @@ func RegisterRoutes(r *gin.Engine) {
 	api.POST("/sparql", queryHandler.HandleSPARQL)
 	api.POST("/cypher", queryHandler.HandleCYPHER)
 
+	// GraphQL endpoint — proxy to ontology-service
+	api.Any("/graphql", gin.WrapH(ontologyProxy))
+
 	// OpenAPI spec — served locally from embedded spec
 	api.GET("/openapi.json", func(c *gin.Context) {
 		c.Data(http.StatusOK, "application/json", openAPISpec)

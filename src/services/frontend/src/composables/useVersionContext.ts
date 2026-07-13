@@ -33,7 +33,7 @@ export function useVersionContext() {
   function loadFromApollo(ontologyId: string) {
     context.value.ontologyId = ontologyId
     // Uses Apollo Client cache — data fetched via VERSION_CONTEXT_QUERY
-    const { result, loading, error } = useQuery(VERSION_CONTEXT_QUERY, { ontologyId })
+    const { result, loading, error } = useQuery(VERSION_CONTEXT_QUERY, { id: ontologyId })
 
     if (result.value?.ontology) {
       context.value.branch = result.value.ontology.branch

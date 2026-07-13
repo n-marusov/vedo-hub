@@ -3,6 +3,7 @@
 import { ApolloClient, InMemoryCache, createHttpLink, from } from '@apollo/client/core'
 import { setContext } from '@apollo/client/link/context'
 import { onError } from '@apollo/client/link/error'
+import { RetryLink } from '@apollo/client/link/retry'
 
 // structured logging for Apollo operations (observability constraint)
 const log = {
@@ -13,7 +14,7 @@ const log = {
 }
 
 const httpLink = createHttpLink({
-  uri: import.meta.env.VITE_GRAPHQL_ENDPOINT || '/graphql'
+  uri: import.meta.env.VITE_GRAPHQL_ENDPOINT || '/api/v1/graphql'
 })
 
 const authLink = setContext((_, { headers }) => {
@@ -23,6 +24,18 @@ const authLink = setContext((_, { headers }) => {
       ...headers,
       authorization: token ? `Bearer ${token}` : ''
     }
+  }
+})
+
+const retryLink = new RetryLink({
+  delay: {
+    initial: 300,
+    max: 3000,
+    jitter: true
+  },
+  attempts: {
+    max: 3,
+    retryIf: (error, _operation) => !!error
   }
 })
 
@@ -46,7 +59,7 @@ const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
 })
 
 export const apolloClient = new ApolloClient({
-  link: from([errorLink, authLink, httpLink]),
+  link: from([retryLink, errorLink, authLink, httpLink]),
   cache: new InMemoryCache({
     typePolicies: {
       Query: {
@@ -73,5 +86,5 @@ export const apolloClient = new ApolloClient({
 })
 
 log.info('apollo.client.initialized', {
-  endpoint: import.meta.env.VITE_GRAPHQL_ENDPOINT || '/graphql'
+  endpoint: import.meta.env.VITE_GRAPHQL_ENDPOINT || '/api/v1/graphql'
 })

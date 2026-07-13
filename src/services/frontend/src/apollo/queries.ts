@@ -1,32 +1,96 @@
 // Apollo GraphQL queries and mutations for ontology workspace
+//
+// These queries match the async-graphql schema exposed by ontology-service
+// at /api/v1/graphql via the API Gateway proxy.
 
 import { gql } from '@apollo/client/core'
 
+// ── Fragments ───────────────────────────────────────────────────────────────────────
+
+export const CLASS_SUMMARY_FRAGMENT = gql`
+  fragment ClassSummaryFields on ClassSummary {
+    id
+    label
+    comment
+    parents
+  }
+`
+
+export const CLASS_FRAGMENT = gql`
+  fragment ClassFields on Class {
+    id
+    label
+    comment
+    parents
+    children
+  }
+`
+
+export const PROPERTY_FRAGMENT = gql`
+  fragment PropertyFields on Property {
+    id
+    label
+    comment
+    propertyType
+    domains
+    ranges
+    xsdType
+    characteristics {
+      functional
+      inverseFunctional
+      transitive
+      symmetric
+    }
+    annotations {
+      propertyIri
+      value
+    }
+  }
+`
+
+export const INDIVIDUAL_FRAGMENT = gql`
+  fragment IndividualFields on Individual {
+    id
+    label
+    comment
+    classId
+    classLabel
+    literalValues {
+      propertyId
+      propertyLabel
+      value
+      xsdType
+      valueId
+    }
+    referenceValues {
+      propertyId
+      propertyLabel
+      targetId
+      targetLabel
+      edgeId
+    }
+  }
+`
+
+// ── Queries ─────────────────────────────────────────────────────────────────────────
+
+/// Ontology metadata — branch, commit, dirty state
 export const ONTOLOGY_QUERY = gql`
-  query Ontology($ontologyId: ID!) {
-    ontology(id: $ontologyId) {
+  query Ontology($id: ID!) {
+    ontology(id: $id) {
       id
       name
       branch
       commit
       dirty
-      classes {
-        id
-        label
-        childrenCount
-      }
-      properties {
-        id
-        label
-        type
-      }
     }
   }
 `
 
+/// Version context — used by the toolbar to show current branch/commit
 export const VERSION_CONTEXT_QUERY = gql`
-  query VersionContext($ontologyId: ID!) {
-    ontology(id: $ontologyId) {
+  query VersionContext($id: ID!) {
+    ontology(id: $id) {
       branch
       commit
       dirty
@@ -34,6 +98,160 @@ export const VERSION_CONTEXT_QUERY = gql`
   }
 `
 
+/// Single class with full details
+export const GET_CLASS_QUERY = gql`
+  query GetClass($ontologyId: ID!, $classId: ID!) {
+    class(ontologyId: $ontologyId, classId: $classId) {
+      ...ClassFields
+    }
+  }
+  ${CLASS_FRAGMENT}
+`
+
+/// Paginated class list with search
+export const LIST_CLASSES_QUERY = gql`
+  query ListClasses($ontologyId: ID!, $q: String, $page: Int, $perPage: Int) {
+    classes(ontologyId: $ontologyId, q: $q, page: $page, perPage: $perPage) {
+      items {
+        ...ClassSummaryFields
+      }
+      total
+      page
+      perPage
+    }
+  }
+  ${CLASS_SUMMARY_FRAGMENT}
+`
+
+/// Class hierarchy tree (root classes)
+export const CLASS_TREE_QUERY = gql`
+  query ClassTree($ontologyId: ID!) {
+    classTree(ontologyId: $ontologyId) {
+      id
+      label
+      children {
+        id
+        label
+        children {
+          id
+          label
+        }
+      }
+    }
+  }
+`
+
+/// Class ancestors (breadcrumb path)
+export const CLASS_ANCESTORS_QUERY = gql`
+  query ClassAncestors($ontologyId: ID!, $classId: ID!) {
+    classAncestors(ontologyId: $ontologyId, classId: $classId) {
+      id
+      label
+    }
+  }
+`
+
+/// Class descendants tree
+export const CLASS_DESCENDANTS_QUERY = gql`
+  query ClassDescendants($ontologyId: ID!, $classId: ID!, $maxDepth: Int) {
+    classDescendants(ontologyId: $ontologyId, classId: $classId, maxDepth: $maxDepth) {
+      id
+      label
+      children {
+        id
+        label
+      }
+    }
+  }
+`
+
+/// Graph neighborhood for a class
+export const GRAPH_NEIGHBORHOOD_QUERY = gql`
+  query GraphNeighborhood($ontologyId: ID!, $classId: ID!, $depth: Int) {
+    graphNeighborhood(ontologyId: $ontologyId, classId: $classId, depth: $depth) {
+      nodes {
+        id
+        label
+      }
+      edges {
+        sourceId
+        targetId
+        propertyId
+        propertyLabel
+      }
+    }
+  }
+`
+
+/// Autocomplete class search
+export const AUTOCOMPLETE_CLASSES_QUERY = gql`
+  query AutocompleteClasses($ontologyId: ID!, $q: String!, $limit: Int) {
+    autocompleteClasses(ontologyId: $ontologyId, q: $q, limit: $limit) {
+      ...ClassSummaryFields
+    }
+  }
+  ${CLASS_SUMMARY_FRAGMENT}
+`
+
+/// Single property with full details
+export const GET_PROPERTY_QUERY = gql`
+  query GetProperty($ontologyId: ID!, $propertyId: ID!) {
+    property(ontologyId: $ontologyId, propertyId: $propertyId) {
+      ...PropertyFields
+    }
+  }
+  ${PROPERTY_FRAGMENT}
+`
+
+/// Paginated property list with type filter
+export const LIST_PROPERTIES_QUERY = gql`
+  query ListProperties($ontologyId: ID!, $q: String, $propertyType: PropertyType, $page: Int, $perPage: Int) {
+    properties(ontologyId: $ontologyId, q: $q, propertyType: $propertyType, page: $page, perPage: $perPage) {
+      items {
+        id
+        label
+        propertyType
+        xsdType
+        domains
+      }
+      total
+      page
+      perPage
+    }
+  }
+`
+
+/// Single individual with full detail (property values)
+export const GET_INDIVIDUAL_QUERY = gql`
+  query GetIndividual($ontologyId: ID!, $individualId: ID!) {
+    individual(ontologyId: $ontologyId, individualId: $individualId) {
+      ...IndividualFields
+    }
+  }
+  ${INDIVIDUAL_FRAGMENT}
+`
+
+/// Paginated individual list filtered by class
+export const LIST_INDIVIDUALS_QUERY = gql`
+  query ListIndividuals($ontologyId: ID!, $classId: ID!, $q: String, $page: Int, $perPage: Int) {
+    individuals(ontologyId: $ontologyId, classId: $classId, q: $q, page: $page, perPage: $perPage) {
+      items {
+        id
+        label
+        comment
+        classId
+        classLabel
+      }
+      total
+      page
+      perPage
+    }
+  }
+`
+
+// ── Mutations ───────────────────────────────────────────────────────────────────────
+
+/// Update draft state — marks workspace as dirty
 export const UPDATE_DRAFT_MUTATION = gql`
   mutation UpdateDraft($ontologyId: ID!, $changes: DraftInput!) {
     updateDraft(ontologyId: $ontologyId, changes: $changes) {
@@ -43,6 +261,7 @@ export const UPDATE_DRAFT_MUTATION = gql`
   }
 `
 
+/// Navigation state query
 export const NAVIGATION_STATE_QUERY = gql`
   query NavigationState {
     userPreferences {

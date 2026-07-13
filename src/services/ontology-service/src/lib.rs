@@ -4,6 +4,7 @@
 //! and shared state into a single axum `Router`.
 
 pub mod classes;
+pub mod graphql;
 pub mod handlers;
 pub mod individuals;
 pub mod neo4j;
@@ -17,6 +18,7 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
+use graphql::schema::build_schema;
 use serde::Serialize;
 use tower_http::trace::TraceLayer;
 
@@ -180,6 +182,16 @@ pub fn build_app(state: Arc<AppState>) -> Router {
         post(handlers::import_handler::import_ontology_handler),
     );
     let app = app.merge(import_routes.with_state(state.clone()));
+
+    // GraphQL endpoint — serves one schema for the whole ontology-service
+    let graphql_handler = |State(state): State<Arc<AppState>>,
+                           Json(gql_req): Json<async_graphql::Request>| async move {
+        let schema = build_schema();
+        let response = schema.execute(gql_req.data(state)).await;
+        Json(response)
+    };
+    let graphql_routes = Router::new().route("/api/v1/graphql", post(graphql_handler));
+    let app = app.merge(graphql_routes.with_state(state.clone()));
 
     app
 }

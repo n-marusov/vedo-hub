@@ -19,6 +19,8 @@ oxiri = "0.2"
 rio_api = "0.8"
 rio_turtle = "0.8"
 rio_xml = "0.8"
+async-graphql.workspace = true
+async-graphql-axum.workspace = true
 vedo-shared = { path = "../shared" }
 
 [lints.clippy]
