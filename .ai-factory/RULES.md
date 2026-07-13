@@ -20,6 +20,10 @@
 4. **Error codes** — use domain-prefixed error codes (e.g., `CLI-TICKET-NOT-FOUND`).
 5. **No stub markers** — production code must not contain `[STUB]` prefixes or stubbed versions.
 
+## Domain Terminology
+
+1. **Follow the glossary for naming** — when naming domain entities, types, fields, error codes, and API surfaces in code, use the canonical terms defined in `specs/glossary.md` (e.g., `Ontology`, `Project`, `Group`, `Commit`, `Branch`, `MergeRequest`, `Triple`, `Class`); do not invent synonyms, abbreviations, or translations that diverge from the glossary's canonical English term in parentheses.
+
 ## Reference Files
 
 - `.ai-factory/DESCRIPTION.md` — Project specification
