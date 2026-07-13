@@ -267,6 +267,22 @@ Check for discrepancies between what the plan says and what was built:
 - **File locations**: Are files where the plan said they should be?
 - **API contracts**: Do endpoint paths, request/response shapes match the plan?
 
+### 3.1.1 Glossary Naming Compliance
+
+Verify that domain entity names in changed code follow the canonical terminology defined in `specs/glossary.md`. This operationalizes the **"Follow the glossary for naming"** rule in `paths.rules_file`.
+
+Checks (run against `CHANGED_FILES`):
+
+- **Domain identifiers**: structs, classes, types, DTOs, enums, and fields that represent glossary entities must use the canonical English term shown in parentheses in `specs/glossary.md` (e.g., `Ontology`, `Project`, `Group`, `Commit`, `Branch`, `MergeRequest`, `Triple`, `Class`, `Individual`, `DatatypeProperty`).
+- **API surfaces**: REST paths, GraphQL types/fields, gRPC messages, and error code prefixes must reflect canonical glossary terms, not synonyms or ad-hoc translations.
+- **No divergent synonyms**: flag invented abbreviations or translations that diverge from the canonical term (e.g., `KnowledgeGraph` instead of `Ontology`, `Node` instead of `Individual`, `Link` instead of `Property`).
+- **Scope**: only flag domain vocabulary. Generic computer-science terms (e.g., `Router`, `Pool`, `Handler`) and infrastructure ecosystem terms are out of scope unless the glossary explicitly defines them.
+
+Reporting:
+- `WARN [glossary] <file>:<symbol> uses '<non-canonical>' — canonical term is '<canonical>' (<glossary section>)`
+- Treat as a **Rules gate** finding (see 3.5): deviations from an explicit glossary-based rule are a clear rules violation.
+- When `specs/glossary.md` is missing, emit `WARN [glossary] specs/glossary.md not found — skip glossary naming check` and do not block.
+
 ### 3.2 Leftover Artifacts
 
 Search for things that should have been cleaned up:
@@ -311,9 +327,9 @@ Evaluate and report each gate explicitly:
   - Fail: clear violation of explicit architecture constraints
 
 - **Rules gate**
-  - Pass: implementation follows explicit project rules
-  - Warn: relevance/verification is ambiguous
-  - Fail: clear violation of explicit rule text
+  - Pass: implementation follows explicit project rules, including the **"Follow the glossary for naming"** rule in `paths.rules_file` (see 3.1.1 Glossary Naming Compliance)
+  - Warn: relevance/verification is ambiguous, or `specs/glossary.md` is missing/stale but a glossary-based rule is declared
+  - Fail: clear violation of explicit rule text — including divergent domain terminology that contradicts the canonical glossary term
 
 - **Roadmap gate**
   - Pass: work aligns with existing milestone direction (prefer `## Roadmap Linkage` from the plan when present)
