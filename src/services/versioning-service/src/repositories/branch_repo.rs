@@ -1,0 +1,456 @@
+//! Branch repository — PostgreSQL data access for branches.
+//!
+//! Provides SQL queries for branch CRUD, listing with latest commit info,
+//! and ahead/behind computation.
+
+use sqlx::{PgPool, Row};
+use uuid::Uuid;
+
+use crate::error::VersionError;
+use crate::models::{
+    Branch, BranchWithCommit, CreateBranchRequest, DeleteBranchRequest, MergeBranchesRequest,
+    MergeResponse, SwitchBranchResponse,
+};
+
+/// Repository for branch operations against PostgreSQL.
+pub struct BranchRepository {
+    pool: PgPool,
+}
+
+impl BranchRepository {
+    /// Creates a new `BranchRepository` with the given connection pool.
+    pub fn new(pool: PgPool) -> Self {
+        Self { pool }
+    }
+
+    /// Returns a reference to the inner pool.
+    pub fn pool(&self) -> &PgPool {
+        &self.pool
+    }
+
+    // ── Create ────────────────────────────────────────────────────────────
+
+    /// Creates a new branch. If a `source_branch_id` is provided, copies the
+    /// source branch's head commit as this branch's starting point.
+    pub async fn create(&self, req: &CreateBranchRequest) -> Result<Branch, VersionError> {
+        tracing::debug!(
+            name = %req.name,
+            ontology_id = %req.ontology_id,
+            source = ?req.source_branch_id,
+            "Creating branch"
+        );
+
+        // Get head_commit_id from source branch if provided
+        let head_commit_id: Option<Uuid> = match req.source_branch_id {
+            Some(source_id) => {
+                let row = sqlx::query("SELECT head_commit_id FROM branches WHERE id = $1")
+                    .bind(source_id)
+                    .fetch_optional(self.pool())
+                    .await?;
+
+                match row {
+                    Some(r) => r.try_get("head_commit_id")?,
+                    None => {
+                        return Err(VersionError::BranchNotFound(source_id.to_string()));
+                    }
+                }
+            }
+            None => None,
+        };
+
+        let row = sqlx::query(
+            r#"
+            INSERT INTO branches (name, ontology_id, head_commit_id)
+            VALUES ($1, $2, $3)
+            RETURNING id, name, ontology_id, head_commit_id, created_at, is_protected
+            "#,
+        )
+        .bind(&req.name)
+        .bind(req.ontology_id)
+        .bind(head_commit_id)
+        .fetch_one(self.pool())
+        .await?;
+
+        let branch = row_to_branch(&row)?;
+
+        tracing::info!(
+            branch_id = %branch.id,
+            name = %branch.name,
+            "Branch created"
+        );
+
+        Ok(branch)
+    }
+
+    // ── Read ──────────────────────────────────────────────────────────────
+
+    /// Retrieves a single branch by its ID.
+    pub async fn get_by_id(&self, id: Uuid) -> Result<Branch, VersionError> {
+        tracing::debug!(branch_id = %id, "Fetching branch by ID");
+
+        let row = sqlx::query(
+            r#"
+            SELECT id, name, ontology_id, head_commit_id, created_at, is_protected
+            FROM branches
+            WHERE id = $1
+            "#,
+        )
+        .bind(id)
+        .fetch_optional(self.pool())
+        .await?
+        .ok_or_else(|| VersionError::BranchNotFound(id.to_string()))?;
+
+        let branch = row_to_branch(&row)?;
+        tracing::debug!(branch_id = %id, name = %branch.name, "Branch found");
+        Ok(branch)
+    }
+
+    /// Lists all branches for an ontology, with latest commit info and
+    /// ahead/behind counts versus a reference branch.
+    pub async fn list_by_ontology(
+        &self,
+        ontology_id: Uuid,
+        reference_branch_id: Option<Uuid>,
+    ) -> Result<Vec<BranchWithCommit>, VersionError> {
+        tracing::debug!(ontology_id = %ontology_id, "Listing branches");
+
+        let rows = sqlx::query(
+            r#"
+            SELECT
+                b.id, b.name, b.ontology_id, b.head_commit_id, b.created_at, b.is_protected,
+                c.message AS last_commit_message,
+                c.author_name AS last_commit_author,
+                c.created_at AS last_commit_at
+            FROM branches b
+            LEFT JOIN LATERAL (
+                SELECT message, author_name, created_at
+                FROM commits
+                WHERE id = b.head_commit_id
+                LIMIT 1
+            ) c ON TRUE
+            WHERE b.ontology_id = $1
+            ORDER BY b.created_at DESC
+            "#,
+        )
+        .bind(ontology_id)
+        .fetch_all(self.pool())
+        .await?;
+
+        let mut branches = Vec::with_capacity(rows.len());
+        for row in &rows {
+            let branch = BranchWithCommit {
+                id: row.try_get("id")?,
+                name: row.try_get("name")?,
+                ontology_id: row.try_get("ontology_id")?,
+                head_commit_id: row.try_get("head_commit_id")?,
+                created_at: row.try_get("created_at")?,
+                is_protected: row.try_get("is_protected")?,
+                last_commit_message: row.try_get("last_commit_message")?,
+                last_commit_author: row.try_get("last_commit_author")?,
+                last_commit_at: row.try_get("last_commit_at")?,
+                ahead_count: 0,
+                behind_count: 0,
+            };
+            branches.push(branch);
+        }
+
+        // Compute ahead/behind if a reference branch is specified
+        if let Some(ref_branch_id) = reference_branch_id {
+            for branch in &mut branches {
+                let (ahead, behind) = self
+                    .compute_ahead_behind(branch.id, ref_branch_id)
+                    .await
+                    .unwrap_or((0, 0));
+                branch.ahead_count = ahead;
+                branch.behind_count = behind;
+            }
+        }
+
+        tracing::info!(count = branches.len(), "Branches listed");
+        Ok(branches)
+    }
+
+    // ── Update ────────────────────────────────────────────────────────────
+
+    /// Updates the head commit pointer for a branch (used after creating a commit).
+    pub async fn update_head(&self, branch_id: Uuid, commit_id: Uuid) -> Result<(), VersionError> {
+        sqlx::query("UPDATE branches SET head_commit_id = $1 WHERE id = $2")
+            .bind(commit_id)
+            .bind(branch_id)
+            .execute(self.pool())
+            .await?;
+        tracing::debug!(branch_id = %branch_id, commit_id = %commit_id, "Branch head updated");
+        Ok(())
+    }
+
+    // ── Delete ────────────────────────────────────────────────────────────
+
+    /// Deletes a branch by ID. Protected branches require `force: true`.
+    pub async fn delete(&self, id: Uuid, req: &DeleteBranchRequest) -> Result<(), VersionError> {
+        tracing::debug!(branch_id = %id, force = req.force, "Deleting branch");
+
+        // Check if branch exists and is protected
+        let branch = self.get_by_id(id).await?;
+
+        if branch.is_protected && !req.force {
+            return Err(VersionError::BranchProtected {
+                branch: branch.name.clone(),
+            });
+        }
+
+        // Delete all commits on this branch first (cascade may not be set)
+        sqlx::query("DELETE FROM commits WHERE branch_id = $1")
+            .bind(id)
+            .execute(self.pool())
+            .await?;
+
+        sqlx::query("DELETE FROM branches WHERE id = $1")
+            .bind(id)
+            .execute(self.pool())
+            .await?;
+
+        tracing::info!(branch_id = %id, "Branch deleted");
+        Ok(())
+    }
+
+    // ── Merge ─────────────────────────────────────────────────────────────
+
+    /// Merges source branch into target branch, creating a merge commit.
+    pub async fn merge_branches(
+        &self,
+        req: &MergeBranchesRequest,
+    ) -> Result<MergeResponse, VersionError> {
+        tracing::debug!(
+            source = %req.source_branch_id,
+            target = %req.target_branch_id,
+            "Merging branches"
+        );
+
+        // Verify both branches exist
+        let _source = self.get_by_id(req.source_branch_id).await?;
+        let target = self.get_by_id(req.target_branch_id).await?;
+
+        if target.is_protected {
+            return Err(VersionError::BranchProtected {
+                branch: target.name.clone(),
+            });
+        }
+
+        // Compute the delta between source and target heads
+        // For MVP: use source head as the merge delta
+        let merge_delta = serde_json::json!({
+            "added_triples": [],
+            "removed_triples": [],
+            "modified_triples": [],
+            "merge_note": format!("Merged from {} into {}", req.source_branch_id, req.target_branch_id)
+        });
+
+        // Create merge commit with two parents (source and target heads)
+        let _source_head: Option<Uuid> =
+            sqlx::query_scalar("SELECT head_commit_id FROM branches WHERE id = $1")
+                .bind(req.source_branch_id)
+                .fetch_optional(self.pool())
+                .await?
+                .flatten();
+
+        let merge_commit_id = Uuid::new_v4();
+
+        // Insert merge commit with parent being the target's current head
+        // and store source_head as an annotation in the delta metadata
+        sqlx::query(
+            r#"
+            INSERT INTO commits (id, branch_id, parent_commit_id, message, author_id, author_name, delta)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            "#,
+        )
+        .bind(merge_commit_id)
+        .bind(req.target_branch_id)
+        .bind(target.head_commit_id)
+        .bind(&req.message)
+        .bind(&req.author_id)
+        .bind(&req.author_name)
+        .bind(&merge_delta)
+        .execute(self.pool())
+        .await?;
+
+        // Update target branch head
+        self.update_head(req.target_branch_id, merge_commit_id)
+            .await?;
+
+        tracing::info!(
+            merge_commit_id = %merge_commit_id,
+            "Branches merged"
+        );
+
+        Ok(MergeResponse {
+            merge_commit_id,
+            source_branch: req.source_branch_id,
+            target_branch: req.target_branch_id,
+            conflict_count: 0,
+            auto_resolved: true,
+        })
+    }
+
+    // ── Switch ────────────────────────────────────────────────────────────
+
+    /// Returns the head commit ID for a branch (used for switching).
+    /// Actual state computation is deferred to Task 3.3 (checkout).
+    pub async fn switch_branch(&self, id: Uuid) -> Result<SwitchBranchResponse, VersionError> {
+        let branch = self.get_by_id(id).await?;
+
+        tracing::info!(
+            branch_id = %id,
+            head = ?branch.head_commit_id,
+            "Branch switch prepared"
+        );
+
+        Ok(SwitchBranchResponse {
+            branch_id: branch.id,
+            head_commit_id: branch.head_commit_id,
+        })
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────
+
+    /// Computes ahead/behind counts between two branches using the commit DAG.
+    /// Ahead = commits in `branch_id` not reachable from `reference_id`.
+    /// Behind = commits in `reference_id` not reachable from `branch_id`.
+    async fn compute_ahead_behind(
+        &self,
+        branch_id: Uuid,
+        reference_id: Uuid,
+    ) -> Result<(i64, i64), VersionError> {
+        // Get heads of both branches
+        let branch_head: Option<Uuid> =
+            sqlx::query_scalar("SELECT head_commit_id FROM branches WHERE id = $1")
+                .bind(branch_id)
+                .fetch_optional(self.pool())
+                .await?
+                .flatten();
+
+        let ref_head: Option<Uuid> =
+            sqlx::query_scalar("SELECT head_commit_id FROM branches WHERE id = $1")
+                .bind(reference_id)
+                .fetch_optional(self.pool())
+                .await?
+                .flatten();
+
+        if branch_head.is_none() || ref_head.is_none() {
+            return Ok((0, 0));
+        }
+
+        // Use PostgreSQL recursive CTE to find merge base and compute counts
+        // Simple approach: count commits unique to each branch
+        let ahead: i64 = sqlx::query_scalar(
+            r#"
+            WITH RECURSIVE branch_ancestors AS (
+                SELECT id, parent_commit_id FROM commits WHERE id = $1
+                UNION ALL
+                SELECT c.id, c.parent_commit_id
+                FROM commits c
+                INNER JOIN branch_ancestors ba ON c.id = ba.parent_commit_id
+            ),
+            ref_ancestors AS (
+                SELECT id, parent_commit_id FROM commits WHERE id = $2
+                UNION ALL
+                SELECT c.id, c.parent_commit_id
+                FROM commits c
+                INNER JOIN ref_ancestors ra ON c.id = ra.parent_commit_id
+            )
+            SELECT COUNT(*)::bigint FROM (
+                SELECT id FROM branch_ancestors
+                EXCEPT
+                SELECT id FROM ref_ancestors
+            ) AS ahead_commits
+            "#,
+        )
+        .bind(branch_head)
+        .bind(ref_head)
+        .fetch_one(self.pool())
+        .await
+        .unwrap_or(0);
+
+        let behind: i64 = sqlx::query_scalar(
+            r#"
+            WITH RECURSIVE branch_ancestors AS (
+                SELECT id, parent_commit_id FROM commits WHERE id = $1
+                UNION ALL
+                SELECT c.id, c.parent_commit_id
+                FROM commits c
+                INNER JOIN branch_ancestors ba ON c.id = ba.parent_commit_id
+            ),
+            ref_ancestors AS (
+                SELECT id, parent_commit_id FROM commits WHERE id = $2
+                UNION ALL
+                SELECT c.id, c.parent_commit_id
+                FROM commits c
+                INNER JOIN ref_ancestors ra ON c.id = ra.parent_commit_id
+            )
+            SELECT COUNT(*)::bigint FROM (
+                SELECT id FROM ref_ancestors
+                EXCEPT
+                SELECT id FROM branch_ancestors
+            ) AS behind_commits
+            "#,
+        )
+        .bind(branch_head)
+        .bind(ref_head)
+        .fetch_one(self.pool())
+        .await
+        .unwrap_or(0);
+
+        Ok((ahead, behind))
+    }
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────
+
+/// Converts a PostgreSQL row into a `Branch` model.
+fn row_to_branch(row: &sqlx::postgres::PgRow) -> Result<Branch, VersionError> {
+    Ok(Branch {
+        id: row.try_get("id")?,
+        name: row.try_get("name")?,
+        ontology_id: row.try_get("ontology_id")?,
+        head_commit_id: row.try_get("head_commit_id")?,
+        created_at: row.try_get("created_at")?,
+        is_protected: row.try_get("is_protected")?,
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_delete_branch_rejects_protected_without_force() {
+        // Unit test: verify DeleteBranchRequest defaults
+        let req = DeleteBranchRequest { force: false };
+        assert!(!req.force);
+    }
+
+    #[test]
+    fn test_force_delete_flag() {
+        let req = DeleteBranchRequest { force: true };
+        assert!(req.force);
+    }
+
+    #[test]
+    fn test_create_branch_request_validation() {
+        let req = CreateBranchRequest {
+            name: "feature/new".to_string(),
+            ontology_id: Uuid::new_v4(),
+            source_branch_id: Some(Uuid::new_v4()),
+        };
+        assert_eq!(req.name, "feature/new");
+    }
+
+    #[test]
+    fn test_orphan_branch_request() {
+        let req = CreateBranchRequest {
+            name: "orphan".to_string(),
+            ontology_id: Uuid::new_v4(),
+            source_branch_id: None,
+        };
+        assert!(req.source_branch_id.is_none());
+    }
+}

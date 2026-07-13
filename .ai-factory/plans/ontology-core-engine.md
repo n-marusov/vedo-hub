@@ -247,7 +247,7 @@ Phase 1-9: Implementation
 ## Tasks
 
 - [ ] <!-- Progress tracking block — update [ ] to [x] as tasks are completed -->
-- [x] **Total: 28 tasks** | **Completed: 11** | **In progress: 0**
+- [x] **Total: 28 tasks** | **Completed: 14** | **In progress: 0**
 
 ---
 
@@ -605,7 +605,7 @@ Phase 1-9: Implementation
 
 ### Phase 3: Versioning Service — Commits & Branches
 
-- [ ] **Task 3.1: Implement commit model and creation**
+- [x] **Task 3.1: Implement commit model and creation**
     Write unit tests first: test commit creation with delta, commit history pagination, empty delta validation, parent commit linking.
     
     Then implement:
@@ -636,7 +636,7 @@ Phase 1-9: Implementation
     
     Dependencies: Task 1.3
 
-- [ ] **Task 3.2: Implement branch model and management**
+- [x] **Task 3.2: Implement branch model and management**
     Write unit tests first: test branch creation (fork from existing), branch listing, protected branch enforcement, branch deletion with unmerged warning.
     
     Then implement:
@@ -666,7 +666,7 @@ Phase 1-9: Implementation
     
     Dependencies: Task 3.1
 
-- [ ] **Task 3.3: Implement checkout/rollback and materialized state sync**
+- [x] **Task 3.3: Implement checkout/rollback and materialized state sync**
     Write unit tests first: test checkout (full state replay from deltas), rollback (inverse delta creation), materialized state cache push, empty state for new branches.
     
     Then implement:
@@ -1071,7 +1071,7 @@ Total: 28 tasks
 ├── Phase 0: Specs & E2E Tests   [x] 4/4 — US gap closure, E2E scenarios, Playwright tests
 ├── Phase 1: Infrastructure      [x] 4/4 — workspace, drivers, gateway
 ├── Phase 2: TBox CRUD           [x] 3/3 — classes, properties, graph queries
-├── Phase 3: Versioning          [ ] 0/3 — commits, branches, checkout
+├── Phase 3: Versioning          [x] 3/3 — commits, branches, checkout
 ├── Phase 4: ABox                [ ] 0/1 — individuals
 ├── Phase 5: Import/Export       [ ] 0/2 — Turtle, RDF/XML
 ├── Phase 6: API Gateway         [ ] 0/3 — proxy, SPARQL, REST API
