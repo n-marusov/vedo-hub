@@ -247,7 +247,7 @@ Phase 1-9: Implementation
 ## Tasks
 
 - [ ] <!-- Progress tracking block — update [ ] to [x] as tasks are completed -->
-- [x] **Total: 28 tasks** | **Completed: 9** | **In progress: 0**
+- [x] **Total: 28 tasks** | **Completed: 11** | **In progress: 0**
 
 ---
 
@@ -542,7 +542,7 @@ Phase 1-9: Implementation
     
     Dependencies: Task 1.2
 
-- [ ] **Task 2.2: Implement ObjectProperty and DatatypeProperty CRUD**
+- [x] **Task 2.2: Implement ObjectProperty and DatatypeProperty CRUD**
     Write unit tests first: test property creation with domain/range, ObjectProperty vs DatatypeProperty validation, property listing by class, property update with characteristic changes.
     
     Then implement:
@@ -571,7 +571,7 @@ Phase 1-9: Implementation
     
     Dependencies: Task 2.1 (depends on class model)
 
-- [ ] **Task 2.3: Implement class hierarchy tree and graph neighborhood queries**
+- [x] **Task 2.3: Implement class hierarchy tree and graph neighborhood queries**
     Write unit tests first: test ancestor chain query, descendant tree with depth limit, graph neighborhood with property edges, search with autocomplete, pagination consistency.
     
     Then implement Neo4j traversal queries:
@@ -1068,9 +1068,9 @@ Phase 1-9: Implementation
 
 ```
 Total: 28 tasks
-├── Phase 0: Specs & E2E Tests   [ ] 0/4 — US gap closure, E2E scenarios, Playwright tests
-├── Phase 1: Infrastructure      [ ] 0/4 — workspace, drivers, gateway
-├── Phase 2: TBox CRUD           [ ] 0/3 — classes, properties, graph queries
+├── Phase 0: Specs & E2E Tests   [x] 4/4 — US gap closure, E2E scenarios, Playwright tests
+├── Phase 1: Infrastructure      [x] 4/4 — workspace, drivers, gateway
+├── Phase 2: TBox CRUD           [x] 3/3 — classes, properties, graph queries
 ├── Phase 3: Versioning          [ ] 0/3 — commits, branches, checkout
 ├── Phase 4: ABox                [ ] 0/1 — individuals
 ├── Phase 5: Import/Export       [ ] 0/2 — Turtle, RDF/XML

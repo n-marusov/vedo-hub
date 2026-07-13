@@ -1,5 +1,6 @@
 mod classes;
 mod neo4j;
+mod properties;
 
 use std::env;
 use std::net::SocketAddr;
@@ -104,6 +105,10 @@ async fn main() {
             get(classes::list_root_classes_handler),
         )
         .route(
+            "/api/v1/ontologies/{ontology_id}/classes/search/autocomplete",
+            get(classes::autocomplete_search_handler),
+        )
+        .route(
             "/api/v1/ontologies/{ontology_id}/classes/{class_id}",
             get(classes::get_class_handler)
                 .put(classes::update_class_handler)
@@ -112,10 +117,42 @@ async fn main() {
         .route(
             "/api/v1/ontologies/{ontology_id}/classes/{class_id}/children",
             get(classes::get_class_children_handler),
+        )
+        .route(
+            "/api/v1/ontologies/{ontology_id}/classes/{class_id}/ancestors",
+            get(classes::get_ancestors_handler),
+        )
+        .route(
+            "/api/v1/ontologies/{ontology_id}/classes/{class_id}/descendants",
+            get(classes::get_descendants_handler),
+        )
+        .route(
+            "/api/v1/ontologies/{ontology_id}/classes/{class_id}/breadcrumb",
+            get(classes::get_breadcrumb_handler),
+        )
+        .route(
+            "/api/v1/ontologies/{ontology_id}/classes/{class_id}/neighborhood",
+            get(classes::get_neighborhood_handler),
         );
 
     // Merge class routes with the app state
     let app = app.merge(class_routes.with_state(state.clone()));
+
+    // Property CRUD routes
+    let property_routes = Router::new()
+        .route(
+            "/api/v1/ontologies/{ontology_id}/properties",
+            post(properties::create_property_handler).get(properties::list_properties_handler),
+        )
+        .route(
+            "/api/v1/ontologies/{ontology_id}/properties/{property_id}",
+            get(properties::get_property_handler)
+                .put(properties::update_property_handler)
+                .delete(properties::delete_property_handler),
+        );
+
+    // Merge property routes with the app state
+    let app = app.merge(property_routes.with_state(state.clone()));
 
     let addr: SocketAddr = format!("0.0.0.0:{port}").parse().expect("invalid address");
     tracing::info!(port = %port, "Starting ontology-service");

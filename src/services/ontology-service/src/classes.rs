@@ -752,6 +752,354 @@ impl ClassRepository {
             None => Ok(0),
         }
     }
+
+    /// Returns ancestor chain: closest parent(s) first, root last.
+    /// max_depth: 0 = unlimited, otherwise max hops up the hierarchy.
+    pub async fn get_ancestors(
+        &self,
+        ontology_id: &str,
+        class_id: &str,
+        max_depth: u64,
+    ) -> Result<Vec<OwlClassSummary>, ClassError> {
+        debug!(ontology_id, %class_id, max_depth, "Getting ancestors");
+
+        // Verify class exists
+        let _ = self.get(ontology_id, class_id).await?;
+
+        let depth = if max_depth == 0 {
+            100
+        } else {
+            max_depth as i64
+        };
+        let query = format!(
+            "\
+            MATCH (c:Class {{id: $class_id, ontology_id: $ontology_id}})\
+            MATCH (c)-[:CHILD_OF*1..{depth}]->(ancestor:Class)\
+            RETURN DISTINCT ancestor.id AS id, ancestor.label AS label,\
+                   ancestor.comment AS comment\
+            ORDER BY length((c)-[:CHILD_OF*]->(ancestor))\
+        "
+        );
+
+        let q = neo4rs::Query::new(query.to_string())
+            .param("ontology_id", ontology_id)
+            .param("class_id", class_id);
+
+        let mut result = self.pool.graph().execute(q).await.map_err(|e| {
+            error!(error = %e, ontology_id, %class_id, "Failed to get ancestors");
+            ClassError::Database(e.to_string())
+        })?;
+
+        let mut items = Vec::new();
+        while let Ok(Some(row)) = result.next().await {
+            if let Ok(id) = row.get::<String>("id") {
+                let label: String = row.get("label").unwrap_or_default();
+                let comment: Option<String> =
+                    row.get("comment").ok().filter(|c: &String| !c.is_empty());
+                items.push(OwlClassSummary {
+                    id,
+                    label,
+                    comment,
+                    parents: Vec::new(),
+                });
+            }
+        }
+
+        debug!(ontology_id, %class_id, ancestor_count = items.len(), "Ancestors retrieved");
+        Ok(items)
+    }
+
+    /// Builds the descendant tree as a nested structure.
+    /// max_depth: 0 = unlimited.
+    pub async fn get_descendants_tree(
+        &self,
+        ontology_id: &str,
+        class_id: &str,
+        max_depth: u64,
+    ) -> Result<Vec<ClassTreeNode>, ClassError> {
+        debug!(ontology_id, %class_id, max_depth, "Getting descendants tree");
+
+        // Verify class exists
+        let _ = self.get(ontology_id, class_id).await?;
+
+        let depth = if max_depth == 0 {
+            100
+        } else {
+            max_depth as i64
+        };
+        let query = format!(
+            "\
+            MATCH (c:Class {{id: $class_id, ontology_id: $ontology_id}})\
+            MATCH (descendant:Class)-[:CHILD_OF*1..{depth}]->(c)\
+            OPTIONAL MATCH (descendant)-[:CHILD_OF]->(direct_parent:Class)\
+            WITH descendant, collect(DISTINCT direct_parent.id) AS pids\
+            RETURN descendant.id AS id, descendant.label AS label,\
+                   descendant.comment AS comment, pids\
+            ORDER BY descendant.label\
+        "
+        );
+
+        let q = neo4rs::Query::new(query.to_string())
+            .param("ontology_id", ontology_id)
+            .param("class_id", class_id);
+
+        let mut result = self.pool.graph().execute(q).await.map_err(|e| {
+            error!(error = %e, ontology_id, %class_id, "Failed to get descendants");
+            ClassError::Database(e.to_string())
+        })?;
+
+        // Build flat map of id → (label, comment, parent_ids)
+        let mut flat: std::collections::HashMap<String, (String, Option<String>, Vec<String>)> =
+            std::collections::HashMap::new();
+        while let Ok(Some(row)) = result.next().await {
+            if let Ok(id) = row.get::<String>("id") {
+                let label: String = row.get("label").unwrap_or_default();
+                let comment: Option<String> =
+                    row.get("comment").ok().filter(|c: &String| !c.is_empty());
+                let pids: Vec<String> = row.get("pids").unwrap_or_default();
+                flat.insert(id, (label, comment, pids));
+            }
+        }
+
+        // Build parent → children adjacency
+        let mut children_map: std::collections::HashMap<String, Vec<ClassTreeNode>> =
+            std::collections::HashMap::new();
+
+        // Seed with direct children of the requested class
+        let mut roots: Vec<ClassTreeNode> = Vec::new();
+
+        for (desc_id, (label, _comment, parent_ids)) in &flat {
+            let tree_node = ClassTreeNode {
+                id: desc_id.clone(),
+                label: label.clone(),
+                children: Vec::new(),
+            };
+            // Determine if this is a direct child of class_id
+            let is_direct_child = parent_ids.iter().any(|pid| pid == class_id);
+            if is_direct_child {
+                roots.push(tree_node);
+            } else {
+                // Add to parent's children list
+                for pid in parent_ids {
+                    if flat.contains_key(pid) {
+                        children_map
+                            .entry(pid.clone())
+                            .or_default()
+                            .push(tree_node.clone());
+                    }
+                }
+            }
+        }
+
+        // Recursively attach children
+        fn attach_children(
+            nodes: &mut [ClassTreeNode],
+            children_map: &std::collections::HashMap<String, Vec<ClassTreeNode>>,
+        ) {
+            for node in nodes.iter_mut() {
+                if let Some(mut kids) = children_map.get(&node.id).cloned() {
+                    attach_children(&mut kids, children_map);
+                    node.children = kids;
+                }
+            }
+        }
+
+        attach_children(&mut roots, &children_map);
+
+        debug!(ontology_id, %class_id, descendant_count = roots.len(), "Descendants tree built");
+        Ok(roots)
+    }
+
+    /// Returns breadcrumb path from root ancestor(s) to the given class.
+    /// Each chain starts at a root (no parent) and ends at the class.
+    pub async fn get_breadcrumb(
+        &self,
+        ontology_id: &str,
+        class_id: &str,
+    ) -> Result<Vec<BreadcrumbItem>, ClassError> {
+        debug!(ontology_id, %class_id, "Getting breadcrumb");
+
+        let query = "\
+            MATCH (c:Class {id: $class_id, ontology_id: $ontology_id})\
+            MATCH path = (root:Class)-[:CHILD_OF*0..]->(c)\
+            WHERE NOT EXISTS((root)-[:CHILD_OF]->())\
+            WITH root, length(path) AS depth\
+            ORDER BY depth ASC\
+            LIMIT 1\
+            MATCH path2 = (root)-[:CHILD_OF*0..]->(c)\
+            WITH nodes(path2) AS chain\
+            UNWIND chain AS node\
+            RETURN DISTINCT node.id AS id, node.label AS label\
+        ";
+
+        let q = neo4rs::Query::new(query.to_string())
+            .param("ontology_id", ontology_id)
+            .param("class_id", class_id);
+
+        let mut result = self.pool.graph().execute(q).await.map_err(|e| {
+            error!(error = %e, ontology_id, %class_id, "Failed to get breadcrumb");
+            ClassError::Database(e.to_string())
+        })?;
+
+        let mut items = Vec::new();
+        while let Ok(Some(row)) = result.next().await {
+            if let Ok(id) = row.get::<String>("id") {
+                let label: String = row.get("label").unwrap_or_default();
+                items.push(BreadcrumbItem { id, label });
+            }
+        }
+
+        if items.is_empty() {
+            return Err(ClassError::NotFound(class_id.to_string()));
+        }
+
+        debug!(ontology_id, %class_id, breadcrumb_len = items.len(), "Breadcrumb retrieved");
+        Ok(items)
+    }
+
+    /// Autocomplete search: returns matching classes sorted by label, capped at `limit`.
+    pub async fn autocomplete_search(
+        &self,
+        ontology_id: &str,
+        search: &str,
+        limit: u64,
+    ) -> Result<Vec<OwlClassSummary>, ClassError> {
+        debug!(ontology_id, search, limit, "Autocomplete search");
+
+        let max_limit = limit.min(20);
+        let query = "\
+            MATCH (c:Class {ontology_id: $ontology_id})\
+            WHERE toLower(c.label) CONTAINS toLower($search)\
+            RETURN c.id AS id, c.label AS label, c.comment AS comment\
+            ORDER BY c.label\
+            LIMIT $limit\
+        ";
+
+        let q = neo4rs::Query::new(query.to_string())
+            .param("ontology_id", ontology_id)
+            .param("search", search)
+            .param("limit", max_limit as i64);
+
+        let mut result = self.pool.graph().execute(q).await.map_err(|e| {
+            error!(error = %e, ontology_id, "Failed to autocomplete search");
+            ClassError::Database(e.to_string())
+        })?;
+
+        let mut items = Vec::new();
+        while let Ok(Some(row)) = result.next().await {
+            if let Ok(id) = row.get::<String>("id") {
+                let label: String = row.get("label").unwrap_or_default();
+                let comment: Option<String> =
+                    row.get("comment").ok().filter(|c: &String| !c.is_empty());
+                items.push(OwlClassSummary {
+                    id,
+                    label,
+                    comment,
+                    parents: Vec::new(),
+                });
+            }
+        }
+
+        debug!(
+            ontology_id,
+            returned = items.len(),
+            "Autocomplete search completed"
+        );
+        Ok(items)
+    }
+
+    /// Graph neighborhood: returns classes connected to the given class via ObjectProperties.
+    /// depth: 1 = directly connected only.
+    pub async fn get_graph_neighborhood(
+        &self,
+        ontology_id: &str,
+        class_id: &str,
+        depth: u64,
+    ) -> Result<GraphNeighborhood, ClassError> {
+        debug!(ontology_id, %class_id, depth, "Getting graph neighborhood");
+
+        // Verify class exists
+        let _ = self.get(ontology_id, class_id).await?;
+
+        if depth == 0 {
+            // Return the single class as a lone node
+            let class = self.get(ontology_id, class_id).await?;
+            return Ok(GraphNeighborhood {
+                nodes: vec![GraphNode {
+                    id: class.id.clone(),
+                    label: class.label,
+                }],
+                edges: Vec::new(),
+            });
+        }
+
+        // Depth 1: direct neighbor classes via property domain/range relationships
+        let query = "\
+            MATCH (c:Class {id: $class_id, ontology_id: $ontology_id})\
+            MATCH (c)<-[:DOMAIN|:RANGE]-(p:Property)-[:DOMAIN|:RANGE]->(other:Class)\
+            WHERE other.id <> $class_id AND other.ontology_id = $ontology_id\
+            RETURN DISTINCT\
+                other.id AS node_id, other.label AS node_label,\
+                p.id AS edge_property_id, p.label AS edge_property_label,\
+                CASE\
+                    WHEN (p)-[:DOMAIN]->(c) AND (p)-[:RANGE]->(other) THEN 'outgoing'\
+                    WHEN (p)-[:RANGE]->(c) AND (p)-[:DOMAIN]->(other) THEN 'incoming'\
+                    ELSE 'undirected'\
+                END AS direction\
+        ";
+
+        let q = neo4rs::Query::new(query.to_string())
+            .param("ontology_id", ontology_id)
+            .param("class_id", class_id);
+
+        let mut result = self.pool.graph().execute(q).await.map_err(|e| {
+            error!(error = %e, ontology_id, %class_id, "Failed to get graph neighborhood");
+            ClassError::Database(e.to_string())
+        })?;
+
+        let mut nodes_map: std::collections::HashMap<String, String> =
+            std::collections::HashMap::new();
+        let mut edges = Vec::new();
+
+        while let Ok(Some(row)) = result.next().await {
+            if let Ok(node_id) = row.get::<String>("node_id") {
+                let node_label: String = row.get("node_label").unwrap_or_default();
+                nodes_map.entry(node_id.clone()).or_insert(node_label);
+
+                if let Ok(prop_id) = row.get::<String>("edge_property_id") {
+                    let prop_label: String = row.get("edge_property_label").unwrap_or_default();
+                    let direction: String = row
+                        .get("direction")
+                        .unwrap_or_else(|_| "undirected".to_string());
+
+                    let (source_id, target_id) = if direction == "incoming" {
+                        (node_id.clone(), class_id.to_string())
+                    } else {
+                        (class_id.to_string(), node_id.clone())
+                    };
+
+                    edges.push(GraphEdge {
+                        source_id,
+                        target_id,
+                        property_id: prop_id,
+                        property_label: prop_label,
+                    });
+                }
+            }
+        }
+
+        // Include the center node itself
+        let center = self.get(ontology_id, class_id).await?;
+        nodes_map.entry(center.id.clone()).or_insert(center.label);
+
+        let nodes: Vec<GraphNode> = nodes_map
+            .into_iter()
+            .map(|(id, label)| GraphNode { id, label })
+            .collect();
+
+        debug!(ontology_id, %class_id, node_count = nodes.len(), edge_count = edges.len(), "Graph neighborhood retrieved");
+        Ok(GraphNeighborhood { nodes, edges })
+    }
 }
 
 /// Lightweight class summary used in list responses.
@@ -860,7 +1208,147 @@ pub struct DeleteClassParams {
     pub cascade: bool,
 }
 
-// ── Tests ───────────────────────────────────────────────────────────────────────
+/// A node in the hierarchical class tree.
+#[derive(Debug, Clone, Serialize)]
+pub struct ClassTreeNode {
+    pub id: String,
+    pub label: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub children: Vec<ClassTreeNode>,
+}
+
+/// A single item in a breadcrumb trail.
+#[derive(Debug, Clone, Serialize)]
+pub struct BreadcrumbItem {
+    pub id: String,
+    pub label: String,
+}
+
+/// A node in the graph neighborhood visualization.
+#[derive(Debug, Clone, Serialize)]
+pub struct GraphNode {
+    pub id: String,
+    pub label: String,
+}
+
+/// An edge in the graph neighborhood visualization.
+#[derive(Debug, Clone, Serialize)]
+pub struct GraphEdge {
+    pub source_id: String,
+    pub target_id: String,
+    pub property_id: String,
+    pub property_label: String,
+}
+
+/// The graph neighborhood response for a class.
+#[derive(Debug, Clone, Serialize)]
+pub struct GraphNeighborhood {
+    pub nodes: Vec<GraphNode>,
+    pub edges: Vec<GraphEdge>,
+}
+
+/// Query parameters for ancestor/descendant traversal.
+#[derive(Debug, Deserialize)]
+pub struct TraversalParams {
+    /// Max depth (0 = unlimited).
+    #[serde(default)]
+    pub max_depth: u64,
+}
+
+/// Query parameters for autocomplete search.
+#[derive(Debug, Deserialize)]
+pub struct AutocompleteParams {
+    /// The search string.
+    pub q: String,
+    /// Max results (default: 20, max: 20).
+    #[serde(default = "default_autocomplete_limit")]
+    pub limit: u64,
+}
+
+fn default_autocomplete_limit() -> u64 {
+    20
+}
+
+/// Query parameters for graph neighborhood.
+#[derive(Debug, Deserialize)]
+pub struct NeighborhoodParams {
+    /// Connection depth (default: 1).
+    #[serde(default = "default_neighborhood_depth")]
+    pub depth: u64,
+}
+
+fn default_neighborhood_depth() -> u64 {
+    1
+}
+
+// ── Graph / Traversal Handlers ─────────────────────────────────────────────
+
+/// GET `/api/v1/ontologies/{ontology_id}/classes/{class_id}/ancestors`
+pub async fn get_ancestors_handler(
+    State(state): State<Arc<AppState>>,
+    Path((ontology_id, class_id)): Path<(String, String)>,
+    Query(params): Query<TraversalParams>,
+) -> Result<Json<Vec<OwlClassSummary>>, ClassError> {
+    debug!(ontology_id, %class_id, max_depth = params.max_depth, "GET ancestors handler invoked");
+    let repo = repo_from_state(&state)?;
+    let result = repo
+        .get_ancestors(&ontology_id, &class_id, params.max_depth)
+        .await?;
+    Ok(Json(result))
+}
+
+/// GET `/api/v1/ontologies/{ontology_id}/classes/{class_id}/descendants`
+pub async fn get_descendants_handler(
+    State(state): State<Arc<AppState>>,
+    Path((ontology_id, class_id)): Path<(String, String)>,
+    Query(params): Query<TraversalParams>,
+) -> Result<Json<Vec<ClassTreeNode>>, ClassError> {
+    debug!(ontology_id, %class_id, max_depth = params.max_depth, "GET descendants handler invoked");
+    let repo = repo_from_state(&state)?;
+    let result = repo
+        .get_descendants_tree(&ontology_id, &class_id, params.max_depth)
+        .await?;
+    Ok(Json(result))
+}
+
+/// GET `/api/v1/ontologies/{ontology_id}/classes/{class_id}/breadcrumb`
+pub async fn get_breadcrumb_handler(
+    State(state): State<Arc<AppState>>,
+    Path((ontology_id, class_id)): Path<(String, String)>,
+) -> Result<Json<Vec<BreadcrumbItem>>, ClassError> {
+    debug!(ontology_id, %class_id, "GET breadcrumb handler invoked");
+    let repo = repo_from_state(&state)?;
+    let result = repo.get_breadcrumb(&ontology_id, &class_id).await?;
+    Ok(Json(result))
+}
+
+/// GET `/api/v1/ontologies/{ontology_id}/classes/search/autocomplete`
+pub async fn autocomplete_search_handler(
+    State(state): State<Arc<AppState>>,
+    Path(ontology_id): Path<String>,
+    Query(params): Query<AutocompleteParams>,
+) -> Result<Json<Vec<OwlClassSummary>>, ClassError> {
+    debug!(ontology_id, search = %params.q, limit = params.limit, "GET autocomplete search handler invoked");
+    let repo = repo_from_state(&state)?;
+    let result = repo
+        .autocomplete_search(&ontology_id, &params.q, params.limit)
+        .await?;
+    Ok(Json(result))
+}
+
+/// GET `/api/v1/ontologies/{ontology_id}/classes/{class_id}/neighborhood`
+pub async fn get_neighborhood_handler(
+    State(state): State<Arc<AppState>>,
+    Path((ontology_id, class_id)): Path<(String, String)>,
+    Query(params): Query<NeighborhoodParams>,
+) -> Result<Json<GraphNeighborhood>, ClassError> {
+    debug!(ontology_id, %class_id, depth = params.depth, "GET neighborhood handler invoked");
+    let repo = repo_from_state(&state)?;
+    let result = repo
+        .get_graph_neighborhood(&ontology_id, &class_id, params.depth)
+        .await?;
+    Ok(Json(result))
+}
 
 #[cfg(test)]
 mod tests {
