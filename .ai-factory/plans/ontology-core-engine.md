@@ -247,7 +247,7 @@ Phase 1-9: Implementation
 ## Tasks
 
 - [ ] <!-- Progress tracking block — update [ ] to [x] as tasks are completed -->
-- [x] **Total: 28 tasks** | **Completed: 14** | **In progress: 0**
+- [x] **Total: 28 tasks** | **Completed: 15** | **In progress: 0**
 
 ---
 
@@ -697,7 +697,7 @@ Phase 1-9: Implementation
 
 ### Phase 4: Ontology Service — ABox (Individuals)
 
-- [ ] **Task 4.1: Implement individual (ABox) CRUD**
+- [x] **Task 4.1: Implement individual (ABox) CRUD**
     Write unit tests first: test individual creation of a class, property value assignment (literal + reference), deletion with reference check, listing with property-based filter, cross-link navigation.
     
     Then implement:
@@ -1072,7 +1072,7 @@ Total: 28 tasks
 ├── Phase 1: Infrastructure      [x] 4/4 — workspace, drivers, gateway
 ├── Phase 2: TBox CRUD           [x] 3/3 — classes, properties, graph queries
 ├── Phase 3: Versioning          [x] 3/3 — commits, branches, checkout
-├── Phase 4: ABox                [ ] 0/1 — individuals
+├── Phase 4: ABox                [x] 1/1 — individuals
 ├── Phase 5: Import/Export       [ ] 0/2 — Turtle, RDF/XML
 ├── Phase 6: API Gateway         [ ] 0/3 — proxy, SPARQL, REST API
 ├── Phase 7: Integration Tests   [ ] 0/3 — Neo4j, PG, Gateway interfaces

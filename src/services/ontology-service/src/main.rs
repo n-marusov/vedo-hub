@@ -1,4 +1,5 @@
 mod classes;
+mod individuals;
 mod neo4j;
 mod properties;
 
@@ -153,6 +154,22 @@ async fn main() {
 
     // Merge property routes with the app state
     let app = app.merge(property_routes.with_state(state.clone()));
+
+    // Individual (ABox) CRUD routes
+    let individual_routes = Router::new()
+        .route(
+            "/api/v1/ontologies/{ontology_id}/individuals",
+            post(individuals::create_individual_handler).get(individuals::list_individuals_handler),
+        )
+        .route(
+            "/api/v1/ontologies/{ontology_id}/individuals/{individual_id}",
+            get(individuals::get_individual_handler)
+                .put(individuals::update_individual_handler)
+                .delete(individuals::delete_individual_handler),
+        );
+
+    // Merge individual routes with the app state
+    let app = app.merge(individual_routes.with_state(state.clone()));
 
     let addr: SocketAddr = format!("0.0.0.0:{port}").parse().expect("invalid address");
     tracing::info!(port = %port, "Starting ontology-service");
