@@ -1,10 +1,15 @@
+mod classes;
 mod neo4j;
 
 use std::env;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use axum::{extract::State, routing::get, Json, Router};
+use axum::{
+    extract::State,
+    routing::{get, post},
+    Json, Router,
+};
 use serde::Serialize;
 use tower_http::trace::TraceLayer;
 
@@ -13,7 +18,7 @@ const DEFAULT_PORT: &str = "8082";
 
 /// Application state shared across handlers.
 #[derive(Clone)]
-struct AppState {
+pub(crate) struct AppState {
     neo4j: Option<neo4j::Neo4jPool>,
 }
 
@@ -81,12 +86,36 @@ async fn main() {
     let app = app.merge(
         Router::new()
             .route("/health/db", get(neo4j_health_handler))
-            .with_state(state),
+            .with_state(state.clone()),
     );
 
     // Add shared health, ready, and metrics routes
     let app = vedo_shared::add_health_routes(app, SERVICE_NAME);
     let app = app.route("/metrics", get(vedo_shared::metrics_handler));
+
+    // Class CRUD routes — careful ordering: static paths before dynamic
+    let class_routes = Router::new()
+        .route(
+            "/api/v1/ontologies/{ontology_id}/classes",
+            post(classes::create_class_handler).get(classes::list_classes_handler),
+        )
+        .route(
+            "/api/v1/ontologies/{ontology_id}/classes/root",
+            get(classes::list_root_classes_handler),
+        )
+        .route(
+            "/api/v1/ontologies/{ontology_id}/classes/{class_id}",
+            get(classes::get_class_handler)
+                .put(classes::update_class_handler)
+                .delete(classes::delete_class_handler),
+        )
+        .route(
+            "/api/v1/ontologies/{ontology_id}/classes/{class_id}/children",
+            get(classes::get_class_children_handler),
+        );
+
+    // Merge class routes with the app state
+    let app = app.merge(class_routes.with_state(state.clone()));
 
     let addr: SocketAddr = format!("0.0.0.0:{port}").parse().expect("invalid address");
     tracing::info!(port = %port, "Starting ontology-service");

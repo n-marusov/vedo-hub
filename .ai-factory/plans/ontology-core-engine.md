@@ -247,7 +247,7 @@ Phase 1-9: Implementation
 ## Tasks
 
 - [ ] <!-- Progress tracking block — update [ ] to [x] as tasks are completed -->
-- [x] **Total: 28 tasks** | **Completed: 8** | **In progress: 0**
+- [x] **Total: 28 tasks** | **Completed: 9** | **In progress: 0**
 
 ---
 
@@ -509,7 +509,7 @@ Phase 1-9: Implementation
 
 ### Phase 2: Ontology Service — TBox (Classes & Properties)
 
-- [ ] **Task 2.1: Implement class CRUD with Neo4j**
+- [x] **Task 2.1: Implement class CRUD with Neo4j**
     Write unit tests first: test class creation Cypher query, class retrieval with hierarchy, class update with parent rewrite, class deletion with cascade warning.
     
     Then implement: Full class lifecycle with Neo4j Cypher queries:
