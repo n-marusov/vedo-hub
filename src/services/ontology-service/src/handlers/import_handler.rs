@@ -20,10 +20,20 @@ use crate::AppState;
 /// Query parameters for the import endpoint.
 #[derive(Debug, Deserialize)]
 pub struct ImportParams {
-    /// Import format: "turtle" or "rdf-xml".
+    /// Import format: "turtle", "rdf-xml", or "owl-xml".
     /// If omitted, auto-detected from Content-Type header.
     #[serde(default)]
     pub format: Option<String>,
+    /// Import strategy: "replace", "merge", or "version".
+    /// - replace: delete existing ontology then import
+    /// - merge: add new triples, skip existing (default)
+    /// - version: import to a new branch
+    #[serde(default = "default_strategy")]
+    pub strategy: String,
+}
+
+fn default_strategy() -> String {
+    "merge".to_string()
 }
 
 /// Handles `POST /api/v1/ontologies/{ontology_id}/import`.
@@ -67,6 +77,8 @@ pub async fn import_ontology_handler(
                         "turtle"
                     } else if ct.contains("rdf+xml") {
                         "rdf-xml"
+                    } else if ct.contains("owl+xml") {
+                        "owl-xml"
                     } else {
                         // Fall back to turtle by default
                         "turtle"
@@ -78,10 +90,30 @@ pub async fn import_ontology_handler(
 
     let service = ImportService::new(pool);
 
-    let result = match format.as_str() {
-        "turtle" => service.import_turtle(&ontology_id, &body).await,
-        "rdf-xml" => service.import_rdf_xml(&ontology_id, &body).await,
-        other => {
+    debug!(
+        ontology_id,
+        format = %format,
+        strategy = %params.strategy,
+        "Import with strategy"
+    );
+
+    let result = match (format.as_str(), params.strategy.as_str()) {
+        ("turtle", _) => {
+            service
+                .import_with_strategy(&ontology_id, &body, "turtle", &params.strategy)
+                .await
+        }
+        ("rdf-xml", _) => {
+            service
+                .import_with_strategy(&ontology_id, &body, "rdf-xml", &params.strategy)
+                .await
+        }
+        ("owl-xml", _) => {
+            service
+                .import_with_strategy(&ontology_id, &body, "owl-xml", &params.strategy)
+                .await
+        }
+        (other, _) => {
             warn!(format = %other, "Unsupported import format");
             return (
                 StatusCode::BAD_REQUEST,
@@ -89,7 +121,7 @@ pub async fn import_ontology_handler(
                 Json(serde_json::json!({
                     "error": "UNSUPPORTED_FORMAT",
                     "detail": format!(
-                        "Unsupported import format: {other}. Supported values: turtle, rdf-xml"
+                        "Unsupported import format: {other}. Supported values: turtle, rdf-xml, owl-xml"
                     ),
                 })),
             );

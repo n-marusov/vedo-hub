@@ -19,7 +19,9 @@ use crate::models::{
 };
 use crate::repositories::CommitRepository;
 use crate::services::delta_service::DeltaReplayEngine;
-use crate::services::{StateService, SyncClient};
+use crate::services::semantic_diff::SemanticDiff;
+use crate::services::state_service::StateService;
+use crate::services::sync_client::SyncClient;
 use crate::AppState;
 
 /// Helper: extracts a `CommitRepository` from the application state or returns
@@ -134,6 +136,31 @@ pub async fn get_commit_delta_handler(
 
     info!(commit_id = %id, "Commit delta retrieved");
     Ok(Json(preview))
+}
+
+/// GET /api/v1/versioning/commits/{id}/semantic-diff — Get semantic diff for a commit.
+///
+/// Transforms the raw triple delta into entity-level diff entries
+/// categorized by entity type (class, property, individual) and change
+/// type (added, removed, modified). Useful for commit visualization.
+pub async fn get_commit_semantic_diff_handler(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<Uuid>,
+) -> Result<Json<SemanticDiff>, VersionError> {
+    debug!(commit_id = %id, "get_commit_semantic_diff_handler called");
+
+    let repo = repo_from_state(&state)?;
+    let commit = repo.get_by_id(id).await?;
+
+    let diff = crate::services::semantic_diff::compute_semantic_diff(&commit.delta);
+
+    info!(
+        commit_id = %id,
+        total_entities = diff.entries.len(),
+        "Semantic diff computed"
+    );
+
+    Ok(Json(diff))
 }
 
 /// Request body for checkout.

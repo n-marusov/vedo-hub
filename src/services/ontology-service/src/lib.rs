@@ -186,6 +186,13 @@ pub fn build_app(state: Arc<AppState>) -> Router {
     );
     let app = app.merge(import_routes.with_state(state.clone()));
 
+    // Validation route — SHACL-style ontology validation
+    let validation_routes = Router::new().route(
+        "/api/v1/ontologies/:ontology_id/validate",
+        post(handlers::validation_handler::validate_ontology_handler),
+    );
+    let app = app.merge(validation_routes.with_state(state.clone()));
+
     // GraphQL endpoint — serves one schema for the whole ontology-service
     let graphql_handler = |State(state): State<Arc<AppState>>,
                            Json(gql_req): Json<async_graphql::Request>| async move {
@@ -212,7 +219,8 @@ pub fn build_app(state: Arc<AppState>) -> Router {
     let app = app.merge(query_routes.with_state(state.clone()));
 
     tracing::info!(
-        routes_registered = "sparql,cypher,graphql,classes,properties,individuals,export,import",
+        routes_registered =
+            "sparql,cypher,graphql,classes,properties,individuals,export,import,validate",
         "Ontology-service routes registered"
     );
 

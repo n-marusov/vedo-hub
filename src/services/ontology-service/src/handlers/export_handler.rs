@@ -20,9 +20,18 @@ use crate::AppState;
 /// Query parameters for the export endpoint.
 #[derive(Debug, Deserialize)]
 pub struct ExportParams {
-    /// Export format: "turtle" or "rdf-xml" (default: "turtle").
+    /// Export format: "turtle", "rdf-xml", or "owl-xml" (default: "turtle").
     #[serde(default = "default_format")]
     pub format: String,
+    /// Optional branch ID for versioned export.
+    /// When specified, exports the materialized state at that branch.
+    #[serde(default)]
+    pub branch_id: Option<String>,
+    /// Optional commit ID for versioned export.
+    /// When specified, exports the materialized state at that commit.
+    /// Takes precedence over branch_id when both are provided.
+    #[serde(default)]
+    pub commit_id: Option<String>,
 }
 
 fn default_format() -> String {
@@ -55,29 +64,72 @@ pub async fn export_ontology_handler(
 
     let service = ExportService::new(pool);
 
-    let result = match params.format.as_str() {
-        "turtle" => service.export_turtle(&ontology_id).await,
-        "rdf-xml" => service.export_rdf_xml(&ontology_id).await,
-        other => {
-            warn!(format = %other, "Unsupported export format");
-            return (
-                StatusCode::BAD_REQUEST,
-                [(header::CONTENT_TYPE, "application/json")],
-                Json(serde_json::json!({
-                    "error": "UNSUPPORTED_FORMAT",
-                    "detail": format!("Unsupported export format: {other}. Supported values: turtle, rdf-xml"),
-                })),
-            )
-                .into_response();
+    // Check if version-aware export is requested
+    let has_version_params = params.branch_id.is_some() || params.commit_id.is_some();
+
+    let result = if has_version_params {
+        let versioning_url = std::env::var("VERSIONING_SERVICE_URL")
+            .ok()
+            .unwrap_or_else(|| "http://localhost:8083".to_string());
+        let commit_id = params.commit_id.as_deref();
+        let branch_id = params.branch_id.as_deref();
+
+        match params.format.as_str() {
+            "turtle" => {
+                service
+                    .export_turtle_versioned(&ontology_id, &versioning_url, branch_id, commit_id)
+                    .await
+            }
+            "rdf-xml" => {
+                service
+                    .export_rdf_xml_versioned(&ontology_id, &versioning_url, branch_id, commit_id)
+                    .await
+            }
+            "owl-xml" => {
+                service
+                    .export_owl_xml_versioned(&ontology_id, &versioning_url, branch_id, commit_id)
+                    .await
+            }
+            other => {
+                warn!(format = %other, "Unsupported export format");
+                return (
+                    StatusCode::BAD_REQUEST,
+                    [(header::CONTENT_TYPE, "application/json")],
+                    Json(serde_json::json!({
+                        "error": "UNSUPPORTED_FORMAT",
+                        "detail": format!("Unsupported export format: {other}. Supported values: turtle, rdf-xml, owl-xml"),
+                    })),
+                )
+                    .into_response();
+            }
+        }
+    } else {
+        match params.format.as_str() {
+            "turtle" => service.export_turtle(&ontology_id).await,
+            "rdf-xml" => service.export_rdf_xml(&ontology_id).await,
+            "owl-xml" => service.export_owl_xml(&ontology_id).await,
+            other => {
+                warn!(format = %other, "Unsupported export format");
+                return (
+                    StatusCode::BAD_REQUEST,
+                    [(header::CONTENT_TYPE, "application/json")],
+                    Json(serde_json::json!({
+                        "error": "UNSUPPORTED_FORMAT",
+                        "detail": format!("Unsupported export format: {other}. Supported values: turtle, rdf-xml, owl-xml"),
+                    })),
+                )
+                    .into_response();
+            }
         }
     };
 
     match result {
         Ok(content) => {
-            let content_type = if params.format == "turtle" {
-                "text/turtle"
-            } else {
-                "application/rdf+xml"
+            let content_type = match params.format.as_str() {
+                "turtle" => "text/turtle",
+                "rdf-xml" => "application/rdf+xml",
+                "owl-xml" => "application/owl+xml",
+                _ => "text/plain",
             };
 
             debug!(

@@ -1,4 +1,4 @@
-<!-- @ctx: Public ontology view strictly mirrored from design/frontend.pen frame pubOnt -->
+<!-- @ctx: Public ontology view — dynamically loaded from public-browse-api -->
 <template>
   <div class="public-page" role="main" aria-label="Public Ontology View">
     <header class="public-header">
@@ -6,19 +6,30 @@
         <img src="/vedo-core-logo-1.jpg" alt="VEDO Core" class="public-brand-logo" />
         <span class="public-brand-text">VEDO Core</span>
       </div>
-      <span class="public-center">Public Ontology View</span>
+      <span class="public-center">{{ metadata?.name ?? 'Public Ontology View' }}</span>
       <span class="public-readonly">Read-only</span>
     </header>
 
-    <div class="public-main">
+    <div v-if="loading" class="public-loading">Loading ontology...</div>
+    <div v-else-if="error" class="public-error">{{ error }}</div>
+
+    <div v-else class="public-main">
       <aside class="public-class card-side">
         <div class="public-tools">
           <Search :size="14" class="muted" />
           <div class="panel-input">Filter classes...</div>
         </div>
-        <div class="public-tree-row"><ChevronDown :size="12" /> <Folder :size="14" /> owl:Thing</div>
-        <div class="public-tree-row public-tree-row--active"><ChevronRight :size="12" /> <User :size="14" /> Person</div>
-        <div class="public-tree-row"><ChevronDown :size="12" /> <Building :size="14" /> Organization</div>
+        <div
+          v-for="node in classTree"
+          :key="node.id"
+          :class="['public-tree-row', { 'public-tree-row--active': selectedClassId === node.id }]"
+          @click="selectClass(node.id)"
+        >
+          <ChevronDown :size="12" />
+          <Folder :size="14" />
+          {{ node.label }}
+        </div>
+        <div v-if="classTree.length === 0" class="public-tree-row muted">No classes found</div>
       </aside>
 
       <section class="public-graph card-side">
@@ -27,16 +38,16 @@
           <span class="col-prop">Property</span>
           <span class="col-val">Value</span>
         </div>
-        <div class="graph-row"><span class="col-ind">Alice_Johnson</span><span class="col-prop">rdf:type</span><span class="col-val">Person</span></div>
-        <div class="graph-row"><span class="col-ind">Bob_Smith</span><span class="col-prop">rdf:type</span><span class="col-val">Person</span></div>
-        <div class="graph-row"><span class="col-ind">Acme_Corp</span><span class="col-prop">hasEmployee</span><span class="col-val">Alice_Johnson</span></div>
+        <div class="public-empty" v-if="metadata">Published ontology with {{ metadata.classCount }} classes, {{ metadata.propertyCount }} properties, {{ metadata.individualCount }} individuals</div>
       </section>
 
       <aside class="public-props card-side">
         <h2 class="prop-title">Properties</h2>
-        <div class="prop-row"><span>Person</span><span class="muted">Class</span></div>
-        <div class="prop-row"><span>Organization</span><span class="muted">Class</span></div>
-        <div class="prop-row"><span>worksFor</span><span class="muted">ObjectProperty</span></div>
+        <div v-for="prop in properties" :key="prop.id" class="prop-row">
+          <span>{{ prop.label }}</span>
+          <span class="muted">{{ prop.propertyType }}</span>
+        </div>
+        <div v-if="properties.length === 0" class="muted prop-row">No properties</div>
       </aside>
     </div>
 
@@ -48,7 +59,13 @@
 </template>
 
 <script setup lang="ts">
-import { Building, ChevronDown, ChevronRight, Folder, Globe, Search, User } from 'lucide-vue-next'
+import { useRoute } from 'vue-router'
+import { ChevronDown, Folder, Globe, Search } from 'lucide-vue-next'
+import { usePublicOntology } from '@/composables/usePublicOntology'
+
+const route = useRoute()
+const slug = (route.params.id as string) || 'default'
+const { metadata, classTree, properties, loading, error, selectedClassId, selectClass } = usePublicOntology(slug)
 </script>
 
 <style scoped>
@@ -58,6 +75,28 @@ import { Building, ChevronDown, ChevronRight, Folder, Globe, Search, User } from
   color: var(--foreground);
   display: flex;
   flex-direction: column;
+}
+
+.public-loading,
+.public-error {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px;
+  color: var(--muted-foreground);
+}
+
+.public-error {
+  color: var(--danger);
+}
+
+.public-empty {
+  padding: 16px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--muted-foreground);
 }
 
 .public-header {
@@ -146,6 +185,11 @@ import { Building, ChevronDown, ChevronRight, Folder, Globe, Search, User } from
   gap: 6px;
   font-family: 'IBM Plex Mono', monospace;
   font-size: 13px;
+  cursor: pointer;
+}
+
+.public-tree-row:hover {
+  background: var(--muted);
 }
 
 .public-tree-row--active {

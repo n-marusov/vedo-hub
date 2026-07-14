@@ -11,8 +11,9 @@ use axum::{
 
 use crate::handlers::{
     checkout_commit_handler, create_branch_handler, create_commit_handler, delete_branch_handler,
-    get_branch_handler, get_commit_delta_handler, get_commit_handler, list_branches_handler,
-    list_commits_handler, merge_branches_handler, rollback_commit_handler, switch_branch_handler,
+    get_branch_handler, get_commit_delta_handler, get_commit_handler,
+    get_commit_semantic_diff_handler, list_branches_handler, list_commits_handler,
+    merge_branches_handler, rollback_commit_handler, switch_branch_handler,
 };
 use crate::AppState;
 
@@ -42,6 +43,7 @@ pub fn build_routes() -> Router<Arc<AppState>> {
         .route("/", post(create_commit_handler).get(list_commits_handler))
         .route("/:id", get(get_commit_handler))
         .route("/:id/delta", get(get_commit_delta_handler))
+        .route("/:id/semantic-diff", get(get_commit_semantic_diff_handler))
         .route("/:id/checkout", post(checkout_commit_handler))
         .route("/:id/rollback", post(rollback_commit_handler));
 

@@ -53,24 +53,53 @@
             <div class="splitter"><GripVertical :size="8" /></div>
 
             <section class="graph-panel card-side">
-              <div class="graph-head">
-                <span class="col-ind">Individual</span>
-                <span class="col-prop">Property</span>
-                <span class="col-val">Value</span>
+              <div class="graph-panel__toolbar">
+                <button
+                  class="graph-panel__toggle"
+                  :class="{ 'graph-panel__toggle--active': viewMode === 'graph' }"
+                  @click="viewMode = 'graph'"
+                >
+                  Graph
+                </button>
+                <button
+                  class="graph-panel__toggle"
+                  :class="{ 'graph-panel__toggle--active': viewMode === 'table' }"
+                  @click="viewMode = 'table'"
+                >
+                  Table
+                </button>
               </div>
-              <div
-                v-for="ind in individuals"
-                :key="ind.id"
-                class="graph-row"
-                :class="{ 'graph-row--active': ind.id === selectedIndividualId }"
-              >
-                <span class="col-ind">{{ ind.label }}</span>
-                <span class="col-prop">rdf:type</span>
-                <span class="col-val">{{ ind.classLabel }}</span>
-              </div>
-              <div v-if="individuals.length === 0" class="graph-empty">
-                <span class="muted">No individuals. Select a class to browse.</span>
-              </div>
+
+              <!-- Graph Visualization view -->
+              <GraphVisualization
+                v-if="viewMode === 'graph'"
+                :nodes="graphNodes"
+                :edges="graphEdges"
+                :show-table-fallback="false"
+                @node-click="onGraphNodeClick"
+              />
+
+              <!-- Table view (existing) -->
+              <template v-else>
+                <div class="graph-head">
+                  <span class="col-ind">Individual</span>
+                  <span class="col-prop">Property</span>
+                  <span class="col-val">Value</span>
+                </div>
+                <div
+                  v-for="ind in individuals"
+                  :key="ind.id"
+                  class="graph-row"
+                  :class="{ 'graph-row--active': ind.id === selectedIndividualId }"
+                >
+                  <span class="col-ind">{{ ind.label }}</span>
+                  <span class="col-prop">rdf:type</span>
+                  <span class="col-val">{{ ind.classLabel }}</span>
+                </div>
+                <div v-if="individuals.length === 0" class="graph-empty">
+                  <span class="muted">No individuals. Select a class to browse.</span>
+                </div>
+              </template>
             </section>
 
             <div class="splitter"><GripVertical :size="8" /></div>
@@ -104,6 +133,7 @@ import {
   GripVertical,
   Search
 } from 'lucide-vue-next'
+import GraphVisualization from '@/components/organisms/GraphVisualization.vue'
 import {
   ONTOLOGY_QUERY,
   CLASS_TREE_QUERY,
@@ -114,6 +144,45 @@ const route = useRoute()
 const ontologyId = ref((route.params.id as string) || 'default')
 const selectedClassId = ref<string | null>(null)
 const selectedIndividualId = ref<string | null>(null)
+const viewMode = ref<'graph' | 'table'>('table')
+
+// ── Graph visualization data ───────────────────────────────────────────────────────────
+
+const graphNodes = computed(() => {
+  const nodes: Array<{ id: string; label: string; type: 'class' | 'property' | 'individual'; x: number; y: number }> = []
+  let idx = 0
+  // Add classes as nodes
+  for (const cls of classTree.value) {
+    nodes.push({ id: cls.id, label: cls.label, type: 'class', x: 50 + (idx % 5) * 200, y: 50 + Math.floor(idx / 5) * 80 })
+    idx++
+  }
+  // Add individuals as nodes
+  for (const ind of individuals.value) {
+    if (!ind.id) continue
+    nodes.push({ id: ind.id, label: ind.label || ind.id, type: 'individual', x: 50 + (idx % 5) * 200, y: 50 + Math.floor(idx / 5) * 80 })
+    idx++
+  }
+  return nodes
+})
+
+const graphEdges = computed(() => {
+  const edges: Array<{ source: string; target: string; type: 'subclass_of' | 'object_property' | 'datatype_property' }> = []
+  for (const ind of individuals.value) {
+    if (ind.classId) {
+      edges.push({ source: ind.id, target: ind.classId, type: 'subclass_of' })
+    }
+  }
+  return edges
+})
+
+function onGraphNodeClick(node: { id: string; label: string; type: string }) {
+  if (node.type === 'individual') {
+    selectedIndividualId.value = node.id
+  } else if (node.type === 'class') {
+    selectedClassId.value = node.id
+  }
+}
+const viewMode = ref<'graph' | 'table'>('table')
 
 // ── Ontology metadata ────────────────────────────────────────────────────────────────
 
@@ -383,6 +452,29 @@ watch(selectedClassId, () => {
   padding: 16px;
   text-align: center;
   font-size: 12px;
+}
+
+.graph-panel__toolbar {
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.graph-panel__toggle {
+  font-size: var(--font-size-xs);
+  padding: 4px 12px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--surface-primary);
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+
+.graph-panel__toggle--active {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
 }
 
 .col-ind { width: 220px; }

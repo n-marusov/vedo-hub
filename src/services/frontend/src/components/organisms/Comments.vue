@@ -27,30 +27,33 @@ interface CommentEntry {
   text: string
 }
 
-// @hlv:sec [INPUT_VALIDATION] — mock data, replaced with Apollo query in production
-const comments: CommentEntry[] = [
-  {
-    author: 'Nikolay Marusov',
-    handle: '@nikomaru',
-    timestamp: '2 hours ago',
-    action: 'commented on merge request !1 "Draft: Test 2" at Настоящее образование / Philosophy',
-    text: 'Проверка'
-  },
-  {
-    author: 'Anna Petrova',
-    handle: '@anna',
-    timestamp: '5 hours ago',
-    action: 'commented on merge request !2 "Fix: Validation rules" at VEDO / VEDO Core',
-    text: 'Need to update the SHACL constraints for the new release.'
-  },
-  {
-    author: 'Ivan Sidorov',
-    handle: '@ivan',
-    timestamp: '1 day ago',
-    action: 'commented on merge request !3 "Fix: Serialization bug" at VEDO / VEDO Core',
-    text: 'The issue was in the RDF/XML writer. Fixed in the latest commit.'
-  }
-]
+const props = withDefaults(defineProps<{
+  comments?: CommentEntry[]
+}>(), {
+  comments: () => [
+    {
+      author: 'Nikolay Marusov',
+      handle: '@nikomaru',
+      timestamp: '2 hours ago',
+      action: 'commented on merge request !1 "Draft: Test 2" at Настоящее образование / Philosophy',
+      text: 'Проверка'
+    },
+    {
+      author: 'Anna Petrova',
+      handle: '@anna',
+      timestamp: '5 hours ago',
+      action: 'commented on merge request !2 "Fix: Validation rules" at VEDO / VEDO Core',
+      text: 'Need to update the SHACL constraints for the new release.'
+    },
+    {
+      author: 'Ivan Sidorov',
+      handle: '@ivan',
+      timestamp: '1 day ago',
+      action: 'commented on merge request !3 "Fix: Serialization bug" at VEDO / VEDO Core',
+      text: 'The issue was in the RDF/XML writer. Fixed in the latest commit.'
+    }
+  ]
+})
 </script>
 
 <style scoped>

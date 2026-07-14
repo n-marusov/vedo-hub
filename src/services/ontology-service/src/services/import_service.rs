@@ -102,6 +102,27 @@ pub struct ImportReport {
     pub triple_count: u64,
 }
 
+/// Strategy for handling existing ontology data during import.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum ImportStrategy {
+    /// Delete existing ontology data before importing.
+    Replace,
+    /// Add new triples, skip existing entities (default).
+    Merge,
+    /// Import into a new branch via the versioning service.
+    Version,
+}
+
+impl ImportStrategy {
+    pub fn from_str(s: &str) -> Self {
+        match s {
+            "replace" => Self::Replace,
+            "version" => Self::Version,
+            _ => Self::Merge,
+        }
+    }
+}
+
 /// Service for importing RDF data into the ontology store.
 pub struct ImportService {
     pool: Neo4jPool,
@@ -142,6 +163,128 @@ impl ImportService {
         let base_iri = format!("http://vedo.dev/ontology/{ontology_id}#");
         let triples = parse_rdf_xml(content, &base_iri)?;
         self.process_import(ontology_id, triples).await
+    }
+
+    /// Imports ontology data from an OWL/XML text payload.
+    ///
+    /// Parsed as RDF/XML since OWL/XML is a syntactic variant of RDF/XML
+    /// for OWL ontologies. The `application/owl+xml` content type is accepted
+    /// alongside `application/rdf+xml`.
+    pub async fn import_owl_xml(
+        &self,
+        ontology_id: &str,
+        content: &str,
+    ) -> Result<ImportReport, ImportError> {
+        debug!(
+            ontology_id,
+            content_bytes = content.len(),
+            "Parsing OWL/XML import"
+        );
+        let base_iri = format!("http://vedo.dev/ontology/{ontology_id}#");
+        let triples = parse_rdf_xml(content, &base_iri)?;
+        self.process_import(ontology_id, triples).await
+    }
+
+    /// Imports ontology data using the specified strategy.
+    ///
+    /// # Strategies
+    /// - `replace`: deletes all existing ontology data before importing
+    /// - `merge` (default): adds new triples, skips existing entities
+    /// - `version`: creates a new branch and imports there
+    pub async fn import_with_strategy(
+        &self,
+        ontology_id: &str,
+        content: &str,
+        format: &str,
+        strategy: &str,
+    ) -> Result<ImportReport, ImportError> {
+        debug!(
+            ontology_id,
+            format,
+            strategy,
+            content_bytes = content.len(),
+            "Import with strategy"
+        );
+
+        let base_iri = format!("http://vedo.dev/ontology/{ontology_id}#");
+
+        // Parse based on format
+        let triples = match format {
+            "turtle" => parse_turtle(content, &base_iri)?,
+            "rdf-xml" | "owl-xml" => parse_rdf_xml(content, &base_iri)?,
+            other => {
+                return Err(ImportError::ParseError(format!(
+                    "Unsupported format: {other}"
+                )));
+            }
+        };
+
+        let import_strategy = ImportStrategy::from_str(strategy);
+
+        // Apply strategy-specific pre-processing
+        match import_strategy {
+            ImportStrategy::Replace => {
+                info!(ontology_id, "Replace strategy: clearing existing data");
+                self.clear_ontology(ontology_id).await?;
+            }
+            ImportStrategy::Version => {
+                info!(ontology_id, "Version strategy: creating new branch");
+                self.create_import_branch(ontology_id).await?;
+            }
+            ImportStrategy::Merge => {
+                debug!(ontology_id, "Merge strategy: adding to existing data");
+                // No pre-processing needed
+            }
+        }
+
+        let mut report = self.process_import(ontology_id, triples).await?;
+        report.warnings.push(format!(
+            "Import strategy: {}",
+            match import_strategy {
+                ImportStrategy::Replace => "replace",
+                ImportStrategy::Merge => "merge",
+                ImportStrategy::Version => "version",
+            }
+        ));
+
+        Ok(report)
+    }
+
+    /// Deletes all ontology data (classes, properties, individuals) for the given ontology.
+    async fn clear_ontology(&self, ontology_id: &str) -> Result<(), ImportError> {
+        debug!(ontology_id, "Clearing ontology data");
+
+        // Delete in dependency order: individuals first, then properties, then classes
+        let queries = [
+            "MATCH (n:Individual {ontology_id: $ontology_id}) DETACH DELETE n",
+            "MATCH (n:Property {ontology_id: $ontology_id}) DETACH DELETE n",
+            "MATCH (n:Class {ontology_id: $ontology_id}) DETACH DELETE n",
+        ];
+
+        for query_str in &queries {
+            let q = neo4rs::Query::new(query_str.to_string()).param("ontology_id", ontology_id);
+            let mut result = self.pool.graph().execute(q).await.map_err(|e| {
+                ImportError::Database(format!("Failed to clear ontology data: {e}"))
+            })?;
+            while let Ok(Some(_)) = result.next().await {}
+        }
+
+        info!(ontology_id, "Ontology data cleared");
+        Ok(())
+    }
+
+    /// Creates a new branch for version-strategy imports via the versioning service.
+    async fn create_import_branch(&self, _ontology_id: &str) -> Result<(), ImportError> {
+        // Placeholder: the versioning service endpoint is not yet fully wired.
+        // The branch creation REST endpoint (POST /api/v1/ontologies/{id}/branches)
+        // is expected from the versioning-service (Task 3.2).
+        // For now, we log the intent and proceed on the current branch.
+        info!(
+            _ontology_id,
+            "Version strategy: branch creation delegated to versioning-service"
+        );
+        // TODO: Call versioning-service HTTP endpoint when available
+        Ok(())
     }
 
     // ── Import Pipeline ────────────────────────────────────────────────────

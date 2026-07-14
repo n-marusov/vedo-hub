@@ -359,3 +359,55 @@ export const NAVIGATION_STATE_QUERY = gql`
     }
   }
 `
+
+// ── Comment Query ────────────────────────────────────────────────────────────
+
+/// Comment fields fragment.
+export const COMMENT_FRAGMENT = gql`
+  fragment CommentFields on Comment {
+    id
+    author
+    authorName
+    text
+    entityId
+    entityType
+    parentCommentId
+    createdAt
+    updatedAt
+  }
+`
+
+/// Fetch comments for an entity (class/property/individual).
+export const GET_ENTITY_COMMENTS_QUERY = gql`
+  query GetEntityComments($ontologyId: ID!, $entityId: ID!) {
+    comments(ontologyId: $ontologyId, entityId: $entityId) {
+      ...CommentFields
+    }
+  }
+  ${COMMENT_FRAGMENT}
+`
+
+/// Fetch project-wide comment feed.
+export const GET_COMMENT_FEED_QUERY = gql`
+  query GetCommentFeed($ontologyId: ID!, $page: Int, $perPage: Int) {
+    commentFeed(ontologyId: $ontologyId, page: $page, perPage: $perPage) {
+      items {
+        ...CommentFields
+      }
+      total
+      page
+      perPage
+    }
+  }
+  ${COMMENT_FRAGMENT}
+`
+
+/// Create a new comment.
+export const CREATE_COMMENT_MUTATION = gql`
+  mutation CreateComment($ontologyId: ID!, $entityId: ID!, $text: String!, $parentCommentId: ID) {
+    createComment(ontologyId: $ontologyId, entityId: $entityId, text: $text, parentCommentId: $parentCommentId) {
+      ...CommentFields
+    }
+  }
+  ${COMMENT_FRAGMENT}
+`

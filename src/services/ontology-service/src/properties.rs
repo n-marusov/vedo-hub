@@ -71,6 +71,12 @@ pub struct PropertyCharacteristics {
     pub transitive: bool,
     #[serde(default)]
     pub symmetric: bool,
+    /// Minimum cardinality constraint (OWL minCardinality).
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub min_cardinality: Option<i32>,
+    /// Maximum cardinality constraint (OWL maxCardinality).
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub max_cardinality: Option<i32>,
 }
 
 impl Default for PropertyCharacteristics {
@@ -80,6 +86,8 @@ impl Default for PropertyCharacteristics {
             inverse_functional: false,
             transitive: false,
             symmetric: false,
+            min_cardinality: None,
+            max_cardinality: None,
         }
     }
 }
@@ -435,6 +443,8 @@ impl PropertyRepository {
                 inverse_functional: $inverse_functional,\
                 transitive: $transitive,\
                 symmetric: $symmetric,\
+                min_cardinality: $min_cardinality,\
+                max_cardinality: $max_cardinality,\
                 annotations: $annotations\
             })\
             WITH p\
@@ -460,6 +470,8 @@ impl PropertyRepository {
             .param("inverse_functional", req.characteristics.inverse_functional)
             .param("transitive", req.characteristics.transitive)
             .param("symmetric", req.characteristics.symmetric)
+            .param("min_cardinality", req.characteristics.min_cardinality)
+            .param("max_cardinality", req.characteristics.max_cardinality)
             .param("annotations", annotations_json.as_str())
             .param("domain_ids", req.domains.clone())
             .param("range_ids", ranges.clone());
@@ -516,6 +528,8 @@ impl PropertyRepository {
                 p.property_type AS property_type, p.xsd_type AS xsd_type, \
                 p.functional AS functional, p.inverse_functional AS inverse_functional, \
                 p.transitive AS transitive, p.symmetric AS symmetric, \
+                p.min_cardinality AS min_cardinality, \
+                p.max_cardinality AS max_cardinality, \
                 p.annotations AS annotations, \
                 collect(DISTINCT d.id) AS domain_ids, \
                 collect(DISTINCT r.id) AS range_ids\
@@ -564,6 +578,8 @@ impl PropertyRepository {
                     inverse_functional: row.get("inverse_functional").unwrap_or(false),
                     transitive: row.get("transitive").unwrap_or(false),
                     symmetric: row.get("symmetric").unwrap_or(false),
+                    min_cardinality: row.get("min_cardinality").ok(),
+                    max_cardinality: row.get("max_cardinality").ok(),
                 };
 
                 let annotations_raw: Option<String> = row.get("annotations").ok();
@@ -679,6 +695,8 @@ impl PropertyRepository {
                 p.inverse_functional = $inverse_functional,\
                 p.transitive = $transitive,\
                 p.symmetric = $symmetric,\
+                p.min_cardinality = $min_cardinality,\
+                p.max_cardinality = $max_cardinality,\
                 p.annotations = $annotations\
             OPTIONAL MATCH (p)-[d:DOMAIN]->()\
             DELETE d\
@@ -707,6 +725,8 @@ impl PropertyRepository {
             .param("inverse_functional", characteristics.inverse_functional)
             .param("transitive", characteristics.transitive)
             .param("symmetric", characteristics.symmetric)
+            .param("min_cardinality", characteristics.min_cardinality)
+            .param("max_cardinality", characteristics.max_cardinality)
             .param("annotations", annotations_json.as_str())
             .param("domain_ids", req.domains.clone())
             .param("range_ids", req.ranges.clone());
