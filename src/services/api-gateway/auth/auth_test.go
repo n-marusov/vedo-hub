@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -715,5 +716,72 @@ func TestInvariant_WrongSigningKey_Returns401(t *testing.T) {
 
 	if w.Code != http.StatusUnauthorized {
 		t.Errorf("expected 401 for wrong signing key, got %d", w.Code)
+	}
+}
+
+// ============================================================
+// Regression: alg=none token must be rejected
+// @hlv UNAUTHENTICATED
+// ============================================================
+// @hlv:sec [AUTH_BOUNDARY] — explicit rejection of unsigned alg=none JWT
+func TestAuth_AlgNoneToken_Rejected(t *testing.T) {
+	// Create an unsigned token with alg=none (per RFC 7518 §3.6).
+	token := jwt.NewWithClaims(jwt.SigningMethodNone, &AuthClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
+		},
+		UserID:   "attacker-uuid",
+		TenantID: "tenant_A",
+		Roles:    []string{"Owner"},
+	})
+	tokenStr, err := token.SignedString(jwt.UnsafeAllowNoneSignatureType)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cfg := defaultConfig()
+	w := execMiddleware(cfg, "GET", "/api/v1/ontologies/ont-123", tokenStr)
+
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("expected 401 for alg=none token, got %d (body=%s)", w.Code, w.Body.String())
+	}
+	// The response must NOT be 200 — the middleware must treat this as unauthenticated.
+}
+
+// ============================================================
+// Regression: invalid JWT error must not leak internal details
+// @hlv NO_SENSITIVE_IN_LOGS
+// ============================================================
+// @hlv:sec [AUTH_BOUNDARY] — error message in 401 response must not expose
+// JWT library internals (e.g. "signature is invalid", "crypto/rsa:...").
+func TestAuth_InvalidTokenError_NoInfoLeak(t *testing.T) {
+	cfg := defaultConfig()
+	// Malformed token with valid-looking structure but obviously wrong content.
+	w := execMiddleware(cfg, "GET", "/api/v1/ontologies/ont-123", "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.invalidsignature")
+
+	if w.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401 for invalid token, got %d", w.Code)
+	}
+
+	var resp struct {
+		Error struct {
+			Code    string `json:"code"`
+			Message string `json:"message"`
+		} `json:"error"`
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("decode error response: %v", err)
+	}
+
+	// The message must NOT contain JWT internals like "signature", "crypto", "key".
+	leaks := []string{"signature", "crypto", "token is malformed", "key"}
+	for _, pattern := range leaks {
+		if strings.Contains(resp.Error.Message, pattern) {
+			t.Errorf("error message leaks JWT internals: message=%q contains %q", resp.Error.Message, pattern)
+		}
+	}
+	// The message must be a generic description.
+	if resp.Error.Message == "" {
+		t.Error("error message must not be empty")
 	}
 }

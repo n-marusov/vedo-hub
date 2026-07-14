@@ -108,3 +108,42 @@ type capturedUpstreamHeaders struct {
 	user  string
 	roles string
 }
+
+// TestProxy_IdentityHeadersFromAuth verifies that the auth middleware's
+// resolved user identity (from JWT claims) is propagated to the upstream
+// as X-User-Id and X-User-Roles even when the client request does not
+// include those headers.
+func TestProxy_IdentityHeadersFromAuth(t *testing.T) {
+	env := newTestEnv(t)
+	t.Cleanup(env.cleanup)
+
+	var capturedHeaders = capturedUpstreamHeaders{}
+
+	env.ontologyServer.Config.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		capturedHeaders.trace = r.Header.Get("X-Trace-Id")
+		capturedHeaders.user = r.Header.Get("X-User-Id")
+		capturedHeaders.roles = r.Header.Get("X-User-Roles")
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"status":"ok"}`))
+	})
+
+	// Only send Authorization + Trace — no X-User-Id or X-User-Roles.
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/ontologies/test-ont/classes", nil)
+	req.Header.Set("Authorization", env.bearer(t, "user-auth-flow", []string{"Editor"}))
+	req.Header.Set("X-Trace-Id", "trace-auth-flow-1")
+	w := httptest.NewRecorder()
+	env.router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d (body=%s)", w.Code, w.Body.String())
+	}
+	if capturedHeaders.user == "" {
+		t.Error("X-User-Id header was not set on upstream request — auth middleware must inject it")
+	}
+	if capturedHeaders.roles == "" {
+		t.Error("X-User-Roles header was not set on upstream request — auth middleware must inject it")
+	}
+	if capturedHeaders.user != "user-auth-flow" {
+		t.Errorf("expected X-User-Id 'user-auth-flow', got %q", capturedHeaders.user)
+	}
+}
