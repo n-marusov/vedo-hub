@@ -5,6 +5,7 @@
 
 use axum::{http::StatusCode, response::IntoResponse, Json};
 use thiserror::Error;
+use uuid::Uuid;
 
 /// Errors that can occur during versioning operations.
 #[derive(Debug, Error)]
@@ -52,9 +53,23 @@ impl IntoResponse for VersionError {
             VersionError::BranchProtected { .. } => (StatusCode::FORBIDDEN, "VER-BRANCH-PROTECTED"),
             VersionError::MergeConflict { .. } => (StatusCode::CONFLICT, "VER-MERGE-CONFLICT"),
         };
+        let detail = match &self {
+            VersionError::Database(msg) => {
+                let trace_id = Uuid::new_v4().to_string();
+                tracing::error!(
+                    error = %msg,
+                    trace_id = %trace_id,
+                    code = %code,
+                    "Database error [trace_id={trace_id}]",
+                );
+                format!("Internal database error (trace_id: {trace_id})")
+            }
+            _ => self.to_string(),
+        };
+
         let body = serde_json::json!({
             "error": code,
-            "detail": self.to_string(),
+            "detail": detail,
         });
         (status, Json(body)).into_response()
     }
@@ -92,6 +107,28 @@ mod tests {
         let err = VersionError::PgNotConfigured;
         let resp = err.into_response();
         assert_eq!(resp.status(), StatusCode::SERVICE_UNAVAILABLE);
+    }
+
+    #[tokio::test]
+    async fn test_database_error_sanitized() {
+        // The raw error message must NOT leak into the HTTP response.
+        let err = VersionError::Database("connection timeout".to_string());
+        let resp = err.into_response();
+        let body = axum::body::to_bytes(resp.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+
+        assert_eq!(json["error"], "VER-DATABASE-ERROR");
+        let detail = json["detail"].as_str().unwrap();
+        assert!(
+            detail.starts_with("Internal database error (trace_id:"),
+            "detail should be generic, got: {detail}",
+        );
+        assert!(
+            !detail.contains("connection timeout"),
+            "raw error message leaked: {detail}",
+        );
     }
 
     #[test]
