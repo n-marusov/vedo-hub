@@ -1360,11 +1360,6 @@ mod tests {
     use super::*;
     use axum::{http::StatusCode, response::IntoResponse};
 
-    /// Helper: creates an AppState with no Neo4j for handler tests.
-    fn test_app_state() -> Arc<AppState> {
-        Arc::new(AppState { neo4j: None })
-    }
-
     // ── Serialization Tests ─────────────────────────────────────────────────
 
     #[test]

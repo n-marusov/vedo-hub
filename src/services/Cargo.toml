@@ -25,3 +25,5 @@ tower = { version = "0.4", features = ["util"] }
 thiserror = "1"
 async-graphql = { version = "7.0", features = ["uuid"] }
 async-graphql-axum = "7.0"
+reqwest = { version = "0.12", features = ["json"] }
+chrono = { version = "0.4", features = ["serde"] }

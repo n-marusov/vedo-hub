@@ -3,6 +3,8 @@ package main
 import (
 	"net/http"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -20,6 +22,21 @@ func getPort() string {
 		port = defaultPort
 	}
 	return port
+}
+
+// getUpstreamTimeout returns the timeout applied to proxied upstream requests.
+// Reads UPSTREAM_TIMEOUT (seconds); falls back to 30s when unset or invalid.
+// A non-positive value also falls back to the 30s default.
+func getUpstreamTimeout() time.Duration {
+	raw := os.Getenv("UPSTREAM_TIMEOUT")
+	if raw == "" {
+		return 30 * time.Second
+	}
+	secs, err := strconv.Atoi(raw)
+	if err != nil || secs <= 0 {
+		return 30 * time.Second
+	}
+	return time.Duration(secs) * time.Second
 }
 
 func main() {
@@ -60,8 +77,8 @@ func main() {
 	// Apply auth middleware to all routes except exempt paths
 	r.Use(auth.NewMiddleware(authConfig))
 
-	// Timeout middleware for upstream requests (30s default)
-	r.Use(corsmw.Timeout(0))
+	// Timeout middleware for upstream requests (UPSTREAM_TIMEOUT seconds, 30s default)
+	r.Use(corsmw.Timeout(getUpstreamTimeout()))
 
 	// Register API route groups with proxy handlers
 	RegisterRoutes(r)

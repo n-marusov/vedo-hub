@@ -261,6 +261,94 @@ export const UPDATE_DRAFT_MUTATION = gql`
   }
 `
 
+// ── Versioning Queries (Commit / Branch) ──────────────────────────────────────────────
+
+/// Commit summary fields reused by history and diff views.
+export const COMMIT_SUMMARY_FRAGMENT = gql`
+  fragment CommitSummaryFields on Commit {
+    id
+    branchId
+    parentCommitId
+    message
+    authorId
+    authorName
+    totalChanges
+    createdAt
+  }
+`
+
+/// Paginated commit history for a branch.
+/// Backed by the ontology-service GraphQL resolver which proxies the
+/// versioning-service `/api/v1/versioning/commits` endpoint.
+export const GET_COMMIT_HISTORY_QUERY = gql`
+  query GetCommitHistory(
+    $ontologyId: ID!
+    $branchId: ID
+    $page: Int
+    $perPage: Int
+  ) {
+    commits(
+      ontologyId: $ontologyId
+      branchId: $branchId
+      page: $page
+      perPage: $perPage
+    ) {
+      items {
+        ...CommitSummaryFields
+      }
+      total
+      page
+      perPage
+    }
+  }
+  ${COMMIT_SUMMARY_FRAGMENT}
+`
+
+/// Branch summary fields.
+export const BRANCH_FRAGMENT = gql`
+  fragment BranchFields on Branch {
+    id
+    name
+    ontologyId
+    headCommitId
+    createdAt
+    isProtected
+    lastCommitMessage
+    lastCommitAuthor
+    aheadCount
+    behindCount
+  }
+`
+
+/// List branches for an ontology with optional reference branch for ahead/behind.
+export const GET_BRANCHES_QUERY = gql`
+  query GetBranches(
+    $ontologyId: ID!
+    $referenceBranchId: ID
+  ) {
+    branches(
+      ontologyId: $ontologyId
+      referenceBranchId: $referenceBranchId
+    ) {
+      items {
+        ...BranchFields
+      }
+      total
+    }
+  }
+  ${BRANCH_FRAGMENT}
+`
+
+/// Single branch by ID (within an ontology).
+export const GET_BRANCH_QUERY = gql`
+  query GetBranch($ontologyId: ID!, $branchId: ID!) {
+    branch(ontologyId: $ontologyId, branchId: $branchId) {
+      ...BranchFields
+    }
+  }
+  ${BRANCH_FRAGMENT}
+`
+
 /// Navigation state query
 export const NAVIGATION_STATE_QUERY = gql`
   query NavigationState {

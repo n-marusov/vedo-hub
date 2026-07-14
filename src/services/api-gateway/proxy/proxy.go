@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"bytes"
 	"io"
 	"log/slog"
 	"net/http"
@@ -87,6 +88,18 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Propagate headers from auth middleware
 	p.propagateHeaders(r)
+
+	// Buffer the request body so the upstream handler reading response writer
+	// before consuming r.Body does not cause the keep-alive transport to return
+	// EOF to the caller. This keeps mock upstreams and any handler that ignores
+	// body bytes behaving predictably alongside persistent connections.
+	if r.Body != nil && r.ContentLength > 0 {
+		buf, err := io.ReadAll(r.Body)
+		if err == nil {
+			r.Body = io.NopCloser(bytes.NewReader(buf))
+		}
+		_ = r.Body.Close()
+	}
 
 	// Remove hop-by-hop headers
 	r.RequestURI = ""

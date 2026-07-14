@@ -1,19 +1,21 @@
 //! GraphQL schema assembly.
 //!
-//! Combines the query root into a single executable schema.
-//! Mutations can be added here when needed.
+//! Combines the query and mutation roots into a single executable schema.
 
-use async_graphql::{EmptyMutation, EmptySubscription, Schema};
+use async_graphql::{EmptySubscription, Schema};
 
+use super::mutation::MutationRoot;
 use super::query::QueryRoot;
 
 /// The composed GraphQL schema type.
-pub type OntologySchema = Schema<QueryRoot, EmptyMutation, EmptySubscription>;
+pub type OntologySchema = Schema<QueryRoot, MutationRoot, EmptySubscription>;
 
-/// Builds the GraphQL schema with query root only.
-/// Mutations are handled via REST endpoints for now.
+/// Builds the GraphQL schema with query and mutation roots.
+/// Write operations (class/property/individual CRUD) are served via REST
+/// endpoints proxied through the API Gateway; GraphQL mutations are
+/// intentionally limited to draft-state coordination for now.
 pub fn build_schema() -> OntologySchema {
-    Schema::build(QueryRoot::default(), EmptyMutation, EmptySubscription)
+    Schema::build(QueryRoot::default(), MutationRoot::default(), EmptySubscription)
         .enable_federation()
         .finish()
 }

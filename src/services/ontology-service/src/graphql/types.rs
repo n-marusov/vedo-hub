@@ -4,6 +4,7 @@
 //! or `individuals.rs` and delegates to the existing `async_graphql` macros.
 
 use async_graphql::{Enum, SimpleObject};
+use serde::Serialize;
 
 /// A class in the ontology hierarchy (TBox).
 #[derive(SimpleObject)]
@@ -249,4 +250,72 @@ pub struct GqlOntology {
     pub commit: String,
     /// Whether there are uncommitted changes.
     pub dirty: bool,
+}
+
+// ── Versioning types (Commit / Branch) ─────────────────────────────────────────
+
+/// A commit in the versioning history.
+///
+/// Mirrors `CommitSummary` from versioning-service so the frontend can render
+/// commit history through the same GraphQL endpoint as the rest of the workspace.
+#[derive(SimpleObject, Serialize)]
+#[graphql(name = "Commit")]
+pub struct GqlCommit {
+    pub id: String,
+    pub branch_id: String,
+    pub parent_commit_id: Option<String>,
+    pub message: String,
+    pub author_id: String,
+    pub author_name: String,
+    pub total_changes: i64,
+    pub created_at: String,
+}
+
+/// Paginated connection of commits.
+#[derive(SimpleObject)]
+#[graphql(name = "CommitConnection")]
+pub struct GqlCommitConnection {
+    pub items: Vec<GqlCommit>,
+    pub total: i64,
+    pub page: i64,
+    pub per_page: i64,
+}
+
+/// A branch in the versioning system.
+#[derive(SimpleObject, Serialize)]
+#[graphql(name = "Branch")]
+pub struct GqlBranch {
+    pub id: String,
+    pub name: String,
+    pub ontology_id: String,
+    pub head_commit_id: Option<String>,
+    pub created_at: String,
+    pub is_protected: bool,
+    /// Latest commit message (when available).
+    pub last_commit_message: Option<String>,
+    /// Latest commit author name (when available).
+    pub last_commit_author: Option<String>,
+    /// Number of commits ahead of the reference branch.
+    pub ahead_count: i64,
+    /// Number of commits behind the reference branch.
+    pub behind_count: i64,
+}
+
+/// Paginated connection of branches for a single ontology.
+#[derive(SimpleObject)]
+#[graphql(name = "BranchConnection")]
+pub struct GqlBranchConnection {
+    pub items: Vec<GqlBranch>,
+    pub total: i64,
+}
+
+/// Result of the `updateDraft` mutation.
+///
+/// The mutation marks the workspace as dirty on the client. The backend echoes
+/// the timestamp so the UI can display when the draft was last touched.
+#[derive(SimpleObject)]
+#[graphql(name = "DraftUpdateResult")]
+pub struct GqlDraftUpdateResult {
+    pub success: bool,
+    pub timestamp: String,
 }
