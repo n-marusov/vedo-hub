@@ -7,8 +7,26 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strings"
 	"time"
 )
+
+// hop-by-hop headers per RFC 7230 §6.1. These must never be forwarded
+// from client to upstream. Go's httputil.ReverseProxy already removes
+// most of them at the transport level; we also strip them explicitly in
+// the Director so the upstream never sees them even when the transport
+// behaviour changes across Go versions.
+var hopByHopHeaders = []string{
+	"Connection",
+	"Keep-Alive",
+	"Proxy-Authenticate",
+	"Proxy-Authorization",
+	"Te",
+	"Trailers",
+	"Transfer-Encoding",
+	"Upgrade",
+	"Proxy-Connection",
+}
 
 // Proxy is a generic reverse proxy to an upstream service with header
 // propagation, streaming response, error sanitization, and circuit breaker.
@@ -59,6 +77,32 @@ func New(upstream string, timeout time.Duration, cb *CircuitBreaker, name string
 			cb.RecordSuccess()
 		}
 		return nil
+	}
+
+	// Director explicitly preserves RawQuery and strips hop-by-hop headers.
+	// Go's default Director already copies r.URL (including RawQuery), but
+	// we set it explicitly for clarity and defense-in-depth.
+	rp.Director = func(r *http.Request) {
+		r.URL.Scheme = u.Scheme
+		r.URL.Host = u.Host
+		r.Host = u.Host
+		r.URL.Path = singleJoiningSlash(u.Path, r.URL.Path)
+		if r.URL.RawPath != "" {
+			r.URL.RawPath = singleJoiningSlash(u.RawPath, r.URL.RawPath)
+		}
+		if r.URL.RawQuery == "" {
+			r.URL.RawQuery = u.RawQuery
+		}
+		// Strip hop-by-hop headers
+		for _, h := range hopByHopHeaders {
+			r.Header.Del(h)
+		}
+		// Also strip any header listed in the Connection header value
+		if connHeader := r.Header.Get("Connection"); connHeader != "" {
+			for _, part := range strings.Split(connHeader, ",") {
+				r.Header.Del(strings.TrimSpace(part))
+			}
+		}
 	}
 
 	return &Proxy{
@@ -166,4 +210,18 @@ func (p *Proxy) propagateHeaders(r *http.Request) {
 			"trace_id", r.Header.Get("X-Trace-Id"),
 		)
 	}
+}
+
+// singleJoiningSlash joins a and b with a single slash (copied from
+// net/http/httputil since it is unexported there).
+func singleJoiningSlash(a, b string) string {
+	aslash := strings.HasSuffix(a, "/")
+	bslash := strings.HasPrefix(b, "/")
+	switch {
+	case aslash && bslash:
+		return a + b[1:]
+	case !aslash && !bslash:
+		return a + "/" + b
+	}
+	return a + b
 }
