@@ -4,3 +4,4 @@ pub mod tracing;
 
 pub use health::*;
 pub use metrics::*;
+pub use tracing::*;
