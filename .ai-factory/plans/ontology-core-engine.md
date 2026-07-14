@@ -247,7 +247,7 @@ Phase 1-9: Implementation
 ## Tasks
 
 - [ ] <!-- Progress tracking block — update [ ] to [x] as tasks are completed -->
-- [ ] **Total: 45 tasks** | **Completed: 26** | **Pending: 19** | **Progress: 58%**
+- [x] **Total: 45 tasks** | **Completed: 31** | **Pending: 14** | **Progress: 69%**
 
 ---
 
@@ -1068,7 +1068,7 @@ Phase 1-9: Implementation
 
 > Identified by compliance audit 2026-07-14. Four services deploy but contain zero business logic (health/metrics stubs only). These blocks prevent M2 from starting.
 
-- [ ] **Task 10.1: Implement commenting-service CRUD backend**
+- [x] **Task 10.1: Implement commenting-service CRUD backend**
     Replace the health-only stub with a real Go service for entity-level comments.
     Implement: CRUD for comments with entity binding (class/property/individual), thread support (parent_comment_id), author tracking, listing by entity with pagination, project-wide comment feed. Store in PostgreSQL with JSONB metadata.
     Endpoints: POST/GET/PUT/DELETE `/api/v1/comments`, GET `/api/v1/ontologies/:id/comments` (entity filter), GET `/api/v1/ontologies/:id/comment-feed`.
@@ -1078,7 +1078,7 @@ Phase 1-9: Implementation
     Dependencies: none (standalone service)
     Progress: [ ] Pending
 
-- [ ] **Task 10.2: Implement commenting-service notification wiring**
+- [x] **Task 10.2: Implement commenting-service notification wiring**
     After Task 10.1, wire comment creation/update events to the ticket-notifier channels for real-time notifications. Add WebSocket or SSE endpoint for live comment streaming on a project.
     Specs: UC-team.comments.enforce-comment-visibility-by-access, REQ-FUN.INTEGRATION.collaboration-quality-metrics.
     Logging: INFO for notification dispatch, WARN for delivery failures.
@@ -1086,7 +1086,7 @@ Phase 1-9: Implementation
     Dependencies: Task 10.1
     Progress: [ ] Pending
 
-- [ ] **Task 10.3: Implement publisher-service snapshot publishing**
+- [x] **Task 10.3: Implement publisher-service snapshot publishing**
     Replace the raw-TcpListener stub with a real Rust axum service for ontology publishing. Implement: create snapshot from branch/commit, store to MinIO (S3-compatible), version snapshot, list snapshots, retire snapshot. Integrate with ontology-service to materialize state at publish time.
     Specs: UC-io.publish.publish-ontology-snapshot, REQ-FUN.INFRA.ontology-publishing, REQ-NFR.DATA.backup-storage.
     Logging: INFO for snapshot creation with size + duration, WARN for storage failures.
@@ -1094,7 +1094,7 @@ Phase 1-9: Implementation
     Dependencies: none (standalone, reads from ontology-service)
     Progress: [ ] Pending
 
-- [ ] **Task 10.4: Implement public-browse-api read-only endpoints**
+- [x] **Task 10.4: Implement public-browse-api read-only endpoints**
     Replace the raw-TcpListener stub with a real Rust axum service for unauthenticated public browsing. Implement: list published ontologies, view ontology metadata + class tree (read-only), search published entities. Serve from publisher-service snapshots.
     Specs: UC-browse.public.view-published-ontology, REQ-NFR.INFRA.availability-slo (public read SLO).
     Logging: INFO per request with ontology context, WARN for cache misses.
@@ -1102,7 +1102,7 @@ Phase 1-9: Implementation
     Dependencies: Task 10.3
     Progress: [ ] Pending
 
-- [ ] **Task 10.5: Replace metrics-service stub with real analytics**
+- [x] **Task 10.5: Replace metrics-service stub with real analytics**
     Replace the Python http.server stub with a proper async service (aiohttp or FastAPI). Implement: consume events from RabbitMQ (commit, import, publish events), compute ontology metrics (axiom count, class depth, property density), expose Prometheus-compatible metrics at `/metrics`, store metric snapshots in Redis for dashboard queries.
     Specs: UC-metrics.analytics.view-ontology-metrics, UC-metrics.analytics.view-ontology-complexity-trends, REQ-NFR.OPS.metrics.
     Logging: INFO for metric computation with ontology ID, WARN for event processing lag.
@@ -1245,7 +1245,7 @@ Total: 45 tasks
 ├── Phase 7: Integration Tests   [x] 3/3 — Neo4j, PG, Gateway interfaces
 ├── Phase 8: Frontend Wiring     [x] 1/1 — Apollo → real backend
 ├── Phase 9: Docs & Trace        [x] 2/2 — traceability.ttl, Antora docs
-├── Phase 10: Stub Services      [ ] 0/5 — commenting, publisher, public-browse, metrics
+├── Phase 10: Stub Services      [x] 5/5 — commenting, publisher, public-browse, metrics
 ├── Phase 11: Feature Gaps       [ ] 0/11 — cardinality, OWL, diff, graph, SHACL, etc.
 ├── Phase 12: Test Coverage      [ ] 0/3 — E2E + integration for gap closures
 ```

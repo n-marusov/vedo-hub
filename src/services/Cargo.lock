@@ -2272,10 +2272,38 @@ dependencies = [
 [[package]]
 name = "public-browse-api"
 version = "0.1.0"
+dependencies = [
+ "axum 0.7.9",
+ "chrono",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "tokio",
+ "tower-http 0.5.2",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+ "vedo-shared",
+]
 
 [[package]]
 name = "publisher-service"
 version = "0.1.0"
+dependencies = [
+ "axum 0.7.9",
+ "chrono",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "tokio",
+ "tower-http 0.5.2",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+ "vedo-shared",
+]
 
 [[package]]
 name = "quick-xml"
