@@ -247,7 +247,7 @@ Phase 1-9: Implementation
 ## Tasks
 
 - [ ] <!-- Progress tracking block — update [ ] to [x] as tasks are completed -->
-- [x] **Total: 28 tasks** | **Completed: 26** | **In progress: 0**
+- [ ] **Total: 45 tasks** | **Completed: 26** | **Pending: 19** | **Progress: 58%**
 
 ---
 
@@ -1064,10 +1064,177 @@ Phase 1-9: Implementation
 
 ---
 
+## Phase 10: Gap Closure — Stub Services (CRITICAL)
+
+> Identified by compliance audit 2026-07-14. Four services deploy but contain zero business logic (health/metrics stubs only). These blocks prevent M2 from starting.
+
+- [ ] **Task 10.1: Implement commenting-service CRUD backend**
+    Replace the health-only stub with a real Go service for entity-level comments.
+    Implement: CRUD for comments with entity binding (class/property/individual), thread support (parent_comment_id), author tracking, listing by entity with pagination, project-wide comment feed. Store in PostgreSQL with JSONB metadata.
+    Endpoints: POST/GET/PUT/DELETE `/api/v1/comments`, GET `/api/v1/ontologies/:id/comments` (entity filter), GET `/api/v1/ontologies/:id/comment-feed`.
+    Specs: UC-team.comments.view-project-comment-feed, UC-team.comments.discuss-merge-request-changes, REQ-FUN.INTEGRATION.collaboration, REQ-USR.UI.graph-navigation (comments sidebar).
+    Logging: INFO for CRUD with entity context, WARN for unauthorized comment edit attempts.
+    Files: Create `src/services/commenting-service/handlers.go`, `src/services/commenting-service/store.go`, `src/services/commenting-service/types.go`, `src/services/commenting-service/handlers_test.go`. Update `src/services/commenting-service/main.go`.
+    Dependencies: none (standalone service)
+    Progress: [ ] Pending
+
+- [ ] **Task 10.2: Implement commenting-service notification wiring**
+    After Task 10.1, wire comment creation/update events to the ticket-notifier channels for real-time notifications. Add WebSocket or SSE endpoint for live comment streaming on a project.
+    Specs: UC-team.comments.enforce-comment-visibility-by-access, REQ-FUN.INTEGRATION.collaboration-quality-metrics.
+    Logging: INFO for notification dispatch, WARN for delivery failures.
+    Files: Update `src/services/commenting-service/handlers.go`, Create `src/services/commenting-service/notify.go`.
+    Dependencies: Task 10.1
+    Progress: [ ] Pending
+
+- [ ] **Task 10.3: Implement publisher-service snapshot publishing**
+    Replace the raw-TcpListener stub with a real Rust axum service for ontology publishing. Implement: create snapshot from branch/commit, store to MinIO (S3-compatible), version snapshot, list snapshots, retire snapshot. Integrate with ontology-service to materialize state at publish time.
+    Specs: UC-io.publish.publish-ontology-snapshot, REQ-FUN.INFRA.ontology-publishing, REQ-NFR.DATA.backup-storage.
+    Logging: INFO for snapshot creation with size + duration, WARN for storage failures.
+    Files: Replace `src/services/publisher-service/src/main.rs`, Create `src/services/publisher-service/src/handlers/`, `src/services/publisher-service/src/models/`, `src/services/publisher-service/src/storage.rs` (MinIO client).
+    Dependencies: none (standalone, reads from ontology-service)
+    Progress: [ ] Pending
+
+- [ ] **Task 10.4: Implement public-browse-api read-only endpoints**
+    Replace the raw-TcpListener stub with a real Rust axum service for unauthenticated public browsing. Implement: list published ontologies, view ontology metadata + class tree (read-only), search published entities. Serve from publisher-service snapshots.
+    Specs: UC-browse.public.view-published-ontology, REQ-NFR.INFRA.availability-slo (public read SLO).
+    Logging: INFO per request with ontology context, WARN for cache misses.
+    Files: Replace `src/services/public-browse-api/src/main.rs`, Create `src/services/public-browse-api/src/handlers/`, `src/services/public-browse-api/src/snapshot_reader.rs`.
+    Dependencies: Task 10.3
+    Progress: [ ] Pending
+
+- [ ] **Task 10.5: Replace metrics-service stub with real analytics**
+    Replace the Python http.server stub with a proper async service (aiohttp or FastAPI). Implement: consume events from RabbitMQ (commit, import, publish events), compute ontology metrics (axiom count, class depth, property density), expose Prometheus-compatible metrics at `/metrics`, store metric snapshots in Redis for dashboard queries.
+    Specs: UC-metrics.analytics.view-ontology-metrics, UC-metrics.analytics.view-ontology-complexity-trends, REQ-NFR.OPS.metrics.
+    Logging: INFO for metric computation with ontology ID, WARN for event processing lag.
+    Files: Replace `src/services/metrics-service/main.py`, Create `src/services/metrics-service/analytics/`, `src/services/metrics-service/collectors/`, `src/services/metrics-service/prometheus_exporter.py`.
+    Dependencies: none (standalone, consumes events)
+    Progress: [ ] Pending
+
+---
+
+## Phase 11: Gap Closure — Missing M1 Feature Completeness
+
+> Identified by compliance audit 2026-07-14. Features declared in M1 spec but not implemented or incomplete.
+
+- [ ] **Task 11.1: Add cardinality constraints to Property model**
+    The spec (UC-editor.properties.manage-property-lifecycle) requires minCardinality and maxCardinality on properties. Current Property struct in `properties.rs` has characteristics but no cardinality fields.
+    Add: `min_cardinality: Option<i32>`, `max_cardinality: Option<i32>` to Property model. Store as Neo4j node properties. Validate on property CRUD. Return in API responses.
+    Specs: UC-editor.properties.manage-property-lifecycle (step 5), REQ-USR.UI.tbox-editor.
+    Files: Update `src/services/ontology-service/src/properties.rs` (model + handler).
+    Dependencies: none (extends existing Task 2.2)
+    Progress: [ ] Pending
+
+- [ ] **Task 11.2: Add OWL format to import/export**
+    The spec (UC-io.import.import-and-export-ontology-data) requires Turtle, RDF/XML, and OWL formats. Current implementation only supports Turtle and RDF/XML.
+    Add: OWL/XML format via `rio_xml` with OWL profile detection. Register as `owl-xml` format in both import and export handlers. Auto-detect from Content-Type or file extension.
+    Specs: UC-io.import.import-and-export-ontology-data (step 1: Turtle/RDF/XML/OWL), REQ-USR.UI.import-export.
+    Files: Update `src/services/ontology-service/src/services/export_service.rs`, `src/services/ontology-service/src/services/import_service.rs`, `src/services/ontology-service/src/handlers/export_handler.rs`, `src/services/ontology-service/src/handlers/import_handler.rs`.
+    Dependencies: none (extends existing Tasks 5.1, 5.2)
+    Progress: [ ] Pending
+
+- [ ] **Task 11.3: Implement canonical Turtle serialization for stable Git diff**
+    The spec (REQ-USR.UI.import-export, UC-io.import) requires canonical Turtle with stable ordering for consistent Git diffs. Current export uses basic Turtle serialization without guaranteed ordering.
+    Implement: sort triples by subject IRI, then predicate IRI, then object. Use blank node labeling strategy (sequential _:b0, _:b1). Ensure determinism across runs.
+    Specs: REQ-FUN.DATA.versioning (canonical serialization), REQ-USR.UI.import-export.
+    Files: Update `src/services/ontology-service/src/services/export_service.rs`.
+    Dependencies: none (extends existing Task 5.1)
+    Progress: [ ] Pending
+
+- [ ] **Task 11.4: Implement import strategies (replace/merge/version)**
+    The spec (UC-io.import.import-and-export-ontology-data) requires three import strategies: replace, merge, and create new version. Current import only supports a single mode.
+    Add `?strategy=replace|merge|version` query parameter. Replace: delete ontology then import. Merge: add new triples, skip existing. Version: import to new branch. Auto-commit with appropriate message.
+    Specs: UC-io.import.import-and-export-ontology-data (step 4-5).
+    Files: Update `src/services/ontology-service/src/services/import_service.rs`, `src/services/ontology-service/src/handlers/import_handler.rs`.
+    Dependencies: Task 3.2 (branch creation for version strategy)
+    Progress: [ ] Pending
+
+- [ ] **Task 11.5: Implement semantic diff for commit visualization**
+    The spec (UC-git.commits.manage-commit-history, step 2) requires displaying a semantic diff (added=green, removed=red, modified=yellow) at the entity level. Current delta_service stores triples but there is no semantic diff rendering.
+    Implement: delta_service computes diff at entity level (class added/removed/modified, property added/removed/modified, individual added/removed/modified). Return structured diff: `{entity_type, entity_id, change_type, before, after}`.
+    Specs: UC-git.commits.manage-commit-history (step 2), UC-git.commits.compare-ontology-versions.
+    Files: Update `src/services/versioning-service/src/services/delta_service.rs`.
+    Dependencies: Task 3.1 (commit model with delta)
+    Progress: [ ] Pending
+
+- [ ] **Task 11.6: Implement Vue Flow graph visualization component**
+    The spec (UC-browse.tree.view-ontology-tree-and-graph, REQ-USR.UI.graph-navigation) requires graph visualization with zoom, pan, depth control. The `@vue-flow/core` dependency exists but is not integrated.
+    Implement: GraphVisualization.vue using Vue Flow. Nodes = classes (colored by depth), edges = properties. Controls: zoom slider, depth selector (1-10), node type filter, click-to-detail. Lazy-load children on expand. Support 500+ nodes with virtualization.
+    Specs: UC-browse.tree.view-ontology-tree-and-graph, REQ-USR.UI.graph-navigation, ADR-DES.UI.ontology-mental-model-strategy.
+    Files: Create `src/services/frontend/src/components/organisms/GraphVisualization.vue` (or rewrite if exists), Update `src/services/frontend/src/pages/OntologyWorkspace.vue`.
+    Dependencies: Task 8.1 (Apollo wiring)
+    Progress: [ ] Pending
+
+- [ ] **Task 11.7: Implement drag-and-drop class hierarchy reordering**
+    The spec (UC-editor.classes.manage-class-lifecycle, step 18-20) requires drag-n-drop in the class tree to change parent-child relationships.
+    Implement: make ClassTree.vue nodes draggable. On drop: call ontology-service to update class parents (rewrite subClassOf edges). Optimistic UI update. Validate no cycles. Undo support (one step).
+    Specs: UC-editor.classes.manage-class-lifecycle (editing flow), US-editor.classes.hierarchy-drag-drop.
+    Files: Update `src/services/frontend/src/components/organisms/ClassTree.vue`.
+    Dependencies: Task 8.1, Task 2.1 (class update endpoint)
+    Progress: [ ] Pending
+
+- [ ] **Task 11.8: Add SHACL validation endpoint and integration**
+    The spec (UC-editor.classes.validate-ontology-with-shacl) requires SHACL-based ontology validation. ValidationPage.vue route exists but has no backend.
+    Implement: POST `/api/v1/ontologies/:id/validate` in ontology-service. Accepts SHACL shapes as Turtle or references preloaded shapes. Validates ontology against shapes. Returns validation report: `{conforms, results: [{focusNode, path, severity, message}]}`.
+    Specs: UC-editor.classes.validate-ontology-with-shacl, REQ-USR.UI.tbox-editor.
+    Files: Create `src/services/ontology-service/src/handlers/validation_handler.rs`, Create `src/services/ontology-service/src/services/shacl_validator.rs`. Update `src/services/ontology-service/src/lib.rs` (add route).
+    Dependencies: Task 2.1, Task 2.2
+    Progress: [ ] Pending
+
+- [ ] **Task 11.9: Wire CommentsPage to real commenting-service**
+    CommentsPage.vue exists but is backed by a stub service. After Task 10.1, wire the frontend to the real commenting-service endpoints.
+    Implement: Apollo queries for entity comments, comment creation form, reply threading, real-time updates (WebSocket/SSE), comment feed per project.
+    Specs: UC-team.comments.view-project-comment-feed, UC-team.comments.discuss-merge-request-changes, US-editor.annotations.add-label.
+    Files: Update `src/services/frontend/src/pages/CommentsPage.vue`, Create `src/services/frontend/src/components/organisms/CommentThread.vue`, Create `src/services/frontend/src/components/organisms/CommentForm.vue`.
+    Dependencies: Task 10.1, Task 8.1
+    Progress: [ ] Pending
+
+- [ ] **Task 11.10: Wire PublicOntologyPage to real public-browse-api**
+    PublicOntologyPage.vue exists but is backed by a stub service. After Tasks 10.3–10.4, wire the frontend to the real public-browse-api endpoints.
+    Implement: read-only class tree, property viewer, basic graph, metadata panel for published ontologies. No auth required.
+    Specs: UC-browse.public.view-published-ontology, REQ-NFR.INFRA.availability-slo.
+    Files: Update `src/services/frontend/src/pages/PublicOntologyPage.vue`, Create `src/services/frontend/src/composables/usePublicOntology.ts`.
+    Dependencies: Task 10.4
+    Progress: [ ] Pending
+
+- [ ] **Task 11.11: Implement export by branch/commit**
+    The spec (UC-io.import.import-and-export-ontology-data) requires export with a branch or commit specification. Current export endpoint does not accept version parameters.
+    Add `?branch_id=X` or `?commit_id=X` query parameters to export endpoint. Fetch materialized state at that point. Fall back to current HEAD if not specified.
+    Specs: UC-io.import.import-and-export-ontology-data (export step 2).
+    Files: Update `src/services/ontology-service/src/handlers/export_handler.rs`, Update `src/services/ontology-service/src/services/export_service.rs`.
+    Dependencies: Task 3.3 (materialized state), Task 5.1
+    Progress: [ ] Pending
+
+---
+
+## Phase 12: Gap Closure — Missing M1 Test Coverage
+
+- [ ] **Task 12.1: Write E2E tests for commenting flow**
+    Create Playwright E2E test for: add comment to class → view in feed → reply → verify notification. Reference: UC-team.comments.view-project-comment-feed.
+    Specs: E2E-commenting.flow.md (new).
+    Files: Create `tests/e2e/commenting-flow.spec.ts`, Create `specs/user-stories/E2E-commenting.flow.md`.
+    Dependencies: Task 10.1, Task 11.9
+    Progress: [ ] Pending
+
+- [ ] **Task 12.2: Write E2E tests for graph visualization**
+    Create Playwright E2E test for: open ontology workspace → view graph → zoom → click node → verify detail panel. Reference: UC-browse.tree.view-ontology-tree-and-graph.
+    Specs: E2E-browse.graph-view.md (new).
+    Files: Create `tests/e2e/graph-visualization.spec.ts`, Create `specs/user-stories/E2E-browse.graph-view.md`.
+    Dependencies: Task 11.6
+    Progress: [ ] Pending
+
+- [ ] **Task 12.3: Write integration tests for commenting and publishing services**
+    Add integration tests for the newly implemented services (Tasks 10.1–10.4). Comment CRUD with Postgres verification, publish snapshot with MinIO verification.
+    Specs: REQ-FUN.INTEGRATION.collaboration, REQ-FUN.INFRA.ontology-publishing.
+    Files: Create `src/services/commenting-service/tests/comment_integration_test.go`, Create `src/services/publisher-service/tests/publish_integration_test.rs`.
+    Dependencies: Tasks 10.1, 10.3
+    Progress: [ ] Pending
+
+---
+
 ## Progress Tracking
 
 ```
-Total: 28 tasks
+Total: 45 tasks
 ├── Phase 0: Specs & E2E Tests   [x] 4/4 — US gap closure, E2E scenarios, Playwright tests
 ├── Phase 1: Infrastructure      [x] 4/4 — workspace, drivers, gateway
 ├── Phase 2: TBox CRUD           [x] 3/3 — classes, properties, graph queries
@@ -1078,18 +1245,26 @@ Total: 28 tasks
 ├── Phase 7: Integration Tests   [x] 3/3 — Neo4j, PG, Gateway interfaces
 ├── Phase 8: Frontend Wiring     [x] 1/1 — Apollo → real backend
 ├── Phase 9: Docs & Trace        [x] 2/2 — traceability.ttl, Antora docs
+├── Phase 10: Stub Services      [ ] 0/5 — commenting, publisher, public-browse, metrics
+├── Phase 11: Feature Gaps       [ ] 0/11 — cardinality, OWL, diff, graph, SHACL, etc.
+├── Phase 12: Test Coverage      [ ] 0/3 — E2E + integration for gap closures
 ```
 
 ## Next Steps
 
-Plan created with **32 tasks** across **10 phases**.
+Plan updated with **45 tasks** across **13 phases** (26 completed + 19 new gap-closure tasks).
 
 Plan file: `.ai-factory/plans/ontology-core-engine.md`
 
-To start implementation, run:
+To start gap-closure implementation, run:
 ```
 $aif-implement
 ```
+
+Priority order:
+1. Phase 10 (stub services) — blocks M2
+2. Phase 11 feature gaps — Phase 11.1–11.5, 11.8 (backend), 11.6–11.7, 11.9–11.10 (frontend)
+3. Phase 12 (test coverage) — after corresponding features
 
 To view tasks:
 ```
