@@ -19,6 +19,7 @@
 3. **OpenTelemetry** — trace context must propagate across all inter-service calls.
 4. **Error codes** — use domain-prefixed error codes (e.g., `CLI-TICKET-NOT-FOUND`).
 5. **No stub markers** — production code must not contain `[STUB]` prefixes or stubbed versions.
+6. **Docker quality gate** — the quality gate must verify Docker container builds, docker-compose startup, and health status of all services.
 
 ## Domain Terminology
 

@@ -138,6 +138,17 @@ docker-shell: ## Open shell in a service container (usage: make docker-shell SVC
 	@if [ -z "$(SVC)" ]; then echo "Usage: make docker-shell SVC=<service-name>"; exit 1; fi
 	docker compose -f $(COMPOSE_FILE) exec $(SVC) sh
 
+##@ Docker — Status
+.PHONY: docker-status docker-status-full
+
+docker-status: ## Brief health table (Name, Health, Ports)
+	@COMPOSE_FILE="$(COMPOSE_FILE)"
+	docker compose -f "$$COMPOSE_FILE" ps --format "table {{.Name}}\t{{.Health}}\t{{.Ports}}" 2>/dev/null
+
+docker-status-full: ## Full machine-readable JSON with all container details
+	@COMPOSE_FILE="$(COMPOSE_FILE)"
+	docker compose -f "$$COMPOSE_FILE" ps --format json 2>/dev/null || echo '[]'
+
 ##@ Development
 .PHONY: dev dev-frontend dev-api
 

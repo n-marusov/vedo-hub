@@ -50,8 +50,8 @@ Once all containers are healthy, open the frontend at `http://localhost:3000` an
 cd src && make docker-up
 
 # Check service health
-curl http://localhost:8080/health
-# {"status":"healthy"}
+make docker-status
+# Full detail: make docker-status-full
 
 # Create an ontology via the API Gateway
 curl -X POST http://localhost:8080/api/v1/ontologies \
