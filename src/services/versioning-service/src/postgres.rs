@@ -121,6 +121,11 @@ pub async fn run_manual_migrations(pool: &PgPool) -> Result<(), sqlx::Error> {
         .execute(pool)
         .await?;
 
+    // index from 002_add_commit_indexes.sql — missing from previous manual runner
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_commits_author_id ON commits(author_id)")
+        .execute(pool)
+        .await?;
+
     // Migration 003: State snapshots for fast materialization
     sqlx::query(
         r#"
