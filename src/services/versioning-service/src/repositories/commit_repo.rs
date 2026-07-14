@@ -45,11 +45,15 @@ impl CommitRepository {
             "Creating commit"
         );
 
+        // Use a transaction so the commit INSERT and branch head UPDATE are
+        // atomic. If either query fails, neither change is persisted.
+        let mut tx = self.pool().begin().await?;
+
         // Verify branch exists and get current head
         let head_commit_id: Option<Uuid> =
             sqlx::query_scalar("SELECT head_commit_id FROM branches WHERE id = $1")
                 .bind(req.branch_id)
-                .fetch_optional(self.pool())
+                .fetch_optional(&mut *tx)
                 .await?
                 .flatten();
 
@@ -73,7 +77,7 @@ impl CommitRepository {
         .bind(&req.author_id)
         .bind(&req.author_name)
         .bind(&delta_json)
-        .fetch_one(self.pool())
+        .fetch_one(&mut *tx)
         .await?;
 
         let commit = row_to_commit(&row)?;
@@ -82,8 +86,11 @@ impl CommitRepository {
         sqlx::query("UPDATE branches SET head_commit_id = $1 WHERE id = $2")
             .bind(commit.id)
             .bind(req.branch_id)
-            .execute(self.pool())
+            .execute(&mut *tx)
             .await?;
+
+        // Commit the transaction — both INSERT and UPDATE are now persisted.
+        tx.commit().await?;
 
         tracing::info!(
             commit_id = %commit.id,
@@ -210,6 +217,36 @@ impl CommitRepository {
     pub async fn get_delta(&self, id: Uuid) -> Result<CommitDelta, VersionError> {
         let commit = self.get_by_id(id).await?;
         Ok(commit.delta)
+    }
+
+    /// Checks whether `target_commit_id` is an ancestor of `head_commit_id`
+    /// by walking the `parent_commit_id` chain using a recursive CTE.
+    /// Returns `true` when the target commit is reachable from the head.
+    pub async fn is_ancestor_of(
+        &self,
+        head_commit_id: Uuid,
+        target_commit_id: Uuid,
+    ) -> Result<bool, VersionError> {
+        if head_commit_id == target_commit_id {
+            return Ok(true);
+        }
+        let exists: Option<bool> = sqlx::query_scalar(
+            r#"
+            WITH RECURSIVE ancestors AS (
+                SELECT id, parent_commit_id FROM commits WHERE id = $1
+                UNION ALL
+                SELECT c.id, c.parent_commit_id
+                FROM commits c
+                INNER JOIN ancestors a ON c.id = a.parent_commit_id
+            )
+            SELECT EXISTS(SELECT 1 FROM ancestors WHERE id = $2)
+            "#,
+        )
+        .bind(head_commit_id)
+        .bind(target_commit_id)
+        .fetch_one(self.pool())
+        .await?;
+        Ok(exists.unwrap_or(false))
     }
 
     /// Returns the number of commits on a given branch.

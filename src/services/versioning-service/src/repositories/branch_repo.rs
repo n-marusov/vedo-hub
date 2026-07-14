@@ -186,6 +186,9 @@ impl BranchRepository {
     // ── Delete ────────────────────────────────────────────────────────────
 
     /// Deletes a branch by ID. Protected branches require `force: true`.
+    /// Both the commits DELETE and the branch DELETE run inside a single
+    /// PostgreSQL transaction so a partial failure cannot leave orphaned
+    /// commits.
     pub async fn delete(&self, id: Uuid, req: &DeleteBranchRequest) -> Result<(), VersionError> {
         tracing::debug!(branch_id = %id, force = req.force, "Deleting branch");
 
@@ -198,16 +201,20 @@ impl BranchRepository {
             });
         }
 
+        let mut tx = self.pool().begin().await?;
+
         // Delete all commits on this branch first (cascade may not be set)
         sqlx::query("DELETE FROM commits WHERE branch_id = $1")
             .bind(id)
-            .execute(self.pool())
+            .execute(&mut *tx)
             .await?;
 
         sqlx::query("DELETE FROM branches WHERE id = $1")
             .bind(id)
-            .execute(self.pool())
+            .execute(&mut *tx)
             .await?;
+
+        tx.commit().await?;
 
         tracing::info!(branch_id = %id, "Branch deleted");
         Ok(())
@@ -216,6 +223,8 @@ impl BranchRepository {
     // ── Merge ─────────────────────────────────────────────────────────────
 
     /// Merges source branch into target branch, creating a merge commit.
+    /// Returns an error when both branches are at the same commit (nothing
+    /// to merge) or when either branch cannot be resolved.
     pub async fn merge_branches(
         &self,
         req: &MergeBranchesRequest,
@@ -227,7 +236,7 @@ impl BranchRepository {
         );
 
         // Verify both branches exist
-        let _source = self.get_by_id(req.source_branch_id).await?;
+        let source = self.get_by_id(req.source_branch_id).await?;
         let target = self.get_by_id(req.target_branch_id).await?;
 
         if target.is_protected {
@@ -236,27 +245,52 @@ impl BranchRepository {
             });
         }
 
-        // Compute the delta between source and target heads
-        // For MVP: use source head as the merge delta
+        // Check that both branches have commits to merge
+        let source_head = source.head_commit_id.ok_or_else(|| {
+            VersionError::InvalidRequest("Source branch has no commits".to_string())
+        })?;
+        let target_head = target.head_commit_id.ok_or_else(|| {
+            VersionError::InvalidRequest("Target branch has no commits".to_string())
+        })?;
+
+        // Prevent no-op merge: if both branches point to the same commit
+        // there is nothing to merge.
+        if source_head == target_head {
+            return Err(VersionError::InvalidRequest(
+                format!(
+                    "Nothing to merge: source branch '{}' and target branch '{}' are at the same commit {}",
+                    source.name, target.name, source_head
+                )
+            ));
+        }
+
+        // Compute ahead/behind to verify there is actual divergence.
+        let (ahead, behind) = self
+            .compute_ahead_behind(req.source_branch_id, req.target_branch_id)
+            .await?;
+        if ahead == 0 && behind == 0 {
+            return Err(VersionError::InvalidRequest(
+                "Nothing to merge: branches are already synchronized".to_string(),
+            ));
+        }
+
+        // Create a merge commit with the source head as parent and a note
+        // recording the merge provenance.  For MVP the delta is empty — the
+        // full delta computation is tracked as a future enhancement.
         let merge_delta = serde_json::json!({
             "added_triples": [],
             "removed_triples": [],
             "modified_triples": [],
-            "merge_note": format!("Merged from {} into {}", req.source_branch_id, req.target_branch_id)
+            "merge_note": format!(
+                "Merged from {} ({}) into {} ({})",
+                source.name, source_head, target.name, target_head
+            ),
+            "source_branch_head": source_head.to_string(),
+            "target_branch_head": target_head.to_string(),
         });
-
-        // Create merge commit with two parents (source and target heads)
-        let _source_head: Option<Uuid> =
-            sqlx::query_scalar("SELECT head_commit_id FROM branches WHERE id = $1")
-                .bind(req.source_branch_id)
-                .fetch_optional(self.pool())
-                .await?
-                .flatten();
 
         let merge_commit_id = Uuid::new_v4();
 
-        // Insert merge commit with parent being the target's current head
-        // and store source_head as an annotation in the delta metadata
         sqlx::query(
             r#"
             INSERT INTO commits (id, branch_id, parent_commit_id, message, author_id, author_name, delta)
@@ -265,7 +299,7 @@ impl BranchRepository {
         )
         .bind(merge_commit_id)
         .bind(req.target_branch_id)
-        .bind(target.head_commit_id)
+        .bind(target_head)
         .bind(&req.message)
         .bind(&req.author_id)
         .bind(&req.author_name)
@@ -279,6 +313,8 @@ impl BranchRepository {
 
         tracing::info!(
             merge_commit_id = %merge_commit_id,
+            source_ahead = ahead,
+            target_behind = behind,
             "Branches merged"
         );
 
