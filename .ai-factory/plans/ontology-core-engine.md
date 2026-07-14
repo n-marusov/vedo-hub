@@ -247,7 +247,7 @@ Phase 1-9: Implementation
 ## Tasks
 
 - [ ] <!-- Progress tracking block — update [ ] to [x] as tasks are completed -->
-- [x] **Total: 45 tasks** | **Completed: 31** | **Pending: 14** | **Progress: 69%**
+- [x] **Total: 45 tasks** | **Completed: 45** | **Pending: 0** | **Progress: 100%**
 
 ---
 
@@ -1076,7 +1076,7 @@ Phase 1-9: Implementation
     Logging: INFO for CRUD with entity context, WARN for unauthorized comment edit attempts.
     Files: Create `src/services/commenting-service/handlers.go`, `src/services/commenting-service/store.go`, `src/services/commenting-service/types.go`, `src/services/commenting-service/handlers_test.go`. Update `src/services/commenting-service/main.go`.
     Dependencies: none (standalone service)
-    Progress: [ ] Pending
+    Progress: [x] Done
 
 - [x] **Task 10.2: Implement commenting-service notification wiring**
     After Task 10.1, wire comment creation/update events to the ticket-notifier channels for real-time notifications. Add WebSocket or SSE endpoint for live comment streaming on a project.
@@ -1084,7 +1084,7 @@ Phase 1-9: Implementation
     Logging: INFO for notification dispatch, WARN for delivery failures.
     Files: Update `src/services/commenting-service/handlers.go`, Create `src/services/commenting-service/notify.go`.
     Dependencies: Task 10.1
-    Progress: [ ] Pending
+    Progress: [x] Done
 
 - [x] **Task 10.3: Implement publisher-service snapshot publishing**
     Replace the raw-TcpListener stub with a real Rust axum service for ontology publishing. Implement: create snapshot from branch/commit, store to MinIO (S3-compatible), version snapshot, list snapshots, retire snapshot. Integrate with ontology-service to materialize state at publish time.
@@ -1092,7 +1092,7 @@ Phase 1-9: Implementation
     Logging: INFO for snapshot creation with size + duration, WARN for storage failures.
     Files: Replace `src/services/publisher-service/src/main.rs`, Create `src/services/publisher-service/src/handlers/`, `src/services/publisher-service/src/models/`, `src/services/publisher-service/src/storage.rs` (MinIO client).
     Dependencies: none (standalone, reads from ontology-service)
-    Progress: [ ] Pending
+    Progress: [x] Done
 
 - [x] **Task 10.4: Implement public-browse-api read-only endpoints**
     Replace the raw-TcpListener stub with a real Rust axum service for unauthenticated public browsing. Implement: list published ontologies, view ontology metadata + class tree (read-only), search published entities. Serve from publisher-service snapshots.
@@ -1108,7 +1108,7 @@ Phase 1-9: Implementation
     Logging: INFO for metric computation with ontology ID, WARN for event processing lag.
     Files: Replace `src/services/metrics-service/main.py`, Create `src/services/metrics-service/analytics/`, `src/services/metrics-service/collectors/`, `src/services/metrics-service/prometheus_exporter.py`.
     Dependencies: none (standalone, consumes events)
-    Progress: [ ] Pending
+    Progress: [x] Done
 
 ---
 
@@ -1122,7 +1122,7 @@ Phase 1-9: Implementation
     Specs: UC-editor.properties.manage-property-lifecycle (step 5), REQ-USR.UI.tbox-editor.
     Files: Update `src/services/ontology-service/src/properties.rs` (model + handler).
     Dependencies: none (extends existing Task 2.2)
-    Progress: [ ] Pending
+    Progress: [x] Done
 
 - [x] **Task 11.2: Add OWL format to import/export**
     The spec (UC-io.import.import-and-export-ontology-data) requires Turtle, RDF/XML, and OWL formats. Current implementation only supports Turtle and RDF/XML.
@@ -1130,7 +1130,7 @@ Phase 1-9: Implementation
     Specs: UC-io.import.import-and-export-ontology-data (step 1: Turtle/RDF/XML/OWL), REQ-USR.UI.import-export.
     Files: Update `src/services/ontology-service/src/services/export_service.rs`, `src/services/ontology-service/src/services/import_service.rs`, `src/services/ontology-service/src/handlers/export_handler.rs`, `src/services/ontology-service/src/handlers/import_handler.rs`.
     Dependencies: none (extends existing Tasks 5.1, 5.2)
-    Progress: [ ] Pending
+    Progress: [x] Done
 
 - [x] **Task 11.3: Implement canonical Turtle serialization for stable Git diff**
     The spec (REQ-USR.UI.import-export, UC-io.import) requires canonical Turtle with stable ordering for consistent Git diffs. Current export uses basic Turtle serialization without guaranteed ordering.
@@ -1138,7 +1138,7 @@ Phase 1-9: Implementation
     Specs: REQ-FUN.DATA.versioning (canonical serialization), REQ-USR.UI.import-export.
     Files: Update `src/services/ontology-service/src/services/export_service.rs`.
     Dependencies: none (extends existing Task 5.1)
-    Progress: [ ] Pending
+    Progress: [x] Done
 
 - [x] **Task 11.4: Implement import strategies (replace/merge/version)**
     The spec (UC-io.import.import-and-export-ontology-data) requires three import strategies: replace, merge, and create new version. Current import only supports a single mode.
@@ -1146,7 +1146,7 @@ Phase 1-9: Implementation
     Specs: UC-io.import.import-and-export-ontology-data (step 4-5).
     Files: Update `src/services/ontology-service/src/services/import_service.rs`, `src/services/ontology-service/src/handlers/import_handler.rs`.
     Dependencies: Task 3.2 (branch creation for version strategy)
-    Progress: [ ] Pending
+    Progress: [x] Done
 
 - [x] **Task 11.5: Implement semantic diff for commit visualization**
     The spec (UC-git.commits.manage-commit-history, step 2) requires displaying a semantic diff (added=green, removed=red, modified=yellow) at the entity level. Current delta_service stores triples but there is no semantic diff rendering.
@@ -1154,7 +1154,7 @@ Phase 1-9: Implementation
     Specs: UC-git.commits.manage-commit-history (step 2), UC-git.commits.compare-ontology-versions.
     Files: Update `src/services/versioning-service/src/services/delta_service.rs`.
     Dependencies: Task 3.1 (commit model with delta)
-    Progress: [ ] Pending
+    Progress: [x] Done
 
 - [x] **Task 11.6: Implement Vue Flow graph visualization component**
     The spec (UC-browse.tree.view-ontology-tree-and-graph, REQ-USR.UI.graph-navigation) requires graph visualization with zoom, pan, depth control. The `@vue-flow/core` dependency exists but is not integrated.
@@ -1162,7 +1162,7 @@ Phase 1-9: Implementation
     Specs: UC-browse.tree.view-ontology-tree-and-graph, REQ-USR.UI.graph-navigation, ADR-DES.UI.ontology-mental-model-strategy.
     Files: Create `src/services/frontend/src/components/organisms/GraphVisualization.vue` (or rewrite if exists), Update `src/services/frontend/src/pages/OntologyWorkspace.vue`.
     Dependencies: Task 8.1 (Apollo wiring)
-    Progress: [ ] Pending
+    Progress: [x] Done
 
 - [x] **Task 11.7: Implement drag-and-drop class hierarchy reordering**
     The spec (UC-editor.classes.manage-class-lifecycle, step 18-20) requires drag-n-drop in the class tree to change parent-child relationships.
@@ -1170,7 +1170,7 @@ Phase 1-9: Implementation
     Specs: UC-editor.classes.manage-class-lifecycle (editing flow), US-editor.classes.hierarchy-drag-drop.
     Files: Update `src/services/frontend/src/components/organisms/ClassTree.vue`.
     Dependencies: Task 8.1, Task 2.1 (class update endpoint)
-    Progress: [ ] Pending
+    Progress: [x] Done
 
 - [x] **Task 11.8: Add SHACL validation endpoint and integration**
     The spec (UC-editor.classes.validate-ontology-with-shacl) requires SHACL-based ontology validation. ValidationPage.vue route exists but has no backend.
@@ -1178,7 +1178,7 @@ Phase 1-9: Implementation
     Specs: UC-editor.classes.validate-ontology-with-shacl, REQ-USR.UI.tbox-editor.
     Files: Create `src/services/ontology-service/src/handlers/validation_handler.rs`, Create `src/services/ontology-service/src/services/shacl_validator.rs`. Update `src/services/ontology-service/src/lib.rs` (add route).
     Dependencies: Task 2.1, Task 2.2
-    Progress: [ ] Pending
+    Progress: [x] Done
 
 - [x] **Task 11.9: Wire CommentsPage to real commenting-service**
     CommentsPage.vue exists but is backed by a stub service. After Task 10.1, wire the frontend to the real commenting-service endpoints.
@@ -1186,7 +1186,7 @@ Phase 1-9: Implementation
     Specs: UC-team.comments.view-project-comment-feed, UC-team.comments.discuss-merge-request-changes, US-editor.annotations.add-label.
     Files: Update `src/services/frontend/src/pages/CommentsPage.vue`, Create `src/services/frontend/src/components/organisms/CommentThread.vue`, Create `src/services/frontend/src/components/organisms/CommentForm.vue`.
     Dependencies: Task 10.1, Task 8.1
-    Progress: [ ] Pending
+    Progress: [x] Done
 
 - [x] **Task 11.10: Wire PublicOntologyPage to real public-browse-api**
     PublicOntologyPage.vue exists but is backed by a stub service. After Tasks 10.3–10.4, wire the frontend to the real public-browse-api endpoints.
@@ -1194,7 +1194,7 @@ Phase 1-9: Implementation
     Specs: UC-browse.public.view-published-ontology, REQ-NFR.INFRA.availability-slo.
     Files: Update `src/services/frontend/src/pages/PublicOntologyPage.vue`, Create `src/services/frontend/src/composables/usePublicOntology.ts`.
     Dependencies: Task 10.4
-    Progress: [ ] Pending
+    Progress: [x] Done
 
 - [x] **Task 11.11: Implement export by branch/commit**
     The spec (UC-io.import.import-and-export-ontology-data) requires export with a branch or commit specification. Current export endpoint does not accept version parameters.
@@ -1202,7 +1202,7 @@ Phase 1-9: Implementation
     Specs: UC-io.import.import-and-export-ontology-data (export step 2).
     Files: Update `src/services/ontology-service/src/handlers/export_handler.rs`, Update `src/services/ontology-service/src/services/export_service.rs`.
     Dependencies: Task 3.3 (materialized state), Task 5.1
-    Progress: [ ] Pending
+    Progress: [x] Done
 
 ---
 
