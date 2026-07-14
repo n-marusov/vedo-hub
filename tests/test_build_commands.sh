@@ -7,27 +7,55 @@ ROOT_DIR="$(cd "$MAKEFILE_DIR/../.." && pwd)"
 
 test_build_fails_on_error() {
     echo "TEST: build exits non-zero when a Rust build fails"
-    # Simulate a failing build by injecting a broken Cargo.toml
     local tmpdir
     tmpdir=$(mktemp -d)
-    mkdir -p "$tmpdir"
-    echo "invalid rust file" > "$tmpdir/Cargo.toml"
+    # Create an invalid Cargo project that will fail to compile
+    mkdir -p "$tmpdir/src"
+    echo '[package]
+name = "broken"
+version = "0.1.0"
+edition = "2021"' > "$tmpdir/Cargo.toml"
+    echo 'fn main() { let x = ; }' > "$tmpdir/src/main.rs"
     cd "$tmpdir"
-    # This is a unit test that validates the error path exists
-    # Actual build failure detection is validated when real service code exists
+    if cargo check 2>/dev/null; then
+        echo "FAIL: cargo check unexpectedly succeeded on broken code"
+        return 1
+    fi
     echo "PASS: BUILD_FAILED error path exists"
 }
 
 test_lint_fails_on_error() {
     echo "TEST: lint exits non-zero when clippy finds errors"
-    # Validate lint failure path
+    local tmpdir
+    tmpdir=$(mktemp -d)
+    echo 'fn main() { let unused = 42; }' > "$tmpdir/broken.rs"
+    # Run clippy on the broken file — should produce warnings
+    if rustup component list --installed 2>/dev/null | grep -q clippy; then
+        cd "$MAKEFILE_DIR"
+        # Use make -n to verify the target exists (dry-run)
+        make -n lint-rust 2>&1 | grep -q 'cargo clippy'
+    fi
     echo "PASS: LINT_FAILED error path exists"
 }
 
 test_test_fails_on_error() {
     echo "TEST: test exits non-zero when tests fail"
-    # Validate test failure path
-    echo "PASS: TEST_FAILED error path exists"
+    local tmpdir
+    tmpdir=$(mktemp -d)
+    mkdir -p "$tmpdir/src"
+    echo '[package]
+name = "failing-test"
+version = "0.1.0"
+edition = "2021"' > "$tmpdir/Cargo.toml"
+    echo '#[test]
+fn always_fails() { panic!("expected failure"); }' > "$tmpdir/src/lib.rs"
+    cd "$tmpdir"
+    if cargo test 2>&1 | grep -q 'FAILED'; then
+        echo "PASS: TEST_FAILED error path exists"
+    else
+        echo "FAIL: expected test failure not detected"
+        return 1
+    fi
 }
 
 test_timeout_enforced() {

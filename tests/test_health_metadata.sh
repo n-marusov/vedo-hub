@@ -23,10 +23,12 @@ check "compose has api-gateway" grep -q '^  api-gateway:' "$COMPOSE_FILE"
 check "compose maps api-gateway 8080" grep -q '"8080:8080"' "$COMPOSE_FILE"
 
 check "go stubs expose /health" grep -R -q '"/health"' "$SERVICES_DIR" --include='main.go'
+check "rust stubs expose /health" grep -R -q '"/health"' "$SERVICES_DIR" --include='lib.rs'
 check "python stubs expose /health" grep -R -q '"/health"' "$SERVICES_DIR" --include='main.py'
 check "ts stubs expose /health" grep -R -q 'location = /health' "$SERVICES_DIR" --include='nginx.conf'
 
 check "go stubs expose /ready" grep -R -q '"/ready"' "$SERVICES_DIR" --include='main.go'
+check "rust stubs expose /ready" grep -R -q '"/ready"' "$SERVICES_DIR" --include='lib.rs'
 check "python stubs expose /ready" grep -R -q '"/ready"' "$SERVICES_DIR" --include='main.py'
 check "ts stubs expose /ready" grep -R -q 'location = /ready' "$SERVICES_DIR" --include='nginx.conf'
 
@@ -39,6 +41,9 @@ check "method not allowed path exists" grep -R -q 'METHOD_NOT_ALLOWED' "$SERVICE
 
 check "compose has health checks" grep -q 'healthcheck:' "$COMPOSE_FILE"
 check "compose health checks target /health" grep -q '/health' "$COMPOSE_FILE"
+
+check "ontology-service port 8082 in compose" grep -q '8082:8082' "$COMPOSE_FILE"
+check "versioning-service port 8083 in compose" grep -q '8083:8083' "$COMPOSE_FILE"
 
 if [ "$ALL_PASS" -eq 0 ]; then
   echo "FAILED: one or more contract checks failed"

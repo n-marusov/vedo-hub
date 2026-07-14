@@ -13,6 +13,13 @@ pub fn request_total() -> u64 {
     REQUEST_TOTAL.load(Ordering::Relaxed)
 }
 
+/// Resets the request counter to zero.
+/// Only available in test builds for deterministic test isolation.
+#[cfg(test)]
+pub fn reset_request_count() {
+    REQUEST_TOTAL.store(0, Ordering::Relaxed);
+}
+
 /// Prometheus-format metrics handler.
 pub async fn metrics_handler() -> impl IntoResponse {
     let total = REQUEST_TOTAL.load(Ordering::Relaxed);
@@ -27,7 +34,10 @@ pub async fn metrics_handler() -> impl IntoResponse {
 
     (
         StatusCode::OK,
-        [(axum::http::header::CONTENT_TYPE, "text/plain; version=0.0.4")],
+        [(
+            axum::http::header::CONTENT_TYPE,
+            "text/plain; version=0.0.4",
+        )],
         metrics,
     )
 }
@@ -38,6 +48,7 @@ mod tests {
 
     #[test]
     fn test_increment_and_read() {
+        reset_request_count();
         let before = request_total();
         increment_request_count();
         let after = request_total();
@@ -46,6 +57,7 @@ mod tests {
 
     #[test]
     fn test_concurrent_increment() {
+        reset_request_count();
         let before = request_total();
         increment_request_count();
         increment_request_count();

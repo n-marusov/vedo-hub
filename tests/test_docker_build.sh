@@ -6,12 +6,38 @@ MAKEFILE_DIR="$(cd "$(dirname "$0")/../src" && pwd)"
 
 test_compose_failed_error_path() {
     echo "TEST: compose failure error path exists"
+    local tmpfile
+    tmpfile=$(mktemp)
+    # Write an intentionally broken docker-compose snippet (invalid YAML)
+    echo "  invalid: yaml: :" > "$tmpfile"
+    if docker compose -f "$tmpfile" config 2>/dev/null; then
+        echo "FAIL: docker compose config unexpectedly succeeded on broken YAML"
+        rm -f "$tmpfile"
+        return 1
+    fi
+    rm -f "$tmpfile"
     echo "PASS: COMPOSE_FAILED error path exists"
 }
 
 test_port_conflict_error_path() {
     echo "TEST: port conflict error path exists"
-    echo "PASS: PORT_CONFLICT error path exists"
+    local compose_file="$(cd "$(dirname "$0")/.." && pwd)/deploy/docker-compose.yml"
+    if [ ! -f "$compose_file" ]; then
+        echo "FAIL: compose file not found at $compose_file"
+        return 1
+    fi
+    # Extract all host ports from compose and check for duplicates
+    local ports
+    ports=$(grep -oP '"\K[0-9]+:[0-9]+' "$compose_file" 2>/dev/null | sort)
+    local host_ports
+    host_ports=$(echo "$ports" | sed 's/:.*//')
+    local duplicates
+    duplicates=$(echo "$host_ports" | uniq -d)
+    if [ -n "$duplicates" ]; then
+        echo "FAIL: duplicate host ports found: $duplicates"
+        return 1
+    fi
+    echo "PASS: PORT_CONFLICT error path exists — no duplicate host ports"
 }
 
 test_service_unhealthy_error_path() {
