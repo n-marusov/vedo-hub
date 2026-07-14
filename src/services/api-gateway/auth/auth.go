@@ -177,7 +177,8 @@ func NewMiddleware(cfg *Config) gin.HandlerFunc {
 				writeAuthError(c, http.StatusUnauthorized, ErrTokenExpired, "Token has expired")
 				logDenied(c, path, traceID, ErrTokenExpired, start)
 			} else {
-				writeAuthError(c, http.StatusUnauthorized, ErrUnauthenticated, "Invalid token: "+err.Error())
+				slog.WarnContext(c.Request.Context(), "auth.jwt_error", "jwt_error", err.Error(), "trace_id", traceID)
+				writeAuthError(c, http.StatusUnauthorized, ErrUnauthenticated, "Invalid or expired token")
 				logDenied(c, path, traceID, ErrUnauthenticated, start)
 			}
 			return
@@ -257,6 +258,12 @@ func NewMiddleware(cfg *Config) gin.HandlerFunc {
 		c.Set(string(CtxKeyRoles), roles)
 		c.Set(string(CtxKeyAuthorized), true)
 		c.Set(string(CtxKeyTraceID), traceID)
+
+		// @hlv:sec [AUTH_BOUNDARY] — inject identity headers for downstream
+		// proxy forwarding. The proxy's propagateHeaders reads from r.Header,
+		// so we must set them here (not just in Gin context).
+		c.Request.Header.Set("X-User-Id", userID)
+		c.Request.Header.Set("X-User-Roles", strings.Join(roles, ","))
 
 		slog.InfoContext(c.Request.Context(), "auth.granted",
 			"user_id", userID,
@@ -471,6 +478,10 @@ func DefaultExactExemptPaths() []string {
 // @hlv:sec [AUTH_BOUNDARY] — default keyfunc for RS256 JWT verification
 func DefaultKeyFunc(publicKey *rsa.PublicKey) jwt.Keyfunc {
 	return func(token *jwt.Token) (any, error) {
+		if alg, _ := token.Header["alg"].(string); strings.EqualFold(alg, "none") {
+			slog.Warn("auth.keyfunc.alg_none_rejected", "kid", token.Header["kid"])
+			return nil, jwt.ErrSignatureInvalid
+		}
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, jwt.ErrSignatureInvalid
 		}

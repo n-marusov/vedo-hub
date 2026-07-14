@@ -15,6 +15,7 @@ import (
 	"math/big"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -169,6 +170,10 @@ func newJWKSKeyFunc(jwksURL string, ttl time.Duration) (jwt.Keyfunc, error) {
 // verify is the jwt.Keyfunc closure handed to jwt.ParseWithClaims. It enforces
 // the RS256 signing method and resolves the kid header against the JWKS cache.
 func (j *jwksKeyFunc) verify(token *jwt.Token) (any, error) {
+	if alg, _ := token.Header["alg"].(string); strings.EqualFold(alg, "none") {
+		slog.Warn("auth.keyfunc.jwks_alg_none_rejected", "kid", token.Header["kid"])
+		return nil, jwt.ErrSignatureInvalid
+	}
 	if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 		return nil, jwt.ErrSignatureInvalid
 	}
