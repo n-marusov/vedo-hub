@@ -627,6 +627,71 @@ func TestInvariant_MalformedToken_Returns401(t *testing.T) {
 // Invariant: Wrong signing key returns 401
 // @hlv UNAUTHENTICATED
 // ============================================================
+// ============================================================
+// CT-SEC-014: Viewer-role can POST to read-only query endpoints
+// @hlv FORBIDDEN_INSUFFICIENT_ROLE — negative: BFLA must allow Viewer reads
+// ============================================================
+// @hlv:sec [AUTH_BOUNDARY] — Viewer can call SPARQL/CYPHER/GraphQL with role override = 0
+func TestCT_SEC_014_Viewer_CanPost_ReadOnlyQueryEndpoints(t *testing.T) {
+	// Configure the middleware the same way production main.go does: role
+	// override = 0 for the SPARQL/CYPHER/GraphQL POST endpoints so the
+	// rate limiter — not the BFLA gate — returns 429 on quota exhaustion.
+	cfg := defaultConfig()
+	cfg.RequiredRoleLevel = map[string]int{
+		"POST:/api/v1/sparql":  0,
+		"POST:/api/v1/cypher":  0,
+		"POST:/api/v1/graphql": 0,
+	}
+	token := signTestToken(&AuthClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
+		},
+		UserID:   "viewer-uuid",
+		TenantID: "tenant_A",
+		Roles:    []string{"Viewer"},
+	})
+	for _, ep := range []struct{ method, path string }{
+		{"POST", "/api/v1/sparql"},
+		{"POST", "/api/v1/cypher"},
+		{"POST", "/api/v1/graphql"},
+	} {
+		w := execMiddleware(cfg, ep.method, ep.path, token)
+		if w.Code != http.StatusOK {
+			t.Errorf("%s %s with Viewer role: expected 200 (role override=0), got %d (code=%s)", ep.method, ep.path, w.Code, extractErrorCode(t, w))
+		}
+	}
+}
+
+// ============================================================
+// CT-SEC-015: Without role override, Viewer POST returns 403
+// @hlv FORBIDDEN_INSUFFICIENT_ROLE — regression gate for production config
+// ============================================================
+// @hlv:sec [AUTH_BOUNDARY] — production default must require Editor+ for POSTs
+func TestCT_SEC_015_WithoutOverride_ViewerPost_Returns403(t *testing.T) {
+	cfg := defaultConfig()
+	// Deliberately leave cfg.RequiredRoleLevel nil: this is the dangerous
+	// production misconfiguration the override prevents.
+	token := signTestToken(&AuthClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
+		},
+		UserID:   "viewer-uuid",
+		TenantID: "tenant_A",
+		Roles:    []string{"Viewer"},
+	})
+	w := execMiddleware(cfg, "POST", "/api/v1/sparql", token)
+	if w.Code != http.StatusForbidden {
+		t.Errorf("expected 403 without override, got %d", w.Code)
+	}
+	if code := extractErrorCode(t, w); code != ErrInsufficientRole {
+		t.Errorf("expected %s, got %s", ErrInsufficientRole, code)
+	}
+}
+
+// ============================================================
+// Invariant: Wrong signing key returns 401
+// @hlv UNAUTHENTICATED
+// ============================================================
 func TestInvariant_WrongSigningKey_Returns401(t *testing.T) {
 	wrongKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {

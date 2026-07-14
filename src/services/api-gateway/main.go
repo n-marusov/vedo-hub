@@ -1,10 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -24,6 +26,20 @@ func getPort() string {
 		port = defaultPort
 	}
 	return port
+}
+
+// overrideSummary returns a stable, log-friendly string representation of the
+// RequiredRoleLevel map. Empty maps produce "<none>" so operators can spot
+// the dangerous production misconfiguration at a glance.
+func overrideSummary(overrides map[string]int) string {
+	if len(overrides) == 0 {
+		return "<none>"
+	}
+	pairs := make([]string, 0, len(overrides))
+	for k, v := range overrides {
+		pairs = append(pairs, fmt.Sprintf("%s=%d", k, v))
+	}
+	return strings.Join(pairs, ",")
 }
 
 // getUpstreamTimeout returns the timeout applied to proxied upstream requests.
@@ -68,13 +84,40 @@ func main() {
 		})
 	})
 
-	// Auth middleware configuration — exempt health/metrics/ready
+	// Auth middleware configuration — exempt health/metrics/ready.
+	// KeyFunc is loaded once at startup from JWT_PUBLIC_KEY_PATH or
+	// KEYCLOAK_JWKS_URL. The gateway refuses to boot when JWT verification
+	// is not configured so the auth boundary never degrades to accept-all.
+	keyFunc, err := auth.LoadKeyFuncFromEnv()
+	if err != nil {
+		slog.Error("auth.keyfunc.missing",
+			"error", err,
+			"hint", "set JWT_PUBLIC_KEY_PATH or KEYCLOAK_JWKS_URL",
+		)
+		panic("JWT verification not configured: " + err.Error())
+	}
+
+	requiredRoleLevel := map[string]int{
+		// Read-only query endpoints accept Viewer-role (level 0) auth so the
+		// rate limiter — not the BFLA gate — returns 429 when the tier quota
+		// is exceeded. Mutation keywords are still rejected by the gateway
+		// query validator before the request reaches the upstream.
+		"POST:/api/v1/sparql":  0,
+		"POST:/api/v1/cypher":  0,
+		"POST:/api/v1/graphql": 0,
+	}
+	slog.Info("auth.config.init",
+		"role_override_count", len(requiredRoleLevel),
+		"endpoints", overrideSummary(requiredRoleLevel),
+	)
+
 	authConfig := &auth.Config{
-		KeyFunc:          nil, // will be set when Keycloak integration is wired
-		ExemptPrefixes:   append(auth.DefaultExemptPrefixes(), "/api/v1/public/"),
-		ExactExemptPaths: auth.DefaultExactExemptPaths(),
-		AuditWriter:      &auth.SlogAuditWriter{},
-		AdminRoles:       auth.DefaultAdminRoles(),
+		KeyFunc:           keyFunc,
+		ExemptPrefixes:    append(auth.DefaultExemptPrefixes(), "/api/v1/public/"),
+		ExactExemptPaths:  auth.DefaultExactExemptPaths(),
+		AuditWriter:       &auth.SlogAuditWriter{},
+		AdminRoles:        auth.DefaultAdminRoles(),
+		RequiredRoleLevel: requiredRoleLevel,
 	}
 
 	// Apply auth middleware to all routes except exempt paths
