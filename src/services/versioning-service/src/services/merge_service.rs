@@ -4,6 +4,8 @@
 //! auto-resolves conflicts using source-branch preference on triple-level
 //! collisions, and produces the combined delta for the merge commit.
 
+use std::collections::HashSet;
+
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -62,13 +64,13 @@ pub fn compute_merged_delta(
     let mut merged_modified: Vec<ModifiedTriple> = Vec::new();
     let mut conflict_count = 0;
 
-    // Build lookup sets for target changes
-    let target_added_keys: Vec<String> = target_delta
+    // Build lookup sets for target changes (HashSet for O(1) contains)
+    let target_added_keys: HashSet<String> = target_delta
         .added_triples
         .iter()
         .map(|t| triple_key(t))
         .collect();
-    let target_removed_keys: Vec<String> = target_delta
+    let target_removed_keys: HashSet<String> = target_delta
         .removed_triples
         .iter()
         .map(|t| triple_key(t))
