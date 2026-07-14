@@ -94,44 +94,46 @@ pub fn build_app(state: Arc<AppState>) -> Router {
             .with_state(state.clone()),
     );
 
-    // Class CRUD routes — careful ordering: static paths before dynamic
+    // Class CRUD routes — careful ordering: static paths before dynamic.
+    // NOTE: axum 0.7 (matchit 0.7) uses the `:param` syntax; the `{param}` form
+    // is treated as a literal path segment and returns 404 for any value.
     let class_routes = Router::new()
         .route(
-            "/api/v1/ontologies/{ontology_id}/classes",
+            "/api/v1/ontologies/:ontology_id/classes",
             post(classes::create_class_handler).get(classes::list_classes_handler),
         )
         .route(
-            "/api/v1/ontologies/{ontology_id}/classes/root",
+            "/api/v1/ontologies/:ontology_id/classes/root",
             get(classes::list_root_classes_handler),
         )
         .route(
-            "/api/v1/ontologies/{ontology_id}/classes/search/autocomplete",
+            "/api/v1/ontologies/:ontology_id/classes/search/autocomplete",
             get(classes::autocomplete_search_handler),
         )
         .route(
-            "/api/v1/ontologies/{ontology_id}/classes/{class_id}",
+            "/api/v1/ontologies/:ontology_id/classes/:class_id",
             get(classes::get_class_handler)
                 .put(classes::update_class_handler)
                 .delete(classes::delete_class_handler),
         )
         .route(
-            "/api/v1/ontologies/{ontology_id}/classes/{class_id}/children",
+            "/api/v1/ontologies/:ontology_id/classes/:class_id/children",
             get(classes::get_class_children_handler),
         )
         .route(
-            "/api/v1/ontologies/{ontology_id}/classes/{class_id}/ancestors",
+            "/api/v1/ontologies/:ontology_id/classes/:class_id/ancestors",
             get(classes::get_ancestors_handler),
         )
         .route(
-            "/api/v1/ontologies/{ontology_id}/classes/{class_id}/descendants",
+            "/api/v1/ontologies/:ontology_id/classes/:class_id/descendants",
             get(classes::get_descendants_handler),
         )
         .route(
-            "/api/v1/ontologies/{ontology_id}/classes/{class_id}/breadcrumb",
+            "/api/v1/ontologies/:ontology_id/classes/:class_id/breadcrumb",
             get(classes::get_breadcrumb_handler),
         )
         .route(
-            "/api/v1/ontologies/{ontology_id}/classes/{class_id}/neighborhood",
+            "/api/v1/ontologies/:ontology_id/classes/:class_id/neighborhood",
             get(classes::get_neighborhood_handler),
         );
 
@@ -141,11 +143,11 @@ pub fn build_app(state: Arc<AppState>) -> Router {
     // Property CRUD routes
     let property_routes = Router::new()
         .route(
-            "/api/v1/ontologies/{ontology_id}/properties",
+            "/api/v1/ontologies/:ontology_id/properties",
             post(properties::create_property_handler).get(properties::list_properties_handler),
         )
         .route(
-            "/api/v1/ontologies/{ontology_id}/properties/{property_id}",
+            "/api/v1/ontologies/:ontology_id/properties/:property_id",
             get(properties::get_property_handler)
                 .put(properties::update_property_handler)
                 .delete(properties::delete_property_handler),
@@ -157,11 +159,11 @@ pub fn build_app(state: Arc<AppState>) -> Router {
     // Individual (ABox) CRUD routes
     let individual_routes = Router::new()
         .route(
-            "/api/v1/ontologies/{ontology_id}/individuals",
+            "/api/v1/ontologies/:ontology_id/individuals",
             post(individuals::create_individual_handler).get(individuals::list_individuals_handler),
         )
         .route(
-            "/api/v1/ontologies/{ontology_id}/individuals/{individual_id}",
+            "/api/v1/ontologies/:ontology_id/individuals/:individual_id",
             get(individuals::get_individual_handler)
                 .put(individuals::update_individual_handler)
                 .delete(individuals::delete_individual_handler),
@@ -172,14 +174,14 @@ pub fn build_app(state: Arc<AppState>) -> Router {
 
     // Export routes
     let export_routes = Router::new().route(
-        "/api/v1/ontologies/{ontology_id}/export",
+        "/api/v1/ontologies/:ontology_id/export",
         get(handlers::export_handler::export_ontology_handler),
     );
     let app = app.merge(export_routes.with_state(state.clone()));
 
     // Import routes
     let import_routes = Router::new().route(
-        "/api/v1/ontologies/{ontology_id}/import",
+        "/api/v1/ontologies/:ontology_id/import",
         post(handlers::import_handler::import_ontology_handler),
     );
     let app = app.merge(import_routes.with_state(state.clone()));
@@ -193,6 +195,26 @@ pub fn build_app(state: Arc<AppState>) -> Router {
     };
     let graphql_routes = Router::new().route("/api/v1/graphql", post(graphql_handler));
     let app = app.merge(graphql_routes.with_state(state.clone()));
+
+    // Query endpoints — SPARQL/CYPHER read-only facade proxied by the API
+    // gateway. The gateway enforces read-only validation and rate limiting
+    // before forwarding; this handler applies defense-in-depth validation
+    // server-side so internal callers cannot bypass the gate.
+    let query_routes = Router::new()
+        .route(
+            "/api/v1/sparql",
+            post(handlers::query_handler::sparql_handler),
+        )
+        .route(
+            "/api/v1/cypher",
+            post(handlers::query_handler::cypher_handler),
+        );
+    let app = app.merge(query_routes.with_state(state.clone()));
+
+    tracing::info!(
+        routes_registered = "sparql,cypher,graphql,classes,properties,individuals,export,import",
+        "Ontology-service routes registered"
+    );
 
     app
 }
