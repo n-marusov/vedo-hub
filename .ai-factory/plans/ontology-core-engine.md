@@ -1208,26 +1208,26 @@ Phase 1-9: Implementation
 
 ## Phase 12: Gap Closure — Missing M1 Test Coverage
 
-- [ ] **Task 12.1: Write E2E tests for commenting flow**
+- [x] **Task 12.1: Write E2E tests for commenting flow**
     Create Playwright E2E test for: add comment to class → view in feed → reply → verify notification. Reference: UC-team.comments.view-project-comment-feed.
     Specs: E2E-commenting.flow.md (new).
     Files: Create `tests/e2e/commenting-flow.spec.ts`, Create `specs/user-stories/E2E-commenting.flow.md`.
     Dependencies: Task 10.1, Task 11.9
-    Progress: [ ] Pending
+    Progress: [x] Done
 
-- [ ] **Task 12.2: Write E2E tests for graph visualization**
+- [x] **Task 12.2: Write E2E tests for graph visualization**
     Create Playwright E2E test for: open ontology workspace → view graph → zoom → click node → verify detail panel. Reference: UC-browse.tree.view-ontology-tree-and-graph.
     Specs: E2E-browse.graph-view.md (new).
     Files: Create `tests/e2e/graph-visualization.spec.ts`, Create `specs/user-stories/E2E-browse.graph-view.md`.
     Dependencies: Task 11.6
-    Progress: [ ] Pending
+    Progress: [x] Done
 
-- [ ] **Task 12.3: Write integration tests for commenting and publishing services**
+- [x] **Task 12.3: Write integration tests for commenting and publishing services**
     Add integration tests for the newly implemented services (Tasks 10.1–10.4). Comment CRUD with Postgres verification, publish snapshot with MinIO verification.
     Specs: REQ-FUN.INTEGRATION.collaboration, REQ-FUN.INFRA.ontology-publishing.
-    Files: Create `src/services/commenting-service/tests/comment_integration_test.go`, Create `src/services/publisher-service/tests/publish_integration_test.rs`.
+    Files: Create `src/services/commenting-service/comment_integration_test.go`, Create `src/services/publisher-service/tests/publish_integration_test.rs`.
     Dependencies: Tasks 10.1, 10.3
-    Progress: [ ] Pending
+    Progress: [x] Done
 
 ---
 
@@ -1247,7 +1247,7 @@ Total: 45 tasks
 ├── Phase 9: Docs & Trace        [x] 2/2 — traceability.ttl, Antora docs
 ├── Phase 10: Stub Services      [x] 5/5 — commenting, publisher, public-browse, metrics
 ├── Phase 11: Feature Gaps       [x] 11/11 — cardinality, OWL, diff, graph, SHACL, etc.
-├── Phase 12: Test Coverage      [ ] 0/3 — E2E + integration for gap closures
+├── Phase 12: Test Coverage      [x] 3/3 — E2E + integration for gap closures
 ```
 
 ## Next Steps
