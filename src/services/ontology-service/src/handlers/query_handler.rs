@@ -41,6 +41,22 @@ const SPARQL_MUTATION_KEYWORDS: &[&str] = &[
 ];
 const CYPHER_MUTATION_KEYWORDS: &[&str] = &["CREATE", "DELETE", "SET", "REMOVE", "MERGE"];
 
+/// Known read-only Cypher procedures that are safe to call via `CALL ...`.
+/// CALL to any procedure not in this list is rejected as potentially unsafe.
+/// This is an allowlist — only procedures proven read-only are added.
+const READONLY_PROCEDURES: &[&str] = &[
+    "db.labels",
+    "db.relationshipTypes",
+    "db.schema.nodeTypeProperties",
+    "db.schema.relTypeProperties",
+    "db.schema.visualization",
+    "db.propertyKeys",
+    "db.indexes",
+    "db.constraints",
+    "dbms.listConfig",
+    "dbms.components",
+];
+
 /// Request body shared by both endpoints.
 #[derive(Debug, Deserialize)]
 pub struct QueryRequest {
@@ -135,7 +151,11 @@ pub async fn sparql_handler(
         }
         Err(e) => {
             error!(error = %e, "Neo4j query failed for SPARQL translation");
-            error_response(StatusCode::INTERNAL_SERVER_ERROR, "ONT-DATABASE-ERROR", &e)
+            error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "ONT-DATABASE-ERROR",
+                "Query execution failed due to a database error",
+            )
         }
     }
 }
@@ -185,7 +205,11 @@ pub async fn cypher_handler(
         }
         Err(e) => {
             error!(error = %e, "Neo4j query failed for CYPHER");
-            error_response(StatusCode::INTERNAL_SERVER_ERROR, "ONT-DATABASE-ERROR", &e)
+            error_response(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "ONT-DATABASE-ERROR",
+                "Query execution failed due to a database error",
+            )
         }
     }
 }
@@ -213,6 +237,16 @@ fn validate_readonly(query: &str, dialect: QueryDialect) -> Option<&'static str>
             return Some("ONT-QUERY-READONLY");
         }
     }
+
+    // Additional check for Cypher: CALL to write procedures can bypass keyword
+    // detection if the procedure name doesn't contain a whole-word mutation
+    // keyword (e.g. `apoc.periodic.commit` won't match any Cypher keyword).
+    if matches!(dialect, QueryDialect::Cypher) && upper.contains("CALL") {
+        if !contains_known_readonly_procedure(&upper) {
+            return Some("ONT-QUERY-READONLY");
+        }
+    }
+
     None
 }
 
@@ -239,6 +273,47 @@ fn contains_whole_word(haystack: &str, needle: &str) -> bool {
         }
     }
     false
+}
+
+/// Checks if a query contains a `CALL` to a known read-only procedure.
+/// Only procedures in the `READONLY_PROCEDURES` allowlist are permitted.
+/// Returns `false` when the CALL targets an unknown (potentially write) procedure.
+fn contains_known_readonly_procedure(upper: &str) -> bool {
+    // Find CALL keyword
+    let mut search_start = 0usize;
+    while let Some(call_pos) = upper[search_start..].find("CALL") {
+        let abs = search_start + call_pos;
+        let after_call = &upper[abs + 4..];
+
+        // Skip whitespace after CALL
+        let proc_start = after_call.trim_start();
+        if proc_start.is_empty() {
+            search_start = abs + 4;
+            continue;
+        }
+
+        // Extract procedure name: from the start up to '(' or whitespace
+        let proc_name_end = proc_start
+            .find(|c: char| c == '(' || c.is_whitespace() || c == ')')
+            .unwrap_or(proc_start.len());
+        let proc_name = &proc_start[..proc_name_end];
+
+        // Check against allowlist (comparison is already uppercase)
+        let is_allowed = READONLY_PROCEDURES
+            .iter()
+            .any(|&allowed| proc_name == allowed.to_uppercase().as_str());
+        if !is_allowed {
+            tracing::warn!(
+                procedure = %proc_name,
+                "CALL to unknown procedure rejected by server-side validator"
+            );
+            return false;
+        }
+
+        // Move past this CALL to check for more CALLs
+        search_start = abs + 4;
+    }
+    true
 }
 
 /// Resolves the Neo4j pool from app state, returning the pool on success or
@@ -495,5 +570,101 @@ mod tests {
         assert!(!contains_whole_word("CREATERESOURCE", "CREATE"));
         assert!(!contains_whole_word("CreateResource", "CREATE"));
         assert!(!contains_whole_word("DELETEME", "DELETE"));
+    }
+
+    #[test]
+    fn test_validate_readonly_cypher_rejects_comments_containing_keywords() {
+        // Line comment with mutation keyword — must be rejected.
+        assert_eq!(
+            validate_readonly("MATCH (n) // CREATE\nRETURN n", QueryDialect::Cypher),
+            Some("ONT-QUERY-READONLY"),
+            "comment with CREATE must be rejected"
+        );
+        // Block comment with mutation keyword.
+        assert_eq!(
+            validate_readonly("MATCH (n) /* DELETE */ RETURN n", QueryDialect::Cypher),
+            Some("ONT-QUERY-READONLY"),
+            "block comment with DELETE must be rejected"
+        );
+        // MERGE inside a comment.
+        assert_eq!(
+            validate_readonly(
+                "MATCH (n) // MERGE with neighbor\nRETURN n",
+                QueryDialect::Cypher
+            ),
+            Some("ONT-QUERY-READONLY"),
+            "comment with MERGE must be rejected"
+        );
+    }
+
+    #[test]
+    fn test_validate_readonly_sparql_rejects_comments_containing_keywords() {
+        assert_eq!(
+            validate_readonly(
+                "SELECT ?s WHERE { ?s ?p ?o } # INSERT DATA",
+                QueryDialect::Sparql
+            ),
+            Some("ONT-QUERY-READONLY"),
+            "comment with INSERT must be rejected for SPARQL"
+        );
+    }
+
+    #[test]
+    fn test_validate_readonly_false_positive_string_literal() {
+        // String literals containing mutation keywords cause false positives:
+        // the keyword is not a Cypher/SPARQL mutation statement, but the
+        // word-boundary validator cannot distinguish it from a real keyword.
+        // This test documents the known limitation — see Task 2.1 for the fix.
+        assert_eq!(
+            validate_readonly(
+                "MATCH (n) WHERE n.name = 'CREATE' RETURN n",
+                QueryDialect::Cypher
+            ),
+            Some("ONT-QUERY-READONLY"),
+            "string literal 'CREATE' is falsely rejected (known limitation)"
+        );
+        assert_eq!(
+            validate_readonly(
+                "MATCH (n) WHERE n.label CONTAINS 'DELETE' RETURN n",
+                QueryDialect::Cypher
+            ),
+            Some("ONT-QUERY-READONLY"),
+            "string literal 'DELETE' is falsely rejected (known limitation)"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_error_response_format_sanitized() {
+        // The error_response function must not expose raw internal error details.
+        // This test verifies the output shape; the handler fix (Task 2.2) will
+        // ensure callers pass sanitized messages instead of raw DB errors.
+        let resp = error_response(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "ONT-DATABASE-ERROR",
+            "Query execution failed",
+        );
+        let (parts, body) = resp.into_parts();
+        assert_eq!(parts.status, StatusCode::INTERNAL_SERVER_ERROR);
+
+        // Read the body JSON.
+        let bytes = axum::body::to_bytes(body, 1024)
+            .await
+            .expect("body must be readable");
+        let json: serde_json::Value =
+            serde_json::from_slice(&bytes).expect("body must be valid JSON");
+
+        assert_eq!(json["error"], "ONT-DATABASE-ERROR");
+        assert_eq!(json["detail"], "Query execution failed");
+        // The response must NOT contain internal error markers.
+        let detail = json["detail"].as_str().unwrap_or("");
+        let forbidden = ["Neo4j", "neo4rs", "crypto", "signature", "runtime error"];
+        for pattern in &forbidden {
+            assert!(
+                !detail.contains(pattern),
+                "error detail must not contain '{}': got '{}'",
+                pattern,
+                detail
+            );
+        }
     }
 }
