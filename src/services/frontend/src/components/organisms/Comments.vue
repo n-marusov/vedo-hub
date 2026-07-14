@@ -27,7 +27,7 @@ interface CommentEntry {
   text: string
 }
 
-const props = withDefaults(defineProps<{
+withDefaults(defineProps<{
   comments?: CommentEntry[]
 }>(), {
   comments: () => [

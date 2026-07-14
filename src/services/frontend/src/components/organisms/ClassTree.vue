@@ -181,7 +181,8 @@ function onDragStart(event: DragEvent, node: TreeNode) {
 function onDragOver(event: DragEvent, node: TreeNode) {
   if (props.readonly || draggingId.value === node.id) return
   // Prevent dropping on self or own descendants (cycle prevention)
-  if (isDescendant(node, draggingId.value)) return
+  const dragId = draggingId.value
+  if (!dragId || isDescendant(node, dragId)) return
   dropTargetId.value = node.id
   event.dataTransfer!.dropEffect = 'move'
 }
@@ -190,7 +191,7 @@ function onDragLeave(_event: DragEvent, _node: TreeNode) {
   dropTargetId.value = null
 }
 
-function onDrop(event: DragEvent, targetNode: TreeNode) {
+function onDrop(_event: DragEvent, targetNode: TreeNode) {
   dropTargetId.value = null
   const sourceId = draggingId.value
   draggingId.value = null

@@ -1,11 +1,11 @@
 <!-- @hlv:artifact code-frontend implements spec-gui-ow-001 -->
-<!-- @ctx: Organism GraphVisualization component — interactive 2D graph with zoom, pan, depth controls -->
+<!-- @ctx: Organism GraphVisualization component — interactive 2D graph with Vue Flow -->
 <template>
   <div class="graph-viz" role="img" :aria-label="'Ontology graph visualization'">
     <div class="graph-viz__toolbar">
-      <button class="graph-viz__tool" aria-label="Zoom in" @click="zoomIn">+</button>
-      <button class="graph-viz__tool" aria-label="Zoom out" @click="zoomOut">−</button>
-      <button class="graph-viz__tool" aria-label="Fit view" @click="fitView">⊡</button>
+      <button class="graph-viz__tool" aria-label="Zoom in" @click="() => zoomIn()">+</button>
+        <button class="graph-viz__tool" aria-label="Zoom out" @click="() => zoomOut()">−</button>
+        <button class="graph-viz__tool" aria-label="Fit view" @click="() => fitView()">⊡</button>
       <label class="graph-viz__depth-label">
         Depth:
         <select v-model.number="depth" class="graph-viz__depth" aria-label="Graph depth">
@@ -32,56 +32,61 @@
       </select>
     </div>
 
-    <div
-      class="graph-viz__canvas"
-      ref="canvasRef"
-      @mousedown="onCanvasMouseDown"
-      @mousemove="onCanvasMouseMove"
-      @mouseup="onCanvasMouseUp"
-      @mouseleave="onCanvasMouseUp"
-      @wheel.prevent="onWheel"
-      :style="{ cursor: isPanning ? 'grabbing' : 'grab' }"
-    >
-      <!-- SVG edges layer -->
-      <svg class="graph-viz__edges" aria-hidden="true">
-        <line
-          v-for="edge in visibleEdges"
-          :key="`${edge.source}-${edge.target}`"
-          :x1="getTransformedX(getNodePosition(edge.source).x)"
-          :y1="getTransformedY(getNodePosition(edge.source).y)"
-          :x2="getTransformedX(getNodePosition(edge.target).x)"
-          :y2="getTransformedY(getNodePosition(edge.target).y)"
-          :class="`graph-viz__edge--${edge.type}`"
-        />
-      </svg>
-
-      <!-- Nodes layer -->
-      <div
-        v-for="node in visibleNodes"
-        :key="node.id"
-        :class="['graph-viz__node', `graph-viz__node--${node.type}`, { 'graph-viz__node--selected': node.id === selectedNodeId }]"
-        :style="{
-          left: `${getTransformedX(node.x)}px`,
-          top: `${getTransformedY(node.y)}px`,
-          transform: `scale(${zoomLevel})`,
-          transformOrigin: 'top left',
-        }"
-        :tabindex="0"
-        role="button"
-        :aria-label="`${node.label} (${node.type})`"
-        @click="onNodeClick(node)"
-        @keydown.enter="onNodeClick(node)"
+    <div class="graph-viz__canvas" ref="canvasRef">
+      <VueFlow
+        :nodes="flowNodes"
+        :edges="flowEdges"
+        :node-click="onNodeClick"
+        :fit-view-on-init="true"
+        :min-zoom="0.1"
+        :max-zoom="3"
+        :default-viewport="{ zoom: 1, x: 0, y: 0 }"
+        class="graph-viz__flow"
+        aria-label="Ontology graph"
       >
-        <span class="graph-viz__node-icon">{{ getNodeIcon(node.type) }}</span>
-        <span class="graph-viz__node-label">{{ node.label }}</span>
-      </div>
+        <template #node-ontology-class="nodeProps">
+          <div class="graph-viz__flow-node graph-viz__flow-node--class" :title="nodeProps.data.label">
+            <span class="graph-viz__flow-node-icon">◆</span>
+            <span class="graph-viz__flow-node-label">{{ nodeProps.data.label }}</span>
+          </div>
+        </template>
+        <template #node-ontology-property="nodeProps">
+          <div class="graph-viz__flow-node graph-viz__flow-node--property" :title="nodeProps.data.label">
+            <span class="graph-viz__flow-node-icon">◇</span>
+            <span class="graph-viz__flow-node-label">{{ nodeProps.data.label }}</span>
+          </div>
+        </template>
+        <template #node-ontology-individual="nodeProps">
+          <div class="graph-viz__flow-node graph-viz__flow-node--individual" :title="nodeProps.data.label">
+            <span class="graph-viz__flow-node-icon">○</span>
+            <span class="graph-viz__flow-node-label">{{ nodeProps.data.label }}</span>
+          </div>
+        </template>
+        <template #edge-custom="edgeProps">
+          <CustomEdge
+            :id="edgeProps.id"
+            :source-x="edgeProps.sourceX"
+            :source-y="edgeProps.sourceY"
+            :target-x="edgeProps.targetX"
+            :target-y="edgeProps.targetY"
+            :style="getEdgeStyle(edgeProps.data?.type)"
+          />
+        </template>
+
+        <Controls
+          :show-zoom="true"
+          :show-fit-view="true"
+          :show-lock="false"
+          position="bottom-right"
+        />
+        <Background :gap="20" variant="dots" />
+      </VueFlow>
     </div>
 
     <!-- Status bar -->
     <div class="graph-viz__status">
       <span>{{ visibleNodes.length }} / {{ nodes.length }} nodes</span>
       <span>{{ visibleEdges.length }} / {{ edges.length }} edges</span>
-      <span>Zoom: {{ Math.round(zoomLevel * 100) }}%</span>
     </div>
 
     <!-- Table fallback for accessibility -->
@@ -105,7 +110,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { VueFlow, useVueFlow, type Node, type Edge as FlowEdge } from '@vue-flow/core'
+import { Controls } from '@vue-flow/controls'
+import { Background } from '@vue-flow/background'
+import CustomEdge from './CustomEdge.vue'
+
+import '@vue-flow/core/dist/style.css'
+import '@vue-flow/core/dist/theme-default.css'
+import '@vue-flow/controls/dist/style.css'
+import '@vue-flow/background/dist/style.css'
 
 interface GraphNode {
   id: string
@@ -138,77 +152,39 @@ const emit = defineEmits<{
 
 const layout = ref('dagre')
 const canvasRef = ref<HTMLElement | null>(null)
-const selectedNodeId = ref<string | null>(null)
 const depth = ref(props.maxDepth ?? 3)
 const nodeTypeFilter = ref('all')
 
-// ── Zoom & Pan ──────────────────────────────────────────────────────────────
+const { fitView, zoomIn, zoomOut } = useVueFlow()
 
-const zoomLevel = ref(1)
-const panX = ref(0)
-const panY = ref(0)
-const isPanning = ref(false)
-let lastMouseX = 0
-let lastMouseY = 0
+// ── Node type mapping to Vue Flow node types ──────────────────────────────
 
-const MIN_ZOOM = 0.1
-const MAX_ZOOM = 3.0
-const ZOOM_STEP = 0.1
-
-function zoomIn() {
-  zoomLevel.value = Math.min(MAX_ZOOM, zoomLevel.value + ZOOM_STEP)
+function mapType(type: GraphNode['type']): string {
+  if (type === 'class') return 'ontology-class'
+  if (type === 'property') return 'ontology-property'
+  return 'ontology-individual'
 }
 
-function zoomOut() {
-  zoomLevel.value = Math.max(MIN_ZOOM, zoomLevel.value - ZOOM_STEP)
-}
+// ── Edge styling ─────────────────────────────────────────────────────────
 
-function fitView() {
-  zoomLevel.value = 1
-  panX.value = 0
-  panY.value = 0
-}
-
-function onWheel(event: WheelEvent) {
-  const delta = event.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP
-  zoomLevel.value = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoomLevel.value + delta))
-}
-
-function onCanvasMouseDown(event: MouseEvent) {
-  isPanning.value = true
-  lastMouseX = event.clientX
-  lastMouseY = event.clientY
-}
-
-function onCanvasMouseMove(event: MouseEvent) {
-  if (!isPanning.value) return
-  const dx = event.clientX - lastMouseX
-  const dy = event.clientY - lastMouseY
-  panX.value += dx
-  panY.value += dy
-  lastMouseX = event.clientX
-  lastMouseY = event.clientY
-}
-
-function onCanvasMouseUp() {
-  isPanning.value = false
-}
-
-function getTransformedX(x: number): number {
-  return x * zoomLevel.value + panX.value
-}
-
-function getTransformedY(y: number): number {
-  return y * zoomLevel.value + panY.value
+function getEdgeStyle(edgeType?: string): Partial<CSSStyleDeclaration> {
+  switch (edgeType) {
+    case 'subclass_of':
+      return { stroke: 'var(--primary, #4f6ef7)', strokeWidth: '2px' }
+    case 'object_property':
+      return { stroke: 'var(--accent, #e68a2e)', strokeWidth: '2px', strokeDasharray: '5,5' }
+    case 'datatype_property':
+      return { stroke: 'var(--status-info, #3b82f6)', strokeWidth: '1px', strokeDasharray: '2,2' }
+    default:
+      return { stroke: '#666', strokeWidth: '1px' }
+  }
 }
 
 // ── Filtering ───────────────────────────────────────────────────────────────
 
 const visibleNodes = computed(() => {
   return props.nodes.filter((n) => {
-    // Type filter
     if (nodeTypeFilter.value !== 'all' && n.type !== nodeTypeFilter.value) return false
-    // Depth filter
     if (depth.value < 10 && (n.depth ?? 0) > depth.value) return false
     return true
   })
@@ -220,25 +196,49 @@ const visibleEdges = computed(() => {
   return props.edges.filter((e) => visibleNodeIds.value.has(e.source) && visibleNodeIds.value.has(e.target))
 })
 
+// ── Vue Flow conversion ────────────────────────────────────────────────────
+
+const flowNodes = computed<Node[]>(() => {
+  return visibleNodes.value.map((n) => ({
+    id: n.id,
+    type: mapType(n.type),
+    position: { x: n.x, y: n.y },
+    data: {
+      label: n.label,
+      type: n.type,
+      depth: n.depth,
+    },
+  }))
+})
+
+const flowEdges = computed<FlowEdge[]>(() => {
+  return visibleEdges.value.map((e) => ({
+    id: `${e.source}-${e.target}`,
+    source: e.source,
+    target: e.target,
+    type: 'custom',
+    data: { type: e.type },
+  }))
+})
+
 // ── Helpers ─────────────────────────────────────────────────────────────────
-
-function getNodeIcon(type: string): string {
-  return type === 'class' ? '◆' : type === 'property' ? '◇' : '○'
-}
-
-function getNodePosition(id: string): { x: number; y: number } {
-  const node = props.nodes.find((n) => n.id === id)
-  return node ? { x: node.x + 40, y: node.y + 20 } : { x: 0, y: 0 }
-}
 
 function getEdgeCount(nodeId: string): number {
   return props.edges.filter((e) => e.source === nodeId || e.target === nodeId).length
 }
 
-function onNodeClick(node: GraphNode) {
-  selectedNodeId.value = node.id
-  emit('node-click', node)
+function onNodeClick(_event: MouseEvent, node: Node) {
+  const original = props.nodes.find((n) => n.id === node.id)
+  if (original) {
+    emit('node-click', original)
+  }
 }
+
+// ── Depth watcher ─────────────────────────────────────────────────────────
+
+watch(depth, (val) => {
+  emit('update:maxDepth', val)
+})
 </script>
 
 <style scoped>
@@ -305,14 +305,13 @@ function onNodeClick(node: GraphNode) {
   background: var(--surface-secondary);
 }
 
-.graph-viz__edges {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
+.graph-viz__flow {
+  width: 100%;
+  height: 100%;
 }
 
-.graph-viz__node {
-  position: absolute;
+/* Custom node styles for Vue Flow */
+:deep(.graph-viz__flow-node) {
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
@@ -322,38 +321,52 @@ function onNodeClick(node: GraphNode) {
   border-radius: var(--radius-lg);
   cursor: pointer;
   font-size: var(--font-size-sm);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   white-space: nowrap;
   user-select: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  min-width: 80px;
+  max-width: 200px;
 }
 
-.graph-viz__node:hover {
+:deep(.graph-viz__flow-node:hover) {
   border-color: var(--primary);
   box-shadow: var(--shadow-md);
   z-index: 10;
 }
 
-.graph-viz__node--selected {
-  border-color: var(--primary) !important;
-  box-shadow: 0 0 0 2px var(--primary-muted);
-  z-index: 11;
+:deep(.graph-viz__flow-node--class) {
+  border-left: 3px solid var(--primary);
 }
 
-.graph-viz__node--class { border-left: 3px solid var(--primary); }
-.graph-viz__node--property { border-left: 3px solid var(--accent); }
-.graph-viz__node--individual { border-left: 3px solid var(--status-info); }
+:deep(.graph-viz__flow-node--property) {
+  border-left: 3px solid var(--accent);
+}
 
-.graph-viz__node-icon {
+:deep(.graph-viz__flow-node--individual) {
+  border-left: 3px solid var(--status-info);
+}
+
+:deep(.graph-viz__flow-node-icon) {
   font-size: var(--font-size-xs);
+  flex-shrink: 0;
 }
 
-.graph-viz__node--class .graph-viz__node-icon { color: var(--primary); }
-.graph-viz__node--property .graph-viz__node-icon { color: var(--accent); }
-.graph-viz__node--individual .graph-viz__node-icon { color: var(--status-info); }
+:deep(.graph-viz__flow-node--class .graph-viz__flow-node-icon) {
+  color: var(--primary);
+}
 
-.graph-viz__edge--subclass_of { stroke: var(--primary); stroke-width: 2; }
-.graph-viz__edge--object_property { stroke: var(--accent); stroke-width: 2; stroke-dasharray: 5,5; }
-.graph-viz__edge--datatype_property { stroke: var(--status-info); stroke-width: 1; stroke-dasharray: 2,2; }
+:deep(.graph-viz__flow-node--property .graph-viz__flow-node-icon) {
+  color: var(--accent);
+}
+
+:deep(.graph-viz__flow-node--individual .graph-viz__flow-node-icon) {
+  color: var(--status-info);
+}
+
+:deep(.graph-viz__flow-node-label) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 .graph-viz__status {
   display: flex;
