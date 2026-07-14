@@ -100,17 +100,9 @@ import { useQuery } from '@vue/apollo-composable'
 import { useRoute } from 'vue-router'
 import {
   ChevronRight,
-  Columns3,
   Folder,
   GripVertical,
-  Pencil,
-  Plus,
-  Search,
-  Share2,
-  Table2,
-  Trash2,
-  User,
-  Workflow
+  Search
 } from 'lucide-vue-next'
 import {
   ONTOLOGY_QUERY,
@@ -138,8 +130,7 @@ const ontologyData = computed(() => ontologyResult.value?.ontology)
 // ── Class tree ───────────────────────────────────────────────────────────────────────
 
 const {
-  result: classTreeResult,
-  loading: treeLoading
+  result: classTreeResult
 } = useQuery(CLASS_TREE_QUERY, () => ({ ontologyId: ontologyId.value }), {
   fetchPolicy: 'cache-and-network'
 })
@@ -150,7 +141,6 @@ const classTree = computed(() => classTreeResult.value?.classTree || [])
 
 const {
   result: individualsResult,
-  loading: individualsLoading,
   refetch: refetchIndividuals
 } = useQuery(LIST_INDIVIDUALS_QUERY, () => ({
   ontologyId: ontologyId.value,
@@ -169,10 +159,6 @@ const individuals = computed(() => individualsResult.value?.individuals?.items |
 function selectClass(classId: string) {
   selectedClassId.value = classId
   selectedIndividualId.value = null
-}
-
-function selectIndividual(individualId: string) {
-  selectedIndividualId.value = individualId
 }
 
 watch(selectedClassId, () => {

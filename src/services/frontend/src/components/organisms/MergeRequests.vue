@@ -4,7 +4,7 @@
 <template>
     <div class="merge-requests" role="region" aria-label="Merge requests">
         <MergeRequestCard
-            v-for="(section, i) in sections"
+            v-for="section in sections"
             :key="section.title"
             :title="section.title"
             :open="section.open"
@@ -18,7 +18,7 @@
         </p>
 
         <MergeRequestCard
-            v-for="(section, i) in secondarySections"
+            v-for="section in secondarySections"
             :key="section.title"
             :title="section.title"
             :open="section.open"
