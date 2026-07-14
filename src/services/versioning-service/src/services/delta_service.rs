@@ -2,6 +2,8 @@
 //!
 //! Replays deltas from the root commit through the parent chain to produce
 //! the materialized state (set of active triples) for a given commit or branch.
+//! Supports snapshot-based fast paths: when a pre-computed snapshot is found
+//! within 10 commits of the target, only the trailing deltas are replayed.
 
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -29,8 +31,9 @@ impl DeltaReplayEngine {
 
     /// Replays all deltas from the root commit to the given `target_commit_id`.
     ///
-    /// Walks backward from the target (via `parent_commit_id`), collecting
-    /// commits, then replays them forward to produce the materialized state.
+    /// First checks for a pre-computed state snapshot. If a snapshot is found
+    /// within 10 commits of the target, replays only the trailing deltas from
+    /// the snapshot commit forward. Otherwise replays the full commit chain.
     ///
     /// Returns the list of active triples and the number of deltas replayed.
     pub async fn materialize(
@@ -42,6 +45,45 @@ impl DeltaReplayEngine {
             "Materializing state from commit chain"
         );
 
+        // Try to find a snapshot at or near the target commit
+        if let Some((snapshot_commit_id, triples)) =
+            self.find_nearest_snapshot(target_commit_id).await?
+        {
+            let snapshot_chain = self.walk_commit_chain(target_commit_id).await?;
+            let snapshot_index = snapshot_chain
+                .iter()
+                .position(|c| c.id == snapshot_commit_id);
+
+            if let Some(idx) = snapshot_index {
+                let trailing = &snapshot_chain[idx + 1..];
+                if trailing.len() <= 10 {
+                    let mut state: Vec<TripleRef> =
+                        serde_json::from_value(triples).map_err(|e| {
+                            VersionError::Database(format!(
+                                "Failed to deserialize snapshot triples: {e}"
+                            ))
+                        })?;
+
+                    for commit in trailing {
+                        apply_delta_to_state(&mut state, &commit.delta);
+                    }
+
+                    tracing::debug!(
+                        snapshot_commit_id = %snapshot_commit_id,
+                        trailing_deltas = trailing.len(),
+                        triple_count = state.len(),
+                        "Materialize: snapshot found, replaying trailing deltas",
+                    );
+
+                    return Ok(MaterializedState {
+                        triples: state,
+                        delta_count: trailing.len() + 1,
+                    });
+                }
+            }
+        }
+
+        // No suitable snapshot — replay full chain
         let chain = self.walk_commit_chain(target_commit_id).await?;
 
         if chain.is_empty() {
@@ -54,6 +96,12 @@ impl DeltaReplayEngine {
                 delta_count: 0,
             });
         }
+
+        let total_commits = chain.len();
+        tracing::debug!(
+            total_commits,
+            "Materialize: no snapshot found, replaying full chain",
+        );
 
         let mut state: Vec<TripleRef> = Vec::new();
 
@@ -69,18 +117,16 @@ impl DeltaReplayEngine {
             }
         }
 
-        let delta_count = chain.len();
-
         tracing::info!(
             target_commit_id = %target_commit_id,
             triple_count = state.len(),
-            deltas_replayed = delta_count,
+            deltas_replayed = total_commits,
             "Materialized state computed"
         );
 
         Ok(MaterializedState {
             triples: state,
-            delta_count,
+            delta_count: total_commits,
         })
     }
 
@@ -181,6 +227,146 @@ impl DeltaReplayEngine {
         }
 
         Ok(commits)
+    }
+
+    /// Looks up the nearest state snapshot at or near the given commit.
+    /// Returns `(snapshot_commit_id, triples_json)` if found within 10 commits.
+    async fn find_nearest_snapshot(
+        &self,
+        commit_id: Uuid,
+    ) -> Result<Option<(Uuid, serde_json::Value)>, VersionError> {
+        let pool = self.commit_repo.pool().clone();
+
+        // Use the commit chain to walk backward and check for snapshots.
+        // We check up to 11 commits back (target + 10 ancestors).
+        let row: Option<(Uuid, serde_json::Value)> = sqlx::query_as(
+            r#"
+            WITH RECURSIVE commit_chain AS (
+                SELECT id, parent_commit_id, 0 AS depth
+                FROM commits
+                WHERE id = $1
+                UNION ALL
+                SELECT c.id, c.parent_commit_id, cc.depth + 1
+                FROM commits c
+                INNER JOIN commit_chain cc ON c.id = cc.parent_commit_id
+                WHERE cc.depth < 10
+            )
+            SELECT ss.commit_id, ss.triples
+            FROM state_snapshots ss
+            INNER JOIN commit_chain cc ON ss.commit_id = cc.id
+            ORDER BY cc.depth ASC
+            LIMIT 1
+            "#,
+        )
+        .bind(commit_id)
+        .fetch_optional(&pool)
+        .await
+        .map_err(|e| VersionError::Database(format!("Failed to query state snapshots: {e}")))?;
+
+        Ok(row)
+    }
+
+    /// Creates a state snapshot for the given commit by materializing
+    /// the state and storing it in the `state_snapshots` table.
+    ///
+    /// This is best-effort and non-blocking: failures are logged but
+    /// not propagated to the caller.
+    pub async fn create_snapshot(&self, commit_id: Uuid) -> Result<(), VersionError> {
+        let pool = self.commit_repo.pool().clone();
+
+        // Materialize the full state for this commit
+        let materialized = self.materialize(commit_id).await?;
+        let triples_json = serde_json::to_value(&materialized.triples)
+            .map_err(|e| VersionError::Database(format!("Snapshot serialization error: {e}")))?;
+
+        // Get the branch ID from the commit
+        let branch_id: Uuid = sqlx::query_scalar("SELECT branch_id FROM commits WHERE id = $1")
+            .bind(commit_id)
+            .fetch_optional(&pool)
+            .await?
+            .ok_or_else(|| VersionError::CommitNotFound(commit_id.to_string()))?;
+
+        sqlx::query(
+            r#"
+            INSERT INTO state_snapshots (commit_id, branch_id, triples)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (commit_id) DO UPDATE
+                SET triples = EXCLUDED.triples,
+                    created_at = NOW()
+            "#,
+        )
+        .bind(commit_id)
+        .bind(branch_id)
+        .bind(&triples_json)
+        .execute(&pool)
+        .await
+        .map_err(|e| VersionError::Database(format!("Failed to insert state snapshot: {e}")))?;
+
+        let triple_count = materialized.triples.len();
+        tracing::info!(
+            commit_id = %commit_id,
+            triple_count,
+            "State snapshot created",
+        );
+
+        Ok(())
+    }
+
+    /// Checks if a snapshot should be created based on commit count,
+    /// and creates one if this is the 50th, 100th, etc. commit on the branch.
+    ///
+    /// This is best-effort: failures are logged and squelched.
+    pub async fn maybe_create_snapshot(&self, commit_id: Uuid) {
+        let pool = self.commit_repo.pool().clone();
+
+        // Get the branch_id for this commit
+        let branch_id: Option<Uuid> =
+            sqlx::query_scalar("SELECT branch_id FROM commits WHERE id = $1")
+                .bind(commit_id)
+                .fetch_optional(&pool)
+                .await
+                .unwrap_or(None)
+                .flatten();
+
+        let branch_id = match branch_id {
+            Some(id) => id,
+            None => {
+                tracing::warn!(
+                    commit_id = %commit_id,
+                    "Cannot create snapshot: commit not found"
+                );
+                return;
+            }
+        };
+
+        // Count commits on this branch
+        let count: i64 =
+            match sqlx::query_scalar("SELECT COUNT(*) FROM commits WHERE branch_id = $1")
+                .bind(branch_id)
+                .fetch_one(&pool)
+                .await
+            {
+                Ok(c) => c,
+                Err(e) => {
+                    tracing::warn!(
+                        error = %e,
+                        branch_id = %branch_id,
+                        "Cannot create snapshot: failed to count commits"
+                    );
+                    return;
+                }
+            };
+
+        // Create snapshot every 50 commits
+        if count > 0 && count % 50 == 0 {
+            if let Err(e) = self.create_snapshot(commit_id).await {
+                tracing::warn!(
+                    error = %e,
+                    commit_id = %commit_id,
+                    "Failed to create state snapshot"
+                );
+            }
+        }
     }
 }
 

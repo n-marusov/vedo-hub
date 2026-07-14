@@ -121,6 +121,33 @@ pub async fn run_manual_migrations(pool: &PgPool) -> Result<(), sqlx::Error> {
         .execute(pool)
         .await?;
 
+    // Migration 003: State snapshots for fast materialization
+    sqlx::query(
+        r#"
+        CREATE TABLE IF NOT EXISTS state_snapshots (
+            commit_id UUID PRIMARY KEY,
+            branch_id UUID NOT NULL,
+            triples JSONB NOT NULL DEFAULT '[]',
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+        "#,
+    )
+    .execute(pool)
+    .await?;
+
+    sqlx::query(
+        "CREATE INDEX IF NOT EXISTS idx_state_snapshots_branch_id ON state_snapshots(branch_id)",
+    )
+    .execute(pool)
+    .await?;
+
+    // Composite index for efficient commit listing by branch + creation order
+    sqlx::query(
+        "CREATE INDEX IF NOT EXISTS idx_commits_branch_created ON commits(branch_id, created_at DESC)",
+    )
+    .execute(pool)
+    .await?;
+
     tracing::info!("Manual migrations completed successfully");
     Ok(())
 }

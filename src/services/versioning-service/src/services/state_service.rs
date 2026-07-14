@@ -150,6 +150,11 @@ impl StateService {
             }
         }
 
+        // Best-effort state snapshot creation (every 50 commits)
+        self.delta_engine
+            .maybe_create_snapshot(rollback_commit.id)
+            .await;
+
         Ok(rollback_commit)
     }
 

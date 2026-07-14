@@ -18,6 +18,7 @@ use crate::models::{
     ListCommitsParams, PaginatedResponse,
 };
 use crate::repositories::CommitRepository;
+use crate::services::delta_service::DeltaReplayEngine;
 use crate::services::{StateService, SyncClient};
 use crate::AppState;
 
@@ -48,6 +49,11 @@ pub async fn create_commit_handler(
 
     let repo = repo_from_state(&state)?;
     let commit = repo.create(&req).await?;
+
+    // Best-effort state snapshot creation (every 50 commits)
+    let pg = state.pg.as_ref().ok_or(VersionError::PgNotConfigured)?;
+    let engine = DeltaReplayEngine::new(pg.pool().clone());
+    engine.maybe_create_snapshot(commit.id).await;
 
     info!(
         commit_id = %commit.id,
@@ -221,6 +227,10 @@ pub async fn rollback_commit_handler(
         branch_id = %req.branch_id,
         "Rollback completed"
     );
+
+    // Best-effort state snapshot creation (every 50 commits)
+    let engine = DeltaReplayEngine::new(pg.pool().clone());
+    engine.maybe_create_snapshot(rollback_commit.id).await;
 
     Ok((
         StatusCode::CREATED,
