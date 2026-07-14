@@ -1,12 +1,14 @@
 package main
 
 import (
+	"log/slog"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"vedo-core/src/services/api-gateway/auth"
 	corsmw "vedo-core/src/services/api-gateway/middleware"
@@ -52,9 +54,10 @@ func main() {
 	r.GET("/ready", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ready", "service": serviceName})
 	})
-	r.GET("/metrics", func(c *gin.Context) {
-		c.String(http.StatusOK, "# HELP vedo_service_requests_total Total service requests\n# TYPE vedo_service_requests_total counter\nvedo_service_requests_total{service=\"%s\"} 0\n", serviceName)
-	})
+	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
+
+	// Metrics middleware — counts every request after health/metrics/ready
+	r.Use(corsmw.Metrics(serviceName))
 
 	// Root endpoint
 	r.GET("/", func(c *gin.Context) {
@@ -85,6 +88,7 @@ func main() {
 
 	// Start server
 	port := getPort()
+	slog.Info("server.starting", "port", port, "service", serviceName)
 	if err := r.Run(":" + port); err != nil {
 		panic(err)
 	}
