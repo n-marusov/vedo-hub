@@ -58,6 +58,18 @@ impl StateService {
             )
         })?);
 
+        // Verify the target commit is reachable from the branch's head.
+        // This prevents checkout to an unrelated commit from a different
+        // branch or ontology.
+        if let Some(head_id) = branch.head_commit_id {
+            if !self.commit_repo.is_ancestor_of(head_id, commit_id).await? {
+                return Err(VersionError::InvalidRequest(format!(
+                    "Commit {} is not reachable from branch {} (head commit {})",
+                    commit_id, branch_id, head_id
+                )));
+            }
+        }
+
         // Materialize state from the commit chain
         let materialized = self.delta_engine.materialize(commit_id).await?;
 
@@ -108,6 +120,20 @@ impl StateService {
         let current_head = branch.head_commit_id.ok_or_else(|| {
             VersionError::InvalidRequest("Branch has no commits to rollback".to_string())
         })?;
+
+        // Verify the target commit is reachable from the current head.
+        // This prevents rollback to an unrelated commit from a different
+        // branch or ontology.
+        if !self
+            .commit_repo
+            .is_ancestor_of(current_head, target_commit_id)
+            .await?
+        {
+            return Err(VersionError::InvalidRequest(format!(
+                "Target commit {} is not reachable from branch {} (head commit {})",
+                target_commit_id, branch_id, current_head
+            )));
+        }
 
         // Compute inverse delta
         let inverse_delta = self

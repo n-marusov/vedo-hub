@@ -303,4 +303,34 @@ mod tests {
         // Dedup means only one copy
         assert!(result.merged_delta.added_triples.len() <= 1);
     }
+
+    #[test]
+    fn test_merge_no_divergence() {
+        // When source and target have exactly the same delta, the merge delta
+        // should be empty (all changes are deduplicated since both branches
+        // already have the same state).
+        let delta = CommitDelta {
+            added_triples: vec![make_triple("A", "p", "o")],
+            removed_triples: vec![],
+            modified_triples: vec![],
+        };
+        let result = compute_merged_delta(&delta, &delta);
+        assert_eq!(result.conflict_count, 0);
+        // Identical deltas cancel out — no new changes to merge
+        assert_eq!(result.merged_delta.added_triples.len(), 0);
+        assert!(result.merged_delta.is_empty());
+    }
+
+    #[test]
+    fn test_merge_both_no_changes_returns_empty() {
+        // When both branches have no changes, the merge delta must be empty.
+        // This is the degenerate case that `branch_repo.merge_branches` uses
+        // for MVP — test that the delta-level logic handles it cleanly.
+        let source = CommitDelta::default();
+        let target = CommitDelta::default();
+        let result = compute_merged_delta(&source, &target);
+        assert_eq!(result.conflict_count, 0);
+        assert!(result.merged_delta.is_empty());
+        assert_eq!(result.merged_delta.total_changes(), 0);
+    }
 }
