@@ -59,7 +59,7 @@ async fn test_create_object_property_stores_in_neo4j() {
         .graph()
         .execute(
             neo4rs::query(
-                "MATCH (p:Property) WHERE p.ontology_id=$id AND p.property_id=$pid RETURN p",
+                "MATCH (p:Property) WHERE p.ontology_id=$id AND p.id=$pid RETURN p",
             )
             .param("id", oid.clone())
             .param("pid", "hasParent".to_string()),
@@ -94,7 +94,7 @@ async fn test_create_datatype_property_stores_in_neo4j() {
         .graph()
         .execute(
             neo4rs::query(
-                "MATCH (p:Property {ontology_id:$id,property_id:'age'}) RETURN p.property_type AS t",
+                "MATCH (p:Property {ontology_id:$id,id:'age'}) RETURN p.property_type AS t",
             )
             .param("id", oid.clone()),
         )
@@ -116,7 +116,7 @@ async fn test_get_property_with_domain_range() {
         .graph()
         .execute(
             neo4rs::query(
-                r#"CREATE (p:Property {ontology_id:$id,property_id:'worksFor',label:'works for',property_type:'object',domain:'Person',range:'Organization'})"#,
+                r#"CREATE (p:Property {ontology_id:$id,id:'worksFor',label:'works for',property_type:'object',domain:'Person',range:'Organization'})"#,
             )
             .param("id", oid.clone()),
         )
@@ -147,8 +147,8 @@ async fn test_list_properties_returns_data() {
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("list_props");
 
-    let _ = pool.graph().execute(neo4rs::query(r#"CREATE (p:Property {ontology_id:$id,property_id:'rel1',label:'Rel1',property_type:'object'})"#).param("id", oid.clone())).await;
-    let _ = pool.graph().execute(neo4rs::query(r#"CREATE (p:Property {ontology_id:$id,property_id:'dt1',label:'Dt1',property_type:'datatype'})"#).param("id", oid.clone())).await;
+    let _ = pool.graph().execute(neo4rs::query(r#"CREATE (p:Property {ontology_id:$id,id:'rel1',label:'Rel1',property_type:'object'})"#).param("id", oid.clone())).await;
+    let _ = pool.graph().execute(neo4rs::query(r#"CREATE (p:Property {ontology_id:$id,id:'dt1',label:'Dt1',property_type:'datatype'})"#).param("id", oid.clone())).await;
 
     let resp = app
         .clone()
@@ -170,7 +170,7 @@ async fn test_delete_property_removes_from_neo4j() {
         .graph()
         .execute(
             neo4rs::query(
-                r#"CREATE (p:Property {ontology_id:$id,property_id:'tempProp',label:'Temp'})"#,
+                r#"CREATE (p:Property {ontology_id:$id,id:'tempProp',label:'Temp'})"#,
             )
             .param("id", oid.clone()),
         )
@@ -187,7 +187,7 @@ async fn test_delete_property_removes_from_neo4j() {
         .graph()
         .execute(
             neo4rs::query(
-                "MATCH (p:Property {ontology_id:$id,property_id:'tempProp'}) RETURN count(p) AS cnt",
+                "MATCH (p:Property {ontology_id:$id,id:'tempProp'}) RETURN count(p) AS cnt",
             )
             .param("id", oid.clone()),
         )

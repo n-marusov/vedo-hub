@@ -77,7 +77,7 @@ async fn test_create_class_creates_node_in_neo4j() {
         .graph()
         .execute(
             neo4rs::query(
-                "MATCH (c:Class) WHERE c.ontology_id = $id AND c.class_id = $cid RETURN c",
+                "MATCH (c:Class) WHERE c.ontology_id = $id AND c.id = $cid RETURN c",
             )
             .param("id", oid.clone())
             .param("cid", "Person".to_string()),
@@ -101,7 +101,7 @@ async fn test_get_class_returns_correct_data() {
     let _ = pool
         .graph()
         .execute(
-            neo4rs::query("CREATE (c:Class {ontology_id: $id, class_id: $cid, label: $label})")
+            neo4rs::query("CREATE (c:Class {ontology_id: $id, id: $cid, label: $label})")
                 .param("id", oid.clone())
                 .param("cid", "Vehicle".to_string())
                 .param("label", "Vehicle".to_string()),
@@ -130,7 +130,7 @@ async fn test_update_class_modifies_node_in_neo4j() {
         .graph()
         .execute(
             neo4rs::query(
-                "CREATE (c:Class {ontology_id: $id, class_id: $cid, label: $label, comment: $comment})",
+                "CREATE (c:Class {ontology_id: $id, id: $cid, label: $label, comment: $comment})",
             )
             .param("id", oid.clone())
             .param("cid", "Task".to_string())
@@ -153,7 +153,7 @@ async fn test_update_class_modifies_node_in_neo4j() {
         .graph()
         .execute(
             neo4rs::query(
-                "MATCH (c:Class {ontology_id: $id, class_id: 'Task'}) RETURN c.label AS lbl, c.comment AS cmt",
+                "MATCH (c:Class {ontology_id: $id, id: 'Task'}) RETURN c.label AS lbl, c.comment AS cmt",
             )
             .param("id", oid.clone()),
         )
@@ -175,7 +175,7 @@ async fn test_delete_class_removes_node_from_neo4j() {
     let _ = pool
         .graph()
         .execute(
-            neo4rs::query("CREATE (c:Class {ontology_id: $id, class_id: $cid, label: $label})")
+            neo4rs::query("CREATE (c:Class {ontology_id: $id, id: $cid, label: $label})")
                 .param("id", oid.clone())
                 .param("cid", "Obsolete".to_string())
                 .param("label", "Obsolete".to_string()),
@@ -195,7 +195,7 @@ async fn test_delete_class_removes_node_from_neo4j() {
         .graph()
         .execute(
             neo4rs::query(
-                "MATCH (c:Class {ontology_id: $id, class_id: 'Obsolete'}) RETURN count(c) AS cnt",
+                "MATCH (c:Class {ontology_id: $id, id: 'Obsolete'}) RETURN count(c) AS cnt",
             )
             .param("id", oid.clone()),
         )
@@ -217,7 +217,7 @@ async fn test_list_classes_returns_data() {
         let _ = pool
             .graph()
             .execute(
-                neo4rs::query("CREATE (c:Class {ontology_id: $id, class_id: $cid, label: $label})")
+                neo4rs::query("CREATE (c:Class {ontology_id: $id, id: $cid, label: $label})")
                     .param("id", oid.clone())
                     .param("cid", cls.to_string())
                     .param("label", cls.to_string()),
@@ -246,7 +246,7 @@ async fn test_create_duplicate_class_returns_error() {
     let _ = pool
         .graph()
         .execute(
-            neo4rs::query("CREATE (c:Class {ontology_id: $id, class_id: $cid, label: $label})")
+            neo4rs::query("CREATE (c:Class {ontology_id: $id, id: $cid, label: $label})")
                 .param("id", oid.clone())
                 .param("cid", "Unique".to_string())
                 .param("label", "UniqueClass".to_string()),

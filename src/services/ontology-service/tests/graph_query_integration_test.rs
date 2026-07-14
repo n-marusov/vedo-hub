@@ -21,7 +21,7 @@ fn get(uri: &str) -> Request<Body> {
 async fn seed_class(pool: &ontology_service::neo4j::Neo4jPool, oid: &str, cid: &str, parent: Option<&str>) {
     if let Some(p) = parent {
         let _ = pool.graph().execute(
-            neo4rs::query("MATCH (parent:Class {ontology_id:$id,class_id:$parent}) CREATE (c:Class {ontology_id:$id,class_id:$cid,label:$label}) CREATE (c)-[:SUBCLASS_OF]->(parent)")
+            neo4rs::query("MATCH (parent:Class {ontology_id:$id,id:$parent}) CREATE (c:Class {ontology_id:$id,id:$cid,label:$label}) CREATE (c)-[:CHILD_OF]->(parent)")
                 .param("id", oid.to_string())
                 .param("parent", p.to_string())
                 .param("cid", cid.to_string())
@@ -29,7 +29,7 @@ async fn seed_class(pool: &ontology_service::neo4j::Neo4jPool, oid: &str, cid: &
         ).await;
     } else {
         let _ = pool.graph().execute(
-            neo4rs::query("CREATE (c:Class {ontology_id:$id,class_id:$cid,label:$label})")
+            neo4rs::query("CREATE (c:Class {ontology_id:$id,id:$cid,label:$label})")
                 .param("id", oid.to_string())
                 .param("cid", cid.to_string())
                 .param("label", cid.to_string()),
@@ -70,7 +70,7 @@ async fn test_neighborhood_query() {
     assert_eq!(resp.status(), StatusCode::OK);
 
     let mut result = pool.graph().execute(
-        neo4rs::query("MATCH (c:Class {ontology_id:$id,class_id:'Employee'})-[:SUBCLASS_OF]->(p) RETURN p.class_id AS pid")
+        neo4rs::query("MATCH (c:Class {ontology_id:$id,id:'Employee'})-[:CHILD_OF]->(p) RETURN p.id AS pid")
             .param("id", oid.clone()),
     ).await.unwrap();
     assert_eq!(result.next().await.unwrap().unwrap().get::<String>("pid").unwrap(), "Person");

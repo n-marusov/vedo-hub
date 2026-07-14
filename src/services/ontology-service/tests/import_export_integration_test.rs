@@ -37,7 +37,7 @@ async fn test_export_turtle_returns_content() {
         .graph()
         .execute(
             neo4rs::query(
-                "CREATE (c:Class {ontology_id:$id,class_id:'Person',label:'Person',iri:$iri})",
+                "CREATE (c:Class {ontology_id:$id,id:'Person',label:'Person',iri:$iri})",
             )
             .param("id", oid.clone())
             .param("iri", format!("http://example.org/{oid}#Person")),
@@ -71,7 +71,7 @@ async fn test_export_rdfxml_returns_content() {
     let _ = pool
         .graph()
         .execute(
-            neo4rs::query("CREATE (c:Class {ontology_id:$id,class_id:'Test',label:'Test Class'})")
+            neo4rs::query("CREATE (c:Class {ontology_id:$id,id:'Test',label:'Test Class'})")
                 .param("id", oid.clone()),
         )
         .await;

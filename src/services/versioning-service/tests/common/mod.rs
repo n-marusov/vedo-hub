@@ -8,9 +8,16 @@ pub fn is_integration_enabled() -> bool {
 }
 
 /// Skips the test if PostgreSQL integration is not configured.
+///
+/// When `PG_TEST_DATABASE_URL` is not set, the test binary exits
+/// successfully so `cargo test --workspace` stays green in any developer
+/// environment without a test database. The previous implementation only
+/// logged a message and returned — tests then proceeded into DB-backed
+/// code and panicked when the database was unreachable.
 pub fn skip_if_no_pg() {
     if !is_integration_enabled() {
-        eprintln!("Skipping integration test: set PG_TEST_DATABASE_URL to run");
+        eprintln!("Skipping PostgreSQL integration tests: set PG_TEST_DATABASE_URL to run them");
+        std::process::exit(0);
     }
 }
 
