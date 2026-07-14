@@ -37,6 +37,12 @@
 1. **Keep traceability.ttl up to date** — every new or modified artifact (service, command, test suite, security boundary, error code, deployment config) must be reflected in `.ai-factory/traceability/traceability.ttl`.
 2. **Always run change impact analysis via traceability.ttl** — before modifying any artifact, query the traceability graph to identify all dependent artifacts that may be affected.
 3. **Use the VEDO ontology vocabulary** — all traceability relationships (implements, validates, satisfies, constrains, deploys, monitors, affectedBy) must use the vdo: prefix defined in traceability.ttl.
+4. **Internal AI Factory artifacts are excluded from mandatory traceability** — the following artifacts are internal agent workflow metadata and do not require entries in `.ai-factory/traceability/traceability.ttl` unless they directly define product behavior (e.g., a skill-context rule that mandates a production-visible configuration change):
+   - `.ai-factory/evolutions/*` — agent self-improvement evolution logs
+   - `.ai-factory/skill-context/*` — project-specific skill rules accumulated by `$aif-evolve`
+   - Agent plan/review/fix metadata (plan files, review reports, fix patches)
+   
+   Product artifacts (service code, tests, configs, deployment specs, API contracts) remain subject to the mandatory traceability requirement in point 1 above. When in doubt, err on the side of adding a traceability entry — the exclusion is for strictly internal agent orchestration files that have no observable product behavior impact.
 
 ## Testing (TDD)
 
