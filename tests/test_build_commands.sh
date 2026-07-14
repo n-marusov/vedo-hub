@@ -50,7 +50,9 @@ edition = "2021"' > "$tmpdir/Cargo.toml"
     echo '#[test]
 fn always_fails() { panic!("expected failure"); }' > "$tmpdir/src/lib.rs"
     cd "$tmpdir"
-    if cargo test 2>&1 | grep -q 'FAILED'; then
+    # Check that cargo test exits non-zero when tests fail
+    # (more reliable than grepping for "FAILED" across locales/environments)
+    if ! cargo test &>/dev/null; then
         echo "PASS: TEST_FAILED error path exists"
     else
         echo "FAIL: expected test failure not detected"

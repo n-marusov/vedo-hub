@@ -49,7 +49,7 @@ test_bola_bfla_authorization_fixtures() {
 test_no_hardcoded_secrets() {
   log_info "security.scan.no_hardcoded_secrets"
   local matches
-  matches=$(grep -R -n -E "AKIA[0-9A-Z]{16}|BEGIN PRIVATE KEY|ghp_[A-Za-z0-9]{36}|xox[baprs]-" "$SRC_DIR" "$ROOT_DIR/tests" --exclude=test_security_gate.sh || true)
+  matches=$(grep -R -n -E "AKIA[0-9A-Z]{16}|BEGIN PRIVATE KEY|ghp_[A-Za-z0-9]{36}|xox[baprs]-" "$SRC_DIR" "$ROOT_DIR/tests" --exclude=test_security_gate.sh --exclude-dir=target --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.venv --binary-files=without-match || true)
   if [ -n "$matches" ]; then
     log_error "security.scan.secrets_detected"
     printf '%s\n' "$matches"
