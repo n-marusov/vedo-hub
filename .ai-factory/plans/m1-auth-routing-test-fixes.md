@@ -47,7 +47,7 @@ The M1 code review identified **6 critical blockers** and **4 suggestions** acro
 
 ### Phase 1: Production Auth Configuration (Critical)
 
-- [ ] **Task 1: Wire production JWT verification in API Gateway**
+- [x] **Task 1: Wire production JWT verification in API Gateway**
 
     **Problem:** `src/services/api-gateway/main.go:72` sets `KeyFunc: nil`, making all protected routes unreachable with any JWT in production. Tests in `helpers_test.go` inject a valid keyfunc, masking the issue.
 
@@ -72,7 +72,7 @@ The M1 code review identified **6 critical blockers** and **4 suggestions** acro
 
     Dependencies: None
 
-- [ ] **Task 2: Add production RequiredRoleLevel overrides for read-only query endpoints**
+- [x] **Task 2: Add production RequiredRoleLevel overrides for read-only query endpoints**
 
     **Problem:** Production `auth.Config` in `main.go` does not set `RequiredRoleLevel`, so `methodRequiredLevel` treats every POST as Editor-level (role weight ≥1). The test environment in `helpers_test.go` adds overrides for `/api/v1/sparql`, `/api/v1/cypher`, and `/api/v1/graphql` — masking the production behavior.
 
@@ -100,7 +100,7 @@ The M1 code review identified **6 critical blockers** and **4 suggestions** acro
 
 ### Phase 2: Ontology-Service Routing Fixes (Critical)
 
-- [ ] **Task 3: Implement SPARQL and CYPHER query upstream endpoints**
+- [x] **Task 3: Implement SPARQL and CYPHER query upstream endpoints**
 
     **Problem:** Gateway exposes `POST /api/v1/sparql` and `POST /api/v1/cypher` (Task 6.2 in the main plan), which proxy to the ontology-service, but ontology-service has no matching routes. Valid queries reach the proxy and get 404.
 
@@ -129,7 +129,7 @@ The M1 code review identified **6 critical blockers** and **4 suggestions** acro
 
     Dependencies: Task 1.2 (Neo4j driver, already done in M1)
 
-- [ ] **Task 4: Fix axum 0.7 route syntax in ontology-service**
+- [x] **Task 4: Fix axum 0.7 route syntax in ontology-service**
 
     **Problem:** All parameterized routes in `ontology-service/src/lib.rs` use `{param}` syntax (`/api/v1/ontologies/{ontology_id}/classes/{class_id}`). The workspace pins `axum = "0.7"`, which requires `:param` syntax (`/api/v1/ontologies/:ontology_id/classes/:class_id`). Parameterized routes return 404, breaking all class CRUD, property CRUD, individual CRUD, graph queries, export, and import.
 
@@ -174,7 +174,7 @@ The M1 code review identified **6 critical blockers** and **4 suggestions** acro
 
 ### Phase 3: Versioning-Service Routing Fixes (Critical)
 
-- [ ] **Task 5: Fix axum 0.7 route syntax in versioning-service**
+- [x] **Task 5: Fix axum 0.7 route syntax in versioning-service**
 
     **Problem:** Same issue as Task 4 — parameterized routes in `versioning-service/src/routes.rs` use `{param}` syntax. The following endpoints fail:
     - `GET /api/v1/versioning/commits/{id}`
@@ -202,7 +202,7 @@ The M1 code review identified **6 critical blockers** and **4 suggestions** acro
 
 ### Phase 4: Test Infrastructure Fixes (Critical)
 
-- [ ] **Task 6: Fix integration test gating to properly skip when DB unavailable**
+- [x] **Task 6: Fix integration test gating to properly skip when DB unavailable**
 
     **Problem:** `skip_if_no_neo4j()` and `skip_if_no_pg()` only print a message and return — tests continue into DB-backed code, which panics when Neo4j/PostgreSQL is not available. This makes `cargo test --workspace` fail in any developer environment without test databases.
 
@@ -245,7 +245,7 @@ The M1 code review identified **6 critical blockers** and **4 suggestions** acro
 
     Dependencies: None
 
-- [ ] **Task 7: Align integration test fixtures with production Neo4j schema**
+- [x] **Task 7: Align integration test fixtures with production Neo4j schema**
 
     **Problem:** Integration tests use a different Neo4j property naming scheme than production code:
     - Tests use `class_id`, `individual_id`, `SUBCLASS_OF`
@@ -282,7 +282,7 @@ The M1 code review identified **6 critical blockers** and **4 suggestions** acro
 
 ### Phase 5: Quality Improvements (Suggestions)
 
-- [ ] **Task 8: Add frontend test script and verify type/lint pass**
+- [x] **Task 8: Add frontend test script and verify type/lint pass**
 
     **Problem:** Frontend has no `test` script, so the planned TDD workflow for frontend is not executable. Available scripts are `typecheck`, `lint`, `lint:ci`.
 
@@ -302,7 +302,7 @@ The M1 code review identified **6 critical blockers** and **4 suggestions** acro
 
     Dependencies: None
 
-- [ ] **Task 9: Harden query mutation detection in API Gateway**
+- [x] **Task 9: Harden query mutation detection in API Gateway**
 
     **Problem:** The SPARQL/CYPHER query validator uses naive `strings.Contains()` checks for mutation keywords like `INSERT`, `DELETE`, `SET`, `CREATE`, `MERGE`. This produces false positives when keywords appear inside string literals, comments, or identifiers (e.g., a class named `CreateResource`).
 
@@ -327,7 +327,7 @@ The M1 code review identified **6 critical blockers** and **4 suggestions** acro
 
     Dependencies: None
 
-- [ ] **Task 10: Fix proxy body buffering to avoid early body close**
+- [x] **Task 10: Fix proxy body buffering to avoid early body close**
 
     **Problem:** In `proxy.go`, the `ServeHTTP` method reads the request body, buffers it, then calls `r.Body.Close()`. The `httputil.ReverseProxy` may still try to read from `r.Body` after this point, resulting in data loss for write endpoints (POST/PUT).
 
@@ -357,11 +357,11 @@ The M1 code review identified **6 critical blockers** and **4 suggestions** acro
 
 ```
 Total: 10 tasks
-├── Phase 1: Production Auth         [ ] 0/2 — JWT verification, role overrides
-├── Phase 2: Ontology Routing        [ ] 0/2 — SPARQL/CYPHER upstream, route syntax fix
-├── Phase 3: Versioning Routing      [ ] 0/1 — axum route syntax fix
-├── Phase 4: Test Infrastructure     [ ] 0/2 — test gating, fixture alignment
-└── Phase 5: Quality Improvements    [ ] 0/3 — frontend test, query detection, proxy body
+├── Phase 1: Production Auth         [x] 2/2 — JWT verification, role overrides
+├── Phase 2: Ontology Routing        [x] 2/2 — SPARQL/CYPHER upstream, route syntax fix
+├── Phase 3: Versioning Routing      [x] 1/1 — axum route syntax fix
+├── Phase 4: Test Infrastructure     [x] 2/2 — test gating, fixture alignment
+└── Phase 5: Quality Improvements    [x] 3/3 — frontend test, query detection, proxy body
 ```
 
 ## Next Steps

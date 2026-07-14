@@ -93,12 +93,34 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// before consuming r.Body does not cause the keep-alive transport to return
 	// EOF to the caller. This keeps mock upstreams and any handler that ignores
 	// body bytes behaving predictably alongside persistent connections.
-	if r.Body != nil && r.ContentLength > 0 {
+	//
+	// IMPORTANT: do NOT call r.Body.Close() here. The httputil.ReverseProxy
+	// owns the request lifecycle and may still read from r.Body after this
+	// handler returns. Closing it prematurely causes data loss for POST/PUT
+	// endpoints — the upstream receives an empty body. Instead we swap in a
+	// fresh NopCloser wrapping the buffered bytes, leaving the original body
+	// for GC to reclaim once the proxy is done.
+	if r.Body != nil && r.ContentLength != 0 {
 		buf, err := io.ReadAll(r.Body)
-		if err == nil {
+		if err != nil {
+			slog.Warn("proxy.body_read_failed",
+				"service", p.serviceName,
+				"path", r.URL.Path,
+				"content_length", r.ContentLength,
+				"error", err,
+				"trace_id", r.Header.Get("X-Trace-Id"),
+			)
+		} else {
+			slog.Debug("proxy.body_buffered",
+				"service", p.serviceName,
+				"path", r.URL.Path,
+				"content_length", r.ContentLength,
+				"buffered_bytes", len(buf),
+				"trace_id", r.Header.Get("X-Trace-Id"),
+			)
 			r.Body = io.NopCloser(bytes.NewReader(buf))
+			r.ContentLength = int64(len(buf))
 		}
-		_ = r.Body.Close()
 	}
 
 	// Remove hop-by-hop headers

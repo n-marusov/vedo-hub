@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "typecheck": "vue-tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "lint": "biome check --write .",
     "lint:ci": "biome ci .",
     "fix:types": "node scripts/fix-types.mjs"
@@ -23,8 +25,11 @@
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@vitejs/plugin-vue": "^5.1.0",
+    "@vue/test-utils": "^2.4.6",
+    "jsdom": "^25.0.1",
     "typescript": "^5.5.4",
     "vite": "^5.3.5",
+    "vitest": "^2.1.9",
     "vue-tsc": "^2.1.0"
   }
 }
