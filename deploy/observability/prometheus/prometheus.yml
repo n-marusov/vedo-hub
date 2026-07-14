@@ -25,7 +25,7 @@ scrape_configs:
 
   - job_name: vedo-ontology-service
     static_configs:
-      - targets: ["ontology-service:8081"]
+      - targets: ["ontology-service:8082"]
         labels:
           service: ontology-service
           team: platform-team
@@ -34,7 +34,7 @@ scrape_configs:
 
   - job_name: vedo-versioning-service
     static_configs:
-      - targets: ["versioning-service:8082"]
+      - targets: ["versioning-service:8083"]
         labels:
           service: versioning-service
           team: platform-team
@@ -43,7 +43,7 @@ scrape_configs:
 
   - job_name: vedo-auth-service
     static_configs:
-      - targets: ["auth-service:8084"]
+      - targets: ["auth-service:8081"]
         labels:
           service: auth-service
           team: platform-team
@@ -52,7 +52,7 @@ scrape_configs:
 
   - job_name: vedo-metrics-service
     static_configs:
-      - targets: ["metrics-service:8000"]
+      - targets: ["metrics-service:8084"]
         labels:
           service: metrics-service
           team: platform-team
