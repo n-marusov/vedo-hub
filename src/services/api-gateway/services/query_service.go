@@ -45,14 +45,12 @@ type QueryValidationResult struct {
 	ErrorMessage   string
 }
 
-// ValidateAndSanitizeSPARQL validates and sanitizes a SPARQL query.
-func ValidateAndSanitizeSPARQL(query string, maxLimit int) *QueryValidationResult {
+// ValidateAndSanitizeSPARQL performs coarse fast-path validation for SPARQL queries.
+// Full validation including LIMIT injection is owned by the ontology-service.
+// This is a defence-in-depth fast-path that rejects obvious mutations before proxying.
+func ValidateAndSanitizeSPARQL(query string, _maxLimit int) *QueryValidationResult {
 	trimmed := strings.TrimSpace(query)
 	upper := strings.ToUpper(trimmed)
-
-	if maxLimit <= 0 {
-		maxLimit = DefaultMaxLimit
-	}
 
 	// Reject empty queries
 	if trimmed == "" {
@@ -63,7 +61,7 @@ func ValidateAndSanitizeSPARQL(query string, maxLimit int) *QueryValidationResul
 		}
 	}
 
-	// Only allow SELECT and ASK queries
+	// Only allow SELECT, ASK, CONSTRUCT, DESCRIBE queries
 	if !strings.HasPrefix(upper, "SELECT") && !strings.HasPrefix(upper, "ASK") && !strings.HasPrefix(upper, "CONSTRUCT") && !strings.HasPrefix(upper, "DESCRIBE") {
 		return &QueryValidationResult{
 			Valid:        false,
@@ -72,18 +70,16 @@ func ValidateAndSanitizeSPARQL(query string, maxLimit int) *QueryValidationResul
 		}
 	}
 
-	// Additional safety check: reject any mutation keywords in the query body
-	// using whole-word matching so identifiers like `CreateResource` are
-	// not falsely flagged. The query-type prefix (SELECT/ASK/etc.) is safe to
-	// scan as-is because no mutation keyword is a substring of those words.
+	// Coarse mutation keyword check (fast-path). Whole-word matching so
+	// identifiers like `CreateResource` are not falsely flagged.
+	// Full validation is performed by the ontology-service downstream.
 	bodyUpper := upper
-	slog.Debug("query.validation.body_scan", "type", "sparql", "body_len", len(bodyUpper))
+	slog.Debug("[FIX] query.validation.body_scan", "type", "sparql", "body_len", len(bodyUpper))
 	for _, kw := range sparqlMutationKeywords {
 		if containsKeyword(bodyUpper, kw) {
-			slog.Warn("query.mutation_keyword_detected",
+			slog.Warn("[FIX] query.mutation_keyword_detected",
 				"type", "sparql",
 				"keyword", kw,
-				"keyword_match", bodyUpper,
 			)
 			return &QueryValidationResult{
 				Valid:        false,
@@ -93,34 +89,24 @@ func ValidateAndSanitizeSPARQL(query string, maxLimit int) *QueryValidationResul
 		}
 	}
 
-	// Inject LIMIT if not present (for SELECT queries)
-	result := trimmed
-	if strings.HasPrefix(upper, "SELECT") && !strings.Contains(upper, "LIMIT") {
-		result = fmt.Sprintf("%s LIMIT %d", strings.TrimRight(trimmed, "; "), maxLimit)
-	}
-
 	// Hash the query for audit logging
 	hash := sha256.Sum256([]byte(query))
-	slog.Debug("query.validation",
+	slog.Debug("[FIX] query.validation.passed",
 		"type", "sparql",
 		"hash", fmt.Sprintf("%x", hash[:8]),
-		"injected_limit", !strings.Contains(upper, "LIMIT"),
 	)
 
 	return &QueryValidationResult{
 		Valid:          true,
-		SanitizedQuery: result,
+		SanitizedQuery: trimmed,
 	}
 }
 
-// ValidateAndSanitizeCYPHER validates and sanitizes a CYPHER query.
-func ValidateAndSanitizeCYPHER(query string, maxLimit int) *QueryValidationResult {
+// ValidateAndSanitizeCYPHER performs coarse fast-path validation for CYPHER queries.
+// Full validation including LIMIT injection is owned by the ontology-service.
+func ValidateAndSanitizeCYPHER(query string, _maxLimit int) *QueryValidationResult {
 	trimmed := strings.TrimSpace(query)
 	upper := strings.ToUpper(trimmed)
-
-	if maxLimit <= 0 {
-		maxLimit = DefaultMaxLimit
-	}
 
 	// Reject empty queries
 	if trimmed == "" {
@@ -140,16 +126,15 @@ func ValidateAndSanitizeCYPHER(query string, maxLimit int) *QueryValidationResul
 		}
 	}
 
-	// Check for mutation keywords in the query body beyond the prefix.
-	// Uses whole-word matching so `DeleteMe` is not flagged.
+	// Coarse mutation keyword check (fast-path).
+	// Full validation is performed by the ontology-service downstream.
 	bodyUpper := strings.TrimPrefix(upper, "MATCH")
-	slog.Debug("query.validation.body_scan", "type", "cypher", "body_len", len(bodyUpper))
+	slog.Debug("[FIX] query.validation.body_scan", "type", "cypher", "body_len", len(bodyUpper))
 	for _, kw := range cypherMutationKeywords {
 		if containsKeyword(bodyUpper, kw) {
-			slog.Warn("query.mutation_keyword_detected",
+			slog.Warn("[FIX] query.mutation_keyword_detected",
 				"type", "cypher",
 				"keyword", kw,
-				"keyword_match", bodyUpper,
 			)
 			return &QueryValidationResult{
 				Valid:        false,
@@ -159,22 +144,15 @@ func ValidateAndSanitizeCYPHER(query string, maxLimit int) *QueryValidationResul
 		}
 	}
 
-	// Inject LIMIT if not present
-	result := trimmed
-	if !strings.Contains(upper, "LIMIT") {
-		result = fmt.Sprintf("%s LIMIT %d", strings.TrimRight(trimmed, "; "), maxLimit)
-	}
-
 	// Hash for audit logging
 	hash := sha256.Sum256([]byte(query))
-	slog.Debug("query.validation",
+	slog.Debug("[FIX] query.validation.passed",
 		"type", "cypher",
 		"hash", fmt.Sprintf("%x", hash[:8]),
-		"injected_limit", !strings.Contains(upper, "LIMIT"),
 	)
 
 	return &QueryValidationResult{
 		Valid:          true,
-		SanitizedQuery: result,
+		SanitizedQuery: trimmed,
 	}
 }

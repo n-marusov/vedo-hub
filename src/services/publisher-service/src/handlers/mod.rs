@@ -13,6 +13,56 @@ use crate::models::{
 };
 use crate::AppState;
 
+// [FIX] Allowed formats for published snapshots. Any other value must be
+// rejected with 400 to prevent format strings leaking into filesystem paths
+// (e.g. `format = "../../etc/passwd"`).
+const ALLOWED_FORMATS: &[&str] = &["turtle", "rdf/xml", "owl", "n-triples", "jsonld"];
+
+/// [FIX] Validates `ontology_id` against `^[A-Za-z0-9_-]+$` and returns a
+/// `(StatusCode, Json<ApiErrorResponse>)` tuple on mismatch. This blocks path
+/// traversal attempts like `../../etc/passwd` from reaching the storage layer
+/// (which builds a filesystem path from the ontology_id) or the upstream
+/// ontology-service URL path.
+fn validate_ontology_id(ontology_id: &str) -> Result<(), (StatusCode, Json<ApiErrorResponse>)> {
+    let valid = !ontology_id.is_empty()
+        && ontology_id
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-');
+    if !valid {
+        warn!(
+            ontology_id = %ontology_id,
+            "[FIX] Rejecting ontology_id with invalid characters"
+        );
+        return Err((
+            StatusCode::BAD_REQUEST,
+            Json(ApiErrorResponse {
+                error: "INVALID_ONTOLOGY_ID".to_string(),
+                message: "ontology_id must match ^[A-Za-z0-9_-]+$".to_string(),
+            }),
+        ));
+    }
+    Ok(())
+}
+
+/// [FIX] Validates the requested export format against a known allowlist.
+/// Returns `(StatusCode, Json<ApiErrorResponse>)` on mismatch.
+fn validate_format(format: &str) -> Result<(), (StatusCode, Json<ApiErrorResponse>)> {
+    if !ALLOWED_FORMATS.contains(&format) {
+        warn!(
+            format = %format,
+            "[FIX] Rejecting unknown export format"
+        );
+        return Err((
+            StatusCode::BAD_REQUEST,
+            Json(ApiErrorResponse {
+                error: "UNSUPPORTED_FORMAT".to_string(),
+                message: format!("format must be one of: {}", ALLOWED_FORMATS.join(", ")),
+            }),
+        ));
+    }
+    Ok(())
+}
+
 /// Query parameters for listing snapshots.
 #[derive(Debug, Deserialize)]
 pub struct ListSnapshotsQuery {
@@ -36,8 +86,15 @@ pub async fn publish_snapshot_handler(
         "Publish snapshot requested"
     );
 
+    // [FIX] Validate ontology_id against path-traversal patterns before the
+    // storage layer constructs a filesystem path from it.
+    validate_ontology_id(&ontology_id)?;
+
     // Fetch ontology data from the ontology-service
     let format = req.format.unwrap_or_else(|| "turtle".to_string());
+    // [FIX] Whitelist the format so arbitrary strings cannot leak into the
+    // snapshot storage path extension.
+    validate_format(&format)?;
     let ontology_payload = fetch_ontology_data(
         &state,
         &ontology_id,
@@ -92,18 +149,21 @@ pub async fn list_snapshots_handler(
     State(state): State<Arc<AppState>>,
     Path(ontology_id): Path<String>,
     Query(_query): Query<ListSnapshotsQuery>,
-) -> Json<SnapshotListResponse> {
+) -> Result<Json<SnapshotListResponse>, (StatusCode, Json<ApiErrorResponse>)> {
     info!(ontology_id = %ontology_id, "Listing snapshots");
+    // [FIX] Validate ontology_id on this handler too — it routes to
+    // store.list_snapshots which builds a per-ontology lookup.
+    validate_ontology_id(&ontology_id)?;
 
     let snapshots = state.store.list_snapshots(&ontology_id).await;
     let total = snapshots.len();
 
     let summaries: Vec<SnapshotSummary> = snapshots.into_iter().map(Into::into).collect();
 
-    Json(SnapshotListResponse {
+    Ok(Json(SnapshotListResponse {
         snapshots: summaries,
         total,
-    })
+    }))
 }
 
 /// GET /api/v1/snapshots/{snapshot_id}

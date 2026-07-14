@@ -334,6 +334,7 @@ mod tests {
                 }],
                 removed_triples: vec![],
                 modified_triples: vec![],
+                ..Default::default()
             },
         };
         let result = create_commit_handler(State(state), Json(req)).await;

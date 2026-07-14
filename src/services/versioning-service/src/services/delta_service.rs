@@ -8,6 +8,8 @@
 use sqlx::PgPool;
 use uuid::Uuid;
 
+use std::collections::{HashMap, HashSet};
+
 use crate::error::VersionError;
 use crate::models::{Commit, CommitDelta, TripleRef};
 use crate::repositories::CommitRepository;
@@ -370,25 +372,44 @@ impl DeltaReplayEngine {
     }
 }
 
-/// Standalone function that applies a delta to a mutable state vector.
+/// Applies a delta to a mutable state vector, deduplicating on output.
 ///
 /// Handles additions, removals, and modifications correctly:
 /// - Removed triples are deleted from the state.
 /// - Modified triples: old value is removed, new value is added.
 /// - Added triples are appended.
+///
+/// [FIX] Uses pre-built HashSet/HashMap for O(n + δ) removal instead of O(N·M).
+/// [FIX] Deduplicates via HashSet on final state to prevent duplicate triple accumulation.
 pub fn apply_delta_to_state(state: &mut Vec<TripleRef>, delta: &CommitDelta) {
-    for removed in &delta.removed_triples {
-        state.retain(|t| t != removed);
-    }
+    // [FIX] Pre-build HashSet for O(1) removal checks
+    let removed_set: HashSet<TripleRef> = delta.removed_triples.iter().cloned().collect();
 
-    for modified in &delta.modified_triples {
-        state.retain(|t| !(t.s == modified.s && t.p == modified.p && t.o == modified.old_o));
-    }
+    // [FIX] Pre-build HashMap for O(1) modification checks
+    // Map (s, p) -> old_o for each modified triple
+    let modified_map: HashMap<(&str, &str), &str> = delta
+        .modified_triples
+        .iter()
+        .map(|m| ((m.s.as_str(), m.p.as_str()), m.old_o.as_str()))
+        .collect();
 
+    // [FIX] Single retain pass using pre-built sets — O(n) instead of repeated scans
+    state.retain(|t| {
+        if removed_set.contains(t) {
+            return false;
+        }
+        if let Some(&old_o) = modified_map.get(&(t.s.as_str(), t.p.as_str())) {
+            if t.o == old_o {
+                return false;
+            }
+        }
+        true
+    });
+
+    // Add new triples
     for added in &delta.added_triples {
         state.push(added.clone());
     }
-
     for modified in &delta.modified_triples {
         state.push(TripleRef {
             s: modified.s.clone(),
@@ -396,6 +417,10 @@ pub fn apply_delta_to_state(state: &mut Vec<TripleRef>, delta: &CommitDelta) {
             o: modified.new_o.clone(),
         });
     }
+
+    // [FIX] Dedup to prevent duplicate triple accumulation
+    let mut seen: HashSet<TripleRef> = HashSet::with_capacity(state.len());
+    state.retain(|t| seen.insert(t.clone()));
 }
 
 /// The materialized state resulting from replaying a commit chain.
@@ -423,6 +448,7 @@ mod tests {
             }],
             removed_triples: vec![],
             modified_triples: vec![],
+            merge_metadata: None,
         };
         apply_delta_to_state(&mut state, &delta);
         assert_eq!(state.len(), 1);
@@ -444,6 +470,7 @@ mod tests {
                 o: "o1".into(),
             }],
             modified_triples: vec![],
+            merge_metadata: None,
         };
         apply_delta_to_state(&mut state, &delta);
         assert!(state.is_empty());
@@ -465,6 +492,7 @@ mod tests {
                 old_o: "old".into(),
                 new_o: "new".into(),
             }],
+            merge_metadata: None,
         };
         apply_delta_to_state(&mut state, &delta);
         assert_eq!(state.len(), 1);
@@ -483,6 +511,7 @@ mod tests {
             }],
             removed_triples: vec![],
             modified_triples: vec![],
+            merge_metadata: None,
         };
         apply_delta_to_state(&mut state, &delta1);
         assert_eq!(state.len(), 1);
@@ -499,6 +528,7 @@ mod tests {
                 o: "v1".into(),
             }],
             modified_triples: vec![],
+            merge_metadata: None,
         };
         apply_delta_to_state(&mut state, &delta2);
         assert_eq!(state.len(), 1);
@@ -515,6 +545,7 @@ mod tests {
             }],
             removed_triples: vec![],
             modified_triples: vec![],
+            merge_metadata: None,
         };
         // Inverse: added becomes removed
         let inverse_removed = delta.added_triples.clone();

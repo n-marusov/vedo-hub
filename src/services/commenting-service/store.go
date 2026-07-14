@@ -177,20 +177,21 @@ func (s *CommentStore) GetComment(ctx context.Context, id string) (*Comment, err
 func (s *CommentStore) UpdateComment(ctx context.Context, id string, req UpdateCommentRequest) (*Comment, error) {
 	slog.Debug("Updating comment", "comment_id", id)
 
-	if req.Metadata != nil && !json.Valid([]byte(*req.Metadata)) {
-		return nil, fmt.Errorf("metadata must be valid JSON")
-	}
-
-	meta := "EXCLUDED.metadata"
+	meta := "{}"
 	if req.Metadata != nil {
-		meta = fmt.Sprintf("%q::jsonb", *req.Metadata)
+		if !json.Valid([]byte(*req.Metadata)) {
+			return nil, fmt.Errorf("metadata must be valid JSON")
+		}
+		meta = *req.Metadata
 	}
 
-	row := s.db.QueryRowContext(ctx, fmt.Sprintf(`
-		UPDATE comments SET body = $2, metadata = %s, updated_at = NOW()
+	slog.Debug("[FIX] UpdateComment with parameterized metadata", "comment_id", id)
+
+	row := s.db.QueryRowContext(ctx, `
+		UPDATE comments SET body = $2, metadata = $3::jsonb, updated_at = NOW()
 		WHERE id = $1
 		RETURNING id, ontology_id, entity_id, entity_type, author_id, body, parent_comment_id, created_at, updated_at, metadata
-	`, meta), id, req.Body)
+	`, id, req.Body, meta)
 
 	c, err := scanComment(row)
 	if err != nil {
@@ -278,11 +279,9 @@ func (s *CommentStore) ListCommentsByEntity(ctx context.Context, ontologyID, ent
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to fetch replies: %w", err)
 		}
-		// We embed replies inline into the response; the caller orders by time
-		_ = replies
-		comments[i].Metadata = nil // placeholder
+		// [FIX] Actually attach fetched replies to the comment instead of discarding
+		comments[i].Replies = replies
 	}
-	_ = comments
 
 	return comments, total, nil
 }

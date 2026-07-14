@@ -21,7 +21,7 @@ use std::collections::{HashMap, HashSet};
 
 use serde::Serialize;
 
-use crate::models::{CommitDelta, TripleRef};
+use crate::models::{CommitDelta, ModifiedTriple, TripleRef};
 
 // ── Diff Types ───────────────────────────────────────────────────────────────
 
@@ -128,7 +128,7 @@ pub fn compute_semantic_diff(delta: &CommitDelta) -> SemanticDiff {
         "Computing semantic diff"
     );
 
-    // Collect all affected entity IDs from added/removed triples
+    // Collect all affected entity IDs from added/removed/modified triples
     let mut affected_entities: HashSet<&str> = HashSet::new();
     for t in &delta.added_triples {
         affected_entities.insert(t.s.as_str());
@@ -144,23 +144,49 @@ pub fn compute_semantic_diff(delta: &CommitDelta) -> SemanticDiff {
     let added_by_subject = group_by_subject(&delta.added_triples);
     let removed_by_subject = group_by_subject(&delta.removed_triples);
 
+    // Build lookups for modified triples: subject → [&ModifiedTriple]
+    // Each modified triple contributes a "before" TripleRef (old_o) and
+    // an "after" TripleRef (new_o) so modified-only entities have non-empty
+    // before/after vectors.
+    let mut modified_by_subject: HashMap<&str, Vec<&ModifiedTriple>> = HashMap::new();
+    for t in &delta.modified_triples {
+        modified_by_subject.entry(t.s.as_str()).or_default().push(t);
+    }
+
     // Build a set of "before" subjects and "after" subjects
-    let after_subjects: HashSet<&str> = added_by_subject.keys().copied().collect();
-    let before_subjects: HashSet<&str> = removed_by_subject.keys().copied().collect();
+    let _after_subjects: HashSet<&str> = added_by_subject.keys().copied().collect();
+    let _before_subjects: HashSet<&str> = removed_by_subject.keys().copied().collect();
 
     let mut entries = Vec::new();
 
     for entity_id in affected_entities {
-        let after_triples = added_by_subject.get(entity_id).cloned().unwrap_or_default();
-        let before_triples = removed_by_subject
+        let mut after_triples = added_by_subject.get(entity_id).cloned().unwrap_or_default();
+        let mut before_triples = removed_by_subject
             .get(entity_id)
             .cloned()
             .unwrap_or_default();
 
-        let is_added = after_subjects.contains(entity_id) && !before_subjects.contains(entity_id);
-        let is_removed = before_subjects.contains(entity_id) && !after_subjects.contains(entity_id);
-        let _is_modified =
-            before_subjects.contains(entity_id) && after_subjects.contains(entity_id);
+        // Merge modified triples into before/after
+        if let Some(modified) = modified_by_subject.get(entity_id) {
+            for m in modified {
+                before_triples.push(TripleRef {
+                    s: m.s.clone(),
+                    p: m.p.clone(),
+                    o: m.old_o.clone(),
+                });
+                after_triples.push(TripleRef {
+                    s: m.s.clone(),
+                    p: m.p.clone(),
+                    o: m.new_o.clone(),
+                });
+            }
+        }
+
+        let has_after = !after_triples.is_empty();
+        let has_before = !before_triples.is_empty();
+
+        let is_added = has_after && !has_before;
+        let is_removed = has_before && !has_after;
 
         let change_type = if is_added {
             ChangeType::Added
@@ -305,6 +331,7 @@ mod tests {
             ],
             removed_triples: vec![],
             modified_triples: vec![],
+            merge_metadata: None,
         };
 
         let diff = compute_semantic_diff(&delta);
@@ -326,6 +353,7 @@ mod tests {
                 make_triple("hasName", "rdfs:label", "\"hasName\"^^xsd:string"),
             ],
             modified_triples: vec![],
+            merge_metadata: None,
         };
 
         let diff = compute_semantic_diff(&delta);
@@ -346,6 +374,7 @@ mod tests {
             )],
             removed_triples: vec![make_triple("alice", "rdfs:label", "\"Alice\"^^xsd:string")],
             modified_triples: vec![],
+            merge_metadata: None,
         };
 
         let diff = compute_semantic_diff(&delta);
@@ -364,6 +393,7 @@ mod tests {
             ],
             removed_triples: vec![make_triple("OldClass", "rdf:type", "owl:Class")],
             modified_triples: vec![],
+            merge_metadata: None,
         };
 
         let diff = compute_semantic_diff(&delta);
@@ -395,6 +425,7 @@ mod tests {
             )],
             removed_triples: vec![make_triple("Person", "rdfs:comment", "\"Old\"^^xsd:string")],
             modified_triples: vec![],
+            merge_metadata: None,
         };
 
         let diff = compute_semantic_diff(&delta);
@@ -411,6 +442,7 @@ mod tests {
             ],
             removed_triples: vec![],
             modified_triples: vec![],
+            merge_metadata: None,
         };
 
         let diff = compute_semantic_diff(&delta);

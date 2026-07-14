@@ -182,7 +182,6 @@ function onGraphNodeClick(node: { id: string; label: string; type: string }) {
     selectedClassId.value = node.id
   }
 }
-const viewMode = ref<'graph' | 'table'>('table')
 
 // ── Ontology metadata ────────────────────────────────────────────────────────────────
 

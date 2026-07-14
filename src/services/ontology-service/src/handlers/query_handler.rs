@@ -128,7 +128,8 @@ pub async fn sparql_handler(
     };
 
     debug!(cypher = %translation.cypher, limit = translation.limit, "Executing translated Cypher");
-    let result = run_readonly_cypher(pool, &translation.cypher).await;
+    // [FIX] Pass limit as a Cypher parameter for defense-in-depth.
+    let result = run_readonly_cypher_with_limit(pool, &translation.cypher, translation.limit).await;
     let execution_time_ms = start.elapsed().as_millis() as u64;
 
     match result {
@@ -361,6 +362,40 @@ async fn run_readonly_cypher(
     Ok(rows)
 }
 
+/// [FIX] Executes a Cypher query against the pool with a parameterized LIMIT.
+/// The `$vedo_limit` parameter is bound to `limit` (as i64) so the LIMIT
+/// value cannot be a source of Cypher injection.
+async fn run_readonly_cypher_with_limit(
+    pool: &crate::neo4j::Neo4jPool,
+    query: &str,
+    limit: usize,
+) -> Result<Vec<serde_json::Value>, String> {
+    let q = neo4rs::query(query).param("vedo_limit", limit as i64);
+    let fut = pool.graph().execute(q);
+    let mut result = tokio::time::timeout(QUERY_TIMEOUT, fut)
+        .await
+        .map_err(|_| {
+            warn!(
+                timeout_secs = QUERY_TIMEOUT.as_secs(),
+                "[FIX] Parameterized query timed out"
+            );
+            format!("Query exceeded {QUERY_TIMEOUT:?} timeout")
+        })?
+        .map_err(|e| {
+            error!(error = %e, "[FIX] Neo4j execute failed");
+            e.to_string()
+        })?;
+
+    let mut rows: Vec<serde_json::Value> = Vec::new();
+    while let Ok(Some(row)) = result.next().await {
+        let value: serde_json::Value = row
+            .to::<serde_json::Value>()
+            .unwrap_or(serde_json::Value::Null);
+        rows.push(value);
+    }
+    Ok(rows)
+}
+
 // ── SPARQL → Cypher translation (minimal M1 subset) ──────────────────────────
 
 #[derive(Debug)]
@@ -417,12 +452,25 @@ fn translate_sparql_to_cypher(query: &str) -> Result<Translation, String> {
     // Only the variable triple `?s ?p ?o` (in any order, with any var names)
     // is supported — translate to a full graph pattern.
     if s.starts_with('?') && p.starts_with('?') && o.starts_with('?') {
-        let s_name = var_to_ident(s);
-        let p_name = var_to_ident(p);
-        let o_name = var_to_ident(o);
+        let s_name = var_to_ident(s).ok_or_else(|| {
+            format!("SPARQL variable '{s}' contains characters outside [a-zA-Z0-9_]")
+        })?;
+        let p_name = var_to_ident(p).ok_or_else(|| {
+            format!("SPARQL variable '{p}' contains characters outside [a-zA-Z0-9_]")
+        })?;
+        let o_name = var_to_ident(o).ok_or_else(|| {
+            format!("SPARQL variable '{o}' contains characters outside [a-zA-Z0-9_]")
+        })?;
+        // [FIX] Use Cypher parameter for LIMIT to avoid interpolation.
+        // `limit` is a parsed usize but we still parameterize for defense-in-depth.
         let cypher = format!(
             "MATCH ({s_name})-[{p_name}]->({o_name}) \
-             RETURN {s_name}, {p_name}, {o_name} LIMIT {limit}"
+             RETURN {s_name}, {p_name}, {o_name} LIMIT $vedo_limit"
+        );
+        tracing::debug!(
+            cypher = %cypher,
+            limit,
+            "[FIX] SPARQL→Cypher translation with parameterized LIMIT"
         );
         return Ok(Translation { cypher, limit });
     }
@@ -489,8 +537,31 @@ fn extract_sparql_limit(upper: &str) -> Option<usize> {
 }
 
 /// Strips the leading `?` from a SPARQL variable to make a Cypher identifier.
-fn var_to_ident(var: &str) -> &str {
-    var.trim_start_matches('?')
+/// [FIX] Validates the resulting identifier against `^[a-zA-Z_][a-zA-Z0-9_]*$`
+/// and returns `None` when the variable contains characters outside that set.
+/// This prevents Cypher injection via malicious SPARQL variable names.
+fn var_to_ident(var: &str) -> Option<&str> {
+    let stripped = var.trim_start_matches('?');
+    if stripped.is_empty() {
+        return None;
+    }
+    let mut chars = stripped.chars();
+    let first = chars.next().unwrap();
+    if !(first.is_ascii_alphabetic() || first == '_') {
+        tracing::warn!(
+            var = %var,
+            "[FIX] Rejecting SPARQL variable with invalid first character"
+        );
+        return None;
+    }
+    if !chars.all(|c| c.is_ascii_alphanumeric() || c == '_') {
+        tracing::warn!(
+            var = %var,
+            "[FIX] Rejecting SPARQL variable with invalid characters"
+        );
+        return None;
+    }
+    Some(stripped)
 }
 
 #[cfg(test)]
@@ -536,15 +607,71 @@ mod tests {
             .expect("basic BGP must translate");
         assert!(t.cypher.contains("MATCH (s)-[p]->(o)"));
         assert!(t.cypher.contains("RETURN s, p, o"));
-        assert!(t.cypher.contains("LIMIT 1000"));
+        // [FIX] LIMIT is now parameterized as $vedo_limit
+        assert!(t.cypher.contains("LIMIT $vedo_limit"));
+        assert_eq!(t.limit, 1000);
     }
 
     #[test]
     fn test_translate_sparql_preserves_explicit_limit() {
         let t = translate_sparql_to_cypher("SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 50")
             .expect("explicit LIMIT must be honored");
-        assert!(t.cypher.contains("LIMIT 50"));
+        assert!(t.cypher.contains("LIMIT $vedo_limit"));
         assert_eq!(t.limit, 50);
+    }
+
+    #[test]
+    fn test_translate_sparql_rejects_malicious_variable_name() {
+        // [FIX] SPARQL variable names that would inject Cypher must be rejected.
+        // `?s-p` contains a hyphen which is outside [a-zA-Z0-9_].
+        let err = translate_sparql_to_cypher("SELECT ?s-p ?p ?o WHERE { ?s-p ?p ?o }");
+        match err {
+            Err(reason) => {
+                assert!(
+                    reason.contains("invalid") || reason.contains("characters"),
+                    "expected rejection of malicious variable, got: {reason}"
+                );
+            }
+            Ok(t) => {
+                assert!(
+                    !t.cypher.contains("-"),
+                    "malicious variable leaked into Cypher: {}",
+                    t.cypher
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_translate_sparql_limit_is_parameterized() {
+        // [FIX] LIMIT must appear as a Cypher parameter, not an integer literal.
+        let t = translate_sparql_to_cypher("SELECT ?s ?p ?o WHERE { ?s ?p ?o }")
+            .expect("basic BGP must translate");
+        assert!(
+            t.cypher.contains("LIMIT $vedo_limit"),
+            "LIMIT must be parameterized as $vedo_limit, got: {}",
+            t.cypher
+        );
+        // Ensure no integer literal follows LIMIT (which would mean interpolation).
+        assert!(!t.cypher.contains("LIMIT 1000"));
+    }
+
+    #[test]
+    fn test_var_to_ident_rejects_invalid_chars() {
+        // [FIX] var_to_ident must reject characters outside [a-zA-Z_][a-zA-Z0-9_]*
+        assert_eq!(var_to_ident("?s"), Some("s"));
+        assert_eq!(var_to_ident("?subject_name"), Some("subject_name"));
+        assert_eq!(var_to_ident("?_under"), Some("_under"));
+        // Invalid: starts with digit
+        assert_eq!(var_to_ident("?1s"), None);
+        // Invalid: contains parentheses (injection attempt)
+        assert_eq!(var_to_ident("?s)-[p"), None);
+        // Invalid: contains hyphen
+        assert_eq!(var_to_ident("?s-name"), None);
+        // Invalid: contains dot
+        assert_eq!(var_to_ident("?s.name"), None);
+        // Empty after stripping ?
+        assert_eq!(var_to_ident("?"), None);
     }
 
     #[test]

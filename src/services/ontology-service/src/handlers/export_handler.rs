@@ -158,6 +158,11 @@ pub async fn export_ontology_handler(
                 ExportError::UnsupportedFormat(_) => {
                     (StatusCode::BAD_REQUEST, "UNSUPPORTED_FORMAT")
                 }
+                // [FIX] Versioning service unavailable — fail loudly instead
+                // of silently falling back to stale state.
+                ExportError::VersioningUnavailable(_) => {
+                    (StatusCode::BAD_GATEWAY, "VERSIONING_UNAVAILABLE")
+                }
             };
 
             warn!(
@@ -167,12 +172,37 @@ pub async fn export_ontology_handler(
                 "Export failed"
             );
 
+            // [FIX] Sanitize versioning errors server-side — log full message,
+            // return generic error code without exposing the internal URL
+            // or transport error details.
+            let detail = match &e {
+                ExportError::VersioningUnavailable(msg) => {
+                    warn!(
+                        ontology_id,
+                        raw_error = %msg,
+                        code = %code,
+                        "[FIX] Versioning service unavailable"
+                    );
+                    "Versioning service unavailable. The requested snapshot could not be materialized.".to_string()
+                }
+                ExportError::Database(msg) => {
+                    warn!(
+                        ontology_id,
+                        raw_error = %msg,
+                        code = %code,
+                        "[FIX] Database error during export"
+                    );
+                    "Database error during export.".to_string()
+                }
+                _ => e.to_string(),
+            };
+
             (
                 status,
                 [(header::CONTENT_TYPE, "application/json")],
                 Json(serde_json::json!({
                     "error": code,
-                    "detail": e.to_string(),
+                    "detail": detail,
                 })),
             )
                 .into_response()

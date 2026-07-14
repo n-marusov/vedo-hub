@@ -49,16 +49,25 @@ impl CommitRepository {
         // atomic. If either query fails, neither change is persisted.
         let mut tx = self.pool().begin().await?;
 
-        // Verify branch exists and get current head
-        let head_commit_id: Option<Uuid> =
-            sqlx::query_scalar("SELECT head_commit_id FROM branches WHERE id = $1")
+        // [FIX] Verify branch exists and get current head with FOR UPDATE lock
+        // to prevent concurrent commit races on the same branch.
+        let row: Option<Option<Uuid>> =
+            sqlx::query_scalar("SELECT head_commit_id FROM branches WHERE id = $1 FOR UPDATE")
                 .bind(req.branch_id)
                 .fetch_optional(&mut *tx)
-                .await?
-                .flatten();
+                .await?;
 
-        // If branch not found, head_commit_id is None and the insert will SKIP
-        // parent linking. The branch FK constraint is enforced by the DB.
+        let head_commit_id = match row {
+            None => {
+                tracing::error!(
+                    branch_id = %req.branch_id,
+                    "[FIX] Branch not found during commit creation"
+                );
+                return Err(VersionError::BranchNotFound(req.branch_id.to_string()));
+            }
+            Some(val) => val,
+        };
+
         let parent_id = head_commit_id;
 
         let delta_json =
@@ -340,6 +349,7 @@ mod tests {
             }],
             removed_triples: vec![],
             modified_triples: vec![],
+            merge_metadata: None,
         };
         let json = serde_json::to_value(&delta).unwrap();
         let deserialized: CommitDelta = serde_json::from_value(json).unwrap();

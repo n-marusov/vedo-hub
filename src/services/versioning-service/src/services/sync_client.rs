@@ -89,11 +89,9 @@ impl SyncClient {
                 tracing::warn!(
                     ontology_id = %ontology_id,
                     error = %e,
-                    "Failed to sync state to ontology service — non-critical, can recompute"
+                    "[FIX] Transport error syncing state to ontology service — propagating"
                 );
-                // Non-critical: state can be recomputed from deltas.
-                // Return OK to avoid blocking checkout/rollback.
-                Ok(())
+                Err(VersionError::SyncFailed(e.to_string()))
             }
         }
     }

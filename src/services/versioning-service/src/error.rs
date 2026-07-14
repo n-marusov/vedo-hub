@@ -36,6 +36,9 @@ pub enum VersionError {
 
     #[error("Merge conflict: {details}")]
     MergeConflict { details: String },
+
+    #[error("Sync failed: {0}")]
+    SyncFailed(String),
 }
 
 impl IntoResponse for VersionError {
@@ -52,6 +55,7 @@ impl IntoResponse for VersionError {
             VersionError::InvalidRequest(_) => (StatusCode::BAD_REQUEST, "VER-INVALID-REQUEST"),
             VersionError::BranchProtected { .. } => (StatusCode::FORBIDDEN, "VER-BRANCH-PROTECTED"),
             VersionError::MergeConflict { .. } => (StatusCode::CONFLICT, "VER-MERGE-CONFLICT"),
+            VersionError::SyncFailed(_) => (StatusCode::BAD_GATEWAY, "VER-SYNC-FAILED"),
         };
         let detail = match &self {
             VersionError::Database(msg) => {

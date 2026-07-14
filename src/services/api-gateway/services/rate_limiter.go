@@ -41,9 +41,28 @@ func NewRateLimiter(maxLimit int) *RateLimiter {
 	if maxLimit <= 0 {
 		maxLimit = 1000
 	}
-	return &RateLimiter{
+	rl := &RateLimiter{
 		windows:  make(map[string]*slidingWindow),
 		maxLimit: maxLimit,
+	}
+	// Background goroutine: sweep empty windows every 5 minutes
+	go rl.sweepEmptyWindows()
+	return rl
+}
+
+// sweepEmptyWindows periodically removes empty windows from the map
+// to prevent unbounded memory growth from abandoned keys.
+func (rl *RateLimiter) sweepEmptyWindows() {
+	ticker := time.NewTicker(5 * time.Minute)
+	defer ticker.Stop()
+	for range ticker.C {
+		rl.mu.Lock()
+		for key, window := range rl.windows {
+			if len(window.timestamps) == 0 {
+				delete(rl.windows, key)
+			}
+		}
+		rl.mu.Unlock()
 	}
 }
 
@@ -64,6 +83,13 @@ func (rl *RateLimiter) Allow(key string, tier Tier) (bool, time.Duration) {
 	now := time.Now()
 	window, exists := rl.windows[key]
 	if !exists {
+		// Safety valve: cap max unique keys to 100k, evict oldest when exceeded
+		if len(rl.windows) >= 100000 {
+			for k := range rl.windows {
+				delete(rl.windows, k)
+				break
+			}
+		}
 		rl.windows[key] = &slidingWindow{
 			timestamps: []time.Time{now},
 			limit:      limit,
@@ -80,6 +106,16 @@ func (rl *RateLimiter) Allow(key string, tier Tier) (bool, time.Duration) {
 		}
 	}
 	window.timestamps = pruned
+
+	// Lazy eviction: if window is empty after pruning, delete the key
+	if len(window.timestamps) == 0 {
+		delete(rl.windows, key)
+		rl.windows[key] = &slidingWindow{
+			timestamps: []time.Time{now},
+			limit:      limit,
+		}
+		return true, 0
+	}
 
 	if len(window.timestamps) >= limit {
 		// Calculate when the oldest timestamp expires

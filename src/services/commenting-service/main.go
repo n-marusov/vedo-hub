@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"sync/atomic"
 	"syscall"
 	"time"
@@ -20,6 +21,18 @@ const (
 )
 
 var requestTotal atomic.Uint64
+
+// contextKey is a private type for context keys to avoid collisions.
+type contextKey string
+
+const (
+	contextKeyUserID contextKey = "user_id"
+)
+
+// KeyFunc defines the interface for JWT verification. Implementations can
+// verify tokens against a JWKS endpoint (Keycloak) or a local PEM key.
+// Structured for future pluggable JWT verification — Phase 2+.
+type KeyFunc func(token string) (string, error)
 
 func writeJSON(w http.ResponseWriter, status int, payload any) {
 	w.Header().Set("Content-Type", "application/json")
@@ -38,6 +51,70 @@ func writeMetrics(w http.ResponseWriter) {
 	)
 }
 
+// authMiddleware enforces that X-User-Id is provided for all /api/v1/ routes.
+// In production the API Gateway has already verified the JWT and forwarded
+// the user identity via X-User-Id. This middleware provides defense-in-depth
+// by rejecting requests that lack the header unless AUTH_DISABLED=true.
+//
+// The KeyFunc parameter is reserved for future direct JWT verification
+// against Keycloak JWKS (see api-gateway/auth/keyfunc.go for reference).
+func authMiddleware(next http.Handler, authDisabled bool, _ KeyFunc) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Only enforce auth for API routes; health/metrics stay open.
+		if !strings.HasPrefix(r.URL.Path, "/api/v1/") {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		if authDisabled {
+			userID := r.Header.Get("X-User-Id")
+			if userID == "" {
+				userID = "anonymous"
+			}
+			slog.Debug("[FIX] Auth disabled - trusting X-User-Id header",
+				"user_id", userID,
+				"path", r.URL.Path,
+			)
+			ctx := context.WithValue(r.Context(), contextKeyUserID, userID)
+			next.ServeHTTP(w, r.WithContext(ctx))
+			return
+		}
+
+		userID := r.Header.Get("X-User-Id")
+		if userID == "" {
+			slog.Warn("[FIX] Auth rejected - missing X-User-Id header",
+				"path", r.URL.Path,
+			)
+			writeJSON(w, http.StatusUnauthorized, ErrorResponse{
+				Error:   "UNAUTHORIZED",
+				Message: "Missing authentication: X-User-Id header is required",
+			})
+			return
+		}
+
+		slog.Debug("[FIX] Auth verified",
+			"user_id", userID,
+			"path", r.URL.Path,
+		)
+		ctx := context.WithValue(r.Context(), contextKeyUserID, userID)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// getUserID extracts the verified user ID from the request context.
+// Falls back to the X-User-Id header for backwards compatibility
+// (e.g., when proxied through a gateway that sets the header).
+func getUserID(r *http.Request) string {
+	if userID, ok := r.Context().Value(contextKeyUserID).(string); ok && userID != "" {
+		return userID
+	}
+	userID := r.Header.Get("X-User-Id")
+	if userID == "" {
+		return "anonymous"
+	}
+	return userID
+}
+
 func main() {
 	port := os.Getenv("SERVICE_PORT")
 	if port == "" {
@@ -51,6 +128,12 @@ func main() {
 		databaseURL = defaultDBURL
 	}
 
+	// Auth configuration
+	authDisabled := os.Getenv("AUTH_DISABLED") == "true"
+	if authDisabled {
+		slog.Warn("[FIX] AUTH_DISABLED=true — X-User-Id header will be trusted without verification. Do not use in production.")
+	}
+
 	// Structured JSON logger
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelInfo,
@@ -59,6 +142,7 @@ func main() {
 	slog.Info("Starting commenting-service",
 		"port", port,
 		"service", serviceName,
+		"auth_disabled", authDisabled,
 	)
 
 	// Initialize store
@@ -143,7 +227,7 @@ func main() {
 		mux.HandleFunc("DELETE /api/v1/", dbUnavailableHandler)
 	}
 
-	// Wrapping middleware for request counting and logging
+	// Wrapping middleware for request counting, logging, and auth
 	wrapped := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestTotal.Add(1)
 		slog.Debug("Request received",
@@ -155,9 +239,13 @@ func main() {
 		mux.ServeHTTP(w, r)
 	})
 
+	// Apply auth middleware (defense-in-depth). KeyFunc is nil for now —
+	// direct JWKS verification can be plugged in Phase 2+.
+	handler := authMiddleware(wrapped, authDisabled, nil)
+
 	server := &http.Server{
 		Addr:         ":" + port,
-		Handler:      wrapped,
+		Handler:      handler,
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
 		IdleTimeout:  60 * time.Second,

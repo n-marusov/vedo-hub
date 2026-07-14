@@ -1,12 +1,15 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -129,10 +132,36 @@ func main() {
 	// Register API route groups with proxy handlers
 	RegisterRoutes(r)
 
-	// Start server
+	// Start server with timeouts
 	port := getPort()
-	slog.Info("server.starting", "port", port, "service", serviceName)
-	if err := r.Run(":" + port); err != nil {
+	srv := &http.Server{
+		Addr:         ":" + port,
+		Handler:      r,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 60 * time.Second,
+		IdleTimeout:  120 * time.Second,
+	}
+
+	// Graceful shutdown on SIGINT/SIGTERM
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		slog.Info("server.starting", "port", port, "service", serviceName)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			panic(err)
+		}
+	}()
+
+	sig := <-quit
+	slog.Info("server.shutting_down", "signal", sig.String(), "service", serviceName)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		slog.Error("server.shutdown_error", "error", err, "service", serviceName)
 		panic(err)
 	}
+	slog.Info("server.stopped", "service", serviceName)
 }

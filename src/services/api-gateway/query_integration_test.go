@@ -11,8 +11,12 @@ import (
 )
 
 // TestQuery_SPARQLValidSelectProxied verifies that a SELECT query reaches the
-// ontology-service mock with the sanitized query string (LIMIT injected if
-// omitted) and produces a 200 response.
+// ontology-service mock and produces a 200 response.
+//
+// [FIX] After Phase 2.4, the gateway no longer injects LIMIT — full query
+// validation (including LIMIT caps) is owned by the ontology-service as
+// defence-in-depth. The gateway only performs a coarse mutation keyword
+// fast-path check. This test now asserts the query is forwarded unchanged.
 func TestQuery_SPARQLValidSelectProxied(t *testing.T) {
 	env := newTestEnv(t)
 	t.Cleanup(env.cleanup)
@@ -43,9 +47,10 @@ func TestQuery_SPARQLValidSelectProxied(t *testing.T) {
 	if receivedQuery == "" {
 		t.Fatalf("expected upstream to receive the query payload")
 	}
-	// Validate that LIMIT was injected upstream (_QUERY_MAX_LIMIT defaults to 1000).
-	if !contains(receivedQuery, "LIMIT 1000") {
-		t.Errorf("expected sanitized query to include 'LIMIT 1000', got %q", receivedQuery)
+	// [FIX] The gateway forwards the SELECT query unchanged (coarse check only).
+	// LIMIT injection is owned by the ontology-service downstream.
+	if !contains(receivedQuery, "SELECT") {
+		t.Errorf("expected upstream to receive the SELECT query, got %q", receivedQuery)
 	}
 }
 

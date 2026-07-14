@@ -18,7 +18,7 @@ use rio_api::parser::TriplesParser;
 use rio_turtle::TurtleParser;
 use rio_xml::RdfXmlParser;
 use serde::Serialize;
-use tracing::{debug, info};
+use tracing::{debug, info, warn};
 
 use crate::neo4j::Neo4jPool;
 
@@ -397,6 +397,13 @@ impl ImportService {
     }
 
     /// Applies the classified model to Neo4j.
+    ///
+    /// [FIX] Rolls back any entities created during the import when an error
+    /// occurs in a later pass. Without this, a partial import could leave
+    /// properties referencing half-imported classes. neo4rs 0.7 does not expose
+    /// `Graph::start_txn()` on the pool-wrapped handle, so we achieve atomicity
+    /// by tracking created entity IDs and issuing compensating DELETE queries
+    /// when the run aborts.
     async fn apply_model(&self, ontology_id: &str, model: &ImportModel) -> ImportReport {
         let mut report = ImportReport {
             entities_created: 0,
@@ -407,19 +414,27 @@ impl ImportService {
             triple_count: 0,
         };
 
+        // [FIX] Track IDs of created entities so we can roll back on failure.
+        let mut created_class_ids: Vec<String> = Vec::new();
+        let mut created_property_ids: Vec<String> = Vec::new();
+        let mut created_individual_ids: Vec<String> = Vec::new();
+
         // Pass 1: Create classes
         for cls in &model.classes {
             match self.create_class(ontology_id, cls).await {
                 Ok(created) => {
                     if created {
                         report.entities_created += 1;
+                        created_class_ids.push(cls.id.clone());
                     } else {
                         report.entities_skipped += 1;
                     }
                 }
-                Err(e) => report
-                    .errors
-                    .push(format!("Failed to create class '{}': {}", cls.id, e)),
+                Err(e) => {
+                    report
+                        .errors
+                        .push(format!("Failed to create class '{}': {}", cls.id, e));
+                }
             }
         }
 
@@ -429,13 +444,29 @@ impl ImportService {
                 Ok(created) => {
                     if created {
                         report.entities_created += 1;
+                        created_property_ids.push(prop.id.clone());
                     } else {
                         report.entities_skipped += 1;
                     }
                 }
-                Err(e) => report
-                    .errors
-                    .push(format!("Failed to create property '{}': {}", prop.id, e)),
+                Err(e) => {
+                    report
+                        .errors
+                        .push(format!("Failed to create property '{}': {}", prop.id, e));
+                    // [FIX] Roll back everything we created so far.
+                    self.rollback_import(
+                        ontology_id,
+                        &created_class_ids,
+                        &created_property_ids,
+                        &created_individual_ids,
+                    )
+                    .await;
+                    report.warnings.push(
+                        "Import aborted: property creation failed, partial import rolled back"
+                            .to_string(),
+                    );
+                    return report;
+                }
             }
         }
 
@@ -444,6 +475,7 @@ impl ImportService {
             let created = match self.create_individual(ontology_id, ind).await {
                 Ok(true) => {
                     report.entities_created += 1;
+                    created_individual_ids.push(ind.id.clone());
                     true
                 }
                 Ok(false) => {
@@ -454,7 +486,19 @@ impl ImportService {
                     report
                         .errors
                         .push(format!("Failed to create individual '{}': {}", ind.id, e));
-                    false
+                    // [FIX] Roll back on individual creation failure.
+                    self.rollback_import(
+                        ontology_id,
+                        &created_class_ids,
+                        &created_property_ids,
+                        &created_individual_ids,
+                    )
+                    .await;
+                    report.warnings.push(
+                        "Import aborted: individual creation failed, partial import rolled back"
+                            .to_string(),
+                    );
+                    return report;
                 }
             };
 
@@ -479,6 +523,75 @@ impl ImportService {
         }
 
         report
+    }
+
+    /// [FIX] Compensating rollback — deletes any entities created during the
+    /// current import so a partial failure does not leave dangling references
+    /// (e.g. properties pointing at half-imported classes).
+    async fn rollback_import(
+        &self,
+        ontology_id: &str,
+        class_ids: &[String],
+        property_ids: &[String],
+        individual_ids: &[String],
+    ) {
+        // Delete in reverse dependency order: individuals, then properties,
+        // then classes. Each DETACH DELETE removes incoming relationships
+        // so the rollback is cascade-safe.
+        for id in individual_ids {
+            let q = neo4rs::Query::new(
+                "MATCH (n:Individual {id: $id, ontology_id: $ontology_id}) DETACH DELETE n"
+                    .to_string(),
+            )
+            .param("ontology_id", ontology_id)
+            .param("id", id.as_str());
+            if let Err(e) = self.pool.graph().execute(q).await {
+                warn!(
+                    ontology_id,
+                    entity_id = %id,
+                    error = %e,
+                    "[FIX] Rollback failed to delete individual"
+                );
+            }
+        }
+        for id in property_ids {
+            let q = neo4rs::Query::new(
+                "MATCH (n:Property {id: $id, ontology_id: $ontology_id}) DETACH DELETE n"
+                    .to_string(),
+            )
+            .param("ontology_id", ontology_id)
+            .param("id", id.as_str());
+            if let Err(e) = self.pool.graph().execute(q).await {
+                warn!(
+                    ontology_id,
+                    entity_id = %id,
+                    error = %e,
+                    "[FIX] Rollback failed to delete property"
+                );
+            }
+        }
+        for id in class_ids {
+            let q = neo4rs::Query::new(
+                "MATCH (n:Class {id: $id, ontology_id: $ontology_id}) DETACH DELETE n".to_string(),
+            )
+            .param("ontology_id", ontology_id)
+            .param("id", id.as_str());
+            if let Err(e) = self.pool.graph().execute(q).await {
+                warn!(
+                    ontology_id,
+                    entity_id = %id,
+                    error = %e,
+                    "[FIX] Rollback failed to delete class"
+                );
+            }
+        }
+        info!(
+            ontology_id,
+            rolled_back_classes = class_ids.len(),
+            rolled_back_properties = property_ids.len(),
+            rolled_back_individuals = individual_ids.len(),
+            "[FIX] Import rollback complete"
+        );
     }
 
     // ── Neo4j Operations ───────────────────────────────────────────────────

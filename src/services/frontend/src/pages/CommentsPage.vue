@@ -14,6 +14,7 @@
 
         <div v-if="loading" class="cm-loading">Loading comments...</div>
         <div v-else-if="error" class="cm-error">Failed to load comments: {{ error.message }}</div>
+        <div v-else-if="mutationError" class="cm-error">Failed to send comment: {{ mutationError }}</div>
         <Comments v-else :comments="commentItems" class="cm-section" />
 
         <div class="cm-new-comment">
@@ -58,6 +59,7 @@ const commentItems = computed(() => {
     }))
 })
 
+const mutationError = ref<string | null>(null)
 const newCommentText = ref('')
 
 function submitComment() {
@@ -69,10 +71,15 @@ function submitComment() {
             text: newCommentText.value.trim(),
         },
     })
-    mutate().then(() => {
-        newCommentText.value = ''
-        refetch()
-    })
+    mutate()
+        .then(() => {
+            newCommentText.value = ''
+            refetch()
+        })
+        .catch((err: unknown) => {
+            const message = err instanceof Error ? err.message : 'Unknown error'
+            mutationError.value = message
+        })
 }
 
 function formatRelativeTime(dateStr: string): string {

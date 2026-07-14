@@ -279,9 +279,22 @@ impl axum::response::IntoResponse for IndividualError {
                 (StatusCode::BAD_REQUEST, "ONT-INDIVIDUAL-INVALID-FILTER")
             }
         };
+        let detail = match &self {
+            IndividualError::Database(msg) => {
+                let trace_id = uuid::Uuid::new_v4().to_string();
+                tracing::error!(
+                    error = %msg,
+                    trace_id = %trace_id,
+                    code = %code,
+                    "Database error [trace_id={trace_id}]",
+                );
+                format!("Internal database error (trace_id: {trace_id})")
+            }
+            _ => self.to_string(),
+        };
         let body = serde_json::json!({
             "error": code,
-            "detail": self.to_string(),
+            "detail": detail,
         });
         (status, Json(body)).into_response()
     }

@@ -64,82 +64,129 @@ pub fn compute_merged_delta(
     let mut merged_modified: Vec<ModifiedTriple> = Vec::new();
     let mut conflict_count = 0;
 
-    // Build lookup sets for target changes (HashSet for O(1) contains)
-    let target_added_keys: HashSet<String> = target_delta
+    // [FIX] Build lookup sets for both source and target — all 9 categories
+    // Target sets for checking source entries against
+    let target_added_keys: HashSet<(String, String, String)> = target_delta
         .added_triples
         .iter()
         .map(|t| triple_key(t))
         .collect();
-    let target_removed_keys: HashSet<String> = target_delta
+    let target_removed_keys: HashSet<(String, String, String)> = target_delta
         .removed_triples
         .iter()
         .map(|t| triple_key(t))
         .collect();
+    let target_modified_keys: HashSet<(String, String, String)> = target_delta
+        .modified_triples
+        .iter()
+        .map(|m| triple_key_from_parts(&m.s, &m.p, &m.old_o))
+        .collect();
 
-    // Process source additions
+    // [FIX] Pre-build source lookup sets for O(1) checks in reverse pass
+    let source_added_keys: HashSet<(String, String, String)> = source_delta
+        .added_triples
+        .iter()
+        .map(|t| triple_key(t))
+        .collect();
+    let source_removed_keys: HashSet<(String, String, String)> = source_delta
+        .removed_triples
+        .iter()
+        .map(|t| triple_key(t))
+        .collect();
+    let source_modified_keys: HashSet<(String, String, String)> = source_delta
+        .modified_triples
+        .iter()
+        .map(|m| triple_key_from_parts(&m.s, &m.p, &m.old_o))
+        .collect();
+
+    // [FIX] Process source additions — check all 3 target categories
     for triple in &source_delta.added_triples {
         let key = triple_key(triple);
         if target_removed_keys.contains(&key) {
             // Source added, target removed → conflict, prefer source
             conflict_count += 1;
             tracing::warn!(
-                triple_key = %key,
-                "Merge conflict: source added, target removed — preferring source"
+                ?key,
+                "[FIX] Merge conflict: source added, target removed — preferring source"
+            );
+            merged_added.push(triple.clone());
+        } else if target_modified_keys.contains(&key) {
+            // Source added, target modified → conflict, prefer source
+            conflict_count += 1;
+            tracing::warn!(
+                ?key,
+                "[FIX] Merge conflict: source added, target modified — preferring source"
             );
             merged_added.push(triple.clone());
         } else if !target_added_keys.contains(&key) {
             // Only in source → include
             merged_added.push(triple.clone());
         }
-        // If in both → dedup, include only once
+        // If in both source and target added → dedup, include only once
     }
 
-    // Process source removals
+    // [FIX] Process source removals — check all 3 target categories
     for triple in &source_delta.removed_triples {
         let key = triple_key(triple);
         if target_added_keys.contains(&key) {
             // Source removed, target added → conflict, prefer source (removed)
             conflict_count += 1;
             tracing::warn!(
-                triple_key = %key,
-                "Merge conflict: source removed, target added — preferring source"
+                ?key,
+                "[FIX] Merge conflict: source removed, target added — preferring source"
+            );
+            merged_removed.push(triple.clone());
+        } else if target_modified_keys.contains(&key) {
+            // Source removed, target modified → conflict, prefer source (removed)
+            conflict_count += 1;
+            tracing::warn!(
+                ?key,
+                "[FIX] Merge conflict: source removed, target modified — preferring source"
             );
             merged_removed.push(triple.clone());
         } else if !target_removed_keys.contains(&key) {
             // Only in source → include
             merged_removed.push(triple.clone());
         }
+        // If in both source and target removed → dedup
     }
 
-    // Process source modifications
+    // [FIX] Process source modifications — check all 3 target categories
     for mod_triple in &source_delta.modified_triples {
         let key = triple_key_from_parts(&mod_triple.s, &mod_triple.p, &mod_triple.old_o);
-        // Check if target also modified this triple
-        let target_conflict = target_delta
-            .modified_triples
-            .iter()
-            .any(|t| t.s == mod_triple.s && t.p == mod_triple.p && t.old_o == mod_triple.old_o);
-        if target_conflict {
+
+        if target_added_keys.contains(&key) {
+            // Source modified, target added original value → conflict, prefer source
             conflict_count += 1;
             tracing::warn!(
-                triple_key = %key,
-                "Merge conflict: both branches modified — preferring source"
+                ?key,
+                "[FIX] Merge conflict: source modified, target added original — preferring source"
+            );
+        } else if target_removed_keys.contains(&key) {
+            // Source modified, target removed original → conflict, prefer source
+            conflict_count += 1;
+            tracing::warn!(
+                ?key,
+                "[FIX] Merge conflict: source modified, target removed — preferring source"
+            );
+        } else if target_modified_keys.contains(&key) {
+            // Both modified same triple → conflict, prefer source
+            conflict_count += 1;
+            tracing::warn!(
+                ?key,
+                "[FIX] Merge conflict: both branches modified — preferring source"
             );
         }
         merged_modified.push(mod_triple.clone());
     }
 
-    // Include target changes that don't conflict with source
+    // [FIX] Include target changes that don't conflict with source
+    // Use O(1) .contains() on pre-built source sets
     for triple in &target_delta.added_triples {
         let key = triple_key(triple);
-        if !source_delta
-            .added_triples
-            .iter()
-            .any(|t| triple_key(t) == key)
-            && !source_delta
-                .removed_triples
-                .iter()
-                .any(|t| triple_key(t) == key)
+        if !source_added_keys.contains(&key)
+            && !source_removed_keys.contains(&key)
+            && !source_modified_keys.contains(&key)
         {
             merged_added.push(triple.clone());
         }
@@ -147,25 +194,17 @@ pub fn compute_merged_delta(
 
     for triple in &target_delta.removed_triples {
         let key = triple_key(triple);
-        if !source_delta
-            .added_triples
-            .iter()
-            .any(|t| triple_key(t) == key)
-            && !source_delta
-                .removed_triples
-                .iter()
-                .any(|t| triple_key(t) == key)
+        if !source_added_keys.contains(&key)
+            && !source_removed_keys.contains(&key)
+            && !source_modified_keys.contains(&key)
         {
             merged_removed.push(triple.clone());
         }
     }
 
     for mod_triple in &target_delta.modified_triples {
-        let source_conflict = source_delta
-            .modified_triples
-            .iter()
-            .any(|t| t.s == mod_triple.s && t.p == mod_triple.p && t.old_o == mod_triple.old_o);
-        if !source_conflict {
+        let key = triple_key_from_parts(&mod_triple.s, &mod_triple.p, &mod_triple.old_o);
+        if !source_modified_keys.contains(&key) {
             merged_modified.push(mod_triple.clone());
         }
     }
@@ -174,6 +213,7 @@ pub fn compute_merged_delta(
         added_triples: merged_added,
         removed_triples: merged_removed,
         modified_triples: merged_modified,
+        merge_metadata: None,
     };
 
     tracing::info!(
@@ -192,13 +232,14 @@ pub fn compute_merged_delta(
     }
 }
 
-/// Creates a unique string key for a triple reference (used for conflict detection).
-fn triple_key(triple: &TripleRef) -> String {
-    format!("{}:{}:{}", triple.s, triple.p, triple.o)
+/// Creates a unique tuple key for a triple reference (used for conflict detection).
+/// Uses `(s, p, o)` tuples to avoid colon-collision issues in IRIs.
+fn triple_key(triple: &TripleRef) -> (String, String, String) {
+    (triple.s.clone(), triple.p.clone(), triple.o.clone())
 }
 
-fn triple_key_from_parts(s: &str, p: &str, o: &str) -> String {
-    format!("{s}:{p}:{o}")
+fn triple_key_from_parts(s: &str, p: &str, o: &str) -> (String, String, String) {
+    (s.to_string(), p.to_string(), o.to_string())
 }
 
 #[cfg(test)]
@@ -226,13 +267,11 @@ mod tests {
     fn test_merge_no_conflicts() {
         let source = CommitDelta {
             added_triples: vec![make_triple("A", "rdfs:label", "A")],
-            removed_triples: vec![],
-            modified_triples: vec![],
+            ..Default::default()
         };
         let target = CommitDelta {
             added_triples: vec![make_triple("B", "rdfs:label", "B")],
-            removed_triples: vec![],
-            modified_triples: vec![],
+            ..Default::default()
         };
         let result = compute_merged_delta(&source, &target);
         assert_eq!(result.conflict_count, 0);
@@ -243,13 +282,11 @@ mod tests {
     fn test_merge_source_added_target_removed_conflict() {
         let source = CommitDelta {
             added_triples: vec![make_triple("X", "p", "o")],
-            removed_triples: vec![],
-            modified_triples: vec![],
+            ..Default::default()
         };
         let target = CommitDelta {
-            added_triples: vec![],
             removed_triples: vec![make_triple("X", "p", "o")],
-            modified_triples: vec![],
+            ..Default::default()
         };
         let result = compute_merged_delta(&source, &target);
         assert_eq!(result.conflict_count, 1);
@@ -260,14 +297,12 @@ mod tests {
     #[test]
     fn test_merge_both_modified_same_triple() {
         let source = CommitDelta {
-            added_triples: vec![],
-            removed_triples: vec![],
             modified_triples: vec![make_modified("C", "rdfs:label", "old", "source-new")],
+            ..Default::default()
         };
         let target = CommitDelta {
-            added_triples: vec![],
-            removed_triples: vec![],
             modified_triples: vec![make_modified("C", "rdfs:label", "old", "target-new")],
+            ..Default::default()
         };
         let result = compute_merged_delta(&source, &target);
         assert_eq!(result.conflict_count, 1);
@@ -290,13 +325,11 @@ mod tests {
         let triple = make_triple("A", "p", "o");
         let source = CommitDelta {
             added_triples: vec![triple.clone()],
-            removed_triples: vec![],
-            modified_triples: vec![],
+            ..Default::default()
         };
         let target = CommitDelta {
             added_triples: vec![triple],
-            removed_triples: vec![],
-            modified_triples: vec![],
+            ..Default::default()
         };
         let result = compute_merged_delta(&source, &target);
         assert_eq!(result.conflict_count, 0);
@@ -311,8 +344,7 @@ mod tests {
         // already have the same state).
         let delta = CommitDelta {
             added_triples: vec![make_triple("A", "p", "o")],
-            removed_triples: vec![],
-            modified_triples: vec![],
+            ..Default::default()
         };
         let result = compute_merged_delta(&delta, &delta);
         assert_eq!(result.conflict_count, 0);

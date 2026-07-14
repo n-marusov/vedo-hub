@@ -27,6 +27,7 @@ type Comment struct {
 	CreatedAt       time.Time  `json:"created_at"`
 	UpdatedAt       time.Time  `json:"updated_at"`
 	Metadata        *string    `json:"metadata,omitempty"` // JSONB free-form metadata
+	Replies         []Comment  `json:"replies,omitempty"`  // Threaded replies (populated on list/get)
 }
 
 // CreateCommentRequest is the JSON body for creating a comment.

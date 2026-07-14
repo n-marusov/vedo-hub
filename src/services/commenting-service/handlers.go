@@ -65,7 +65,7 @@ func (h *commentHandlers) createComment(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Extract author from request context or header
-	authorID := r.Header.Get("X-User-Id")
+	authorID := getUserID(r)
 	if authorID == "" {
 		authorID = "anonymous"
 	}
@@ -279,7 +279,8 @@ func (h *commentHandlers) listCommentsByEntity(w http.ResponseWriter, r *http.Re
 
 	responses := make([]CommentResponse, 0, len(comments))
 	for _, c := range comments {
-		responses = append(responses, *toCommentResponse(&c, nil))
+		// [FIX] Pass embedded replies through to the API response
+		responses = append(responses, *toCommentResponse(&c, c.Replies))
 	}
 
 	slog.Debug("Listed comments by entity",

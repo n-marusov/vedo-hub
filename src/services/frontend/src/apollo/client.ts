@@ -35,7 +35,15 @@ const retryLink = new RetryLink({
   },
   attempts: {
     max: 3,
-    retryIf: (error, _operation) => !!error
+    	retryIf: (error, operation) => {
+    		// Skip retries for mutation operations — they are not idempotent
+    		if (operation.query.definitions.some(
+    			def => def.kind === 'OperationDefinition' && def.operation === 'mutation'
+    		)) {
+    			return false
+    		}
+    		return !!error
+    	}
   }
 })
 

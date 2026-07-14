@@ -16,7 +16,7 @@
 //! - Integration with shape preloading
 
 use serde::Serialize;
-use tracing::{debug, info};
+use tracing::{debug, info, warn};
 
 use crate::neo4j::Neo4jPool;
 
@@ -111,10 +111,12 @@ impl ShaclValidator {
     ) -> u64 {
         debug!(ontology_id, "Checking class hierarchy for cycles");
 
-        // Query to find potential self-loops or direct cycles
+        // [FIX] Use a multi-hop variable-length path to detect multi-step cycles
+        // (e.g. A→B→A, A→B→C→A) in addition to self-loops. The old single-hop
+        // pattern `(c)-[:SUB_CLASS_Of]->(c)` only caught direct self-loops.
         let query = "\
-            MATCH (c:Class {ontology_id: $ontology_id})-[:SUB_CLASS_OF]->(c)\
-            RETURN c.id AS class_id\
+            MATCH (c:Class {ontology_id: $ontology_id})-[:SUB_CLASS_OF*2..]->(c)\
+            RETURN DISTINCT c.id AS class_id\
         ";
 
         let q = neo4rs::Query::new(query.to_string()).param("ontology_id", ontology_id);
@@ -129,7 +131,7 @@ impl ShaclValidator {
                             focus_node: class_id,
                             path: "rdfs:subClassOf".to_string(),
                             severity: "Violation".to_string(),
-                            message: "Class has a circular subclass relationship (self-loop)"
+                            message: "Class hierarchy contains a cycle via rdfs:subClassOf"
                                 .to_string(),
                         });
                     }
@@ -137,12 +139,25 @@ impl ShaclValidator {
                 count
             }
             Err(e) => {
-                debug!(
+                // [FIX] Do NOT silently swallow DB errors — they indicate the
+                // validator cannot determine whether the ontology conforms.
+                // Surface them as a violation so downstream callers know the
+                // validation result is not reliable.
+                warn!(
                     ontology_id,
                     error = %e,
-                    "Class hierarchy check query failed (non-fatal)"
+                    "[FIX] Class hierarchy cycle check query failed — surfacing as violation"
                 );
-                0
+                results.push(ShaclValidationResult {
+                    focus_node: ontology_id.to_string(),
+                    path: "rdfs:subClassOf".to_string(),
+                    severity: "Violation".to_string(),
+                    message: format!(
+                        "Class hierarchy cycle check failed due to a database error: {e}"
+                    ),
+                });
+                // Returning 1 signals the caller that a violation occurred.
+                1
             }
         }
     }

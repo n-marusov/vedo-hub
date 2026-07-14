@@ -153,6 +153,51 @@ pub async fn run_manual_migrations(pool: &PgPool) -> Result<(), sqlx::Error> {
     .execute(pool)
     .await?;
 
+    // Migration 004: Add constraints (unique index, foreign keys with cascade)
+    sqlx::query(
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_branches_ontology_name ON branches(ontology_id, name)",
+    )
+    .execute(pool)
+    .await?;
+
+    // Drop the non-unique name index now that we have a unique composite index
+    sqlx::query("DROP INDEX IF EXISTS idx_branches_name")
+        .execute(pool)
+        .await?;
+
+    // Add foreign key constraints to state_snapshots (idempotent via DO block)
+    sqlx::query(
+        r#"
+        DO $$ BEGIN
+            IF NOT EXISTS (
+                SELECT 1 FROM pg_constraint WHERE conname = 'fk_snapshots_commit'
+            ) THEN
+                ALTER TABLE state_snapshots
+                ADD CONSTRAINT fk_snapshots_commit
+                FOREIGN KEY (commit_id) REFERENCES commits(id) ON DELETE CASCADE;
+            END IF;
+        END $$;
+        "#,
+    )
+    .execute(pool)
+    .await?;
+
+    sqlx::query(
+        r#"
+        DO $$ BEGIN
+            IF NOT EXISTS (
+                SELECT 1 FROM pg_constraint WHERE conname = 'fk_snapshots_branch'
+            ) THEN
+                ALTER TABLE state_snapshots
+                ADD CONSTRAINT fk_snapshots_branch
+                FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE CASCADE;
+            END IF;
+        END $$;
+        "#,
+    )
+    .execute(pool)
+    .await?;
+
     tracing::info!("Manual migrations completed successfully");
     Ok(())
 }

@@ -8,8 +8,8 @@ use uuid::Uuid;
 
 use crate::error::VersionError;
 use crate::models::{
-    Branch, BranchWithCommit, CreateBranchRequest, DeleteBranchRequest, MergeBranchesRequest,
-    MergeResponse, SwitchBranchResponse,
+    Branch, BranchWithCommit, CommitDelta, CreateBranchRequest, DeleteBranchRequest,
+    MergeBranchesRequest, MergeMetadata, MergeResponse, SwitchBranchResponse,
 };
 
 /// Repository for branch operations against PostgreSQL.
@@ -69,7 +69,25 @@ impl BranchRepository {
         .bind(req.ontology_id)
         .bind(head_commit_id)
         .fetch_one(self.pool())
-        .await?;
+        .await
+        .map_err(|e| {
+            // Check for PostgreSQL unique violation (23505) on
+            // branches(ontology_id, name) — duplicate branch name within ontology
+            if let Some(db_err) = e.as_database_error() {
+                if db_err.code().as_deref() == Some("23505") {
+                    tracing::warn!(
+                        name = %req.name,
+                        ontology_id = %req.ontology_id,
+                        "[FIX] Duplicate branch name in ontology"
+                    );
+                    return VersionError::InvalidRequest(format!(
+                        "Branch '{}' already exists in ontology {}",
+                        req.name, req.ontology_id
+                    ));
+                }
+            }
+            VersionError::from(e)
+        })?;
 
         let branch = row_to_branch(&row)?;
 
@@ -190,10 +208,38 @@ impl BranchRepository {
     /// PostgreSQL transaction so a partial failure cannot leave orphaned
     /// commits.
     pub async fn delete(&self, id: Uuid, req: &DeleteBranchRequest) -> Result<(), VersionError> {
-        tracing::debug!(branch_id = %id, force = req.force, "Deleting branch");
+        tracing::debug!(
+            branch_id = %id,
+            force = req.force,
+            "[FIX] Deleting branch with TOCTOU protection"
+        );
 
-        // Check if branch exists and is protected
-        let branch = self.get_by_id(id).await?;
+        let mut tx = self.pool().begin().await?;
+
+        // [FIX] Lock branch row and check existence + protection inside the
+        // transaction to prevent TOCTOU races.
+        let row = sqlx::query(
+            r#"
+            SELECT id, name, ontology_id, head_commit_id, created_at, is_protected
+            FROM branches
+            WHERE id = $1
+            FOR UPDATE
+            "#,
+        )
+        .bind(id)
+        .fetch_optional(&mut *tx)
+        .await?;
+
+        let branch = match row {
+            None => {
+                tracing::error!(
+                    branch_id = %id,
+                    "[FIX] Branch not found for deletion"
+                );
+                return Err(VersionError::BranchNotFound(id.to_string()));
+            }
+            Some(r) => row_to_branch(&r)?,
+        };
 
         if branch.is_protected && !req.force {
             return Err(VersionError::BranchProtected {
@@ -201,18 +247,25 @@ impl BranchRepository {
             });
         }
 
-        let mut tx = self.pool().begin().await?;
-
         // Delete all commits on this branch first (cascade may not be set)
         sqlx::query("DELETE FROM commits WHERE branch_id = $1")
             .bind(id)
             .execute(&mut *tx)
             .await?;
 
-        sqlx::query("DELETE FROM branches WHERE id = $1")
+        let result = sqlx::query("DELETE FROM branches WHERE id = $1")
             .bind(id)
             .execute(&mut *tx)
             .await?;
+
+        // [FIX] Check rows_affected to detect race condition
+        if result.rows_affected() == 0 {
+            tracing::error!(
+                branch_id = %id,
+                "[FIX] Race condition: branch was deleted between check and delete"
+            );
+            return Err(VersionError::BranchNotFound(id.to_string()));
+        }
 
         tx.commit().await?;
 
@@ -232,7 +285,7 @@ impl BranchRepository {
         tracing::debug!(
             source = %req.source_branch_id,
             target = %req.target_branch_id,
-            "Merging branches"
+            "[FIX] Merging branches with atomic transaction and real delta"
         );
 
         // Verify both branches exist
@@ -256,12 +309,10 @@ impl BranchRepository {
         // Prevent no-op merge: if both branches point to the same commit
         // there is nothing to merge.
         if source_head == target_head {
-            return Err(VersionError::InvalidRequest(
-                format!(
-                    "Nothing to merge: source branch '{}' and target branch '{}' are at the same commit {}",
-                    source.name, target.name, source_head
-                )
-            ));
+            return Err(VersionError::InvalidRequest(format!(
+                "Nothing to merge: source branch '{}' and target branch '{}' are at the same commit {}",
+                source.name, target.name, source_head
+            )));
         }
 
         // Compute ahead/behind to verify there is actual divergence.
@@ -274,22 +325,46 @@ impl BranchRepository {
             ));
         }
 
-        // Create a merge commit with the source head as parent and a note
-        // recording the merge provenance.  For MVP the delta is empty — the
-        // full delta computation is tracked as a future enhancement.
-        let merge_delta = serde_json::json!({
-            "added_triples": [],
-            "removed_triples": [],
-            "modified_triples": [],
-            "merge_note": format!(
+        // [FIX] Compute real merge delta from source and target head deltas
+        let source_delta: serde_json::Value =
+            sqlx::query_scalar("SELECT delta FROM commits WHERE id = $1")
+                .bind(source_head)
+                .fetch_optional(self.pool())
+                .await?
+                .flatten()
+                .unwrap_or(serde_json::Value::Object(serde_json::Map::new()));
+
+        let target_delta: serde_json::Value =
+            sqlx::query_scalar("SELECT delta FROM commits WHERE id = $1")
+                .bind(target_head)
+                .fetch_optional(self.pool())
+                .await?
+                .flatten()
+                .unwrap_or(serde_json::Value::Object(serde_json::Map::new()));
+
+        let src_delta: CommitDelta = serde_json::from_value(source_delta).unwrap_or_default();
+        let tgt_delta: CommitDelta = serde_json::from_value(target_delta).unwrap_or_default();
+
+        // [FIX] Compute merged delta using the merge service
+        let merge_analysis =
+            crate::services::merge_service::compute_merged_delta(&src_delta, &tgt_delta);
+        let mut merged_delta = merge_analysis.merged_delta;
+        merged_delta.merge_metadata = Some(MergeMetadata {
+            source_branch_id: req.source_branch_id.to_string(),
+            target_branch_id: req.target_branch_id.to_string(),
+            merge_note: format!(
                 "Merged from {} ({}) into {} ({})",
                 source.name, source_head, target.name, target_head
             ),
-            "source_branch_head": source_head.to_string(),
-            "target_branch_head": target_head.to_string(),
         });
 
+        let merge_delta_json = serde_json::to_value(&merged_delta)
+            .map_err(|e| VersionError::Database(e.to_string()))?;
+
         let merge_commit_id = Uuid::new_v4();
+
+        // [FIX] Wrap INSERT and UPDATE in a single transaction for atomicity
+        let mut tx = self.pool().begin().await?;
 
         sqlx::query(
             r#"
@@ -303,27 +378,34 @@ impl BranchRepository {
         .bind(&req.message)
         .bind(&req.author_id)
         .bind(&req.author_name)
-        .bind(&merge_delta)
-        .execute(self.pool())
+        .bind(&merge_delta_json)
+        .execute(&mut *tx)
         .await?;
 
-        // Update target branch head
-        self.update_head(req.target_branch_id, merge_commit_id)
+        // [FIX] Update target branch head inside the same transaction
+        sqlx::query("UPDATE branches SET head_commit_id = $1 WHERE id = $2")
+            .bind(merge_commit_id)
+            .bind(req.target_branch_id)
+            .execute(&mut *tx)
             .await?;
+
+        tx.commit().await?;
 
         tracing::info!(
             merge_commit_id = %merge_commit_id,
             source_ahead = ahead,
             target_behind = behind,
-            "Branches merged"
+            conflict_count = merge_analysis.conflict_count,
+            auto_resolved = merge_analysis.auto_resolved,
+            "[FIX] Branches merged with atomic transaction"
         );
 
         Ok(MergeResponse {
             merge_commit_id,
             source_branch: req.source_branch_id,
             target_branch: req.target_branch_id,
-            conflict_count: 0,
-            auto_resolved: true,
+            conflict_count: merge_analysis.conflict_count,
+            auto_resolved: merge_analysis.auto_resolved,
         })
     }
 
@@ -376,64 +458,72 @@ impl BranchRepository {
         }
 
         // Use PostgreSQL recursive CTE to find merge base and compute counts
-        // Simple approach: count commits unique to each branch
+        // Simple approach: count commits unique to each branch, scoped by branch_id
+        // so deleted branches don't produce (0,0) counts.
+        let branch_head_id = branch_head.unwrap();
+        let ref_head_id = ref_head.unwrap();
+
         let ahead: i64 = sqlx::query_scalar(
             r#"
             WITH RECURSIVE branch_ancestors AS (
-                SELECT id, parent_commit_id FROM commits WHERE id = $1
+                SELECT id, parent_commit_id, branch_id FROM commits WHERE id = $1
                 UNION ALL
-                SELECT c.id, c.parent_commit_id
+                SELECT c.id, c.parent_commit_id, c.branch_id
                 FROM commits c
                 INNER JOIN branch_ancestors ba ON c.id = ba.parent_commit_id
             ),
             ref_ancestors AS (
-                SELECT id, parent_commit_id FROM commits WHERE id = $2
+                SELECT id, parent_commit_id, branch_id FROM commits WHERE id = $2
                 UNION ALL
-                SELECT c.id, c.parent_commit_id
+                SELECT c.id, c.parent_commit_id, c.branch_id
                 FROM commits c
                 INNER JOIN ref_ancestors ra ON c.id = ra.parent_commit_id
             )
             SELECT COUNT(*)::bigint FROM (
                 SELECT id FROM branch_ancestors
+                WHERE branch_id = (SELECT branch_id FROM commits WHERE id = $1)
                 EXCEPT
                 SELECT id FROM ref_ancestors
+                WHERE branch_id = (SELECT branch_id FROM commits WHERE id = $2)
             ) AS ahead_commits
             "#,
         )
-        .bind(branch_head)
-        .bind(ref_head)
+        .bind(branch_head_id)
+        .bind(ref_head_id)
         .fetch_one(self.pool())
         .await
-        .unwrap_or(0);
+        .map_err(VersionError::from)?;
 
         let behind: i64 = sqlx::query_scalar(
             r#"
             WITH RECURSIVE branch_ancestors AS (
-                SELECT id, parent_commit_id FROM commits WHERE id = $1
+                SELECT id, parent_commit_id, branch_id FROM commits WHERE id = $1
                 UNION ALL
-                SELECT c.id, c.parent_commit_id
+                SELECT c.id, c.parent_commit_id, c.branch_id
                 FROM commits c
                 INNER JOIN branch_ancestors ba ON c.id = ba.parent_commit_id
             ),
             ref_ancestors AS (
-                SELECT id, parent_commit_id FROM commits WHERE id = $2
+                SELECT id, parent_commit_id, branch_id FROM commits WHERE id = $2
                 UNION ALL
-                SELECT c.id, c.parent_commit_id
+                SELECT c.id, c.parent_commit_id, c.branch_id
                 FROM commits c
                 INNER JOIN ref_ancestors ra ON c.id = ra.parent_commit_id
             )
             SELECT COUNT(*)::bigint FROM (
                 SELECT id FROM ref_ancestors
+                WHERE branch_id = (SELECT branch_id FROM commits WHERE id = $2)
                 EXCEPT
                 SELECT id FROM branch_ancestors
+                WHERE branch_id = (SELECT branch_id FROM commits WHERE id = $1)
             ) AS behind_commits
             "#,
         )
-        .bind(branch_head)
-        .bind(ref_head)
+        .bind(branch_head_id)
+        .bind(ref_head_id)
         .fetch_one(self.pool())
         .await
-        .unwrap_or(0);
+        .map_err(VersionError::from)?;
 
         Ok((ahead, behind))
     }

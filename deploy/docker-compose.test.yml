@@ -84,7 +84,12 @@ services:
       ONTOLOGY_SERVICE_URL: http://ontology-service-test:8082
       VERSIONING_SERVICE_URL: http://versioning-service-test:8083
       LOG_LEVEL: debug
-      GATEWAY_AUTH_DISABLED: "true" # disable auth for testing
+      # Auth is enabled in test mode. JWT_PUBLIC_KEY_PATH points to a test RSA
+      # public key (baked-in fixture). In development CI, the gateway uses this
+      # key to verify tokens minted by the test Keycloak realm or the test RSA
+      # keypair fixture in src/services/api-gateway/helpers_test.go.
+      # JWT_PUBLIC_KEY_PATH: /etc/vedo/jwt-public-key.pem
+      # KEYCLOAK_JWKS_URL: http://keycloak-test:8080/realms/vedo-test/protocol/openid-connect/certs
     depends_on:
       ontology-service-test:
         condition: service_started

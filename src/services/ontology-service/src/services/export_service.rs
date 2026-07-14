@@ -97,11 +97,20 @@ struct ReferenceValueRow {
 /// Service for exporting ontology data to RDF serialization formats.
 pub struct ExportService {
     pool: Neo4jPool,
+    // [FIX] Shared reqwest client (reused across versioned export calls instead
+    // of a new Client::new() per call, which is wasteful and disables keep-alive).
+    http: reqwest::Client,
 }
 
 impl ExportService {
     pub fn new(pool: Neo4jPool) -> Self {
-        Self { pool }
+        // [FIX] One reqwest client is shared across all versioned export calls.
+        // Creating a new Client per call disables connection pooling/keep-alive.
+        let http = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_secs(30))
+            .build()
+            .unwrap_or_else(|_| reqwest::Client::new());
+        Self { pool, http }
     }
 
     /// Exports all ontology data as Turtle format.
@@ -182,15 +191,28 @@ impl ExportService {
             return self.export_turtle(ontology_id).await;
         };
 
-        // Attempt to materialize state via the versioning service
-        match reqwest::Client::new()
+        // [FIX] Materialize state via the versioning service using shared client
+        // and fail loudly on non-2xx instead of silently falling back.
+        match self
+            .http
             .post(&endpoint)
             .header("Content-Type", "application/json")
             .body("{}")
             .send()
             .await
         {
-            Ok(_) => {
+            Ok(resp) => {
+                // [FIX] Check HTTP status before consuming the response. A non-2xx
+                // status previously caused a silent fall-back to the stale Neo4j state.
+                if let Err(e) = resp.error_for_status() {
+                    warn!(
+                        ontology_id,
+                        error = %e,
+                        endpoint,
+                        "[FIX] Versioning service returned non-2xx — refusing to fall back"
+                    );
+                    return Err(ExportError::VersioningUnavailable(e.to_string()));
+                }
                 info!(
                     ontology_id,
                     endpoint, "Materialized state synced via versioning service"
@@ -204,10 +226,12 @@ impl ExportService {
                     ontology_id,
                     error = %e,
                     endpoint,
-                    "Versioning service call failed, falling back to current state"
+                    "[FIX] Versioning service transport error — refusing to fall back"
                 );
-                // Fall back to current state
-                self.export_turtle(ontology_id).await
+                // [FIX] Previously this fell back to current Neo4j state, masking
+                // versioning failures. Fail loudly so callers know the snapshot
+                // they requested is not the one shipped.
+                return Err(ExportError::VersioningUnavailable(e.to_string()));
             }
         }
     }
@@ -233,14 +257,26 @@ impl ExportService {
             return self.export_rdf_xml(ontology_id).await;
         };
 
-        match reqwest::Client::new()
+        // [FIX] Materialize state via versioning service with shared client
+        // and error_for_status hygiene.
+        match self
+            .http
             .post(&endpoint)
             .header("Content-Type", "application/json")
             .body("{}")
             .send()
             .await
         {
-            Ok(_) => {
+            Ok(resp) => {
+                if let Err(e) = resp.error_for_status() {
+                    warn!(
+                        ontology_id,
+                        error = %e,
+                        endpoint,
+                        "[FIX] Versioning service returned non-2xx — refusing to fall back"
+                    );
+                    return Err(ExportError::VersioningUnavailable(e.to_string()));
+                }
                 info!(
                     ontology_id,
                     endpoint, "Materialized state synced via versioning service"
@@ -252,9 +288,9 @@ impl ExportService {
                     ontology_id,
                     error = %e,
                     endpoint,
-                    "Versioning service call failed, falling back to current state"
+                    "[FIX] Versioning service transport error — refusing to fall back"
                 );
-                self.export_rdf_xml(ontology_id).await
+                return Err(ExportError::VersioningUnavailable(e.to_string()));
             }
         }
     }
@@ -280,14 +316,26 @@ impl ExportService {
             return self.export_owl_xml(ontology_id).await;
         };
 
-        match reqwest::Client::new()
+        // [FIX] Materialize state via versioning service with shared client
+        // and error_for_status hygiene.
+        match self
+            .http
             .post(&endpoint)
             .header("Content-Type", "application/json")
             .body("{}")
             .send()
             .await
         {
-            Ok(_) => {
+            Ok(resp) => {
+                if let Err(e) = resp.error_for_status() {
+                    warn!(
+                        ontology_id,
+                        error = %e,
+                        endpoint,
+                        "[FIX] Versioning service returned non-2xx — refusing to fall back"
+                    );
+                    return Err(ExportError::VersioningUnavailable(e.to_string()));
+                }
                 info!(
                     ontology_id,
                     endpoint, "Materialized state synced via versioning service"
@@ -299,9 +347,9 @@ impl ExportService {
                     ontology_id,
                     error = %e,
                     endpoint,
-                    "Versioning service call failed, falling back to current state"
+                    "[FIX] Versioning service transport error — refusing to fall back"
                 );
-                self.export_owl_xml(ontology_id).await
+                return Err(ExportError::VersioningUnavailable(e.to_string()));
             }
         }
     }
@@ -972,4 +1020,11 @@ pub enum ExportError {
 
     #[error("Unsupported export format: {0}")]
     UnsupportedFormat(String),
+
+    /// [FIX] Returned when the versioning-service call to materialize state
+    /// fails (non-2xx or transport error). Prevents the exporter from
+    /// silently falling back to a stale Neo4j state and shipping a snapshot
+    /// that doesn't match the requested version.
+    #[error("Versioning service unavailable: {0}")]
+    VersioningUnavailable(String),
 }

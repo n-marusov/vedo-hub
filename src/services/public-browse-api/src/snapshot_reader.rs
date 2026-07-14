@@ -49,6 +49,7 @@ pub struct OntologyDetail {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClassNode {
     pub id: String,
+    #[serde(rename = "label")]
     pub name: String,
     pub children: Vec<ClassNode>,
 }

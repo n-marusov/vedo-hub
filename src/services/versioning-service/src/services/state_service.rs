@@ -82,22 +82,28 @@ impl StateService {
         );
 
         // Sync to ontology service if client is configured
-        if let Some(client) = &self.sync_client {
+        let sync_succeeded = if let Some(client) = &self.sync_client {
             let ontology_id = branch.ontology_id.to_string();
-            if let Err(e) = client.push_state(&ontology_id, &materialized.triples).await {
-                tracing::warn!(
-                    error = %e,
-                    "State sync to ontology service failed — continuing"
-                );
+            match client.push_state(&ontology_id, &materialized.triples).await {
+                Ok(()) => true,
+                Err(e) => {
+                    tracing::warn!(
+                        error = %e,
+                        "[FIX] State sync to ontology service failed — continuing"
+                    );
+                    false
+                }
             }
-        }
+        } else {
+            false
+        };
 
         Ok(CheckoutResult {
             branch_id,
             commit_id,
             triple_count: materialized.triples.len() as u64,
             delta_count: materialized.delta_count as u64,
-            synced: self.sync_client.is_some(),
+            synced: self.sync_client.is_some() && sync_succeeded,
         })
     }
 
@@ -165,16 +171,22 @@ impl StateService {
         );
 
         // Optionally sync the rollback state to Neo4j
-        if let Some(client) = &self.sync_client {
+        let _sync_succeeded = if let Some(client) = &self.sync_client {
             let materialized = self.delta_engine.materialize(rollback_commit.id).await?;
             let ontology_id = branch.ontology_id.to_string();
-            if let Err(e) = client.push_state(&ontology_id, &materialized.triples).await {
-                tracing::warn!(
-                    error = %e,
-                    "Post-rollback state sync failed — continuing"
-                );
+            match client.push_state(&ontology_id, &materialized.triples).await {
+                Ok(()) => true,
+                Err(e) => {
+                    tracing::warn!(
+                        error = %e,
+                        "[FIX] Post-rollback state sync failed — continuing"
+                    );
+                    false
+                }
             }
-        }
+        } else {
+            false
+        };
 
         // Best-effort state snapshot creation (every 50 commits)
         self.delta_engine

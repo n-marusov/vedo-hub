@@ -86,6 +86,107 @@ scrape_configs:
     metrics_path: /metrics
     scheme: http
 
+  # ── M1 services ──────────────────────────────────────────────────────────
+
+  - job_name: vedo-commenting-service
+    static_configs:
+      - targets: ["commenting-service:8082"]
+        labels:
+          service: commenting-service
+          team: platform-team
+    metrics_path: /metrics
+    scheme: http
+
+  - job_name: vedo-publisher-service
+    static_configs:
+      - targets: ["publisher-service:8085"]
+        labels:
+          service: publisher-service
+          team: platform-team
+    metrics_path: /metrics
+    scheme: http
+
+  - job_name: vedo-public-browse-api
+    static_configs:
+      - targets: ["public-browse-api:8086"]
+        labels:
+          service: public-browse-api
+          team: platform-team
+    metrics_path: /metrics
+    scheme: http
+
+  - job_name: vedo-support-service
+    static_configs:
+      - targets: ["support-service:8087"]
+        labels:
+          service: support-service
+          team: platform-team
+    metrics_path: /metrics
+    scheme: http
+
+  - job_name: vedo-ticket-api
+    static_configs:
+      - targets: ["ticket-api:8088"]
+        labels:
+          service: ticket-api
+          team: platform-team
+    metrics_path: /metrics
+    scheme: http
+
+  - job_name: vedo-ticket-classifier
+    static_configs:
+      - targets: ["ticket-classifier:8089"]
+        labels:
+          service: ticket-classifier
+          team: platform-team
+    metrics_path: /metrics
+    scheme: http
+
+  - job_name: vedo-ticket-notifier
+    static_configs:
+      - targets: ["ticket-notifier:8090"]
+        labels:
+          service: ticket-notifier
+          team: platform-team
+    metrics_path: /metrics
+    scheme: http
+
+  - job_name: vedo-ticket-sync
+    static_configs:
+      - targets: ["ticket-sync:8091"]
+        labels:
+          service: ticket-sync
+          team: platform-team
+    metrics_path: /metrics
+    scheme: http
+
+  - job_name: vedo-ticket-telemetry-listener
+    static_configs:
+      - targets: ["ticket-telemetry-listener:8092"]
+        labels:
+          service: ticket-telemetry-listener
+          team: platform-team
+    metrics_path: /metrics
+    scheme: http
+
+  - job_name: vedo-frontend
+    static_configs:
+      - targets: ["frontend:5173"]
+        labels:
+          service: frontend
+          team: frontend-team
+    metrics_path: /metrics
+    scheme: http
+
+  - job_name: vedo-publish-browse-ui
+    static_configs:
+      - targets: ["publish-browse-ui:5174"]
+        labels:
+          service: publish-browse-ui
+          team: frontend-team
+    metrics_path: /metrics
+    scheme: http
+
   - job_name: vedo-otel-collector
     static_configs:
       - targets: ["otel-collector:8888"]

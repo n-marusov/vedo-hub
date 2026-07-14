@@ -9,8 +9,16 @@ use uuid::Uuid;
 
 // ── Delta Types ────────────────────────────────────────────────────────────
 
-/// A single RDF triple reference used in delta entries.
+/// Metadata stored on merge commits to record provenance.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct MergeMetadata {
+    pub source_branch_id: String,
+    pub target_branch_id: String,
+    pub merge_note: String,
+}
+
+/// A single RDF triple reference used in delta entries.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct TripleRef {
     /// Subject IRI or local ID.
     pub s: String,
@@ -55,6 +63,12 @@ pub struct CommitDelta {
     /// Triples whose object value changed.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub modified_triples: Vec<ModifiedTriple>,
+
+    /// [FIX] Optional merge provenance metadata.
+    /// Present only on merge commits; uses `#[serde(default)]` so old commits
+    /// without this field still deserialize correctly.
+    #[serde(default)]
+    pub merge_metadata: Option<MergeMetadata>,
 }
 
 impl CommitDelta {
@@ -257,6 +271,7 @@ mod tests {
             }],
             removed_triples: vec![],
             modified_triples: vec![],
+            ..Default::default()
         };
         assert!(!delta.is_empty());
         assert_eq!(delta.total_changes(), 1);
@@ -286,6 +301,7 @@ mod tests {
                 ],
                 removed_triples: vec![],
                 modified_triples: vec![],
+                ..Default::default()
             },
             created_at: Utc::now(),
         };
@@ -314,6 +330,7 @@ mod tests {
                 added_triples: added,
                 removed_triples: vec![],
                 modified_triples: vec![],
+                ..Default::default()
             },
             created_at: Utc::now(),
         };
@@ -332,6 +349,7 @@ mod tests {
             }],
             removed_triples: vec![],
             modified_triples: vec![],
+            ..Default::default()
         };
         let json = serde_json::to_string(&delta).unwrap();
         let deserialized: CommitDelta = serde_json::from_str(&json).unwrap();
