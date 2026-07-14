@@ -24,23 +24,34 @@ use crate::AppState;
 /// |--------|------|-------------|
 /// | POST   | `/api/v1/versioning/commits` | Create a new commit |
 /// | GET    | `/api/v1/versioning/commits` | List commits (paginated) |
-/// | GET    | `/api/v1/versioning/commits/{id}` | Get commit details |
-/// | GET    | `/api/v1/versioning/commits/{id}/delta` | Get commit delta |
+/// | GET    | `/api/v1/versioning/commits/:id` | Get commit details |
+/// | GET    | `/api/v1/versioning/commits/:id/delta` | Get commit delta |
+/// | POST   | `/api/v1/versioning/commits/:id/checkout` | Checkout a commit |
+/// | POST   | `/api/v1/versioning/commits/:id/rollback` | Rollback to a commit |
+/// | POST   | `/api/v1/versioning/branches` | Create a new branch |
+/// | GET    | `/api/v1/versioning/branches` | List branches (paginated) |
+/// | GET    | `/api/v1/versioning/branches/:id` | Get branch details |
+/// | DELETE | `/api/v1/versioning/branches/:id` | Delete a branch |
+/// | POST   | `/api/v1/versioning/branches/:id/switch` | Switch to a branch |
+/// | POST   | `/api/v1/versioning/branches/merge` | Merge branches |
+///
+/// NOTE: axum 0.7 (matchit 0.7) uses the `:param` syntax; the `{param}` form
+/// is treated as a literal path segment and returns 404 for any value.
 pub fn build_routes() -> Router<Arc<AppState>> {
     let commits_routes = Router::new()
         .route("/", post(create_commit_handler).get(list_commits_handler))
-        .route("/{id}", get(get_commit_handler))
-        .route("/{id}/delta", get(get_commit_delta_handler))
-        .route("/{id}/checkout", post(checkout_commit_handler))
-        .route("/{id}/rollback", post(rollback_commit_handler));
+        .route("/:id", get(get_commit_handler))
+        .route("/:id/delta", get(get_commit_delta_handler))
+        .route("/:id/checkout", post(checkout_commit_handler))
+        .route("/:id/rollback", post(rollback_commit_handler));
 
     let branches_routes = Router::new()
         .route("/", post(create_branch_handler).get(list_branches_handler))
         .route(
-            "/{id}",
+            "/:id",
             get(get_branch_handler).delete(delete_branch_handler),
         )
-        .route("/{id}/switch", post(switch_branch_handler))
+        .route("/:id/switch", post(switch_branch_handler))
         .route("/merge", post(merge_branches_handler));
 
     Router::new()
