@@ -1,8 +1,8 @@
 # VEDO Core
 
-> Virtual Environment for Developing Ontologies — a cloud-based platform for multi-user knowledge-graph editing with Git-like versioning, supporting up to 1 million axioms.
+> Virtual Environment for Developing Ontologies — a cloud-based platform for multi-user knowledge-graph editing with Git-like versioning, supporting up to 1 million axioms. **Built for everyone, not just knowledge engineers.**
 
-VEDO Core replaces the desktop Protégé with a web-based ontology editor that enables parallel work through branching, real-time collaboration via WebSocket, and REST/GraphQL APIs for external integration. It supports ontology engineers, IT architects, developers, data analysts, and DevOps engineers with role-based access control.
+VEDO Core replaces the desktop Protégé with a web-based ontology editor that makes knowledge graph creation accessible to a broad audience — domain experts, analysts, educators, students, and enthusiasts — through visual intuitive tools, AI assistance, and 3D navigation. Unlike standalone desktop tools, VEDO Hub enables **legal reuse of published ontologies** from the community, dramatically accelerating knowledge graph development. For specialists, it provides parallel work through branching, real-time collaboration via WebSocket, and REST/GraphQL APIs for integration with industry-domain systems.
 
 ## Prerequisites
 
@@ -32,10 +32,13 @@ Once all containers are healthy, open the frontend at `http://localhost:3000` an
 
 ## Key Features
 
-- **Ontology Editor** — visual graph editor with <1s p95 response on large ontologies
+- **Visual Intuitive Editor** — drag-and-drop graph editor with <1s p95 response, accessible to users without a knowledge-engineering background
+- **AI Assistant** — RAG-powered onboarding and help system; build queries in natural language (NLP → SPARQL/GraphQL) without writing code
+- **3D Ontology Navigator** — immersive 3D viewer for exploring knowledge graphs, discovering hidden connections, and presenting ontologies to non-technical stakeholders
+- **Community & Sharing** — publish ontologies, browse public knowledge graphs, discuss with other users, and contribute to shared vocabularies
 - **Git-like Versioning** — commits, branches, merges, and diffs via a dedicated Versioning Service
 - **Real-time Collaboration** — WebSocket-powered node locking, comments, and notifications
-- **REST & GraphQL APIs** — external integration and frontend data operations
+- **REST & GraphQL APIs** — integration with industry-domain systems (ERP, CRM, MDM, BI) and frontend data operations
 - **Import / Export** — Turtle, RDF/XML, and OWL format support
 - **Multi-team Organization** — GitLab-like groups, membership inheritance, and visibility levels
 - **Ontology Merge Requests** — review workflow with protected branches and approval rules
