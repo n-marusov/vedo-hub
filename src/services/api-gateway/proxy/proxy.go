@@ -125,11 +125,23 @@ func (p *Proxy) propagateHeaders(r *http.Request) {
 		"X-User-Roles",
 		"X-User-Tenant-Id",
 		"Authorization",
+		"traceparent",
+		"tracestate",
 	}
 
 	for _, h := range headers {
 		if v := r.Header.Get(h); v != "" {
 			r.Header.Set(h, v)
 		}
+	}
+
+	// Debug log for trace context propagation
+	if tp := r.Header.Get("traceparent"); tp != "" {
+		slog.Debug("proxy.trace_propagation",
+			"service", p.serviceName,
+			"traceparent", tp,
+			"tracestate", r.Header.Get("tracestate"),
+			"trace_id", r.Header.Get("X-Trace-Id"),
+		)
 	}
 }

@@ -13,3 +13,7 @@ serde_json.workspace = true
 uuid.workspace = true
 tower.workspace = true
 thiserror.workspace = true
+opentelemetry.workspace = true
+opentelemetry-otlp.workspace = true
+opentelemetry_sdk.workspace = true
+tracing-opentelemetry.workspace = true
