@@ -2,25 +2,68 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use ontology_service::{build_app, init_neo4j_pool, AppState, DEFAULT_PORT, SERVICE_NAME};
+use tonic::transport::Server;
+use vedo_shared::protos::ontology::ontology_service_server::OntologyServiceServer;
+
+mod grpc;
 
 #[tokio::main]
 async fn main() {
     vedo_shared::tracing::init_tracing(SERVICE_NAME);
     let port = std::env::var("SERVICE_PORT").unwrap_or_else(|_| DEFAULT_PORT.to_string());
+    let grpc_port = std::env::var("GRPC_PORT").unwrap_or_else(|_| "9001".to_string());
 
     // Initialize Neo4j connection pool
     let neo4j_pool = init_neo4j_pool().await;
     let state = Arc::new(AppState { neo4j: neo4j_pool });
 
-    // Build the complete application
+    // Clone state for gRPC server
+    let grpc_state = state.clone();
+
+    // Build the HTTP application (axum)
     let app = build_app(state);
 
-    let addr: SocketAddr = format!("0.0.0.0:{port}").parse().expect("invalid address");
-    tracing::info!(port = %port, "Starting ontology-service");
-    let listener = tokio::net::TcpListener::bind(addr)
-        .await
-        .expect("bind failed");
-    axum::serve(listener, app.into_make_service())
-        .await
-        .expect("server failed");
+    // gRPC server task
+    let grpc_addr: SocketAddr = format!("0.0.0.0:{grpc_port}")
+        .parse()
+        .expect("invalid gRPC address");
+    let grpc_svc = OntologyServiceServer::new(grpc::OntologyGrpcServer { state: grpc_state });
+    let grpc_task = tokio::spawn(async move {
+        tracing::info!(grpc_port = %grpc_port, "Starting ontology-service gRPC server");
+        Server::builder()
+            .add_service(grpc_svc)
+            .serve(grpc_addr)
+            .await
+            .expect("gRPC server failed");
+    });
+
+    // HTTP server task
+    let http_addr: SocketAddr = format!("0.0.0.0:{port}")
+        .parse()
+        .expect("invalid HTTP address");
+    let http_task = tokio::spawn(async move {
+        tracing::info!(http_port = %port, "Starting ontology-service HTTP server");
+        let listener = tokio::net::TcpListener::bind(http_addr)
+            .await
+            .expect("bind failed");
+        axum::serve(listener, app.into_make_service())
+            .await
+            .expect("HTTP server failed");
+    });
+
+    tracing::info!("ontology-service running: HTTP on {port}, gRPC on {grpc_port}");
+
+    // Wait for either server to exit (shouldn't happen)
+    tokio::select! {
+        result = grpc_task => {
+            if let Err(e) = result {
+                tracing::error!(error = %e, "gRPC server task failed");
+            }
+        }
+        result = http_task => {
+            if let Err(e) = result {
+                tracing::error!(error = %e, "HTTP server task failed");
+            }
+        }
+    }
 }

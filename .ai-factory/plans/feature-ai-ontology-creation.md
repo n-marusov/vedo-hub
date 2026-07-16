@@ -105,11 +105,11 @@
 
 | # | Phase | Task | Status | Depends On | Commit |
 |---|-------|------|--------|------------|--------|
-| 0.1 | 0 | Create shared protobuf definitions | `[ ]` | — | 1 |
-| 0.2 | 0 | Migrate Rust services to gRPC | `[ ]` | 0.1 | 2 |
-| 0.3 | 0 | Migrate Go services to gRPC | `[ ]` | 0.1 | 2 |
-| 0.4 | 0 | Update API Gateway to gRPC proxy | `[ ]` | 0.2, 0.3 | 3 |
-| 0.5 | 0 | Update Docker Compose, CI, configuration | `[ ]` | 0.2, 0.3, 0.4 | 3 |
+| 0.1 | 0 | Create shared protobuf definitions | `[x]` | — | 1 |
+| 0.2 | 0 | Migrate Rust services to gRPC | `[x]` | 0.1 | 2 |
+| 0.3 | 0 | Migrate Go services to gRPC | `[x]` | 0.1 | 2 |
+| 0.4 | 0 | Update API Gateway to gRPC proxy | `[x]` | 0.2, 0.3 | 3 |
+| 0.5 | 0 | Update Docker Compose, CI, configuration | `[x]` | 0.2, 0.3, 0.4 | 3 |
 | 1.1 | 1 | E2E tests — document extraction flows | `[ ]` | 0.5 | 4 |
 | 1.2 | 1 | E2E tests — NL→OWL and AI flows | `[ ]` | 0.5 | 4 |
 | 2.1 | 2 | LLM abstraction package (Go) | `[ ]` | — | 5 |
@@ -133,11 +133,11 @@
 | 6.3 | 6 | Traceability + docs validation | `[ ]` | 6.2 | 15 |
 | 6.4 | 6 | Antora documentation | `[ ]` | 6.2 | 15 |
 
-**Progress:** 0 / 27 tasks complete
+**Progress:** 5 / 27 tasks complete
 
 ---
 
-### Phase 0: gRPC Protocol Stack Migration (PREREQUISITE)
+### Phase 0: gRPC Protocol Stack Migration (PREREQUISITE) ✅
 
 > ⚠ **BLOCKER:** Current internal service communication uses HTTP/REST, violating ADR-DES.API.protocol-stack-strategy, ADR-DES.INFRA.monolith-vs-microservices, and ADR-IMPL.STACK.port-mapping-strategy. This phase MUST be completed before any M2 functionality implementation.
 

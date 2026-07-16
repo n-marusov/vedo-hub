@@ -1,102 +1,109 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"log"
+	"context"
+	"log/slog"
+	"net"
 	"net/http"
 	"os"
-	"sync/atomic"
+	"os/signal"
+	"syscall"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	"google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/reflection"
 )
 
 const serviceName = "auth-service"
-const defaultPort = "8081"
+const defaultHTTPPort = "8081"
+const defaultGRPCPort = "9003"
 
-var requestTotal atomic.Uint64
-
-func resolveID(headerValue string) string {
-	if headerValue != "" {
-		return headerValue
+func getPort(envVar, fallback string) string {
+	if p := os.Getenv(envVar); p != "" {
+		return p
 	}
-	return fmt.Sprintf("%d", time.Now().UnixNano())
-}
-
-func logRequest(path string, status int, traceID string, correlationID string) {
-	entry := map[string]any{"service": serviceName, "path": path, "status": status, "trace_id": traceID, "correlation_id": correlationID}
-	body, _ := json.Marshal(entry)
-	log.Print(string(body))
-}
-
-func writeJSON(w http.ResponseWriter, status int, payload any) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(payload)
-}
-
-func writeMetrics(w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "text/plain; version=0.0.4")
-	w.WriteHeader(http.StatusOK)
-	_, _ = fmt.Fprintf(w, "# HELP vedo_service_requests_total Total service requests\n# TYPE vedo_service_requests_total counter\nvedo_service_requests_total{service=\"%s\"} %d\n", serviceName, requestTotal.Load())
-}
-
-func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
-	return rateLimitMiddleware(func(w http.ResponseWriter, r *http.Request) {
-		traceID := resolveID(r.Header.Get("X-Trace-Id"))
-		correlationID := resolveID(r.Header.Get("X-Correlation-Id"))
-		requestTotal.Add(1)
-		logRequest(r.URL.Path, http.StatusOK, traceID, correlationID)
-		next(w, r)
-	})
+	return fallback
 }
 
 func main() {
-	port := os.Getenv("SERVICE_PORT")
-	if port == "" {
-		port = defaultPort
+	httpPort := getPort("SERVICE_PORT", defaultHTTPPort)
+	grpcPort := getPort("GRPC_PORT", defaultGRPCPort)
+
+	// ---- HTTP Server (health, ready, metrics) ----
+	gin.SetMode(gin.ReleaseMode)
+	r := gin.New()
+	r.Use(gin.Recovery())
+
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "healthy", "service": serviceName})
+	})
+	r.GET("/ready", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "ready", "service": serviceName})
+	})
+	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
+
+	// ---- gRPC Server (auth service) ----
+	grpcSrv := grpc.NewServer()
+
+	// Health check service for gRPC
+	healthSrv := health.NewServer()
+	grpc_health_v1.RegisterHealthServer(grpcSrv, healthSrv)
+	healthSrv.SetServingStatus(serviceName, grpc_health_v1.HealthCheckResponse_SERVING)
+
+	// Enable reflection for debugging
+	reflection.Register(grpcSrv)
+
+	// ---- Start both servers ----
+	httpSrv := &http.Server{
+		Addr:         ":" + httpPort,
+		Handler:      r,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  60 * time.Second,
 	}
 
-	mux := http.NewServeMux()
-
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		traceID := resolveID(r.Header.Get("X-Trace-Id"))
-		correlationID := resolveID(r.Header.Get("X-Correlation-Id"))
-		requestTotal.Add(1)
-
-		knownPath := r.URL.Path == "/" || r.URL.Path == "/health" || r.URL.Path == "/ready" || r.URL.Path == "/metrics"
-		if !knownPath {
-			writeJSON(w, http.StatusNotFound, map[string]any{"error": "ENDPOINT_NOT_FOUND", "message": "The requested endpoint " + r.URL.Path + " does not exist", "available": []string{"/", "/health", "/ready", "/metrics"}})
-			logRequest(r.URL.Path, http.StatusNotFound, traceID, correlationID)
-			return
-		}
-
-		if r.Method != http.MethodGet {
-			writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"error": "METHOD_NOT_ALLOWED", "message": "Method " + r.Method + " not allowed on " + r.URL.Path, "available": []string{"/", "/health", "/ready", "/metrics"}})
-			logRequest(r.URL.Path, http.StatusMethodNotAllowed, traceID, correlationID)
-			return
-		}
-
-		switch r.URL.Path {
-		case "/":
-			writeJSON(w, http.StatusOK, map[string]any{"name": serviceName, "version": "0.2.0", "description": "Authentication and authorization service", "stub": false})
-		case "/health":
-			writeJSON(w, http.StatusOK, map[string]string{"status": "healthy"})
-		case "/ready":
-			writeJSON(w, http.StatusOK, map[string]string{"status": "ready"})
-		case "/metrics":
-			writeMetrics(w)
-		}
-		logRequest(r.URL.Path, http.StatusOK, traceID, correlationID)
-	})
-
-	mux.HandleFunc("/api/v1/auth/token", authMiddleware(handleToken))
-	mux.HandleFunc("/api/v1/auth/token/introspect", authMiddleware(handleIntrospect))
-	mux.HandleFunc("/api/v1/auth/token/refresh", authMiddleware(handleRefresh))
-	mux.HandleFunc("/api/v1/auth/session", authMiddleware(handleGetSession))
-	mux.HandleFunc("/api/v1/auth/logout", authMiddleware(handleLogout))
-	mux.HandleFunc("/api/v1/auth/status", authMiddleware(handleStatus))
-
-	if err := http.ListenAndServe(":"+port, mux); err != nil {
+	grpcListener, err := net.Listen("tcp", ":"+grpcPort)
+	if err != nil {
+		slog.Error("gRPC listener failed", "error", err)
 		panic(err)
 	}
+
+	go func() {
+		slog.Info("HTTP server starting", "port", httpPort, "service", serviceName)
+		if err := httpSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			panic(err)
+		}
+	}()
+
+	go func() {
+		slog.Info("gRPC server starting", "port", grpcPort, "service", serviceName)
+		if err := grpcSrv.Serve(grpcListener); err != nil {
+			panic(err)
+		}
+	}()
+
+	slog.Info("auth-service running", "http_port", httpPort, "grpc_port", grpcPort,
+		"note", "gRPC AuthService RPCs not yet registered; run 'make proto-generate' to enable")
+
+	// Graceful shutdown
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	sig := <-quit
+	slog.Info("shutting down", "signal", sig.String())
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	grpcSrv.GracefulStop()
+	_ = httpSrv.Shutdown(ctx)
+	slog.Info("server stopped", "service", serviceName)
 }
+
+// NOTE: After running `make proto-generate`, register the AuthServiceServer:
+//
+//	import authv1 "vedo-core/src/services/shared/proto/auth/v1"
+//	authv1.RegisterAuthServiceServer(grpcSrv, &grpcServer.AuthGrpcServer{})

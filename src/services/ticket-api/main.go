@@ -18,9 +18,9 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-const serviceName = "commenting-service"
-const defaultHTTPPort = "8084"
-const defaultGRPCPort = "9004"
+const serviceName = "ticket-api"
+const defaultHTTPPort = "8088"
+const defaultGRPCPort = "9010"
 
 func getPort(envVar, fallback string) string {
 	if p := os.Getenv(envVar); p != "" {
@@ -30,10 +30,10 @@ func getPort(envVar, fallback string) string {
 }
 
 func main() {
-	httpPort := getPort("SERVICE_PORT", defaultHTTPPort)
+	httpPort := getPort("STUB_PORT", defaultHTTPPort)
 	grpcPort := getPort("GRPC_PORT", defaultGRPCPort)
 
-	// ---- HTTP Server (health, ready, metrics) ----
+	// ---- HTTP Server (health, ready, metrics + CLI-compatible ticket endpoints) ----
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 	r.Use(gin.Recovery())
@@ -45,6 +45,17 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"status": "ready", "service": serviceName})
 	})
 	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
+
+	// API v1 routes for CLI compatibility
+	api := r.Group("/api/v1")
+	{
+		api.GET("/tickets", func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{"tickets": []interface{}{}})
+		})
+		api.POST("/tickets", func(c *gin.Context) {
+			c.JSON(http.StatusCreated, gin.H{"status": "not_implemented"})
+		})
+	}
 
 	// ---- gRPC Server ----
 	grpcSrv := grpc.NewServer()
@@ -69,7 +80,7 @@ func main() {
 	}
 
 	go func() {
-		slog.Info("HTTP server starting", "port", httpPort, "service", serviceName)
+		slog.Info("HTTP server starting (CLI-compatible)", "port", httpPort, "service", serviceName)
 		if err := httpSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			panic(err)
 		}
@@ -82,8 +93,8 @@ func main() {
 		}
 	}()
 
-	slog.Info("commenting-service running", "http_port", httpPort, "grpc_port", grpcPort,
-		"note", "gRPC CommentingService RPCs not yet registered; run 'make proto-generate' to enable")
+	slog.Info("ticket-api running", "http_port", httpPort, "grpc_port", grpcPort,
+		"note", "gRPC services not yet registered; run 'make proto-generate' to enable")
 
 	// Graceful shutdown
 	quit := make(chan os.Signal, 1)
@@ -98,8 +109,3 @@ func main() {
 	_ = httpSrv.Shutdown(ctx)
 	slog.Info("server stopped", "service", serviceName)
 }
-
-// NOTE: After running `make proto-generate`, register CommentingServiceServer:
-//
-//	import commentingv1 "vedo-core/src/services/shared/proto/commenting/v1"
-//	commentingv1.RegisterCommentingServiceServer(grpcSrv, &grpcServer.CommentingGrpcServer{})
