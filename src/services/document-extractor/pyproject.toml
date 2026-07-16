@@ -1,0 +1,81 @@
+# Python project configuration — document-extractor service
+# AI-assisted ontology document extraction and NL→OWL processing
+
+[project]
+name = "document-extractor"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi==0.111.0",
+    "uvicorn[standard]==0.30.1",
+    "grpcio==1.64.1",
+    "grpcio-tools==1.64.1",
+    "pydantic==2.7.4",
+    "pydantic-settings==2.3.4",
+    "python-docx==1.1.2",
+    "PyPDF2==3.0.1",
+    "pdfplumber==0.11.0",
+    "openpyxl==3.1.5",
+    "aiofiles==24.1.0",
+    "httpx==0.27.0",
+    "prometheus-client==0.20.0",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # Pyflakes
+    "I",      # isort
+    "N",      # pep8-naming
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "SIM",    # flake8-simplify
+    "TCH",    # flake8-type-checking
+    "RUF",    # Ruff-specific rules
+    "C4",     # flake8-comprehensions
+    "PT",     # flake8-pytest-style
+    "RET",    # flake8-return
+    "ARG",    # flake8-unused-arguments
+    "PTH",    # flake8-use-pathlib
+    "ERA",    # eradicate (commented-out code)
+    "PL",     # Pylint
+    "TRY",    # tryceratops
+]
+
+ignore = [
+    "E501",    # line length — handled by formatter
+    "PLR0913", # too many arguments
+    "TRY003",  # avoid long exception messages
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "PLR2004"]
+"main.py" = ["E402"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[tool.basedpyright]
+include = ["main.py", "config.py"]
+typeCheckingMode = "standard"
+reportUnusedCallResult = "none"
+reportImplicitOverride = "warning"
+
+[dependency-groups]
+dev = [
+    "basedpyright>=1.39.6",
+    "ruff",
+    "pytest>=8.2.0",
+    "pytest-asyncio>=0.23.0",
+    "httpx>=0.27.0",
+]

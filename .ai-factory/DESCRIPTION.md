@@ -19,7 +19,7 @@ VEDO Core replaces the desktop Protégé with a cloud-based ontology editor that
 ## Tech Stack
 
 - **Frontend:** Vue 3 + Composition API, TypeScript, Vite, Apollo Client (GraphQL), Vue Flow (graph visualization)
-- **Backend:** Go (API Gateway, Auth, Collaboration, Ticket services), Rust (Ontology, Versioning, Publisher services), Python (Metrics, Classifier services)
+- **Backend:** Go (API Gateway, Auth, Collaboration, Ticket services), Rust (Ontology, Versioning, Publisher services), Python (Metrics, Classifier, Document Extractor services)
 - **LLM Integration:** Go shared package (provider abstraction, registry, prompt templates, OTEL observability), OpenAI-compatible and Anthropic adapters
 - **Databases:** Neo4j (graph/ontology store), PostgreSQL + JSONB (version store), Redis (cache/locks), RabbitMQ (message queue)
 - **Authentication:** Keycloak (OIDC/OAuth2), support for Russian OAuth providers (ESIA/Gosuslugi, Yandex, VK) and Google

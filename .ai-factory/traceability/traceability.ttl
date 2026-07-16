@@ -392,6 +392,63 @@ base:service/support-service a vdo:Service ;
     vdo:language "Go" ;
     vdo:filePath "src/services/support-service/" .
 
+base:service/document-extractor a vdo:Service ;
+    rdfs:label "Document Extractor"@en ;
+    rdfs:comment "AI-assisted ontology extraction from documents (MD, TXT, PDF, DOCX, JSON, XML, CSV, XLSX)"@en ;
+    vdo:language "Python" ;
+    vdo:filePath "src/services/document-extractor/" .
+
+# --- M2: Document Extractor Code Artifacts ---
+
+base:code/document-extractor-main a vdo:CodeArtifact ;
+    rdfs:label "Document Extractor — main.py"@en ;
+    rdfs:comment "FastAPI application entry point with health/ready/metrics endpoints"@en ;
+    vdo:filePath "src/services/document-extractor/main.py" ;
+    vdo:implements base:user/US-io.document.extract-md-txt, base:user/US-io.document.extract-pdf-docx, base:user/US-io.document.extract-structured .
+
+base:code/document-extractor-config a vdo:CodeArtifact ;
+    rdfs:label "Document Extractor — config.py"@en ;
+    rdfs:comment "Pydantic-settings configuration from environment variables"@en ;
+    vdo:filePath "src/services/document-extractor/config.py" .
+
+base:code/document-extractor-parsers a vdo:CodeArtifact ;
+    rdfs:label "Document Extractor — Parsers"@en ;
+    rdfs:comment "Format parsers: text (MD/TXT), PDF, DOCX, JSON, XML, CSV, XLSX — all returning uniform ParsedDocument"@en ;
+    vdo:filePath "src/services/document-extractor/parsers/" ;
+    vdo:implements base:user/US-io.document.extract-md-txt, base:user/US-io.document.extract-pdf-docx, base:user/US-io.document.extract-structured .
+
+base:code/document-extractor-llm-client a vdo:CodeArtifact ;
+    rdfs:label "Document Extractor — LLM Client"@en ;
+    rdfs:comment "Python LLM client with OpenAI/Anthropic support and exponential backoff retry"@en ;
+    vdo:filePath "src/services/document-extractor/llm/client.py" ;
+    vdo:implements base:user/US-io.document.extract-md-txt, base:user/US-io.document.extract-pdf-docx, base:user/US-io.document.extract-structured .
+
+base:code/document-extractor-prompts a vdo:CodeArtifact ;
+    rdfs:label "Document Extractor — Prompt Templates"@en ;
+    rdfs:comment "Progressive LLM prompt templates (V1→V2→V3) for ontology extraction from documents"@en ;
+    vdo:filePath "src/services/document-extractor/llm/prompts.py" .
+
+base:code/document-extractor-validator a vdo:CodeArtifact ;
+    rdfs:label "Document Extractor — Sequence Validator"@en ;
+    rdfs:comment "Validate LLM output: JSON parse, operation types, entity reference consistency, circular reference detection"@en ;
+    vdo:filePath "src/services/document-extractor/sequence/validator.py" .
+
+base:code/document-extractor-api-routes a vdo:CodeArtifact ;
+    rdfs:label "Document Extractor — API Routes"@en ;
+    rdfs:comment "FastAPI routes: POST /documents/extract, /documents/apply, /documents/validate"@en ;
+    vdo:filePath "src/services/document-extractor/api/routes.py" ;
+    vdo:implements base:user/US-io.document.extract-md-txt, base:user/US-io.document.extract-pdf-docx, base:user/US-io.document.extract-structured .
+
+base:code/document-extractor-grpc-client a vdo:CodeArtifact ;
+    rdfs:label "Document Extractor — gRPC Client"@en ;
+    rdfs:comment "ApplySequence RPC wrapper connecting to ontology-service:9001 with retry logic"@en ;
+    vdo:filePath "src/services/document-extractor/grpc_client/ontology.py" .
+
+base:code/proto-generator a vdo:CodeArtifact ;
+    rdfs:label "Proto Generator Script"@en ;
+    rdfs:comment "Script to generate Python gRPC stubs from shared protobuf definitions"@en ;
+    vdo:filePath "src/scripts/generate_protos.py" .
+
 # --- CLI Commands ---
 
 base:cli/vedo-cli a vdo:CLICommand ;
@@ -1033,10 +1090,13 @@ base:m2-ontology-templates a vdo:TestSuite ;
 # GraphQL artifacts: 5 (100% traced)
 
     rdfs:label "Traceability Coverage Summary"@en ;
+# M2 Code artifacts: 8 (document-extractor: main, config, parsers, llm-client, prompts, validator, api-routes, grpc-client)
+# M2 Proto generator: 1
+
     rdfs:comment "Summary of traceability coverage across artifact domains"@en .
 
 # KEY METRICS (for reference):
-# - Services: 16 (100% traced)
+# - Services: 17 (100% traced) [added: document-extractor]
 # - CLI commands: 5 (100% traced to spec)
 # - Security boundaries: 6 (100% identified)
 # - Error codes: 17 (100% identified in Go CLI)

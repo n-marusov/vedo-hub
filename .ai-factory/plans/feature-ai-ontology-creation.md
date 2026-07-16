@@ -116,10 +116,10 @@
 | 2.2 | 2 | LLM provider registry (runtime-configured) | `[x]` | 2.1 | 5 |
 | 2.3 | 2 | Prompt template system | `[x]` | 2.1 | 6 |
 | 2.4 | 2 | LLM observability + integration tests | `[x]` | 2.2 | 6 |
-| 3.1 | 3 | Scaffold document-extractor service | `[ ]` | 0.2, 2.2 | 7 |
-| 3.2 | 3 | File parsers — text documents (MD, TXT, PDF, DOCX) | `[ ]` | 3.1 | 7 |
-| 3.3 | 3 | File parsers — structured data (JSON, XML, CSV, XLSX) | `[ ]` | 3.1, 3.2 | 8 |
-| 3.4 | 3 | LLM integration + gRPC ApplySequence client | `[ ]` | 3.2, 3.3 | 8 |
+| 3.1 | 3 | Scaffold document-extractor service | `[x]` | 0.2, 2.2 | 7 |
+| 3.2 | 3 | File parsers — text documents (MD, TXT, PDF, DOCX) | `[x]` | 3.1 | 7 |
+| 3.3 | 3 | File parsers — structured data (JSON, XML, CSV, XLSX) | `[x]` | 3.1, 3.2 | 8 |
+| 3.4 | 3 | LLM integration + gRPC ApplySequence client | `[x]` | 3.2, 3.3 | 8 |
 | 4.1 | 4 | NL→OWL conversion endpoint | `[ ]` | 2.2, 2.3, 0.4 | 9 |
 | 4.2 | 4 | AI-assisted class/property completion | `[ ]` | 2.2, 2.3, 4.1 | 9 |
 | 4.3 | 4 | Iterative refinement workflow | `[ ]` | 4.1, 2.3 | 10 |
@@ -133,7 +133,7 @@
 | 6.3 | 6 | Traceability + docs validation | `[ ]` | 6.2 | 15 |
 | 6.4 | 6 | Antora documentation | `[ ]` | 6.2 | 15 |
 
-**Progress:** 7 / 27 tasks complete
+**Progress:** 11 / 27 tasks complete
 
 ---
 

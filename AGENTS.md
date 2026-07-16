@@ -11,7 +11,7 @@ See `.ai-factory/DESCRIPTION.md` for detailed project specification.
 ## Tech Stack
 
 - **Frontend:** Vue 3 + TypeScript, Vite, Apollo Client, Vue Flow
-- **Backend:** Go (API Gateway, Auth, Ticket services), Rust (Ontology, Versioning, Publisher), Python (Metrics, Classifier)
+- **Backend:** Go (API Gateway, Auth, Ticket services), Rust (Ontology, Versioning, Publisher), Python (Metrics, Classifier, Document Extractor)
 - **Databases:** Neo4j, PostgreSQL, Redis, RabbitMQ
 - **Authentication:** Keycloak (OIDC/OAuth2)
 - **Observability:** OpenTelemetry, Grafana (Tempo, Prometheus, Loki)
@@ -48,10 +48,11 @@ See `.ai-factory/DESCRIPTION.md` for detailed project specification.
 │   ├── docker/           #   Multi-stage Dockerfile templates by language
 │   ├── docs/antora/      #   Antora documentation source
 │   ├── scripts/          #   Utility scripts
-│   ├── services/         #   Microservices (14 services)
+│   ├── services/         #   Microservices (15 services)
 │   │   ├── api-gateway/         # Go — REST API Gateway
 │   │   ├── auth-service/        # Go — Authentication & authorization
 │   │   ├── commenting-service/  # Go — Commenting & collaboration
+│   │   ├── document-extractor/   # Python — AI document extraction & NL→OWL
 │   │   ├── frontend/            # Vue 3 — Web UI
 │   │   ├── metrics-service/     # Python — Metrics & analytics
 │   │   ├── ontology-service/    # Rust — Ontology CRUD & Neo4j
@@ -92,6 +93,7 @@ See `.ai-factory/DESCRIPTION.md` for detailed project specification.
 | `src/services/frontend/index.html` | Frontend app entry point |
 | `src/services/ontology-service/src/main.rs` | Ontology service — core graph operations |
 | `src/services/versioning-service/src/main.rs` | Versioning engine — Git-like commits/branches |
+| `src/services/document-extractor/main.py` | Document extractor — AI-assisted ontology extraction from documents |
 | `src/services/metrics-service/main.py` | Metrics & analytics service |
 | `src/cli/command.go` | CLI command dispatcher |
 | `src/Makefile` | Root build orchestrator |

@@ -2,7 +2,7 @@
 
 ## Overview
 
-VEDO Core uses a **Microservices architecture** organized as a monorepo. The system is decomposed into 14+ loosely coupled, independently deployable services, each responsible for a distinct business capability aligned with domain boundaries. Each service owns its data, communicates through well-defined APIs (REST/gRPC/events), and can be developed, deployed, and scaled independently.
+VEDO Core uses a **Microservices architecture** organized as a monorepo. The system is decomposed into 15+ loosely coupled, independently deployable services, each responsible for a distinct business capability aligned with domain boundaries. Each service owns its data, communicates through well-defined APIs (REST/gRPC/events), and can be developed, deployed, and scaled independently.
 
 This architecture was chosen because the project requires polyglot persistence (Neo4j, PostgreSQL, Redis), different scaling profiles per service (ontology queries need more CPU than auth), and independent team ownership across Go, Rust, Python, and TypeScript codebases.
 
@@ -17,12 +17,13 @@ This architecture was chosen because the project requires polyglot persistence (
 ```
 vedo-core/
 ├── src/
-│   ├── services/                 # Microservices (14+ services, polyglot)
+│   ├── services/                 # Microservices (15+ services, polyglot)
 │   │   ├── api-gateway/          # Go — Entry point, auth, routing
 │   │   ├── auth-service/         # Go — Keycloak integration, RBAC
 │   │   ├── ontology-service/     # Rust — Neo4j CRUD, graph operations
 │   │   ├── versioning-service/   # Rust — Git-like commits, branches, diff
 │   │   ├── metrics-service/      # Python — Analytics, aggregation
+│   │   ├── document-extractor/   # Python — Document extraction & NL→OWL
 │   │   ├── publisher-service/    # Rust — Ontology publishing pipeline
 │   │   ├── public-browse-api/    # Rust — Public read-only API
 │   │   ├── commenting-service/   # Go — Comments & collaboration
