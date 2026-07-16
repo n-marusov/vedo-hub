@@ -58,6 +58,12 @@ See `.ai-factory/DESCRIPTION.md` for detailed project specification.
 │   │   ├── public-browse-api/   # Rust — Public API
 │   │   ├── publish-browse-ui/   # Vue 3 — Published ontology viewer
 │   │   ├── publisher-service/   # Rust — Ontology publishing
+│   │   ├── shared/              # Shared libraries (polyglot)
+│   │   │   ├── llm/             #   Go — LLM provider abstraction, templates, observability
+│   │   │   │   ├── providers/   #     OpenAI-compatible & Anthropic adapters
+│   │   │   │   └── templates/  #     Prompt templates (.tmpl)
+│   │   │   ├── proto/           #   gRPC protobuf definitions (buf)
+│   │   │   └── src/             #   Rust shared library (health, metrics, tracing, protos)
 │   │   ├── support-service/     # Go — Support operations
 │   │   ├── ticket-api/          # Go — Ticket management API
 │   │   ├── ticket-classifier/   # Python — Ticket auto-classification

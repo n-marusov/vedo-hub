@@ -112,10 +112,10 @@
 | 0.5 | 0 | Update Docker Compose, CI, configuration | `[x]` | 0.2, 0.3, 0.4 | 3 |
 | 1.1 | 1 | E2E tests — document extraction flows | `[x]` | 0.5 | 4 |
 | 1.2 | 1 | E2E tests — NL→OWL and AI flows | `[x]` | 0.5 | 4 |
-| 2.1 | 2 | LLM abstraction package (Go) | `[ ]` | — | 5 |
-| 2.2 | 2 | LLM provider registry (runtime-configured) | `[ ]` | 2.1 | 5 |
-| 2.3 | 2 | Prompt template system | `[ ]` | 2.1 | 6 |
-| 2.4 | 2 | LLM observability + integration tests | `[ ]` | 2.2 | 6 |
+| 2.1 | 2 | LLM abstraction package (Go) | `[x]` | — | 5 |
+| 2.2 | 2 | LLM provider registry (runtime-configured) | `[x]` | 2.1 | 5 |
+| 2.3 | 2 | Prompt template system | `[x]` | 2.1 | 6 |
+| 2.4 | 2 | LLM observability + integration tests | `[x]` | 2.2 | 6 |
 | 3.1 | 3 | Scaffold document-extractor service | `[ ]` | 0.2, 2.2 | 7 |
 | 3.2 | 3 | File parsers — text documents (MD, TXT, PDF, DOCX) | `[ ]` | 3.1 | 7 |
 | 3.3 | 3 | File parsers — structured data (JSON, XML, CSV, XLSX) | `[ ]` | 3.1, 3.2 | 8 |
