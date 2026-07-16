@@ -1,0 +1,11 @@
+Class,Parent,Comment
+Vehicle,owl:Thing,A mode of transportation
+Car,Vehicle,A four-wheeled motor vehicle
+Truck,Vehicle,A large motor vehicle for carrying goods
+Motorcycle,Vehicle,A two-wheeled motor vehicle
+Bicycle,Vehicle,A human-powered vehicle
+Property,Domain,Range,Type
+hasSpeed,Vehicle,xsd:decimal,Datatype
+hasCapacity,Vehicle,xsd:integer,Datatype
+hasColor,Vehicle,xsd:string,Datatype
+drives,Person,Vehicle,Object

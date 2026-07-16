@@ -1,0 +1,29 @@
+PRODUCT CATALOG ONTOLOGY REQUIREMENTS
+
+1. Class: Product
+   - Description: A tangible or intangible item offered for sale
+   - Parent: owl:Thing
+   - Properties: name (string), price (float), description (string)
+
+2. Class: Category
+   - Description: A grouping of related products
+   - Properties: name (string), slug (string)
+
+3. Class: Electronic (subclass of Product)
+   - Properties: brand (string), warrantyPeriod (integer), voltage (string)
+
+4. Class: Clothing (subclass of Product)
+   - Properties: size (string), material (string), color (string)
+
+5. Class: Customer
+   - Properties: email (string), loyaltyPoints (integer)
+   - Relationships: purchases (Product)
+
+6. Object Property: purchases (Customer -> Product)
+   - A customer purchases a product
+
+7. Object Property: belongsToCategory (Product -> Category)
+   - A product belongs to a category
+
+Ontology Name: ProductCatalog
+Default Namespace: http://vedo.example.org/product-catalog#
