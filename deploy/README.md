@@ -70,6 +70,40 @@ docker compose \
   --profile obs logs --tail=200 grafana otel-collector prometheus loki tempo
 ```
 
+## Port Reference
+
+| Service | HTTP (health) | gRPC (internal) | Protocol |
+|---------|---------------|-----------------|----------|
+| API Gateway | 8080 | — | REST/GraphQL → gRPC |
+| Auth Service | 8081 | 9003 | gRPC |
+| Ontology Service | 8082 | 9001 | gRPC |
+| Versioning Service | 8083 | 9002 | gRPC |
+| Metrics Service | 8084 | — | HTTP (Prometheus) |
+| Commenting Service | 8085 | 9004 | gRPC |
+| Publisher Service | 8086 | 9005 | gRPC |
+| Public Browse API | 8087 | 9011 | gRPC |
+| Ticket API | 8088 (CLI) | 9010 | HTTP + gRPC |
+
+Ports 9006–9009 are reserved for future services.
+Port 9012 is reserved for Metrics Service gRPC (if needed).
+
+> **Internal communication** uses gRPC on ports 9001–9012.
+> **Health checks** remain on HTTP ports (8081–8091) for Docker health probes.
+> **External clients** connect to the API Gateway on port 8080 (REST/GraphQL).
+
+### Legacy Ports (deprecated)
+
+Pre-M2 services exposed their functional HTTP ports directly to the host.
+These ports are now internal-only (`expose` in Docker Compose) or removed:
+
+- `8082` → internal (ontology-service HTTP health)
+- `8083` → internal (versioning-service HTTP health)
+- `8081` → internal (auth-service HTTP health)
+- `8084` → internal (metrics-service HTTP health)
+- `8085` → internal (commenting-service HTTP health)
+- `8086` → internal (publisher-service HTTP health)
+- `8087` → internal (public-browse-api HTTP health)
+
 ## Useful Endpoints
 
 - Frontend: `http://localhost:3000`

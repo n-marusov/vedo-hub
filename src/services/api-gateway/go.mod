@@ -3,10 +3,12 @@ module vedo-core/src/services/api-gateway
 go 1.22
 
 require (
-	github.com/gin-gonic/gin v1.9.1
-	github.com/golang-jwt/jwt/v5 v5.2.0
-	github.com/prometheus/client_golang v1.19.1
-)
+		github.com/gin-gonic/gin v1.9.1
+		github.com/golang-jwt/jwt/v5 v5.2.0
+		github.com/prometheus/client_golang v1.19.1
+		google.golang.org/grpc v1.64.0
+		google.golang.org/protobuf v1.34.1
+	)
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect

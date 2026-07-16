@@ -1,5 +1,11 @@
 package proxy
 
+// Deprecation notice: The HTTP ReverseProxy in this file is the legacy
+// transport for inter-service communication. New code MUST use the gRPC
+// client pool in grpc_client.go. This file is kept for backward
+// compatibility during the gRPC migration (Phase 0) and will be removed
+// after all internal services migrate to gRPC.
+
 import (
 	"bytes"
 	"io"

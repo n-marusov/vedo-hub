@@ -75,6 +75,25 @@ docs-lint:
         - docs/**/*.md
         - src/docs/**/*
 
+proto-lint:
+  stage: lint
+  image: bufbuild/buf:latest
+  script:
+    - cd src/services/shared/proto && buf lint
+  rules:
+    - changes:
+        - src/services/shared/proto/**/*.proto
+
+proto-breaking:
+  stage: lint
+  image: bufbuild/buf:latest
+  script:
+    - cd src/services/shared/proto && buf breaking --against '.git#branch=main'
+  rules:
+    - changes:
+        - src/services/shared/proto/**/*.proto
+        - src/services/shared/proto/buf.yaml
+
 # --- Test Stage ---
 
 contract-tests-frontend:

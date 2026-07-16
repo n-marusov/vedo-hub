@@ -44,6 +44,30 @@ help: ## Show this help message
 STUB_SERVICES := api-gateway auth-service ontology-service versioning-service metrics-service publisher-service public-browse-api commenting-service ticket-api ticket-classifier ticket-telemetry-listener ticket-notifier frontend publish-browse-ui
 
 
+##@ Proto — gRPC code generation
+
+PROTO_DIR := $(ROOT)/services/shared/proto
+
+.PHONY: proto-generate
+proto-generate: ## Generate gRPC code from .proto files (Go + Rust)
+	@echo "[Proto] generating Go code..."
+	@cd $(PROTO_DIR) && buf generate
+	@echo "[Proto] Go code generated"
+	@echo "[Proto] Rust code is generated at build-time via tonic_build"
+
+.PHONY: proto-lint
+proto-lint: ## Lint .proto files with buf
+	@echo "[Proto] linting..."
+	@cd $(PROTO_DIR) && buf lint
+
+.PHONY: proto-breaking
+proto-breaking: ## Check .proto breaking changes with buf
+	@echo "[Proto] checking breaking changes..."
+	@cd $(PROTO_DIR) && buf breaking --against '.git#branch=main'
+
+.PHONY: proto-all
+proto-all: proto-lint proto-generate ## Run all proto checks (lint + generate)
+
 ##@ Build
 build: build-rust build-go build-python build-typescript ## Build all services (Rust, Go, Python, TypeScript)
 

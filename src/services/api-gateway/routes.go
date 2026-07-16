@@ -26,7 +26,7 @@ var openAPISpec []byte
 // `/api/v1/*` paths fall through to `r.NoRoute` (set up by the caller) which
 // returns a uniform `GATEWAY-NOT-FOUND` error.
 func RegisterRoutes(r *gin.Engine) {
-	// Initialize upstream proxies
+	// Initialize upstream proxies (HTTP reverse proxy — legacy, will be replaced by gRPC)
 	ontologyProxy := mustNewProxy(
 		getEnv("ONTOLOGY_SERVICE_URL", "http://localhost:8082"),
 		"ontology-service",
@@ -35,6 +35,11 @@ func RegisterRoutes(r *gin.Engine) {
 		getEnv("VERSIONING_SERVICE_URL", "http://localhost:8083"),
 		"versioning-service",
 	)
+
+	// Initialize gRPC client pool for internal service communication.
+	// Proto-specific clients will be activated after `make proto-generate`.
+	grpcPool := proxy.NewGrpcClientPool(getUpstreamTimeout())
+	defer grpcPool.Close()
 
 	// API v1 routes — auth middleware applied at engine level (see main.go)
 	api := r.Group("/api/v1")

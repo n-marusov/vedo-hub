@@ -1,10 +1,11 @@
 # @ctx: Rust build/lint/test rules — PLAT-LOCAL-002
 
-RUST_DIRS := $(shell find $(ROOT) -maxdepth 4 -name Cargo.toml -not -path "*/target/*" -not -path "*/templates/*" -exec dirname {} \; 2>/dev/null)
+RUST_DIRS := $(shell find $(ROOT) -maxdepth 4 -name Cargo.toml -not -path "*/target/*" -not -path "*/templates/*" -not -path "*/shared/*" -exec dirname {} \; 2>/dev/null)
 
 .PHONY: build-rust
 build-rust:
 	@if [ -z "$(RUST_DIRS)" ]; then echo "No Rust services found"; exit 0; fi
+	@echo "[Rust] Proto compilation is automatic via tonic_build/build.rs"
 	@for dir in $(RUST_DIRS); do \
 		echo "[Rust] building $$(basename $$dir)"; \
 		cd $$dir && cargo build --release 2>&1 || { echo "BUILD_FAILED: cargo build failed in $$dir"; exit 1; }; \

@@ -47,12 +47,24 @@ services:
       - ONTOLOGY_SERVICE_URL=http://ontology-service:8082
       - VERSIONING_SERVICE_URL=http://versioning-service:8083
       - AUTH_SERVICE_URL=http://auth-service:8081
+      - GRPC_ONTOLOGY_ADDR=ontology-service:9001
+      - GRPC_VERSIONING_ADDR=versioning-service:9002
+      - GRPC_AUTH_ADDR=auth-service:9003
+      - GRPC_COMMENTING_ADDR=commenting-service:9004
+      - GRPC_PUBLISHER_ADDR=publisher-service:9005
+      - GRPC_PUBLIC_BROWSE_ADDR=public-browse-api:9011
     depends_on:
       ontology-service:
         condition: service_healthy
       versioning-service:
         condition: service_healthy
       auth-service:
+        condition: service_healthy
+      commenting-service:
+        condition: service_healthy
+      publisher-service:
+        condition: service_healthy
+      public-browse-api:
         condition: service_healthy
     networks:
       - vedo-network
@@ -65,10 +77,13 @@ services:
     build:
       context: ../src/services/ontology-service
     ports:
-      - "8082:8082"
+      - "9001:9001"
+    expose:
+      - "8082"
     environment:
       - HOST=0.0.0.0
       - SERVICE_PORT=8082
+      - GRPC_PORT=9001
       - NEO4J_URI=bolt://neo4j:7687
       - NEO4J_USER=neo4j
       - NEO4J_PASSWORD=password
@@ -80,16 +95,19 @@ services:
     # debian:bookworm-slim runtime has no wget/curl — use bash /dev/tcp
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/8082; printf \"GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3; grep -q \"200 OK\" <&3'"]
+      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/9001; printf "" >&3; echo "gRPC health via grpc_health_probe recommended"'"]
 
   versioning-service:
     build:
       context: ../src/services/versioning-service
     ports:
-      - "8083:8083"
+      - "9002:9002"
+    expose:
+      - "8083"
     environment:
       - HOST=0.0.0.0
       - SERVICE_PORT=8083
+      - GRPC_PORT=9002
       - DATABASE_URL=postgres://postgres:password@postgres:5432/vedo_versioning
     depends_on:
       postgres:
@@ -99,16 +117,19 @@ services:
     # debian:bookworm-slim runtime has no wget/curl — use bash /dev/tcp
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/8083; printf \"GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3; grep -q \"200 OK\" <&3'"]
+      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/9002; printf "" >&3'"]
 
   auth-service:
     build:
       context: ../src/services/auth-service
     ports:
-      - "8081:8081"
+      - "9003:9003"
+    expose:
+      - "8081"
     environment:
       - HOST=0.0.0.0
       - SERVICE_PORT=8081
+      - GRPC_PORT=9003
       # Keycloak OIDC for JWT introspection (RFC 7662). The `vedo-core-api`
       # confidential client and its secret live in deploy/keycloak/vedo-core-realm.json.
       - KEYCLOAK_URL=http://keycloak:8080
@@ -166,26 +187,32 @@ services:
     build:
       context: ../src/services/publisher-service
     ports:
-      - "8086:8086"
+      - "9005:9005"
+    expose:
+      - "8086"
     environment:
       - HOST=0.0.0.0
       - SERVICE_PORT=8086
+      - GRPC_PORT=9005
     networks:
       - vedo-network
     # debian:bookworm-slim runtime has no wget/curl — use bash /dev/tcp
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/8086; printf \"GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3; grep -q \"200 OK\" <&3'"]
+      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/9005; printf "" >&3'"]
 
   # Public browse — Rust public read-only API
   public-browse-api:
     build:
       context: ../src/services/public-browse-api
     ports:
-      - "8087:8087"
+      - "9011:9011"
+    expose:
+      - "8087"
     environment:
       - HOST=0.0.0.0
       - SERVICE_PORT=8087
+      - GRPC_PORT=9011
     depends_on:
       publisher-service:
         condition: service_healthy
@@ -194,17 +221,20 @@ services:
     # debian:bookworm-slim runtime has no wget/curl — use bash /dev/tcp
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/8087; printf \"GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3; grep -q \"200 OK\" <&3'"]
+      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/9011; printf "" >&3'"]
 
   # Commenting — Go service
   commenting-service:
     build:
       context: ../src/services/commenting-service
     ports:
-      - "8085:8085"
+      - "9004:9004"
+    expose:
+      - "8085"
     environment:
       - HOST=0.0.0.0
       - SERVICE_PORT=8085
+      - GRPC_PORT=9004
     networks:
       - vedo-network
     # alpine runtime has busybox wget
@@ -217,9 +247,13 @@ services:
     build:
       context: ../src/services/ticket-api
     ports:
+      - "9010:9010"
       - "8088:8088"
     environment:
+      - HOST=0.0.0.0
       - STUB_PORT=8088
+      - SERVICE_PORT=8088
+      - GRPC_PORT=9010
       - APP_ENV=development
       - APP_VERSION=0.2.0
     networks:

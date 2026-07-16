@@ -1,10 +1,11 @@
 # @ctx: Go build/lint/test rules — PLAT-LOCAL-002
 
-GO_DIRS := $(shell cd $(ROOT) && find . -maxdepth 3 -name go.mod -not -path "*/templates/*" -exec dirname {} \; 2>/dev/null | sed 's|^\./||')
+GO_DIRS := $(shell cd $(ROOT) && find . -maxdepth 3 -name go.mod -not -path "*/templates/*" -not -path "*/shared/proto/*" -exec dirname {} \; 2>/dev/null | sed 's|^\./||')
 
 .PHONY: build-go
 build-go:
 	@if [ -z "$(GO_DIRS)" ]; then echo "No Go services found"; exit 0; fi
+	@echo "[Go] Proto generation: run 'make proto-generate' first"
 	@for dir in $(GO_DIRS); do \
 		echo "[Go] building $$(basename $$dir)"; \
 		cd $(ROOT)/$$dir && go build ./... 2>&1 || { echo "BUILD_FAILED: go build failed in $$dir"; exit 1; }; \
