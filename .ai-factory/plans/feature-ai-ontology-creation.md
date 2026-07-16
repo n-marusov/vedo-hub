@@ -1036,6 +1036,26 @@ Rules:
 
 ### Phase 5: Frontend — Preview, Upload & Apply
 
+**Design files (Design-First Frontend Development — RULES.md §Design-First):**
+
+| Design File | Relevance | Status |
+|-------------|-----------|--------|
+| `design/ui-kit.lib.pen` | Component library: Header, Sidebar, Buttons (`B:c8T4z`), Cards, Modals, Form controls (Input, Select, Checkbox), Badges, Toast, Spinner | ✅ Существует |
+| `design/pages/ontology-workspace.pen` | Ontology workspace page — точка интеграции AI-интерфейсов | ✅ Существует |
+| `design/pages/dialogs.pen` | Модальные диалоги — паттерны для Apply confirmation, Conflict resolution | ✅ Существует |
+| `design/frontend.pen` | Главный дизайн-файл (общая компоновка) | ✅ Существует |
+
+> ⚠️ **Design gap:** Следующие AI-специфичные UI-компоненты НЕ имеют設計-элементов в текущих `.pen`-файлах. Согласно правилу «Design-First Frontend Development» (RULES.md), они должны быть созданы в `ui-kit.lib.pen` (как новые организмы) и на странице `ontology-workspace.pen` (как новые секции) **до начала реализации фронтенд-кода**:
+>
+> | Компонент | Где создать | Для задачи |
+> |-----------|-------------|------------|
+> | `Organism/DocumentUploader` — зона drag & drop, progress bar | `ui-kit.lib.pen` | 5.1 |
+> | `Organism/SequencePreview` — таблица шагов с include/exclude, inline edit | `ui-kit.lib.pen` | 5.2 |
+> | `Organism/ApplyProgress` — модальное окно с прогресс-баром | `ui-kit.lib.pen` | 5.3 |
+> | `Organism/BatchUploader` — мульти-файловая загрузка | `ui-kit.lib.pen` | 5.4 |
+> | `Organism/ConflictResolver` — модальное окно разрешения конфликтов | `ui-kit.lib.pen` | 5.4 |
+> | AI integration in ontology-workspace.pen | `design/pages/ontology-workspace.pen` | 5.1–5.4 |
+
 **Covered ADRs:**
 - [`specs/adr/ADR-DES.UI.ai-suggestion-ux-strategy.md`](specs/adr/ADR-DES.UI.ai-suggestion-ux-strategy.md) — AI suggestion UX: ranked lists, confidence scores, caching, rate limiting
 - [`specs/adr/ADR-IMPL.STACK.frontend-vue-strategy.md`](specs/adr/ADR-IMPL.STACK.frontend-vue-strategy.md) — Vue 3 + Composition API + Apollo Client + Vite
@@ -1046,6 +1066,8 @@ Rules:
 #### Task 5.1: Build file upload UI component
 
 **Deliverable:** Reusable Vue 3 component for document upload with drag & drop, format validation, and progress feedback.
+
+**Design reference:** `design/ui-kit.lib.pen` → создать `Organism/DocumentUploader` (drag & drop зона, file type иконки, progress bar, error states). Интегрировать в `design/pages/ontology-workspace.pen`.
 
 **Files to create:**
 - `src/services/frontend/src/components/ontology/DocumentUploader.vue` — drag & drop zone, file type icons, size display, progress bar
@@ -1092,6 +1114,8 @@ interface DocumentUploaderEmits {
 
 **Deliverable:** Interactive table for reviewing and editing extracted ontology sequences before applying.
 
+**Design reference:** `design/ui-kit.lib.pen` → создать `Organism/SequencePreview` (таблица с чекбоксами include/exclude, inline edit полей, source file бейджи, duplicate warning бейджи, счётчик «N of M steps»).
+
 **Files to create:**
 - `src/services/frontend/src/components/ontology/SequencePreview.vue` — main preview component
 - `src/services/frontend/src/components/ontology/SequencePreviewRow.vue` — single row with toggle, inline edit, source info
@@ -1134,6 +1158,8 @@ interface SequencePreviewEmits {
 
 **Deliverable:** Apply button → progress → success/error with commit link.
 
+**Design reference:** `design/ui-kit.lib.pen` → создать `Organism/ApplyProgress` (модальное окно с шагами: Confirm → Progress → Success/Error). Паттерны модальных окон — в `design/pages/dialogs.pen`.
+
 **Files to create:**
 - `src/services/frontend/src/components/ontology/ApplySequenceButton.vue` — apply button with confirmation modal
 - `src/services/frontend/src/components/ontology/ApplyProgressModal.vue` — progress modal: "Importing... 2/3"
@@ -1162,6 +1188,8 @@ interface SequencePreviewEmits {
 #### Task 5.4: Build batch upload UI with deduplication and conflict resolution
 
 **Deliverable:** Multi-file upload, combined preview, conflict resolution UI.
+
+**Design reference:** `design/ui-kit.lib.pen` → создать `Organism/BatchUploader` (мульти-файловый upload с per-file progress) и `Organism/ConflictResolver` (модальное окно разрешения конфликтов: «keep A», «keep B», «custom»).
 
 **Files to create:**
 - `src/services/frontend/src/components/ontology/BatchUploader.vue` — multi-file upload orchestrator
