@@ -29,6 +29,7 @@ coverage/
 src/services/frontend/dist/
 src/services/publish-browse-ui/dist/
 tests/e2e/playwright/test-results/
+tests/e2e/playwright/playwright-report/
 **/debug/
 nul
 .playwright-mcp/

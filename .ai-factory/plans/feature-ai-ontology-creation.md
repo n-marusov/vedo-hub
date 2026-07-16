@@ -110,8 +110,8 @@
 | 0.3 | 0 | Migrate Go services to gRPC | `[x]` | 0.1 | 2 |
 | 0.4 | 0 | Update API Gateway to gRPC proxy | `[x]` | 0.2, 0.3 | 3 |
 | 0.5 | 0 | Update Docker Compose, CI, configuration | `[x]` | 0.2, 0.3, 0.4 | 3 |
-| 1.1 | 1 | E2E tests — document extraction flows | `[ ]` | 0.5 | 4 |
-| 1.2 | 1 | E2E tests — NL→OWL and AI flows | `[ ]` | 0.5 | 4 |
+| 1.1 | 1 | E2E tests — document extraction flows | `[x]` | 0.5 | 4 |
+| 1.2 | 1 | E2E tests — NL→OWL and AI flows | `[x]` | 0.5 | 4 |
 | 2.1 | 2 | LLM abstraction package (Go) | `[ ]` | — | 5 |
 | 2.2 | 2 | LLM provider registry (runtime-configured) | `[ ]` | 2.1 | 5 |
 | 2.3 | 2 | Prompt template system | `[ ]` | 2.1 | 6 |
@@ -133,7 +133,7 @@
 | 6.3 | 6 | Traceability + docs validation | `[ ]` | 6.2 | 15 |
 | 6.4 | 6 | Antora documentation | `[ ]` | 6.2 | 15 |
 
-**Progress:** 5 / 27 tasks complete
+**Progress:** 7 / 27 tasks complete
 
 ---
 

@@ -927,6 +927,108 @@ base:graphql/apollo-client a vdo:CodeArtifact ;
     vdo:filePath "src/services/frontend/src/apollo/client.ts" ;
     vdo:implements base:spec/gui-ow-001 .
 
+# --- M2 Document Extraction E2E Test Suites ---
+
+base:test/m2-document-extraction a vdo:TestSuite ;
+    rdfs:label "M2 Document Extraction E2E Tests"@en ;
+    rdfs:comment "Playwright E2E tests for M2 document extraction flows covering markdown, text, PDF, DOCX, structured data, batch upload, and preview-apply workflow"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/m2/" ;
+    vdo:validates base:user/US-io.document.extract-md-txt ;
+    vdo:validates base:user/US-io.document.extract-pdf-docx ;
+    vdo:validates base:user/US-io.document.extract-structured ;
+    vdo:validates base:user/US-io.document.batch-extract ;
+    vdo:validates base:user/US-io.document.preview-sequence .
+
+base:m2-document-extraction-md-txt a vdo:TestSuite ;
+    rdfs:label "M2 Document Extraction — Markdown and Text"@en ;
+    rdfs:comment "Playwright E2E tests: upload specification.md → verify 8 classes, 5 properties; edit label → apply; plain text extraction"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/m2/document-extraction-md-txt.spec.ts" ;
+    vdo:validates base:user/US-io.document.extract-md-txt .
+
+base:m2-document-extraction-pdf-docx a vdo:TestSuite ;
+    rdfs:label "M2 Document Extraction — PDF and DOCX"@en ;
+    rdfs:comment "Playwright E2E tests: upload PDF/DOCX → verify extraction; password-protected PDF rejection; scanned PDF detection; large document progress"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/m2/document-extraction-pdf-docx.spec.ts" ;
+    vdo:validates base:user/US-io.document.extract-pdf-docx .
+
+base:m2-document-extraction-structured a vdo:TestSuite ;
+    rdfs:label "M2 Document Extraction — Structured Data"@en ;
+    rdfs:comment "Playwright E2E tests: upload XLSX with column mapping; JSON nested objects → hierarchy; XML tags/attributes; CSV delimiter detection"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/m2/document-extraction-structured.spec.ts" ;
+    vdo:validates base:user/US-io.document.extract-structured .
+
+base:m2-document-batch-extract a vdo:TestSuite ;
+    rdfs:label "M2 Document Extraction — Batch Upload"@en ;
+    rdfs:comment "Playwright E2E tests: upload 3 files → combined preview with source attribution; deduplication; conflict resolution; partial failure handling"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/m2/document-batch-extract.spec.ts" ;
+    vdo:validates base:user/US-io.document.batch-extract .
+
+base:m2-document-preview-sequence a vdo:TestSuite ;
+    rdfs:label "M2 Document Extraction — Preview and Apply"@en ;
+    rdfs:comment "Playwright E2E tests: toggle step inclusion; inline label editing; duplicate detection warning; apply progress → success/commit link; error/retry"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/m2/document-preview-sequence.spec.ts" ;
+    vdo:validates base:user/US-io.document.preview-sequence .
+
+base:m2-document-fixtures a vdo:TestSuite ;
+    rdfs:label "M2 Document Extraction Test Fixtures"@en ;
+    rdfs:comment "Test fixture documents for M2 E2E tests: specification.md, requirements.txt, technical-spec.pdf, documentation.docx, data.json, schema.xml, entities.csv, classes.xlsx, empty.txt, large-file.txt"@en ;
+    vdo:filePath "tests/e2e/playwright/fixtures/m2/" .
+
+base:page/m2-document-upload a vdo:CodeArtifact ;
+    rdfs:label "M2 Document Upload Page Object"@en ;
+    rdfs:comment "Playwright Page Object Model for M2 document extraction and AI ontology creation UI"@en ;
+    vdo:filePath "tests/e2e/playwright/pages/m2-document-upload.page.ts" ;
+    vdo:implements base:user/US-io.document.extract-md-txt ;
+    vdo:implements base:user/US-io.document.batch-extract ;
+    vdo:implements base:user/US-io.document.preview-sequence ;
+    vdo:implements base:user/US-io.ontology.create-nl-to-owl ;
+    vdo:implements base:user/US-io.ontology.ai-completion ;
+    vdo:implements base:user/US-io.ontology.ai-property-suggestions ;
+    vdo:implements base:user/US-io.ontology.iterative-refinement ;
+    vdo:implements base:user/US-io.ontology.templates .
+
+# --- M2 NL→OWL and AI Assistance E2E Test Suites ---
+
+base:test/m2-nl-owl-ai a vdo:TestSuite ;
+    rdfs:label "M2 NL→OWL and AI Assistance E2E Tests"@en ;
+    rdfs:comment "Playwright E2E tests for M2 NL→OWL generation, AI-assisted class/property completion, iterative refinement, and ontology templates"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/m2/" ;
+    vdo:validates base:user/US-io.ontology.create-nl-to-owl ;
+    vdo:validates base:user/US-io.ontology.ai-completion ;
+    vdo:validates base:user/US-io.ontology.ai-property-suggestions ;
+    vdo:validates base:user/US-io.ontology.iterative-refinement ;
+    vdo:validates base:user/US-io.ontology.templates .
+
+base:m2-nl-to-owl-generation a vdo:TestSuite ;
+    rdfs:label "M2 NL→OWL Generation"@en ;
+    rdfs:comment "Playwright E2E tests: enter NL text → view generated sequence; edit steps → apply; ambiguous NL → disambiguation prompt"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/m2/nl-to-owl-generation.spec.ts" ;
+    vdo:validates base:user/US-io.ontology.create-nl-to-owl .
+
+base:m2-ai-completion a vdo:TestSuite ;
+    rdfs:label "M2 AI-Assisted Class Completion"@en ;
+    rdfs:comment "Playwright E2E tests: request AI subclass suggestions → ranked list; accept → entity creation; reject all → no changes"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/m2/ai-completion.spec.ts" ;
+    vdo:validates base:user/US-io.ontology.ai-completion .
+
+base:m2-ai-property-suggestions a vdo:TestSuite ;
+    rdfs:label "M2 AI-Assisted Property Suggestions"@en ;
+    rdfs:comment "Playwright E2E tests: request property suggestions → domain/range hints; accept → property created; datatype vs object distinction"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/m2/ai-property-suggestions.spec.ts" ;
+    vdo:validates base:user/US-io.ontology.ai-property-suggestions .
+
+base:m2-iterative-refinement a vdo:TestSuite ;
+    rdfs:label "M2 Iterative Refinement"@en ;
+    rdfs:comment "Playwright E2E tests: generate initial → refine with feedback → verify refined sequence; multiple rounds accumulate changes; apply final version"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/m2/iterative-refinement.spec.ts" ;
+    vdo:validates base:user/US-io.ontology.iterative-refinement .
+
+base:m2-ontology-templates a vdo:TestSuite ;
+    rdfs:label "M2 Ontology Domain Templates"@en ;
+    rdfs:comment "Playwright E2E tests: list templates → verify Person/Organization present; select → preview expected classes/properties; apply → entities created"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/m2/ontology-templates.spec.ts" ;
+    vdo:validates base:user/US-io.ontology.templates .
+
 # --- Update coverage summary metrics ---
 # GraphQL artifacts: 5 (100% traced)
 
