@@ -7,3 +7,6 @@ Available knowledge references for AI agents.
 | [neo4j-cypher](neo4j-cypher.md) | Neo4j Cypher query language overview, graph patterns, clauses, syntax, and usage patterns | neo4j.com/docs/cypher-manual, github.com/neo4j/docs-cypher | 2026-07-13 |
 | [w3c-turtle](w3c-turtle.md) | W3C Turtle — Terse RDF Triple Language (RDF 1.1) syntax, grammar, parsing | w3.org/TR/turtle | 2026-07-12 |
 | [w3c-sparql-query](w3c-sparql-query.md) | SPARQL 1.0 query language — graph patterns, filter functions, four query forms, dataset/named graphs | w3.org/TR/rdf-sparql-query | 2026-07-13 |
+| [uv](uv.md) | uv — Python package and project manager (pip/poetry/pipx/pyenv replacement) | docs.astral.sh/uv | 2026-07-16 |
+| [ruff](ruff.md) | Ruff — Python linter and formatter (Flake8/Black/isort replacement) | docs.astral.sh/ruff | 2026-07-16 |
+| [biome](biome.md) | Biome — Web toolchain: formatter and linter (Prettier/ESLint replacement) | biomejs.dev | 2026-07-16 |
