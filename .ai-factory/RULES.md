@@ -20,6 +20,7 @@
 4. **Error codes** — use domain-prefixed error codes (e.g., `CLI-TICKET-NOT-FOUND`).
 5. **No stub markers** — production code must not contain `[STUB]` prefixes or stubbed versions.
 6. **Docker quality gate** — the quality gate must verify Docker container builds, docker-compose startup, and health status of all services.
+7. **Linter/formatter compliance** — `$aif-implement` must follow linter and formatter configurations defined in each service project. After implementation, run the project's linter and formatter on all changed files: `ruff check --fix && ruff format` for Python services, `biome check --fix` for TypeScript/Vue services. Fix any issues before marking a task complete.
 
 ## Domain Terminology
 
@@ -46,7 +47,7 @@
    - `.ai-factory/evolutions/*` — agent self-improvement evolution logs
    - `.ai-factory/skill-context/*` — project-specific skill rules accumulated by `$aif-evolve`
    - Agent plan/review/fix metadata (plan files, review reports, fix patches)
-   
+
    Product artifacts (service code, tests, configs, deployment specs, API contracts) remain subject to the mandatory traceability requirement in point 1 above. When in doubt, err on the side of adding a traceability entry — the exclusion is for strictly internal agent orchestration files that have no observable product behavior impact.
 
 ## Testing (TDD)
