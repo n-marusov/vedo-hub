@@ -36,11 +36,9 @@ async fn test_export_turtle_returns_content() {
     let _ = pool
         .graph()
         .execute(
-            neo4rs::query(
-                "CREATE (c:Class {ontology_id:$id,id:'Person',label:'Person',iri:$iri})",
-            )
-            .param("id", oid.clone())
-            .param("iri", format!("http://example.org/{oid}#Person")),
+            neo4rs::query("CREATE (c:Class {ontology_id:$id,id:'Person',label:'Person',iri:$iri})")
+                .param("id", oid.clone())
+                .param("iri", format!("http://example.org/{oid}#Person")),
         )
         .await;
 

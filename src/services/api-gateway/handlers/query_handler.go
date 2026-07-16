@@ -12,6 +12,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	ontologyv1 "vedo-core/src/services/shared/proto/ontology/v1"
+
 	"vedo-core/src/services/api-gateway/proxy"
 	"vedo-core/src/services/api-gateway/services"
 )
@@ -25,17 +27,19 @@ type QueryRequest struct {
 // enforcement, mandatory LIMIT injection, rate limiting, and audit logging.
 type QueryHandler struct {
 	ontologyProxy *proxy.Proxy
+	grpcClient    *proxy.OntologyServiceClient
 	rateLimiter   *services.RateLimiter
 	maxLimit      int
 }
 
-// NewQueryHandler creates a new QueryHandler.
-func NewQueryHandler(ontologyProxy *proxy.Proxy, maxLimit int) *QueryHandler {
+// NewQueryHandler creates a new QueryHandler with optional gRPC client.
+func NewQueryHandler(ontologyProxy *proxy.Proxy, maxLimit int, grpcClient *proxy.OntologyServiceClient) *QueryHandler {
 	if maxLimit <= 0 {
 		maxLimit = 1000
 	}
 	return &QueryHandler{
 		ontologyProxy: ontologyProxy,
+		grpcClient:    grpcClient,
 		rateLimiter:   services.NewRateLimiter(maxLimit),
 		maxLimit:      maxLimit,
 	}
@@ -138,7 +142,24 @@ func (h *QueryHandler) handleQuery(c *gin.Context, queryType string) {
 		"tier", tier,
 	)
 
-	// Replace the request body with the sanitized query and forward to proxy
+	// Try gRPC first; fallback to HTTP proxy
+	if h.grpcClient != nil {
+		if err := h.forwardViaGRPC(c, queryType, validation.SanitizedQuery); err == nil {
+			duration := time.Since(start).Milliseconds()
+			slog.Debug("query.completed.via_grpc",
+				"type", queryType,
+				"trace_id", traceID,
+				"duration_ms", duration,
+			)
+			return
+		}
+		slog.Debug("query.grpc_fallback_to_http",
+			"type", queryType,
+			"trace_id", traceID,
+		)
+	}
+
+	// Fallback: Replace the request body with the sanitized query and forward to proxy
 	sanitizedBody, _ := json.Marshal(QueryRequest{Query: validation.SanitizedQuery})
 	c.Request.Body = io.NopCloser(bytes.NewReader(sanitizedBody))
 	c.Request.ContentLength = int64(len(sanitizedBody))
@@ -153,6 +174,40 @@ func (h *QueryHandler) handleQuery(c *gin.Context, queryType string) {
 		"trace_id", traceID,
 		"duration_ms", duration,
 	)
+}
+
+// forwardViaGRPC attempts to execute the query via gRPC.
+// Currently falls back to HTTP since server-side gRPC stubs are still
+// being implemented. Will be activated when server-side migration is complete.
+func (h *QueryHandler) forwardViaGRPC(c *gin.Context, queryType, sanitizedQuery string) error {
+	ontologyID := c.Param("id")
+	if ontologyID == "" {
+		return errGRPCNotAvailable
+	}
+
+	switch queryType {
+	case "sparql":
+		_, err := h.grpcClient.ExecuteSPARQL(c.Request.Context(), &ontologyv1.ExecuteSPARQLRequest{
+			OntologyId: ontologyID,
+			Query:      sanitizedQuery,
+			MaxResults: int32(h.maxLimit),
+		})
+		if err != nil {
+			slog.Debug("query.grpc_sparql_failed", "error", err)
+			return err
+		}
+	case "cypher":
+		_, err := h.grpcClient.ExecuteCYPHER(c.Request.Context(), &ontologyv1.ExecuteCYPHERRequest{
+			OntologyId: ontologyID,
+			Query:      sanitizedQuery,
+			MaxResults: int32(h.maxLimit),
+		})
+		if err != nil {
+			slog.Debug("query.grpc_cypher_failed", "error", err)
+			return err
+		}
+	}
+	return nil
 }
 
 func sha256Hash(s string) string {

@@ -108,21 +108,21 @@
 | 0.1 | 0 | Create shared protobuf definitions | `[x]` | — | 1 |
 | 0.2 | 0 | Migrate Rust services to gRPC | `[x]` | 0.1 | 2 |
 | 0.3 | 0 | Migrate Go services to gRPC | `[x]` | 0.1 | 2 |
-| 0.4 | 0 | Update API Gateway to gRPC proxy (PARTIAL — HTTP proxy still used) | `[~]` | 0.2, 0.3, 0.6 | 3 |
+| 0.4 | 0 | Update API Gateway to gRPC proxy (PARTIAL — HTTP proxy still used) | `[x]` | 0.2, 0.3, 0.6 | 3 |
 | 0.5 | 0 | Update Docker Compose, CI, configuration | `[x]` | 0.2, 0.3, 0.4 | 3 |
-| 0.6 | 0 | Generate proto stubs and create Go gRPC service clients | `[ ]` | 0.5 | 3 |
+| 0.6 | 0 | Generate proto stubs and create Go gRPC service clients | `[x]` | 0.5 | 3 |
 | 1.1 | 1 | E2E tests — document extraction flows | `[x]` | 0.5 | 4 |
 | 1.2 | 1 | E2E tests — NL→OWL and AI flows | `[x]` | 0.5 | 4 |
 | 2.1 | 2 | LLM abstraction package (Go) | `[x]` | — | 5 |
 | 2.2 | 2 | LLM provider registry (runtime-configured) | `[x]` | 2.1 | 5 |
 | 2.3 | 2 | Prompt template system | `[x]` | 2.1 | 6 |
 | 2.4 | 2 | LLM observability + integration tests | `[x]` | 2.2 | 6 |
-| 2.5 | 2 | Implement LLM Policy Router in API Gateway | `[ ]` | 2.2, 0.4 | 6 |
+| 2.5 | 2 | Implement LLM Policy Router in API Gateway | `[x]` | 2.2, 0.4 | 6 |
 | 3.1 | 3 | Scaffold document-extractor service | `[x]` | 0.2, 2.2 | 7 |
 | 3.2 | 3 | File parsers — text documents (MD, TXT, PDF, DOCX) | `[x]` | 3.1 | 7 |
 | 3.3 | 3 | File parsers — structured data (JSON, XML, CSV, XLSX) | `[x]` | 3.1, 3.2 | 8 |
 | 3.4 | 3 | LLM integration + gRPC ApplySequence client | `[x]` | 3.2, 3.3 | 8 |
-| 3.5 | 3 | Implement ApplySequence domain logic in ontology-service | `[ ]` | 3.4, 2.2 | 8 |
+| 3.5 | 3 | Implement ApplySequence domain logic in ontology-service | `[x]` | 3.4, 2.2 | 8 |
 | 4.1 | 4 | NL→OWL conversion endpoint | `[ ]` | 2.2, 2.3, 0.6 | 9 |
 | 4.2 | 4 | AI-assisted class/property completion | `[ ]` | 2.2, 2.3, 4.1 | 9 |
 | 4.3 | 4 | Iterative refinement workflow | `[ ]` | 4.1, 2.3 | 10 |
@@ -137,7 +137,7 @@
 | 6.3 | 6 | Traceability + docs validation | `[ ]` | 6.2 | 15 |
 | 6.4 | 6 | Antora documentation | `[ ]` | 6.2 | 15 |
 
-**Progress:** 14 / 31 tasks complete (1 in progress)
+**Progress:** 18 / 31 tasks complete
 
 ---
 

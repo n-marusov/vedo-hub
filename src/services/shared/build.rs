@@ -17,7 +17,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     tonic_build::configure()
         .build_server(true)
         .build_client(true)
-        .compile(&proto_files, &[proto_root])?;
+        .compile_protos(&proto_files, &[proto_root])?;
 
     println!("cargo:info=Compiled {} .proto files", proto_files.len());
     Ok(())
@@ -34,7 +34,7 @@ fn collect_proto_files(dir: &Path) -> Vec<std::path::PathBuf> {
         let path = entry.path();
         if path.is_dir() {
             files.extend(collect_proto_files(&path));
-        } else if path.extension().map_or(false, |e| e == "proto") {
+        } else if path.extension().is_some_and(|e| e == "proto") {
             files.push(path);
         }
     }

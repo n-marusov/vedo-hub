@@ -10,6 +10,7 @@ pub mod handlers;
 pub mod individuals;
 pub mod neo4j;
 pub mod properties;
+pub mod repositories;
 pub mod services;
 
 use std::sync::Arc;

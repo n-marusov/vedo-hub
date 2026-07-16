@@ -24,9 +24,11 @@ async fn test_checkout_commit_endpoint() {
     let pool = common::connect_test_pg().await;
     let app = common::build_test_app(pool);
 
-    let resp = app.clone().oneshot(
-        post_empty("/api/v1/versioning/commits/1/checkout")
-    ).await.unwrap();
+    let resp = app
+        .clone()
+        .oneshot(post_empty("/api/v1/versioning/commits/1/checkout"))
+        .await
+        .unwrap();
     assert!(resp.status().is_success() || resp.status() == StatusCode::NOT_FOUND);
 }
 
@@ -36,8 +38,10 @@ async fn test_switch_branch_endpoint() {
     let pool = common::connect_test_pg().await;
     let app = common::build_test_app(pool);
 
-    let resp = app.clone().oneshot(
-        post_empty("/api/v1/versioning/branches/main/switch")
-    ).await.unwrap();
+    let resp = app
+        .clone()
+        .oneshot(post_empty("/api/v1/versioning/branches/main/switch"))
+        .await
+        .unwrap();
     assert!(resp.status().is_success() || resp.status() == StatusCode::NOT_FOUND);
 }

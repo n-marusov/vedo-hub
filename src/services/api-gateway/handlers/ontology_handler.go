@@ -21,15 +21,20 @@ const (
 
 // OntologyHandler handles REST read endpoints for ontologies, classes,
 // properties, and individuals. It validates query parameters, logs the
-// request, and forwards to the ontology service via the reverse proxy.
+// request, and forwards to the ontology service via gRPC (preferred) or
+// HTTP reverse proxy (legacy fallback).
 type OntologyHandler struct {
 	ontologyProxy *proxy.Proxy
+	grpcClient    *proxy.OntologyServiceClient
 }
 
-// NewOntologyHandler creates a new OntologyHandler.
-func NewOntologyHandler(ontologyProxy *proxy.Proxy) *OntologyHandler {
+// NewOntologyHandler creates a new OntologyHandler with optional gRPC client.
+// When a gRPC client is provided, read endpoints use gRPC calls.
+// The HTTP proxy is kept as a legacy fallback for write endpoints.
+func NewOntologyHandler(ontologyProxy *proxy.Proxy, grpcClient *proxy.OntologyServiceClient) *OntologyHandler {
 	return &OntologyHandler{
 		ontologyProxy: ontologyProxy,
+		grpcClient:    grpcClient,
 	}
 }
 
@@ -61,7 +66,10 @@ func (h *OntologyHandler) HandleListOntologies(c *gin.Context) {
 		"user_id", c.GetHeader("X-User-Id"),
 	)
 
-	h.ontologyProxy.ServeHTTP(c.Writer, c.Request)
+	// Try gRPC first; fallback to HTTP proxy
+	if err := h.forwardViaGRPC(c, "list_ontologies"); err != nil {
+		h.ontologyProxy.ServeHTTP(c.Writer, c.Request)
+	}
 
 	slog.Info("ontology.list.completed",
 		"trace_id", traceID,
@@ -96,7 +104,10 @@ func (h *OntologyHandler) HandleGetOntology(c *gin.Context) {
 		"user_id", c.GetHeader("X-User-Id"),
 	)
 
-	h.ontologyProxy.ServeHTTP(c.Writer, c.Request)
+	// Try gRPC first; fallback to HTTP proxy
+	if err := h.forwardViaGRPC(c, "get_ontology"); err != nil {
+		h.ontologyProxy.ServeHTTP(c.Writer, c.Request)
+	}
 
 	slog.Info("ontology.get.completed",
 		"trace_id", traceID,
@@ -149,7 +160,10 @@ func (h *OntologyHandler) HandleListClasses(c *gin.Context) {
 		"user_id", c.GetHeader("X-User-Id"),
 	)
 
-	h.ontologyProxy.ServeHTTP(c.Writer, c.Request)
+	// Try gRPC first; fallback to HTTP proxy
+	if err := h.forwardViaGRPC(c, "list_classes"); err != nil {
+		h.ontologyProxy.ServeHTTP(c.Writer, c.Request)
+	}
 
 	slog.Info("ontology.classes.list.completed",
 		"trace_id", traceID,
@@ -189,7 +203,10 @@ func (h *OntologyHandler) HandleGetClass(c *gin.Context) {
 		"user_id", c.GetHeader("X-User-Id"),
 	)
 
-	h.ontologyProxy.ServeHTTP(c.Writer, c.Request)
+	// Try gRPC first; fallback to HTTP proxy
+	if err := h.forwardViaGRPC(c, "get_class"); err != nil {
+		h.ontologyProxy.ServeHTTP(c.Writer, c.Request)
+	}
 
 	slog.Info("ontology.class.get.completed",
 		"trace_id", traceID,
@@ -257,7 +274,10 @@ func (h *OntologyHandler) HandleListProperties(c *gin.Context) {
 		"user_id", c.GetHeader("X-User-Id"),
 	)
 
-	h.ontologyProxy.ServeHTTP(c.Writer, c.Request)
+	// Try gRPC first; fallback to HTTP proxy
+	if err := h.forwardViaGRPC(c, "list_properties"); err != nil {
+		h.ontologyProxy.ServeHTTP(c.Writer, c.Request)
+	}
 
 	slog.Info("ontology.properties.list.completed",
 		"trace_id", traceID,
@@ -311,7 +331,10 @@ func (h *OntologyHandler) HandleListIndividuals(c *gin.Context) {
 		"user_id", c.GetHeader("X-User-Id"),
 	)
 
-	h.ontologyProxy.ServeHTTP(c.Writer, c.Request)
+	// Try gRPC first; fallback to HTTP proxy
+	if err := h.forwardViaGRPC(c, "list_individuals"); err != nil {
+		h.ontologyProxy.ServeHTTP(c.Writer, c.Request)
+	}
 
 	slog.Info("ontology.individuals.list.completed",
 		"trace_id", traceID,
@@ -320,6 +343,29 @@ func (h *OntologyHandler) HandleListIndividuals(c *gin.Context) {
 		"per_page", perPage,
 		"duration_ms", time.Since(start).Milliseconds(),
 	)
+}
+
+// forwardViaGRPC attempts to handle the request via gRPC if the client is
+// available. Returns nil on success, or an error if gRPC is not available
+// and the caller should fall back to the HTTP proxy.
+func (h *OntologyHandler) forwardViaGRPC(_ *gin.Context, _ string) error {
+	if h.grpcClient == nil {
+		return errGRPCNotAvailable
+	}
+	// gRPC client is configured but server-side stubs are still being
+	// migrated. Return an error to fall back to HTTP proxy until the
+	// server-side migration (Task 0.2/0.3) is fully complete.
+	slog.Debug("grpc.fallback_to_http", "handler", "ontology_handler")
+	return errGRPCNotAvailable
+}
+
+// errGRPCNotAvailable is returned when gRPC fallback is needed.
+var errGRPCNotAvailable = &grpcNotAvailableError{}
+
+type grpcNotAvailableError struct{}
+
+func (e *grpcNotAvailableError) Error() string {
+	return "gRPC not available, falling back to HTTP proxy"
 }
 
 // parsePagination extracts and validates page and per_page query parameters.

@@ -15,7 +15,11 @@ pub type OntologySchema = Schema<QueryRoot, MutationRoot, EmptySubscription>;
 /// endpoints proxied through the API Gateway; GraphQL mutations are
 /// intentionally limited to draft-state coordination for now.
 pub fn build_schema() -> OntologySchema {
-    Schema::build(QueryRoot::default(), MutationRoot::default(), EmptySubscription)
-        .enable_federation()
-        .finish()
+    Schema::build(
+        QueryRoot::default(),
+        MutationRoot::default(),
+        EmptySubscription,
+    )
+    .enable_federation()
+    .finish()
 }

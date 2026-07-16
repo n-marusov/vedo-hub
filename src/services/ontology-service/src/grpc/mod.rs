@@ -1,17 +1,18 @@
 //! gRPC server implementation for the ontology service.
 //!
 //! Implements the tonic `OntologyService` trait generated from the proto
-//! definitions in `vedo-shared`. All methods are currently stubs returning
-//! `unimplemented` — domain logic will be wired in later phases.
+//! definitions in `vedo-shared`. Domain operations are delegated to the
+//! service and repository layers.
 
 use std::sync::Arc;
 
 use tonic::{Request, Response, Status};
-use tracing::info;
+use tracing::{info, warn};
 
 use crate::AppState;
-use vedo_shared::protos::ontology::ontology_service_server::OntologyService;
-use vedo_shared::protos::ontology::*;
+use ontology_service::services::apply_sequence;
+use vedo_shared::protos::ontology::v1::ontology_service_server::OntologyService;
+use vedo_shared::protos::ontology::v1::*;
 
 /// gRPC server that implements the `OntologyService` tonic trait.
 ///
@@ -205,10 +206,36 @@ impl OntologyService for OntologyGrpcServer {
 
     async fn apply_sequence(
         &self,
-        _request: Request<ApplySequenceRequest>,
+        request: Request<ApplySequenceRequest>,
     ) -> Result<Response<ApplySequenceResponse>, Status> {
-        info!("gRPC ApplySequence called");
-        Err(Status::unimplemented("not yet implemented"))
+        let req = request.into_inner();
+        info!(
+            "gRPC ApplySequence called: ontology_id={}, steps={}, message={}",
+            req.ontology_id,
+            req.steps.len(),
+            req.commit_message
+        );
+
+        match apply_sequence::apply_sequence(&self.state, &req).await {
+            Ok(response) => {
+                info!(
+                    "gRPC ApplySequence completed: commit_id={}, applied={}, skipped={}, failed={}",
+                    response.commit_id,
+                    response.steps_applied,
+                    response.steps_skipped,
+                    response.steps_failed
+                );
+                Ok(Response::new(response))
+            }
+            Err(status) => {
+                warn!(
+                    "gRPC ApplySequence failed: ontology_id={}, error={}",
+                    req.ontology_id,
+                    status.message()
+                );
+                Err(status)
+            }
+        }
     }
 
     // ---------------------------------------------------------------------------
@@ -217,24 +244,24 @@ impl OntologyService for OntologyGrpcServer {
 
     async fn execute_sparql(
         &self,
-        _request: Request<ExecuteSPARQLRequest>,
-    ) -> Result<Response<ExecuteSPARQLResponse>, Status> {
+        _request: Request<ExecuteSparqlRequest>,
+    ) -> Result<Response<ExecuteSparqlResponse>, Status> {
         info!("gRPC ExecuteSPARQL called");
         Err(Status::unimplemented("not yet implemented"))
     }
 
     async fn execute_cypher(
         &self,
-        _request: Request<ExecuteCYPHERRequest>,
-    ) -> Result<Response<ExecuteCYPHERResponse>, Status> {
+        _request: Request<ExecuteCypherRequest>,
+    ) -> Result<Response<ExecuteCypherResponse>, Status> {
         info!("gRPC ExecuteCYPHER called");
         Err(Status::unimplemented("not yet implemented"))
     }
 
-    async fn execute_graphql(
+    async fn execute_graph_ql(
         &self,
-        _request: Request<ExecuteGraphQLRequest>,
-    ) -> Result<Response<ExecuteGraphQLResponse>, Status> {
+        _request: Request<ExecuteGraphQlRequest>,
+    ) -> Result<Response<ExecuteGraphQlResponse>, Status> {
         info!("gRPC ExecuteGraphQL called");
         Err(Status::unimplemented("not yet implemented"))
     }

@@ -68,11 +68,9 @@ async fn test_create_individual_stores_in_neo4j() {
     let mut result = pool
         .graph()
         .execute(
-            neo4rs::query(
-                "MATCH (i:Individual) WHERE i.ontology_id=$id AND i.id=$iid RETURN i",
-            )
-            .param("id", oid.clone())
-            .param("iid", "john_doe".to_string()),
+            neo4rs::query("MATCH (i:Individual) WHERE i.ontology_id=$id AND i.id=$iid RETURN i")
+                .param("id", oid.clone())
+                .param("iid", "john_doe".to_string()),
         )
         .await
         .unwrap();
@@ -86,10 +84,13 @@ async fn test_get_individual_returns_data() {
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("get_indiv");
     seed_class(&pool, &oid, "Person").await;
-    let _ = pool.graph().execute(
-        neo4rs::query("CREATE (i:Individual {ontology_id:$id,id:'jane',label:'Jane'})")
-            .param("id", oid.clone()),
-    ).await;
+    let _ = pool
+        .graph()
+        .execute(
+            neo4rs::query("CREATE (i:Individual {ontology_id:$id,id:'jane',label:'Jane'})")
+                .param("id", oid.clone()),
+        )
+        .await;
 
     let resp = app
         .clone()
@@ -106,10 +107,13 @@ async fn test_update_individual_changes_label() {
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("update_indiv");
     seed_class(&pool, &oid, "Person").await;
-    let _ = pool.graph().execute(
-        neo4rs::query("CREATE (i:Individual {ontology_id:$id,id:'bob',label:'Bob'})")
-            .param("id", oid.clone()),
-    ).await;
+    let _ = pool
+        .graph()
+        .execute(
+            neo4rs::query("CREATE (i:Individual {ontology_id:$id,id:'bob',label:'Bob'})")
+                .param("id", oid.clone()),
+        )
+        .await;
 
     let resp = app
         .clone()
@@ -124,10 +128,8 @@ async fn test_update_individual_changes_label() {
     let mut result = pool
         .graph()
         .execute(
-            neo4rs::query(
-                "MATCH (i:Individual {ontology_id:$id,id:'bob'}) RETURN i.label AS lbl",
-            )
-            .param("id", oid.clone()),
+            neo4rs::query("MATCH (i:Individual {ontology_id:$id,id:'bob'}) RETURN i.label AS lbl")
+                .param("id", oid.clone()),
         )
         .await
         .unwrap();
@@ -151,12 +153,15 @@ async fn test_list_individuals_returns_data() {
     let oid = common::test_ontology_id("list_indiv");
     seed_class(&pool, &oid, "Person").await;
     for name in &["Alice", "Bob"] {
-        let _ = pool.graph().execute(
-            neo4rs::query("CREATE (i:Individual {ontology_id:$id,id:$iid,label:$label})")
-                .param("id", oid.clone())
-                .param("iid", name.to_lowercase())
-                .param("label", name.to_string()),
-        ).await;
+        let _ = pool
+            .graph()
+            .execute(
+                neo4rs::query("CREATE (i:Individual {ontology_id:$id,id:$iid,label:$label})")
+                    .param("id", oid.clone())
+                    .param("iid", name.to_lowercase())
+                    .param("label", name.to_string()),
+            )
+            .await;
     }
 
     let resp = app
@@ -177,10 +182,8 @@ async fn test_delete_individual_removes_from_neo4j() {
     let _ = pool
         .graph()
         .execute(
-            neo4rs::query(
-                "CREATE (i:Individual {ontology_id:$id,id:'temp',label:'Temp'})",
-            )
-            .param("id", oid.clone()),
+            neo4rs::query("CREATE (i:Individual {ontology_id:$id,id:'temp',label:'Temp'})")
+                .param("id", oid.clone()),
         )
         .await;
 
@@ -193,10 +196,16 @@ async fn test_delete_individual_removes_from_neo4j() {
         .unwrap();
     assert!(resp.status().is_success());
 
-    let mut result = pool.graph().execute(
-        neo4rs::query("MATCH (i:Individual {ontology_id:$id,id:'temp'}) RETURN count(i) AS cnt")
+    let mut result = pool
+        .graph()
+        .execute(
+            neo4rs::query(
+                "MATCH (i:Individual {ontology_id:$id,id:'temp'}) RETURN count(i) AS cnt",
+            )
             .param("id", oid.clone()),
-    ).await.unwrap();
+        )
+        .await
+        .unwrap();
     assert_eq!(
         result
             .next()

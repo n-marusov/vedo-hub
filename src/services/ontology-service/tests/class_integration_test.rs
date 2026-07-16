@@ -76,11 +76,9 @@ async fn test_create_class_creates_node_in_neo4j() {
     let mut result = pool
         .graph()
         .execute(
-            neo4rs::query(
-                "MATCH (c:Class) WHERE c.ontology_id = $id AND c.id = $cid RETURN c",
-            )
-            .param("id", oid.clone())
-            .param("cid", "Person".to_string()),
+            neo4rs::query("MATCH (c:Class) WHERE c.ontology_id = $id AND c.id = $cid RETURN c")
+                .param("id", oid.clone())
+                .param("cid", "Person".to_string()),
         )
         .await
         .unwrap();

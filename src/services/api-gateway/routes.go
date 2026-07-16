@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"vedo-core/src/services/api-gateway/handlers"
+	"vedo-core/src/services/api-gateway/middleware"
 	"vedo-core/src/services/api-gateway/models"
 	"vedo-core/src/services/api-gateway/proxy"
 )
@@ -26,7 +27,7 @@ var openAPISpec []byte
 // `/api/v1/*` paths fall through to `r.NoRoute` (set up by the caller) which
 // returns a uniform `GATEWAY-NOT-FOUND` error.
 func RegisterRoutes(r *gin.Engine) {
-	// Initialize upstream proxies (HTTP reverse proxy — legacy, will be replaced by gRPC)
+	// Initialize upstream proxies (HTTP reverse proxy — legacy, being replaced by gRPC)
 	ontologyProxy := mustNewProxy(
 		getEnv("ONTOLOGY_SERVICE_URL", "http://localhost:8082"),
 		"ontology-service",
@@ -37,17 +38,24 @@ func RegisterRoutes(r *gin.Engine) {
 	)
 
 	// Initialize gRPC client pool for internal service communication.
-	// Proto-specific clients will be activated after `make proto-generate`.
 	grpcPool := proxy.NewGrpcClientPool(getUpstreamTimeout())
 	defer grpcPool.Close()
+
+	// Create gRPC service clients for backend communication.
+	ontologyGrpc := proxy.NewOntologyServiceClient(grpcPool, proxy.GrpcAddrOntology)
+	versioningGrpc := proxy.NewVersioningServiceClient(grpcPool, proxy.GrpcAddrVersioning)
+	authGrpc := proxy.NewAuthServiceClient(grpcPool, proxy.GrpcAddrAuth)
+
+	// Suppress unused variable warnings for future-use clients
+	_ = versioningGrpc
+	_ = authGrpc
 
 	// API v1 routes — auth middleware applied at engine level (see main.go)
 	api := r.Group("/api/v1")
 
-	// Ontology REST read handlers — registered on the gateway itself so query
-	// parameter validation, pagination normalization, and error formatting stay
-	// consistent across the read surface.
-	ontologyHandler := handlers.NewOntologyHandler(ontologyProxy)
+	// Ontology REST read handlers — use gRPC (falling back to HTTP proxy
+	// when server-side stubs are not yet fully migrated).
+	ontologyHandler := handlers.NewOntologyHandler(ontologyProxy, ontologyGrpc)
 	api.GET("/ontologies", ontologyHandler.HandleListOntologies)
 	api.GET("/ontologies/:id", ontologyHandler.HandleGetOntology)
 	api.GET("/ontologies/:id/classes", ontologyHandler.HandleListClasses)
@@ -58,6 +66,8 @@ func RegisterRoutes(r *gin.Engine) {
 	// Ontology write endpoints (POST/PUT/DELETE) are exposed by the
 	// ontology-service itself. Proxy them by path so the gateway stays the
 	// single facade the frontend talks to.
+	// NOTE: These still use the HTTP reverse proxy. Migrating write endpoints
+	// to gRPC will be done when server-side gRPC stubs are fully implemented.
 	api.POST("/ontologies", gin.WrapH(ontologyProxy))
 	api.PUT("/ontologies/:id", gin.WrapH(ontologyProxy))
 	api.DELETE("/ontologies/:id", gin.WrapH(ontologyProxy))
@@ -90,19 +100,32 @@ func RegisterRoutes(r *gin.Engine) {
 	api.POST("/versioning/branches/merge", gin.WrapH(versioningProxy))
 
 	// Query routes — SPARQL/CYPHER with read-only enforcement and rate limiting.
-	// Max row limit defaults to 1000 and is configurable via QUERY_MAX_LIMIT.
 	queryMaxLimit := 1000
 	if v := getEnv("QUERY_MAX_LIMIT", ""); v != "" {
 		if n, err := strconv.Atoi(v); err == nil && n > 0 {
 			queryMaxLimit = n
 		}
 	}
-	queryHandler := handlers.NewQueryHandler(ontologyProxy, queryMaxLimit)
+	queryHandler := handlers.NewQueryHandler(ontologyProxy, queryMaxLimit, ontologyGrpc)
 	api.POST("/sparql", queryHandler.HandleSPARQL)
 	api.POST("/cypher", queryHandler.HandleCYPHER)
 
 	// GraphQL endpoint — proxy to ontology-service
 	api.Any("/graphql", gin.WrapH(ontologyProxy))
+
+	// AI-related routes with LLM Policy Router middleware.
+	// These routes control LLM access based on ontology visibility and deployment mode.
+	aiRoutes := api.Group("", middleware.LLMPolicyRouter())
+	{
+		// NL→OWL generation from text (Phase 4)
+		aiRoutes.POST("/ontologies/:id/generate-from-text", gin.WrapH(ontologyProxy))
+		// AI-assisted completion (Phase 4)
+		aiRoutes.POST("/ontologies/:id/ai/complete", gin.WrapH(ontologyProxy))
+		aiRoutes.POST("/ontologies/:id/ai/suggest-properties", gin.WrapH(ontologyProxy))
+		// Document extractor proxy (Phase 3/4)
+		aiRoutes.POST("/ontologies/:id/documents/extract", gin.WrapH(ontologyProxy))
+		aiRoutes.POST("/ontologies/:id/documents/extract/batch", gin.WrapH(ontologyProxy))
+	}
 
 	// OpenAPI spec — served locally from embedded spec
 	api.GET("/openapi.json", func(c *gin.Context) {
@@ -115,9 +138,7 @@ func RegisterRoutes(r *gin.Engine) {
 		c.Redirect(http.StatusFound, "/openapi.json")
 	})
 
-	// NoRoute handler — uniform 404 for unknown /api/v1 routes. Using NoRoute
-	// avoids the gin trie wildcard conflict that a catch-all `/*path` would
-	// introduce at the same level as registered static segments.
+	// NoRoute handler — uniform 404 for unknown /api/v1 routes.
 	r.NoRoute(func(c *gin.Context) {
 		slog.Warn("route.not_found",
 			"method", c.Request.Method,

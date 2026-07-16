@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use ontology_service::{build_app, init_neo4j_pool, AppState, DEFAULT_PORT, SERVICE_NAME};
 use tonic::transport::Server;
-use vedo_shared::protos::ontology::ontology_service_server::OntologyServiceServer;
+use vedo_shared::protos::ontology::v1::ontology_service_server::OntologyServiceServer;
 
 mod grpc;
 
@@ -23,13 +23,17 @@ async fn main() {
     // Build the HTTP application (axum)
     let app = build_app(state);
 
+    // Clone port strings before moving into async blocks
+    let http_port_str = port.clone();
+    let grpc_port_str = grpc_port.clone();
+
     // gRPC server task
     let grpc_addr: SocketAddr = format!("0.0.0.0:{grpc_port}")
         .parse()
         .expect("invalid gRPC address");
     let grpc_svc = OntologyServiceServer::new(grpc::OntologyGrpcServer { state: grpc_state });
     let grpc_task = tokio::spawn(async move {
-        tracing::info!(grpc_port = %grpc_port, "Starting ontology-service gRPC server");
+        tracing::info!(grpc_port = %grpc_port_str, "Starting ontology-service gRPC server");
         Server::builder()
             .add_service(grpc_svc)
             .serve(grpc_addr)
@@ -42,7 +46,7 @@ async fn main() {
         .parse()
         .expect("invalid HTTP address");
     let http_task = tokio::spawn(async move {
-        tracing::info!(http_port = %port, "Starting ontology-service HTTP server");
+        tracing::info!(http_port = %http_port_str, "Starting ontology-service HTTP server");
         let listener = tokio::net::TcpListener::bind(http_addr)
             .await
             .expect("bind failed");

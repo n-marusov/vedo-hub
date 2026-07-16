@@ -68,6 +68,18 @@ proto-breaking: ## Check .proto breaking changes with buf
 .PHONY: proto-all
 proto-all: proto-lint proto-generate ## Run all proto checks (lint + generate)
 
+.PHONY: proto-generate-python
+proto-generate-python: ## Generate Python gRPC stubs for document-extractor
+	@echo "[Proto] generating Python code..."
+	@cd $(PROTO_DIR) && python -m grpc_tools.protoc \
+		--proto_path=. \
+		--python_out=../../../../services/document-extractor/grpc_client \
+		--grpc_python_out=../../../../services/document-extractor/grpc_client \
+		common/v1/common.proto \
+		ontology/v1/ontology.proto
+	@echo "[Proto] Python code generated to src/services/document-extractor/grpc_client/"
+	@echo "[Proto] Note: run 'pip install grpcio-tools' if grpc_tools is not available"
+
 ##@ Build
 build: build-rust build-go build-python build-typescript ## Build all services (Rust, Go, Python, TypeScript)
 

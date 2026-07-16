@@ -58,11 +58,9 @@ async fn test_create_object_property_stores_in_neo4j() {
     let mut result = pool
         .graph()
         .execute(
-            neo4rs::query(
-                "MATCH (p:Property) WHERE p.ontology_id=$id AND p.id=$pid RETURN p",
-            )
-            .param("id", oid.clone())
-            .param("pid", "hasParent".to_string()),
+            neo4rs::query("MATCH (p:Property) WHERE p.ontology_id=$id AND p.id=$pid RETURN p")
+                .param("id", oid.clone())
+                .param("pid", "hasParent".to_string()),
         )
         .await
         .unwrap();
@@ -169,10 +167,8 @@ async fn test_delete_property_removes_from_neo4j() {
     let _ = pool
         .graph()
         .execute(
-            neo4rs::query(
-                r#"CREATE (p:Property {ontology_id:$id,id:'tempProp',label:'Temp'})"#,
-            )
-            .param("id", oid.clone()),
+            neo4rs::query(r#"CREATE (p:Property {ontology_id:$id,id:'tempProp',label:'Temp'})"#)
+                .param("id", oid.clone()),
         )
         .await;
 

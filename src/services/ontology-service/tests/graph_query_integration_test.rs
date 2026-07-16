@@ -18,7 +18,12 @@ fn get(uri: &str) -> Request<Body> {
         .unwrap()
 }
 
-async fn seed_class(pool: &ontology_service::neo4j::Neo4jPool, oid: &str, cid: &str, parent: Option<&str>) {
+async fn seed_class(
+    pool: &ontology_service::neo4j::Neo4jPool,
+    oid: &str,
+    cid: &str,
+    parent: Option<&str>,
+) {
     if let Some(p) = parent {
         let _ = pool.graph().execute(
             neo4rs::query("MATCH (parent:Class {ontology_id:$id,id:$parent}) CREATE (c:Class {ontology_id:$id,id:$cid,label:$label}) CREATE (c)-[:CHILD_OF]->(parent)")
@@ -28,12 +33,15 @@ async fn seed_class(pool: &ontology_service::neo4j::Neo4jPool, oid: &str, cid: &
                 .param("label", cid.to_string()),
         ).await;
     } else {
-        let _ = pool.graph().execute(
-            neo4rs::query("CREATE (c:Class {ontology_id:$id,id:$cid,label:$label})")
-                .param("id", oid.to_string())
-                .param("cid", cid.to_string())
-                .param("label", cid.to_string()),
-        ).await;
+        let _ = pool
+            .graph()
+            .execute(
+                neo4rs::query("CREATE (c:Class {ontology_id:$id,id:$cid,label:$label})")
+                    .param("id", oid.to_string())
+                    .param("cid", cid.to_string())
+                    .param("label", cid.to_string()),
+            )
+            .await;
     }
 }
 
@@ -47,9 +55,11 @@ async fn test_hierarchy_tree_returns_ancestors() {
     seed_class(&pool, &oid, "Dog", Some("Animal")).await;
 
     for path in &["ancestors", "children", "descendants"] {
-        let resp = app.clone().oneshot(get(
-            &format!("/api/v1/ontologies/{oid}/classes/Dog/{path}"),
-        )).await.unwrap();
+        let resp = app
+            .clone()
+            .oneshot(get(&format!("/api/v1/ontologies/{oid}/classes/Dog/{path}")))
+            .await
+            .unwrap();
         assert_eq!(resp.status(), StatusCode::OK, "{path} should succeed");
     }
     common::clean_ontology(&pool, &oid).await;
@@ -64,16 +74,29 @@ async fn test_neighborhood_query() {
     seed_class(&pool, &oid, "Person", Some("owl:Thing")).await;
     seed_class(&pool, &oid, "Employee", Some("Person")).await;
 
-    let resp = app.clone().oneshot(get(
-        &format!("/api/v1/ontologies/{oid}/classes/Employee/neighborhood"),
-    )).await.unwrap();
+    let resp = app
+        .clone()
+        .oneshot(get(&format!(
+            "/api/v1/ontologies/{oid}/classes/Employee/neighborhood"
+        )))
+        .await
+        .unwrap();
     assert_eq!(resp.status(), StatusCode::OK);
 
     let mut result = pool.graph().execute(
         neo4rs::query("MATCH (c:Class {ontology_id:$id,id:'Employee'})-[:CHILD_OF]->(p) RETURN p.id AS pid")
             .param("id", oid.clone()),
     ).await.unwrap();
-    assert_eq!(result.next().await.unwrap().unwrap().get::<String>("pid").unwrap(), "Person");
+    assert_eq!(
+        result
+            .next()
+            .await
+            .unwrap()
+            .unwrap()
+            .get::<String>("pid")
+            .unwrap(),
+        "Person"
+    );
     common::clean_ontology(&pool, &oid).await;
 }
 
@@ -84,9 +107,11 @@ async fn test_root_classes_endpoint() {
     let oid = common::test_ontology_id("root");
     seed_class(&pool, &oid, "owl:Thing", None).await;
 
-    let resp = app.clone().oneshot(get(
-        &format!("/api/v1/ontologies/{oid}/classes/root"),
-    )).await.unwrap();
+    let resp = app
+        .clone()
+        .oneshot(get(&format!("/api/v1/ontologies/{oid}/classes/root")))
+        .await
+        .unwrap();
     assert_eq!(resp.status(), StatusCode::OK);
     common::clean_ontology(&pool, &oid).await;
 }
@@ -100,9 +125,13 @@ async fn test_breadcrumb_endpoint() {
     seed_class(&pool, &oid, "Animal", Some("owl:Thing")).await;
     seed_class(&pool, &oid, "Dog", Some("Animal")).await;
 
-    let resp = app.clone().oneshot(get(
-        &format!("/api/v1/ontologies/{oid}/classes/Dog/breadcrumb"),
-    )).await.unwrap();
+    let resp = app
+        .clone()
+        .oneshot(get(&format!(
+            "/api/v1/ontologies/{oid}/classes/Dog/breadcrumb"
+        )))
+        .await
+        .unwrap();
     assert_eq!(resp.status(), StatusCode::OK);
     common::clean_ontology(&pool, &oid).await;
 }

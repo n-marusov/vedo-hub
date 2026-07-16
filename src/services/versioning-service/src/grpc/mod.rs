@@ -1,7 +1,7 @@
 use tonic::{Request, Response, Status};
 use tracing::info;
-use vedo_shared::protos::versioning;
-use vedo_shared::protos::versioning::versioning_service_server::VersioningService;
+use vedo_shared::protos::versioning::v1 as versioning;
+use vedo_shared::protos::versioning::v1::versioning_service_server::VersioningService;
 
 /// Stub gRPC server for versioning-service.
 /// Full implementation will be added in a later phase.

@@ -1,7 +1,7 @@
 use std::net::SocketAddr;
 use tonic::transport::Server;
 use tracing::info;
-use vedo_shared::protos::versioning::versioning_service_server::VersioningServiceServer;
+use vedo_shared::protos::versioning::v1::versioning_service_server::VersioningServiceServer;
 
 mod grpc;
 
@@ -22,11 +22,13 @@ async fn main() {
 
     // gRPC server
     let grpc_svc = VersioningServiceServer::new(grpc::VersioningGrpcServer);
+    let grpc_port_clone = grpc_port.clone();
+    let http_port_clone = http_port.clone();
     let grpc_addr: SocketAddr = format!("0.0.0.0:{grpc_port}")
         .parse()
         .expect("invalid gRPC address");
     let grpc_task = tokio::spawn(async move {
-        info!(grpc_port = %grpc_port, "Starting versioning-service gRPC server");
+        info!(grpc_port = %grpc_port_clone, "Starting versioning-service gRPC server");
         Server::builder()
             .add_service(grpc_svc)
             .serve(grpc_addr)
@@ -39,7 +41,7 @@ async fn main() {
         .parse()
         .expect("invalid HTTP address");
     let http_task = tokio::spawn(async move {
-        info!(http_port = %http_port, "Starting versioning-service HTTP server");
+        info!(http_port = %http_port_clone, "Starting versioning-service HTTP server");
         let listener = tokio::net::TcpListener::bind(http_addr)
             .await
             .expect("bind failed");

@@ -1,7 +1,7 @@
 use tonic::{Request, Response, Status};
 use tracing::info;
-use vedo_shared::protos::public_browse;
-use vedo_shared::protos::public_browse::public_browse_service_server::PublicBrowseService;
+use vedo_shared::protos::public_browse::v1 as public_browse;
+use vedo_shared::protos::public_browse::v1::public_browse_service_server::PublicBrowseService;
 
 /// Stub gRPC server for public-browse-api.
 /// Full implementation will be added in a later phase.

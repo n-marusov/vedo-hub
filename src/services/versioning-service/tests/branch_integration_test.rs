@@ -40,9 +40,11 @@ async fn test_list_branches() {
     let pool = common::connect_test_pg().await;
     let app = common::build_test_app(pool);
 
-    let resp = app.clone().oneshot(
-        req(Method::GET, "/api/v1/versioning/branches", None)
-    ).await.unwrap();
+    let resp = app
+        .clone()
+        .oneshot(req(Method::GET, "/api/v1/versioning/branches", None))
+        .await
+        .unwrap();
     assert_eq!(resp.status(), StatusCode::OK);
 }
 
@@ -52,9 +54,11 @@ async fn test_get_branch() {
     let pool = common::connect_test_pg().await;
     let app = common::build_test_app(pool);
 
-    let resp = app.clone().oneshot(
-        req(Method::GET, "/api/v1/versioning/branches/main", None)
-    ).await.unwrap();
+    let resp = app
+        .clone()
+        .oneshot(req(Method::GET, "/api/v1/versioning/branches/main", None))
+        .await
+        .unwrap();
     assert!(resp.status().is_success() || resp.status() == StatusCode::NOT_FOUND);
 }
 
@@ -64,8 +68,14 @@ async fn test_delete_branch() {
     let pool = common::connect_test_pg().await;
     let app = common::build_test_app(pool);
 
-    let resp = app.clone().oneshot(
-        req(Method::DELETE, "/api/v1/versioning/branches/temp", None)
-    ).await.unwrap();
+    let resp = app
+        .clone()
+        .oneshot(req(
+            Method::DELETE,
+            "/api/v1/versioning/branches/temp",
+            None,
+        ))
+        .await
+        .unwrap();
     assert!(resp.status().is_success() || resp.status() == StatusCode::NOT_FOUND);
 }

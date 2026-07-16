@@ -45,7 +45,7 @@ func setupTestRouter(upstreamHandler http.HandlerFunc) (*gin.Engine, func()) {
 
 	r := gin.New()
 	api := r.Group("/api/v1")
-	handler := NewOntologyHandler(p)
+	handler := NewOntologyHandler(p, nil)
 
 	api.GET("/ontologies", handler.HandleListOntologies)
 	api.GET("/ontologies/:id", handler.HandleGetOntology)

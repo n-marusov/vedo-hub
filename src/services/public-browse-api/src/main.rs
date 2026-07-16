@@ -2,7 +2,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use tonic::transport::Server;
 use tracing::info;
-use vedo_shared::protos::public_browse::public_browse_service_server::PublicBrowseServiceServer;
+use vedo_shared::protos::public_browse::v1::public_browse_service_server::PublicBrowseServiceServer;
 
 mod grpc;
 
@@ -23,11 +23,13 @@ async fn main() {
 
     // gRPC server
     let grpc_svc = PublicBrowseServiceServer::new(grpc::PublicBrowseGrpcServer);
+    let grpc_port_clone = grpc_port.clone();
+    let http_port_clone = http_port.clone();
     let grpc_addr: SocketAddr = format!("0.0.0.0:{grpc_port}")
         .parse()
         .expect("invalid gRPC address");
     let grpc_task = tokio::spawn(async move {
-        info!(grpc_port = %grpc_port, "Starting public-browse-api gRPC server");
+        info!(grpc_port = %grpc_port_clone, "Starting public-browse-api gRPC server");
         Server::builder()
             .add_service(grpc_svc)
             .serve(grpc_addr)
@@ -40,7 +42,7 @@ async fn main() {
         .parse()
         .expect("invalid HTTP address");
     let http_task = tokio::spawn(async move {
-        info!(http_port = %http_port, "Starting public-browse-api HTTP server");
+        info!(http_port = %http_port_clone, "Starting public-browse-api HTTP server");
         let listener = tokio::net::TcpListener::bind(http_addr)
             .await
             .expect("bind failed");
