@@ -1,0 +1,16 @@
+version: v2
+plugins:
+  # Go
+  - local: protoc-gen-go
+    out: ../../../../services/shared/proto
+    opt: paths=source_relative
+  - local: protoc-gen-go-grpc
+    out: ../../../../services/shared/proto
+    opt: paths=source_relative
+  # Rust (tonic)
+  - local: protoc-gen-tonic
+    out: ../../../../services/shared/proto
+    opt: build_client=true,build_server=true
+  - local: protoc-gen-prost
+    out: ../../../../services/shared/proto
+    opt: file_descriptor_set=true
