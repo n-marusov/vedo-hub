@@ -13,6 +13,7 @@ import (
 	"vedo-core/src/services/api-gateway/middleware"
 	"vedo-core/src/services/api-gateway/models"
 	"vedo-core/src/services/api-gateway/proxy"
+	"vedo-core/src/services/shared/llm"
 )
 
 //go:embed docs/openapi.json
@@ -113,19 +114,45 @@ func RegisterRoutes(r *gin.Engine) {
 	// GraphQL endpoint — proxy to ontology-service
 	api.Any("/graphql", gin.WrapH(ontologyProxy))
 
+	// Initialize LLM provider and template engine for AI features.
+	aiProvider, _ := initLLMProvider()
+	templateEngine, _ := llm.NewTemplateEngine()
+	if templateEngine != nil {
+		avail := templateEngine.Available()
+		slog.Info("llm.init.templates_loaded", "count", len(avail), "templates", avail)
+	}
+
+	// Create AI handler instances.
+	nl2owlHandler := handlers.NewNlToOwlHandler(aiProvider, templateEngine)
+	aiCompletionH := handlers.NewAiCompletionHandler(aiProvider, templateEngine)
+	refinementH := handlers.NewRefinementHandler(aiProvider, templateEngine)
+	templateHandler := handlers.NewTemplateHandler(aiProvider, templateEngine)
+
 	// AI-related routes with LLM Policy Router middleware.
 	// These routes control LLM access based on ontology visibility and deployment mode.
 	aiRoutes := api.Group("", middleware.LLMPolicyRouter())
 	{
-		// NL→OWL generation from text (Phase 4)
-		aiRoutes.POST("/ontologies/:id/generate-from-text", gin.WrapH(ontologyProxy))
-		// AI-assisted completion (Phase 4)
-		aiRoutes.POST("/ontologies/:id/ai/complete", gin.WrapH(ontologyProxy))
-		aiRoutes.POST("/ontologies/:id/ai/suggest-properties", gin.WrapH(ontologyProxy))
+		// NL→OWL generation from text (Phase 4, Task 4.1)
+		aiRoutes.POST("/ontologies/:id/generate-from-text", nl2owlHandler.HandleGenerateFromText)
+
+		// AI-assisted completion (Phase 4, Task 4.2)
+		aiRoutes.POST("/ontologies/:id/ai/suggest-classes", aiCompletionH.HandleSuggestClasses)
+		aiRoutes.POST("/ontologies/:id/ai/suggest-properties", aiCompletionH.HandleSuggestProperties)
+		aiRoutes.POST("/ontologies/:id/ai/suggest-relationships", aiCompletionH.HandleSuggestRelationships)
+		// Legacy route — kept for backward compatibility
+		aiRoutes.POST("/ontologies/:id/ai/complete", aiCompletionH.HandleSuggestClasses)
+
+		// Iterative refinement (Phase 4, Task 4.3)
+		aiRoutes.POST("/ontologies/:id/ai/refine", refinementH.HandleRefine)
+
 		// Document extractor proxy (Phase 3/4)
 		aiRoutes.POST("/ontologies/:id/documents/extract", gin.WrapH(ontologyProxy))
 		aiRoutes.POST("/ontologies/:id/documents/extract/batch", gin.WrapH(ontologyProxy))
 	}
+
+	// Ontology template routes (Phase 4, Task 4.4)
+	api.GET("/templates/ontologies", templateHandler.HandleListTemplates)
+	api.POST("/ontologies/:id/apply-template", templateHandler.HandleApplyTemplate)
 
 	// OpenAPI spec — served locally from embedded spec
 	api.GET("/openapi.json", func(c *gin.Context) {
@@ -169,4 +196,21 @@ func getEnv(key, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+// initLLMProvider creates an LLM provider from environment configuration.
+// Returns nil provider (with logged warning) on failure so the gateway can
+// start without LLM features being available.
+func initLLMProvider() (llm.Provider, error) {
+	provider, err := llm.NewProvider()
+	if err != nil {
+		slog.Warn("llm.init.provider_unavailable",
+			"error", err,
+			"hint", "Set LLM_PROVIDER, LLM_API_KEY, and LLM_MODEL environment variables",
+		)
+		return nil, err
+	}
+
+	slog.Info("llm.init.provider_ready", "provider", getEnv("LLM_PROVIDER", "openai"))
+	return provider, nil
 }

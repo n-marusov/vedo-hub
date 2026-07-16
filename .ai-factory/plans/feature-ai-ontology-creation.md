@@ -123,11 +123,11 @@
 | 3.3 | 3 | File parsers — structured data (JSON, XML, CSV, XLSX) | `[x]` | 3.1, 3.2 | 8 |
 | 3.4 | 3 | LLM integration + gRPC ApplySequence client | `[x]` | 3.2, 3.3 | 8 |
 | 3.5 | 3 | Implement ApplySequence domain logic in ontology-service | `[x]` | 3.4, 2.2 | 8 |
-| 4.1 | 4 | NL→OWL conversion endpoint | `[ ]` | 2.2, 2.3, 0.6 | 9 |
-| 4.2 | 4 | AI-assisted class/property completion | `[ ]` | 2.2, 2.3, 4.1 | 9 |
-| 4.3 | 4 | Iterative refinement workflow | `[ ]` | 4.1, 2.3 | 10 |
-| 4.4 | 4 | Ontology domain templates | `[ ]` | 0.2, 3.5 | 10 |
-| 4.5 | 4 | Implement prompt injection defense | `[ ]` | 4.1, 2.3 | 9 |
+| 4.1 | 4 | NL→OWL conversion endpoint | `[x]` | 2.2, 2.3, 0.6 | 9 |
+| 4.2 | 4 | AI-assisted class/property completion | `[x]` | 2.2, 2.3, 4.1 | 9 |
+| 4.3 | 4 | Iterative refinement workflow | `[x]` | 4.1, 2.3 | 10 |
+| 4.4 | 4 | Ontology domain templates | `[x]` | 0.2, 3.5 | 10 |
+| 4.5 | 4 | Implement prompt injection defense | `[x]` | 4.1, 2.3 | 9 |
 | 5.1 | 5 | File upload UI component | `[ ]` | 3.4, 0.4 | 11 |
 | 5.2 | 5 | Sequence preview table component | `[ ]` | 5.1, 3.4 | 11 |
 | 5.3 | 5 | Apply workflow with progress | `[ ]` | 5.2, 3.4 | 12 |
@@ -137,7 +137,7 @@
 | 6.3 | 6 | Traceability + docs validation | `[ ]` | 6.2 | 15 |
 | 6.4 | 6 | Antora documentation | `[ ]` | 6.2 | 15 |
 
-**Progress:** 18 / 31 tasks complete
+**Progress:** 23 / 31 tasks complete
 
 ---
 
