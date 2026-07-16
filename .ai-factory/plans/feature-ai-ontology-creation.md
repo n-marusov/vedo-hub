@@ -108,38 +108,50 @@
 | 0.1 | 0 | Create shared protobuf definitions | `[x]` | — | 1 |
 | 0.2 | 0 | Migrate Rust services to gRPC | `[x]` | 0.1 | 2 |
 | 0.3 | 0 | Migrate Go services to gRPC | `[x]` | 0.1 | 2 |
-| 0.4 | 0 | Update API Gateway to gRPC proxy | `[x]` | 0.2, 0.3 | 3 |
+| 0.4 | 0 | Update API Gateway to gRPC proxy (PARTIAL — HTTP proxy still used) | `[~]` | 0.2, 0.3, 0.6 | 3 |
 | 0.5 | 0 | Update Docker Compose, CI, configuration | `[x]` | 0.2, 0.3, 0.4 | 3 |
+| 0.6 | 0 | Generate proto stubs and create Go gRPC service clients | `[ ]` | 0.5 | 3 |
 | 1.1 | 1 | E2E tests — document extraction flows | `[x]` | 0.5 | 4 |
 | 1.2 | 1 | E2E tests — NL→OWL and AI flows | `[x]` | 0.5 | 4 |
 | 2.1 | 2 | LLM abstraction package (Go) | `[x]` | — | 5 |
 | 2.2 | 2 | LLM provider registry (runtime-configured) | `[x]` | 2.1 | 5 |
 | 2.3 | 2 | Prompt template system | `[x]` | 2.1 | 6 |
 | 2.4 | 2 | LLM observability + integration tests | `[x]` | 2.2 | 6 |
+| 2.5 | 2 | Implement LLM Policy Router in API Gateway | `[ ]` | 2.2, 0.4 | 6 |
 | 3.1 | 3 | Scaffold document-extractor service | `[x]` | 0.2, 2.2 | 7 |
 | 3.2 | 3 | File parsers — text documents (MD, TXT, PDF, DOCX) | `[x]` | 3.1 | 7 |
 | 3.3 | 3 | File parsers — structured data (JSON, XML, CSV, XLSX) | `[x]` | 3.1, 3.2 | 8 |
 | 3.4 | 3 | LLM integration + gRPC ApplySequence client | `[x]` | 3.2, 3.3 | 8 |
-| 4.1 | 4 | NL→OWL conversion endpoint | `[ ]` | 2.2, 2.3, 0.4 | 9 |
+| 3.5 | 3 | Implement ApplySequence domain logic in ontology-service | `[ ]` | 3.4, 2.2 | 8 |
+| 4.1 | 4 | NL→OWL conversion endpoint | `[ ]` | 2.2, 2.3, 0.6 | 9 |
 | 4.2 | 4 | AI-assisted class/property completion | `[ ]` | 2.2, 2.3, 4.1 | 9 |
 | 4.3 | 4 | Iterative refinement workflow | `[ ]` | 4.1, 2.3 | 10 |
-| 4.4 | 4 | Ontology domain templates | `[ ]` | 0.2 | 10 |
-| 5.1 | 5 | File upload UI component | `[ ]` | 3.1, 0.4 | 11 |
+| 4.4 | 4 | Ontology domain templates | `[ ]` | 0.2, 3.5 | 10 |
+| 4.5 | 4 | Implement prompt injection defense | `[ ]` | 4.1, 2.3 | 9 |
+| 5.1 | 5 | File upload UI component | `[ ]` | 3.4, 0.4 | 11 |
 | 5.2 | 5 | Sequence preview table component | `[ ]` | 5.1, 3.4 | 11 |
 | 5.3 | 5 | Apply workflow with progress | `[ ]` | 5.2, 3.4 | 12 |
 | 5.4 | 5 | Batch upload + conflict resolution | `[ ]` | 5.1, 5.2, 3.4 | 12 |
-| 6.1 | 6 | Docker Compose, CI, quality gate | `[ ]` | 3.1–3.4, 0.5 | 13 |
+| 6.1 | 6 | Docker Compose, CI, quality gate | `[ ]` | 3.1–3.5, 0.5 | 13 |
 | 6.2 | 6 | Integration test validation (LLM) | `[ ]` | All impl. phases | 14 |
 | 6.3 | 6 | Traceability + docs validation | `[ ]` | 6.2 | 15 |
 | 6.4 | 6 | Antora documentation | `[ ]` | 6.2 | 15 |
 
-**Progress:** 11 / 27 tasks complete
+**Progress:** 14 / 31 tasks complete (1 in progress)
 
 ---
 
-### Phase 0: gRPC Protocol Stack Migration (PREREQUISITE) ✅
+### Phase 0: gRPC Protocol Stack Migration (PREREQUISITE) ⚠️
 
-> ⚠ **BLOCKER:** Current internal service communication uses HTTP/REST, violating ADR-DES.API.protocol-stack-strategy, ADR-DES.INFRA.monolith-vs-microservices, and ADR-IMPL.STACK.port-mapping-strategy. This phase MUST be completed before any M2 functionality implementation.
+> ⚠ **BLOCKER:** Current internal service communication uses HTTP/REST, violating [`ADR-DES.API.protocol-stack-strategy`](specs/adr/ADR-DES.API.protocol-stack-strategy.md), [`ADR-DES.INFRA.monolith-vs-microservices`](specs/adr/ADR-DES.INFRA.monolith-vs-microservices.md), and [`ADR-IMPL.STACK.port-mapping-strategy`](specs/adr/ADR-IMPL.STACK.port-mapping-strategy.md). This phase MUST be completed before any M2 functionality implementation.
+
+**Covered ADRs:**
+- [`specs/adr/ADR-DES.API.protocol-stack-strategy.md`](specs/adr/ADR-DES.API.protocol-stack-strategy.md) — mandates gRPC for internal service-to-service communication
+- [`specs/adr/ADR-DES.INFRA.monolith-vs-microservices.md`](specs/adr/ADR-DES.INFRA.monolith-vs-microservices.md) — microservices decomposition with gRPC/protobuf contracts
+- [`specs/adr/ADR-IMPL.STACK.port-mapping-strategy.md`](specs/adr/ADR-IMPL.STACK.port-mapping-strategy.md) — defines gRPC port range 9001–9012
+- [`specs/adr/ADR-IMPL.STACK.ontology-rust-strategy.md`](specs/adr/ADR-IMPL.STACK.ontology-rust-strategy.md) — Rust for ontology-service, gRPC migration (axum → tonic)
+- [`specs/adr/ADR-IMPL.STACK.api-gateway-go-strategy.md`](specs/adr/ADR-IMPL.STACK.api-gateway-go-strategy.md) — Go for API Gateway, hosts gRPC client pool
+- [`specs/adr/ADR-DES.INTEGRATION.saga-pattern-strategy.md`](specs/adr/ADR-DES.INTEGRATION.saga-pattern-strategy.md) — saga pattern for distributed transactions across services
 
 ---
 
@@ -254,16 +266,20 @@ message SequenceStep {
 
 ---
 
-#### Task 0.4: Update API Gateway to gRPC proxy
+#### Task 0.4: Update API Gateway to gRPC proxy (PARTIAL — HTTP proxy still used)
 
-**Deliverable:** API Gateway converts external REST/GraphQL/SPARQL requests to internal gRPC calls instead of HTTP reverse-proxy.
+**Deliverable:** API Gateway converts external REST/GraphQL/SPARQL requests to internal gRPC calls. Currently only the gRPC connection pool and address constants exist in `proxy/grpc_client.go` — the proto-specific service clients and route wiring are NOT yet implemented.
+
+**⚠ STATUS:** Infrastructure (gRPC pool, health checking) is in place. Proto-specific gRPC clients need to be created (Task 0.6) and route handlers need migrating from HTTP reverse proxy to gRPC calls.
 
 **Files to change:**
 - `src/services/api-gateway/go.mod` — add `google.golang.org/grpc`, gRPC client stubs
-- `src/services/api-gateway/routes.go` — replace `proxy.New()` with gRPC client calls
-- `src/services/api-gateway/handlers/ontology_handler.go` — use gRPC client instead of proxy
+- `src/services/api-gateway/routes.go` — replace `mustNewProxy()` with gRPC client calls (depends on Task 0.6)
+- `src/services/api-gateway/handlers/ontology_handler.go` — use gRPC client instead of HTTP proxy
 - `src/services/api-gateway/handlers/query_handler.go` — use gRPC client for SPARQL/CYPHER
-- `src/services/api-gateway/proxy/grpc_client.go` — new: gRPC connection pool with health checking
+- `src/services/api-gateway/proxy/grpc_client.go` — gRPC connection pool with health checking (DONE)
+- `src/services/api-gateway/proxy/grpc_ontology_client.go` — **NEW:** OntologyService gRPC client
+- `src/services/api-gateway/proxy/grpc_versioning_client.go` — **NEW:** VersioningService gRPC client
 - Remove or deprecate `proxy/proxy.go` HTTP reverse proxy
 
 **Key implementation details:**
@@ -322,15 +338,56 @@ message SequenceStep {
 
 ---
 
+#### Task 0.6: Generate proto stubs and create Go gRPC service clients
+
+**Deliverable:** Proto stubs generated for all languages (Go, Python, Rust) and Go gRPC service clients created in the API Gateway wrapping the connection pool.
+
+**Files to change:**
+- Run `make proto-generate` — generates Go stubs in `src/services/shared/proto/`
+- Run `buf generate` — generates Rust stubs in `src/services/shared/src/protos/`
+- Run `grpc_tools.protoc` for Python stubs — output to `src/services/document-extractor/grpc_client/proto/`
+
+**Files to create:**
+- `src/services/api-gateway/proxy/grpc_ontology_client.go` — `OntologyServiceClient` wrapper with methods: `CreateClass`, `GetClass`, `ListClasses`, `ApplySequence`
+- `src/services/api-gateway/proxy/grpc_versioning_client.go` — `VersioningServiceClient` wrapper with methods: `CreateCommit`, `ListCommits`, `CreateBranch`, `DiffCommits`
+- `src/services/api-gateway/proxy/grpc_auth_client.go` — `AuthServiceClient` wrapper: `TokenIntrospect`, `CheckPermission`
+
+**Key implementation details:**
+- Each client wraps `GrpcClientPool.GetConn()` and calls the generated proto stub
+- Context deadlines come from `pool.GetUpstreamTimeout()`
+- All clients log: DEBUG on every call, WARN on connection issues, ERROR on RPC failures
+- Clients are lazy-initialized on first use (not at startup for faster boot)
+- Python stubs output to `grpc_client/proto/` matching the import path in `grpc_client/ontology.py`
+- Add `make proto-generate-python` target to `src/Makefile`
+
+**Logging:** INFO on proto generation, DEBUG on client instantiation and RPC calls.
+
+**Dependencies:** Task 0.5 (build tooling in place), proto definitions from Task 0.1.
+
+**Traceability:** Add proto-generated stubs and gRPC service clients to `.ai-factory/traceability/traceability.ttl`.
+
+---
+
 ### Phase 1: E2E Test Specifications (TDD — FIRST)
 
 > 📐 **TDD Rule 3:** A plan for a major feature must begin by implementing the E2E tests for that feature. These tests define the expected behavior for all M2 user-facing flows and serve as the acceptance gate. They will initially fail until implementation makes them pass.
+
+**Covered ADRs:**
+- [`specs/adr/ADR-IMPL.PROCESS.c4-notation-adoption.md`](specs/adr/ADR-IMPL.PROCESS.c4-notation-adoption.md) — C4 model for architecture diagrams (test scenario coverage)
+- [`specs/adr/ADR-IMPL.SECURITY.bola-bfla-negative-tests-mandate.md`](specs/adr/ADR-IMPL.SECURITY.bola-bfla-negative-tests-mandate.md) — negative authorization tests for E2E security coverage
 
 ---
 
 #### Task 1.1: Write E2E tests for document extraction flows
 
-**Deliverable:** Playwright E2E tests covering all document extraction user stories (US-io.document.*).
+**Deliverable:** Playwright E2E tests covering all document extraction user stories.
+
+**Covered user stories:**
+- [`specs/user-stories/US-io.document.extract-md-txt.md`](specs/user-stories/US-io.document.extract-md-txt.md) — извлечение из MD/TXT
+- [`specs/user-stories/US-io.document.extract-pdf-docx.md`](specs/user-stories/US-io.document.extract-pdf-docx.md) — извлечение из PDF/DOCX
+- [`specs/user-stories/US-io.document.extract-structured.md`](specs/user-stories/US-io.document.extract-structured.md) — извлечение из структурированных форматов (JSON, XML, CSV, XLSX)
+- [`specs/user-stories/US-io.document.batch-extract.md`](specs/user-stories/US-io.document.batch-extract.md) — пакетное извлечение
+- [`specs/user-stories/US-io.document.preview-sequence.md`](specs/user-stories/US-io.document.preview-sequence.md) — предпросмотр и редактирование sequence
 
 **Files to create:**
 - `tests/e2e/playwright/tests/m2/document-extraction-md-txt.spec.ts` — US-io.document.extract-md-txt: upload `specification.md` → verify preview with 8 classes, 5 properties → edit label → apply → verify commit
@@ -369,6 +426,9 @@ message SequenceStep {
 
 **Deliverable:** Playwright E2E tests covering NL-to-OWL generation, AI-assisted completion, and template application.
 
+**Covered specs & requirements:**
+- [`specs/vision.md`](specs/vision.md) §F14.1–F14.8 — NL→OWL generation, iterative refinement, ontology templates, AI-assisted completion (feature-level requirements)
+
 **Files to create:**
 - `tests/e2e/playwright/tests/m2/nl-to-owl-generation.spec.ts` — enter NL text → view generated sequence preview → edit steps → apply → verify entities in ontology
 - `tests/e2e/playwright/tests/m2/ai-completion.spec.ts` — open class → request AI subclass suggestions → view ranked list → accept/reject suggestions → verify created entities
@@ -390,6 +450,14 @@ message SequenceStep {
 ---
 
 ### Phase 2: LLM Provider Integration Layer
+
+**Covered ADRs:**
+- [`specs/adr/ADR-DES.API.llm-policy-router-strategy.md`](specs/adr/ADR-DES.API.llm-policy-router-strategy.md) — LLM Policy Router for access control by ontology visibility
+- [`specs/adr/ADR-DES.SECURITY.prompt-injection-defense.md`](specs/adr/ADR-DES.SECURITY.prompt-injection-defense.md) — two-level prompt injection defense (pre-filtering + hardening)
+- [`specs/adr/ADR-IMPL.STACK.microservice-language-stack-strategy.md`](specs/adr/ADR-IMPL.STACK.microservice-language-stack-strategy.md) — Go for I/O-bound services (API Gateway hosts LLM logic)
+- [`specs/adr/ADR-IMPL.STACK.api-gateway-go-strategy.md`](specs/adr/ADR-IMPL.STACK.api-gateway-go-strategy.md) — Go for API Gateway, hosts LLM Policy Router
+- [`specs/adr/ADR-DES.SECURITY.gitlab-like-organization-model.md`](specs/adr/ADR-DES.SECURITY.gitlab-like-organization-model.md) — organization model for LLM access override settings
+- [`specs/adr/ADR-DES.INFRA.airgap-offline-deployment-strategy.md`](specs/adr/ADR-DES.INFRA.airgap-offline-deployment-strategy.md) — local LLM requirement for air-gapped deployments
 
 ---
 
@@ -546,7 +614,55 @@ Rules:
 
 ---
 
+#### Task 2.5: Implement LLM Policy Router in API Gateway
+
+**Deliverable:** Policy router in the API Gateway that controls LLM access based on ontology visibility and deployment type, per `ADR-DES.API.llm-policy-router-strategy`.
+
+**Files to create:**
+- `src/services/api-gateway/middleware/llm_policy_router.go` — policy evaluation: ontology visibility (Public/Internal/Private) × deployment mode (SaaS/on-premise) × provider type (external/local)
+- `src/services/api-gateway/middleware/llm_policy_router_test.go` — unit tests for all policy combinations
+
+**Files to change:**
+- `src/services/api-gateway/routes.go` — apply LLM Policy Router middleware to AI-related routes (`/api/v1/ontologies/:id/generate-from-text`, `/api/v1/ontologies/:id/ai/*`, document-extractor proxy routes)
+
+**Policy matrix:**
+
+| Ontology Visibility | SaaS + External LLM | SaaS + Local LLM | On-premise (any LLM) |
+|--------------------|-------------------|-----------------|--------------------|
+| Public | ✅ Allow | ✅ Allow | ✅ Allow |
+| Internal | ❌ Block (default) / Admin override | ✅ Allow | ✅ Allow |
+| Private | ❌ Block (default) / Admin override | ✅ Allow | ✅ Allow |
+
+**Key implementation details:**
+- Router reads ontology visibility from the ontology-service (gRPC `GetOntology` or cached header)
+- Deployment mode determined by `DEPLOYMENT_MODE` env var (`saas`/`on-premise`/`air-gapped`)
+- `air-gapped` mode blocks ALL external LLM providers, only allows local
+- Admin override via `X-Admin-Override` header + `checkPermission` gRPC call to auth-service
+- Blocked requests return 403 with error code `LLM-POLICY-BLOCKED` and reason description
+- Cached policy decisions per ontology_id with 60s TTL to reduce auth-service calls
+
+**Unit tests (TDD Rule 5):** Write BEFORE implementation:
+- `llm_policy_router_test.go` — test all 12 policy combinations (3 visibility × 2 deployment × 2 provider type), test admin override, test cache expiry
+
+**Logging:** INFO on policy decision (allow/block + reason), DEBUG on ontology visibility lookup, WARN on blocked request (with user_id, ontology_id, provider).
+
+**Dependencies:** Task 2.2 (LLM provider registry), Task 0.4 (API Gateway gRPC for ontology lookup).
+
+---
+
 ### Phase 3: Document Extractor Service (Python)
+
+**Covered use cases:**
+- [`specs/use-cases/UC-io.import.extract-ontology-from-document.md`](specs/use-cases/UC-io.import.extract-ontology-from-document.md) — извлечение онтологии из загружаемого документа (одиночный файл)
+- [`specs/use-cases/UC-io.import.batch-extract-ontology.md`](specs/use-cases/UC-io.import.batch-extract-ontology.md) — пакетное извлечение онтологии из нескольких документов
+
+**Covered ADRs:**
+- [`specs/adr/ADR-DES.INFRA.doc-extractor-service-strategy.md`](specs/adr/ADR-DES.INFRA.doc-extractor-service-strategy.md) — Document Extractor service design: two-phase protocol, parsers, gRPC ApplySequence
+- [`specs/adr/ADR-DES.API.llm-policy-router-strategy.md`](specs/adr/ADR-DES.API.llm-policy-router-strategy.md) — LLM Policy Router governs extractor's access to LLM providers
+- [`specs/adr/ADR-DES.SECURITY.prompt-injection-defense.md`](specs/adr/ADR-DES.SECURITY.prompt-injection-defense.md) — pre-filtering of user documents before LLM submission
+- [`specs/adr/ADR-IMPL.STACK.microservice-language-stack-strategy.md`](specs/adr/ADR-IMPL.STACK.microservice-language-stack-strategy.md) — Python for NLP/ML services (document-extractor)
+- [`specs/adr/ADR-IMPL.STACK.metrics-python-strategy.md`](specs/adr/ADR-IMPL.STACK.metrics-python-strategy.md) — Python service pattern (FastAPI, uvicorn) used as template
+- [`specs/adr/ADR-IMPL.STACK.ontology-rust-strategy.md`](specs/adr/ADR-IMPL.STACK.ontology-rust-strategy.md) — Rust for ontology-service that receives ApplySequence calls
 
 ---
 
@@ -664,7 +780,51 @@ Rules:
 
 ---
 
+#### Task 3.5: Implement ApplySequence domain logic in ontology-service
+
+**Deliverable:** The ontology-service gRPC `ApplySequence` RPC (currently `Status::unimplemented`) is fully implemented with atomic Neo4j transaction, source file attachment, and commit creation.
+
+**Files to change:**
+- `src/services/ontology-service/src/grpc/mod.rs` — replace `ApplySequence` stub with real implementation
+- `src/services/ontology-service/src/services/apply_sequence.rs` — **NEW:** ApplySequence business logic: validate steps, execute Neo4j transaction, create commit
+- `src/services/ontology-service/src/repositories/sequence_repo.rs` — **NEW:** Neo4j operations for sequence steps
+
+**Key implementation details:**
+- Process steps in order: create classes first, then properties, then individuals, then annotations/relationships
+- All steps execute in a **single Neo4j transaction** — if any step fails, the entire transaction rolls back
+- For each `create_class` step: create Neo4j node with label, parent relationship (rdfs:subClassOf), annotations as properties
+- For `create_object_property`: create relationship type node with domain/range
+- For `create_datatype_property`: create property node with domain and xsd range
+- Deduplication: if `skip_if_exists=true` and entity_id already exists, skip silently (increment skipped counter)
+- After all steps succeed, create a versioning commit via the versioning-service gRPC (or direct DB write for now)
+- Attach `source_file` bytes as commit artifact if provided
+- Return `ApplySequenceResponse` with commit_id, steps_applied, steps_skipped, steps_failed, errors
+
+**Error handling:**
+- Invalid entity references (dangling parent_id) → step-level error, continue remaining steps
+- Neo4j constraint violation (duplicate IRI without skip_if_exists) → step-level error
+- Transaction conflict → retry up to 3 times with exponential backoff
+- Fatal errors (connection lost, auth failure) → abort entire sequence
+
+**Unit tests (TDD Rule 5):** Write BEFORE implementation:
+- Unit tests for step ordering (classes before properties), Neo4j transaction behavior (commit/rollback), deduplication, source file attachment, error reporting
+
+**Logging:** DEBUG on each step execution, INFO on transaction commit (step count, entity IDs), WARN on individual step failures (with step index + reason), ERROR on transaction rollback.
+
+**Dependencies:** Tasks 3.4 (gRPC client calls this), 2.2 (LLM provider — the source data comes through LLM).
+
+---
+
 ### Phase 4: NL→OWL Generation & AI Assistance
+
+**Covered specs & requirements:**
+- [`specs/vision.md`](specs/vision.md) §F14.1–F14.3 — генерация OWL из NL-текста, итеративное уточнение, AI-подсказки для завершения классов/свойств
+- [`specs/vision.md`](specs/vision.md) §F14.4–F14.5 — шаблоны онтологий для типовых доменов
+
+**Covered ADRs:**
+- [`specs/adr/ADR-DES.SECURITY.prompt-injection-defense.md`](specs/adr/ADR-DES.SECURITY.prompt-injection-defense.md) — post-processing for NL→OWL output, system prompt hardening
+- [`specs/adr/ADR-DES.SECURITY.nl-query-opt-in-mandate.md`](specs/adr/ADR-DES.SECURITY.nl-query-opt-in-mandate.md) — explicit user opt-in required for NL query mode
+- [`specs/adr/ADR-DES.UI.ai-suggestion-ux-strategy.md`](specs/adr/ADR-DES.UI.ai-suggestion-ux-strategy.md) — ranked list with confidence scores, caching (60s TTL), rate limiting
 
 ---
 
@@ -675,7 +835,7 @@ Rules:
 **Files to create:**
 - `src/services/api-gateway/handlers/nl_to_owl_handler.go` — handler: accept NL text, call LLM, return sequence preview
 - `src/services/api-gateway/routes.go` — add route: `POST /api/v1/ontologies/:id/generate-from-text`
-- `src/services/shared/llm/templates/nl_to_owl.tmpl` — prompt template: NL → OWL structure
+- _Note:_ The NL→OWL prompt template already exists as `src/services/shared/llm/templates/ontology_generation.tmpl` (created in Task 2.3). Extend with NL-specific variables if needed.
 
 **Files to change:**
 - `src/services/api-gateway/handlers/ontology_handler.go` — add `HandleGenerateFromText` method
@@ -702,7 +862,7 @@ Rules:
 
 **Files to create:**
 - `src/services/api-gateway/handlers/ai_completion_handler.go` — handlers for completion suggestions
-- `src/services/shared/llm/templates/class_completion_v2.tmpl` — enriched prompt with ontology context
+- _Note:_ The completion prompt template already exists as `class_completion.tmpl` (created in Task 2.3). Enrich with ontology context variables. If an extended version is needed, create `class_completion_v2.tmpl` as an enriched variant.
 
 **Files to change:**
 - `src/services/api-gateway/routes.go` — add routes:
@@ -759,11 +919,11 @@ Rules:
 **Deliverable:** Pre-built ontology templates for common domains, accessible via API and UI.
 
 **Files to create:**
-- `src/services/shared/templates/ontologies/person.json` — Person, Organization, Event, Location, Document, etc.
-- `src/services/shared/templates/ontologies/product.json` — Product, Category, Manufacturer, Review, Price
-- `src/services/shared/templates/ontologies/software.json` — Component, API, Service, Dependency, Version
-- `src/services/shared/templates/ontologies/medical.json` — Patient, Diagnosis, Treatment, Medication, Provider
-- `src/services/shared/templates/README.md` — description of each template
+- `src/services/api-gateway/internal/templates/ontologies/person.json` — Person, Organization, Event, Location, Document, etc.
+- `src/services/api-gateway/internal/templates/ontologies/product.json` — Product, Category, Manufacturer, Review, Price
+- `src/services/api-gateway/internal/templates/ontologies/software.json` — Component, API, Service, Dependency, Version
+- `src/services/api-gateway/internal/templates/ontologies/medical.json` — Patient, Diagnosis, Treatment, Medication, Provider
+- `src/services/api-gateway/internal/templates/README.md` — description of each template
 
 **Files to change:**
 - `src/services/api-gateway/routes.go` — add route: `GET /api/v1/templates/ontologies` — list available templates
@@ -781,11 +941,58 @@ Rules:
 
 **Logging:** INFO on template load (count), DEBUG on template application (entity count), WARN on missing template.
 
-**Dependencies:** Task 0.2 (ApplySequence gRPC).
+**Dependencies:** Task 0.2 (ApplySequence gRPC), Task 3.5 (ApplySequence domain logic).
+
+---
+
+#### Task 4.5: Implement prompt injection defense
+
+**Deliverable:** Two-level prompt injection defense for all LLM-facing endpoints, per `ADR-DES.SECURITY.prompt-injection-defense`.
+
+**Files to create:**
+- `src/services/api-gateway/middleware/prompt_injection.go` — pre-filter middleware for user-supplied content sent to LLM
+- `src/services/api-gateway/middleware/prompt_injection_test.go` — unit tests for pre-filter rules
+
+**Files to change:**
+- `src/services/api-gateway/routes.go` — apply injection defense middleware to all AI routes (`/generate-from-text`, `/ai/*`, `/refine`)
+
+**Key implementation details — Pre-filtering (VEDO-side):**
+- Scan user-supplied text for known prompt injection patterns:
+  - `Ignore previous instructions`, `Ignore all previous`, `Forget everything` — system prompt override attempts
+  - `You are now`, `Act as`, `Pretend you are` — role-play injection
+  - Base64-encoded hidden instructions, delimiter injection (`---`, `===\n`)
+  - XML tag injection (`<system>`, `<instruction>`)
+- Pattern matches are logged as `WARN` with full user input in the audit log
+- On high-confidence match: return 400 with code `PROMPT-INJECTION-DETECTED` and a generic error message (do not reveal detection details to user)
+- On low-confidence match: include an additional system prompt boundary instruction as defense-in-depth
+
+**Key implementation details — System prompt hardening:**
+- All prompt templates (Go `.tmpl` files and Python strings in `llm/prompts.py`) MUST include boundary markers:
+  ```
+  [SYSTEM BOUNDARY] You are an ontology extraction AI. [SYSTEM BOUNDARY]
+  ```
+- System prompt must explicitly instruct the LLM to ignore embedded instructions in user content
+
+**Key implementation details — Post-processing:**
+- After LLM response received, scan output for embedded instructions before parsing JSON
+- If detected: log WARN, retry with additional hardening prompt
+- If detected after max retries: return error to user, log to security audit
+
+**Unit tests (TDD Rule 5):** Write BEFORE implementation:
+- `prompt_injection_test.go` — test all pre-filter patterns (system override, role-play, base64, delimiter, XML), test false positives (legitimate text containing trigger words), test confidence level detection
+
+**Logging:** WARN on each detected pattern (user_id, ontology_id, pattern_type, input_snippet), ERROR on repeated detection, audit log for all events. Do NOT log the full user input in plain text — use a hash digest for correlation.
+
+**Dependencies:** Tasks 4.1 (NL→OWL endpoint needs protection first), 2.3 (prompt templates need hardening).
 
 ---
 
 ### Phase 5: Frontend — Preview, Upload & Apply
+
+**Covered ADRs:**
+- [`specs/adr/ADR-DES.UI.ai-suggestion-ux-strategy.md`](specs/adr/ADR-DES.UI.ai-suggestion-ux-strategy.md) — AI suggestion UX: ranked lists, confidence scores, caching, rate limiting
+- [`specs/adr/ADR-IMPL.STACK.frontend-vue-strategy.md`](specs/adr/ADR-IMPL.STACK.frontend-vue-strategy.md) — Vue 3 + Composition API + Apollo Client + Vite
+- [`specs/adr/ADR-DES.INFRA.otel-observability-strategy.md`](specs/adr/ADR-DES.INFRA.otel-observability-strategy.md) — frontend trace context propagation to backend services
 
 ---
 
@@ -830,7 +1037,7 @@ interface DocumentUploaderEmits {
 
 **Logging:** console.debug on file selection (name, size, type), console.info on upload start/complete, console.warn on validation failure.
 
-**Dependencies:** Task 3.1 (document-extractor scaffold), Task 0.4 (API Gateway routing).
+**Dependencies:** Task 3.4 (document-extractor API routes — `POST /api/v1/documents/extract`), Task 0.4 (API Gateway routing — gateway must proxy extract endpoint).
 
 ---
 
@@ -936,6 +1143,11 @@ interface SequencePreviewEmits {
 ---
 
 ### Phase 6: Integration, Validation & Documentation
+
+**Covered ADRs:**
+- [`specs/adr/ADR-IMPL.STACK.port-mapping-strategy.md`](specs/adr/ADR-IMPL.STACK.port-mapping-strategy.md) — validates gRPC port alignment in Docker Compose and CI
+- [`specs/adr/ADR-IMPL.STACK.antora-docs-adoption.md`](specs/adr/ADR-IMPL.STACK.antora-docs-adoption.md) — Antora for documentation site, module structure for M2 docs
+- [`specs/adr/ADR-DES.INFRA.otel-observability-strategy.md`](specs/adr/ADR-DES.INFRA.otel-observability-strategy.md) — validates OpenTelemetry instrumentation across all new services
 
 ---
 
@@ -1077,13 +1289,13 @@ interface SequencePreviewEmits {
 |--------|-------|---------|
 | 1 | 0.1 | `feat(proto): define gRPC service contracts for all internal services` |
 | 2 | 0.2, 0.3 | `feat(grpc): migrate Rust and Go services to gRPC servers` |
-| 3 | 0.4, 0.5 | `feat(grpc): update API Gateway to gRPC proxy and Docker Compose config` |
+| 3 | 0.4 [~], 0.5, 0.6 | `feat(grpc): update API Gateway to gRPC proxy, Docker Compose config, and proto generation` |
 | 4 | 1.1, 1.2 | `test(e2e): add E2E test specifications for M2 document extraction and AI flows` |
 | 5 | 2.1, 2.2 | `feat(llm): add LLM abstraction layer with runtime-configured provider registry` |
-| 6 | 2.3, 2.4 | `feat(llm): add prompt templates and observability with integration tests` |
+| 6 | 2.3, 2.4, 2.5 | `feat(llm): add prompt templates, observability, and LLM Policy Router` |
 | 7 | 3.1, 3.2 | `feat(extractor): scaffold document-extractor service with text parsers` |
-| 8 | 3.3, 3.4 | `feat(extractor): add structured data parsers and LLM/gRPC integration` |
-| 9 | 4.1, 4.2 | `feat(ai): implement NL-to-OWL generation and AI-assisted completion` |
+| 8 | 3.3, 3.4, 3.5 | `feat(extractor): add structured data parsers, ApplySequence domain logic, and LLM/gRPC integration` |
+| 9 | 4.1, 4.2, 4.5 | `feat(ai): implement NL-to-OWL generation, AI-assisted completion, and prompt injection defense` |
 | 10 | 4.3, 4.4 | `feat(ai): add iterative refinement and domain templates` |
 | 11 | 5.1, 5.2 | `feat(ui): build file upload and sequence preview components` |
 | 12 | 5.3, 5.4 | `feat(ui): build apply workflow and batch upload UI` |
@@ -1100,8 +1312,11 @@ Phase 0 (gRPC — PREREQUISITE)
   0.1 (proto defs)
    ├─► 0.2 (Rust gRPC)
    ├─► 0.3 (Go gRPC)
-   └─► 0.4 (API Gateway gRPC) ← depends on 0.2, 0.3
-        └─► 0.5 (Docker/CI update)
+   │
+   ├─► 0.5 (Docker/CI update) ← depends on 0.2, 0.3, 0.4
+   └─► 0.6 (proto generation + Go gRPC clients) ← depends on 0.5
+        │
+        └─► 0.4 [~] (API Gateway gRPC proxy) ← depends on 0.2, 0.3, 0.6
 
 Phase 1 (E2E Tests — TDD FIRST)
   1.1, 1.2 ← depend on Phase 0 (infrastructure must be running)
@@ -1112,23 +1327,29 @@ Phase 2 (LLM Provider Integration)
    └─► 2.2 (providers)
         ├─► 2.4 (observability + integration tests)
         └─► 2.3 (templates)
+              └─► 2.5 (LLM Policy Router) ← depends on 2.2, 0.4
 
-Phase 3 (Document Extractor)
+Phase 3 (Document Extractor & ApplySequence)
   3.1 (scaffold) ← depends on 0.2, 2.2
    ├─► 3.2 (text parsers)
    ├─► 3.3 (structured parsers)
    └─► 3.4 (LLM/gRPC integration) ← depends on 3.2, 3.3
+        └─► 3.5 (ApplySequence domain logic) ← depends on 3.4, 2.2
 
 Phase 4 (NL→OWL & AI)
-  4.1, 4.2, 4.3, 4.4 ← depend on 2.2, 2.3, 0.4
+  4.1, 4.2 ← depend on 2.2, 2.3, 0.6 (gRPC clients)
+  4.3 ← depends on 4.1, 2.3
+  4.4 ← depends on 0.2, 3.5 (ApplySequence)
+  4.5 ← depends on 4.1, 2.3
 
 Phase 5 (Frontend)
   5.1 → 5.2 → 5.3; 5.4 depends on 5.1, 5.2
+  5.1 depends on 3.4 (API routes), 0.4 (gateway routing)
   All depend on Phase 3 (API endpoints) and Phase 4
 
 Phase 6 (Integration & Validation)
-  6.1 ← depends on Phase 0, 3
-  6.2 ← depends on all implementation phases (2–5)
+  6.1 ← depends on Phase 0, 3 (including 3.5)
+  6.2 ← depends on all implementation phases (2–5, including 2.5, 3.5, 4.5)
   6.3, 6.4 ← depends on 6.2
 ```
 
