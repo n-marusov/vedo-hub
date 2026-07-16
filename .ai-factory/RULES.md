@@ -25,6 +25,10 @@
 
 1. **Follow the glossary for naming** — when naming domain entities, types, fields, error codes, and API surfaces in code, use the canonical terms defined in `specs/glossary.md` (e.g., `Ontology`, `Project`, `Group`, `Commit`, `Branch`, `MergeRequest`, `Triple`, `Class`); do not invent synonyms, abbreviations, or translations that diverge from the glossary's canonical English term in parentheses.
 
+## Design-First Frontend Development
+
+1. **Verify Pencil design before frontend work** — before planning or implementing any frontend GUI, the agent must confirm that all necessary and sufficient UI elements (components, screens, layouts) exist in the Pencil design files under `design/`; if the required designs are missing, the implementation plan must include creating the design elements (under human supervision) as a prerequisite before any frontend code is written.
+
 ## Reference Files
 
 - `.ai-factory/DESCRIPTION.md` — Project specification
