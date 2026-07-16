@@ -21,7 +21,7 @@ import (
 func newAiCompletionTestRouter(provider llm.Provider, renderer PromptRenderer) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	h := NewAiCompletionHandler(provider, renderer)
+	h := NewAiCompletionHandler(provider, renderer, nil)
 	api := r.Group("/api/v1")
 	api.POST("/ontologies/:id/ai/suggest-classes", h.HandleSuggestClasses)
 	api.POST("/ontologies/:id/ai/suggest-properties", h.HandleSuggestProperties)

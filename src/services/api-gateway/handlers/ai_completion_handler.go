@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -11,7 +12,9 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"vedo-core/src/services/api-gateway/models"
+	"vedo-core/src/services/api-gateway/proxy"
 	"vedo-core/src/services/shared/llm"
+	ontologyv1 "vedo-core/src/services/shared/proto/ontology/v1"
 )
 
 const (
@@ -24,13 +27,17 @@ const (
 type AiCompletionHandler struct {
 	provider       llm.Provider
 	templateEngine PromptRenderer
+	ontologyGrpc   *proxy.OntologyServiceClient
 }
 
-// NewAiCompletionHandler creates a new AiCompletionHandler.
-func NewAiCompletionHandler(provider llm.Provider, templateEngine PromptRenderer) *AiCompletionHandler {
+// NewAiCompletionHandler creates a new AiCompletionHandler with an optional
+// OntologyServiceClient for fetching real ontology context.
+// When ontologyGrpc is nil, context builders return basic stub info.
+func NewAiCompletionHandler(provider llm.Provider, templateEngine PromptRenderer, ontologyGrpc *proxy.OntologyServiceClient) *AiCompletionHandler {
 	return &AiCompletionHandler{
 		provider:       provider,
 		templateEngine: templateEngine,
+		ontologyGrpc:   ontologyGrpc,
 	}
 }
 
@@ -70,7 +77,7 @@ func (h *AiCompletionHandler) HandleSuggestClasses(c *gin.Context) {
 	// Sanitize user-supplied class ID against prompt injection
 	safeClassID := SanitizeUserInput(req.ClassID)
 
-	ontologyContext := buildOntologyContext(ontologyID, safeClassID, req.ContextSize)
+	ontologyContext := h.buildOntologyContext(c.Request.Context(), ontologyID, safeClassID, req.ContextSize)
 
 	slog.Debug("ai.suggest_classes",
 		"trace_id", traceID,
@@ -153,7 +160,7 @@ func (h *AiCompletionHandler) HandleSuggestProperties(c *gin.Context) {
 	// Sanitize user-supplied class ID against prompt injection
 	safeClassID := SanitizeUserInput(req.ClassID)
 
-	classesContext := buildClassContext(ontologyID)
+	classesContext := h.buildClassContext(c.Request.Context(), ontologyID)
 
 	slog.Debug("ai.suggest_properties",
 		"trace_id", traceID,
@@ -374,17 +381,91 @@ func parseSuggestionsFromLLM(response string) ([]models.AISuggestion, error) {
 	return nil, fmt.Errorf("no parseable suggestions found in LLM response")
 }
 
-// buildOntologyContext constructs a text representation of the ontology.
-func buildOntologyContext(ontologyID, classID string, _ int) string {
+// buildOntologyContext constructs a text representation of the ontology
+// by fetching real class data from the ontology service via gRPC.
+// Falls back to a basic stub when the gRPC client is not available.
+func (h *AiCompletionHandler) buildOntologyContext(ctx context.Context, ontologyID, classID string, _ int) string {
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf("Ontology: %s\n", ontologyID))
 	if classID != "" {
 		b.WriteString(fmt.Sprintf("Focus Class: %s\n", classID))
 	}
+
+	// Fetch real ontology context via gRPC
+	if h.ontologyGrpc != nil && ontologyID != "" {
+		classes, err := h.ontologyGrpc.ListClasses(ctx, &ontologyv1.ListClassesRequest{
+			OntologyId: ontologyID,
+		})
+		if err != nil {
+			slog.Warn("ai.build_ontology_context.list_classes_failed",
+				"ontology_id", ontologyID,
+				"error", err,
+			)
+			b.WriteString("(Unable to fetch full ontology context)\n")
+			return b.String()
+		}
+
+		if classes != nil && len(classes.GetClasses()) > 0 {
+			b.WriteString("Existing classes:\n")
+			count := 0
+			for _, cls := range classes.GetClasses() {
+				if count >= 50 {
+					b.WriteString(fmt.Sprintf("... and %d more\n", len(classes.GetClasses())-count))
+					break
+				}
+				label := cls.GetLabel()
+				if label == "" {
+					label = cls.GetId()
+				}
+				parent := cls.GetParentId()
+				if parent != "" {
+					b.WriteString(fmt.Sprintf("  - %s (subClassOf: %s)\n", label, parent))
+				} else {
+					b.WriteString(fmt.Sprintf("  - %s\n", label))
+				}
+				count++
+			}
+		}
+	}
+
 	return b.String()
 }
 
-// buildClassContext constructs a class context string for property suggestions.
-func buildClassContext(ontologyID string) string {
-	return fmt.Sprintf("Ontology: %s\nAvailable classes for property assignment.", ontologyID)
+// buildClassContext constructs a class context string for property suggestions
+// by fetching real class hierarchy from the ontology service via gRPC.
+// Falls back to a basic stub when the gRPC client is not available.
+func (h *AiCompletionHandler) buildClassContext(ctx context.Context, ontologyID string) string {
+	var b strings.Builder
+	b.WriteString(fmt.Sprintf("Ontology: %s\n", ontologyID))
+
+	if h.ontologyGrpc != nil && ontologyID != "" {
+		classes, err := h.ontologyGrpc.ListClasses(ctx, &ontologyv1.ListClassesRequest{
+			OntologyId: ontologyID,
+		})
+		if err != nil {
+			slog.Warn("ai.build_class_context.list_classes_failed",
+				"ontology_id", ontologyID,
+				"error", err,
+			)
+			b.WriteString("Available classes: (unable to fetch)\n")
+			return b.String()
+		}
+
+		if classes != nil && len(classes.GetClasses()) > 0 {
+			b.WriteString("Available classes for property assignment:\n")
+			for _, cls := range classes.GetClasses() {
+				label := cls.GetLabel()
+				if label == "" {
+					label = cls.GetId()
+				}
+				b.WriteString(fmt.Sprintf("  - %s\n", label))
+			}
+		} else {
+			b.WriteString("Available classes: (none yet — suggest creating new classes)\n")
+		}
+	} else {
+		b.WriteString("Available classes for property assignment.\n")
+	}
+
+	return b.String()
 }

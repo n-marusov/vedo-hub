@@ -120,15 +120,16 @@ func RegisterRoutes(r *gin.Engine, grpcPool *proxy.GrpcClientPool) {
 
 	// Create AI handler instances.
 	nl2owlHandler := handlers.NewNlToOwlHandler(aiProvider, templateEngine)
-	aiCompletionH := handlers.NewAiCompletionHandler(aiProvider, templateEngine)
+	aiCompletionH := handlers.NewAiCompletionHandler(aiProvider, templateEngine, ontologyGrpc)
 	refinementH := handlers.NewRefinementHandler(aiProvider, templateEngine)
 	templateHandler := handlers.NewTemplateHandler(aiProvider, templateEngine, ontologyGrpc)
 
-	// AI-related routes with LLM Policy Router middleware.
-	// These routes control LLM access based on ontology visibility and deployment mode.
+	// AI-related routes with LLM Policy Router and Prompt Injection Pre-filter middleware.
+	// These routes control LLM access based on ontology visibility and deployment mode,
+	// and pre-filter user-supplied text for prompt injection attempts.
 	// The ontology gRPC client is used to resolve visibility server-side, preventing
 	// clients from forging X-Ontology-Visibility.
-	aiRoutes := api.Group("", middleware.LLMPolicyRouter(ontologyGrpc))
+	aiRoutes := api.Group("", middleware.LLMPolicyRouter(ontologyGrpc), middleware.PromptInjectionPreFilter())
 	{
 		// NL→OWL generation from text (Phase 4, Task 4.1)
 		aiRoutes.POST("/ontologies/:id/generate-from-text", nl2owlHandler.HandleGenerateFromText)

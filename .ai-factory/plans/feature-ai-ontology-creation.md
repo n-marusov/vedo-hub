@@ -81,6 +81,8 @@
 | `specs/adr/ADR-DES.SECURITY.gitlab-like-organization-model.md` | Organization model — Owner/Admin roles manage external LLM override settings | 2 |
 | `specs/adr/ADR-DES.INFRA.otel-observability-strategy.md` | OpenTelemetry observability — spans for all LLM calls and gRPC calls | All |
 | `specs/adr/ADR-DES.INFRA.airgap-offline-deployment-strategy.md` | Air-gapped deployment — local LLM required, no external providers | 2 |
+| `specs/adr/ADR-DES.INFRA.ai-orchestration-service-strategy.md` | **AI Orchestration Service** — выделение AI-логики из Gateway в отдельный сервис. C4 target architecture, gRPC-контракт, чек-лист миграции. Миграция → M2 (Phase 7). | 2, 3, 4, 7 |
+| `specs/adr/ADR-DES.SECURITY.authorization-policy-gates-strategy.md` | Authorization policy gates — требования к propagation токенов через gRPC | 0 |
 | `specs/adr/ADR-IMPL.PROCESS.c4-notation-adoption.md` | C4 model notation for architecture diagrams | Reference |
 
 ### C4 Architecture Diagrams
@@ -91,7 +93,8 @@
 | `specs/c4/container.md` | Container diagram — all 14+ microservices, data stores, and their interconnections | All |
 | `specs/c4/document-extractor-components.md` | **Document Extractor** internal components — Extractors, LLM Client, Sequence Validator, gRPC Client | 3 |
 | `specs/c4/ontology-service-components.md` | Ontology Service components — gRPC handlers, Neo4j operations, ApplySequence | 0, 3 |
-| `specs/c4/api-gateway-components.md` | API Gateway components — routing, auth, **LLM Policy Router** | 0, 2 |
+| `specs/c4/api-gateway-components.md` | API Gateway components — routing, auth, gRPC proxy to ai-orchestration-service | 0, 2 |
+| `specs/c4/ai-orchestration-components.md` | **AI Orchestration Service** — NL→OWL, Refinement, Completion, LLM Policy Router, Prompt Injection Defense, Template Engine (целевая архитектура) | 2, 3, 4, 7 |
 | `specs/c4/frontend-components.md` | Frontend components — pages, organisms, molecules for AI creation UI | 5 |
 | `specs/c4/deployment.md` | Deployment diagram — Docker Compose, CI/CD, observability stack | 0, 6 |
 
@@ -111,6 +114,7 @@
 | 0.4 | 0 | Update API Gateway to gRPC proxy (PARTIAL — HTTP proxy still used) | `[x]` | 0.2, 0.3, 0.6 | 3 |
 | 0.5 | 0 | Update Docker Compose, CI, configuration | `[x]` | 0.2, 0.3, 0.4 | 3 |
 | 0.6 | 0 | Generate proto stubs and create Go gRPC service clients | `[x]` | 0.5 | 3 |
+| 0.7 | 0 | Implement gRPC auth token propagation (JWT→metadata) | `[x]` | 0.6 | — |
 | 1.1 | 1 | E2E tests — document extraction flows | `[x]` | 0.5 | 4 |
 | 1.2 | 1 | E2E tests — NL→OWL and AI flows | `[x]` | 0.5 | 4 |
 | 2.1 | 2 | LLM abstraction package (Go) | `[x]` | — | 5 |
@@ -124,7 +128,7 @@
 | 3.4 | 3 | LLM integration + gRPC ApplySequence client | `[x]` | 3.2, 3.3 | 8 |
 | 3.5 | 3 | Implement ApplySequence domain logic in ontology-service | `[x]` | 3.4, 2.2 | 8 |
 | 4.1 | 4 | NL→OWL conversion endpoint | `[x]` | 2.2, 2.3, 0.6 | 9 |
-| 4.2 | 4 | AI-assisted class/property completion | `[x]` | 2.2, 2.3, 4.1 | 9 |
+| 4.2 | 4 | AI-assisted class/property completion | `[x]` | 2.2, 2.3, 4.1, 0.6 | 9 |
 | 4.3 | 4 | Iterative refinement workflow | `[x]` | 4.1, 2.3 | 10 |
 | 4.4 | 4 | Ontology domain templates | `[x]` | 0.2, 3.5 | 10 |
 | 4.5 | 4 | Implement prompt injection defense | `[x]` | 4.1, 2.3 | 9 |
@@ -133,11 +137,18 @@
 | 5.3 | 5 | Apply workflow with progress | `[ ]` | 5.2, 3.4 | 12 |
 | 5.4 | 5 | Batch upload + conflict resolution | `[ ]` | 5.1, 5.2, 3.4 | 12 |
 | 6.1 | 6 | Docker Compose, CI, quality gate | `[ ]` | 3.1–3.5, 0.5 | 13 |
+| 6.1b | 6 | Enable TLS for inter-service gRPC | `[ ]` | 0.6 | 13 |
 | 6.2 | 6 | Integration test validation (LLM) | `[ ]` | All impl. phases | 14 |
 | 6.3 | 6 | Traceability + docs validation | `[ ]` | 6.2 | 15 |
 | 6.4 | 6 | Antora documentation | `[ ]` | 6.2 | 15 |
+| 7.1 | 7 | Define proto contract for ai-orchestration-service | `[ ]` | — | 16 |
+| 7.2 | 7 | Scaffold ai-orchestration-service | `[ ]` | 7.1 | 16 |
+| 7.3 | 7 | Migrate AI handlers and middleware from Gateway | `[ ]` | 7.2, Phase 4 | 17 |
+| 7.4 | 7 | Update API Gateway — gRPC proxy to ai-orchestration | `[ ]` | 7.3 | 17 |
+| 7.5 | 7 | Update document-extractor — CheckPolicy + LogLLMUsage | `[ ]` | 7.1, 7.2 | 17 |
+| 7.6 | 7 | Docker Compose, CI, and integration for ai-orch | `[ ]` | 7.2–7.5 | 18 |
 
-**Progress:** 23 / 31 tasks complete
+**Progress:** 24 / 39 tasks complete (Tasks 6.1b, 7.1–7.6 pending; Phases 0–4 complete)
 
 ---
 
@@ -291,6 +302,7 @@ message SequenceStep {
 - SPARQL/CYPHER/GraphQL endpoints map to corresponding gRPC calls
 - Circuit breaker: if a gRPC backend is unhealthy, return 503
 - Request timeout from `UPSTREAM_TIMEOUT` env var applied to gRPC context deadline
+- ⚠️ **CRITICAL:** `grpcPool.Close()` MUST be called in `main()` graceful shutdown, NOT in `RegisterRoutes()`. Current implementation closes pool before server starts — gRPC calls silently fail. Fixed in fix-plan (see `.ai-factory/FIX_PLAN.md`).
 
 **Logging:** INFO on gRPC connection establishment, DEBUG with full request/response metadata, WARN on connection failures, ERROR on unrecoverable gRPC errors.
 
@@ -365,6 +377,32 @@ message SequenceStep {
 **Dependencies:** Task 0.5 (build tooling in place), proto definitions from Task 0.1.
 
 **Traceability:** Add proto-generated stubs and gRPC service clients to `.ai-factory/traceability/traceability.ttl`.
+
+---
+
+#### Task 0.7: Implement gRPC auth token propagation
+
+**Deliverable:** JWT-токены из входящих HTTP-запросов пробрасываются в gRPC metadata для всех downstream-вызовов.
+
+**Проблема:** Сейчас `grpc_client.go:54-58` создаёт соединения без `grpc.WithPerRPCCredentials` или `grpc.WithUnaryInterceptor`. Все gRPC-вызовы от Gateway идут без аутентификации — любой сервис в сети может вызвать `ApplySequence` без учётных данных.
+
+**Files to change:**
+- `src/services/api-gateway/proxy/grpc_client.go` — add `grpc.WithUnaryInterceptor` that reads JWT from `context.Context` and adds `authorization` metadata to outgoing gRPC calls
+- `src/services/api-gateway/proxy/grpc_ontology_client.go` — ensure context propagation in all client methods
+- `src/services/api-gateway/proxy/grpc_versioning_client.go` — same
+- `src/services/api-gateway/proxy/grpc_auth_client.go` — same
+- `src/services/api-gateway/auth/auth.go` — store JWT token/claims in `context.Context` (via `context.WithValue`) so the gRPC interceptor can extract them
+- `src/services/ontology-service/src/grpc/mod.rs` — verify `authorization` metadata on incoming gRPC calls (at minimum log presence; full enforcement later)
+
+**Key implementation details:**
+- `grpc.UnaryClientInterceptor` extracts JWT from `context.Context` (stored by auth middleware)
+- Adds `authorization: Bearer <token>` to gRPC outgoing metadata
+- Non-breaking: if no token in context, gRPC call proceeds without auth header (backward compat for health checks)
+- Rust services log presence/absence of auth metadata at DEBUG level
+
+**Logging:** DEBUG on token propagation (presence/absence), WARN on missing token for write operations.
+
+**Dependencies:** Task 0.6 (gRPC clients must exist).
 
 ---
 
@@ -767,6 +805,7 @@ Rules:
 - Sequence validation: check no circular references, valid operation types, required fields present
 - gRPC ApplySequence call: connect to ontology-service:9001, send validated sequence, handle errors
 - Response includes: apply status, commit ID, entity count, any warnings
+- ⚠️ **NOTE:** `ontology_context: str | None = Form(None)` in `routes.py:126` — параметр не предусмотрен планом. Удалить из кода как dead code. Если потребуется в Phase 5 — добавить с `SanitizeLLMInput()` перед использованием.
 
 **Unit tests (TDD Rule 5):** Write BEFORE implementation: `client_test.py` (mock LLM HTTP), `validator_test.py` (valid/invalid sequences), `routes_test.py` (mock FastAPI test client with mocked services).
 
@@ -791,11 +830,13 @@ Rules:
 
 **Key implementation details:**
 - Process steps in order: create classes first, then properties, then individuals, then annotations/relationships
-- All steps execute in a **single Neo4j transaction** — if any step fails, the entire transaction rolls back
+- All steps execute in a **single Neo4j transaction** — ⚠️ **CRITICAL:** rollback on ANY failure (currently `steps_failed > 0 && steps_applied == 0` — баг: коммитит частичные сбои). Condition MUST be `steps_failed > 0` → rollback.
+- **Neo4j index required:** Create composite index `(:Resource {id, ontology_id})` before first write. `entity_exists()` in `sequence_repo.rs:50` executes full AllNodesScan without index — N шагов = N полных сканов.
 - For each `create_class` step: create Neo4j node with label, parent relationship (rdfs:subClassOf), annotations as properties
 - For `create_object_property`: create relationship type node with domain/range
 - For `create_datatype_property`: create property node with domain and xsd range
 - Deduplication: if `skip_if_exists=true` and entity_id already exists, skip silently (increment skipped counter)
+- ⚠️ **FIX:** `set_domain` and `set_range` in `sequence_repo.rs:376-423` must filter by `ontology_id` — current MATCH `(p {id: $entity_id})` without ontology scope modifies entities across ALL ontologies.
 - After all steps succeed, create a versioning commit via the versioning-service gRPC (or direct DB write for now)
 - Attach `source_file` bytes as commit artifact if provided
 - Return `ApplySequenceResponse` with commit_id, steps_applied, steps_skipped, steps_failed, errors
@@ -873,6 +914,7 @@ Rules:
 **Key implementation details:**
 - Each endpoint receives current ontology context (class tree, existing properties)
 - LLM prompt includes ontology prefix, existing class names, property names
+- ⚠️ **FIX REQUIRED:** `buildOntologyContext()` и `buildClassContext()` в `ai_completion_handler.go:350-362` — стабы, возвращают только ID онтологии. Необходимо реализовать запрос реального контекста через `ontologyGrpc.ListClasses(ontologyID)`: иерархия классов (2 уровня), существующие свойства (макс. 5000 символов).
 - Response: ranked list of suggestions with confidence scores
 - Suggestions include: label, suggested parent, description/rationale
 - User can accept individual suggestions or dismiss
@@ -933,6 +975,7 @@ Rules:
 - Templates stored as JSON files, loaded at gateway startup
 - Each template defines: classes (with labels, parents, descriptions), properties (with domains/ranges), annotations
 - `apply-template` calls ApplySequence gRPC to atomically add all template entities
+- ⚠️ **FIX REQUIRED:** `HandleApplyTemplate` в `template_handler.go:156-220` возвращает `200 OK` с `StepsApplied: len(tpl.Steps)`, но НЕ вызывает `ontologyGrpc.ApplySequence()` — молчаливая потеря данных. Реализовать реальный gRPC-вызов.
 - Templates are read-only (cannot be modified via API in M2)
 - Template count: 5-8 templates covering common domains
 
@@ -957,6 +1000,10 @@ Rules:
 - `src/services/api-gateway/routes.go` — apply injection defense middleware to all AI routes (`/generate-from-text`, `/ai/*`, `/refine`)
 
 **Key implementation details — Pre-filtering (VEDO-side):**
+- ⚠️ **FIX REQUIRED:** Функции `ValidateLLMOutput()` (`prompt_injection.go:44`) и `containsPromptInjectionPatterns()` (`prompt_injection.go:58`) определены, но НЕ вызываются — защита не работает. `SanitizeLLMInput` обходится Unicode-гомоглифами. Необходимо:
+  1. Добавить NFC/NFKD-нормализацию и удаление zero-width символов в `SanitizeLLMInput`
+  2. Вызывать `ValidateLLMOutput` на каждом `completion.Text` после LLM
+  3. Подключить `containsPromptInjectionPatterns` в pre-filter pipeline
 - Scan user-supplied text for known prompt injection patterns:
   - `Ignore previous instructions`, `Ignore all previous`, `Forget everything` — system prompt override attempts
   - `You are now`, `Act as`, `Pretend you are` — role-play injection
@@ -1211,6 +1258,35 @@ interface SequencePreviewEmits {
 
 ---
 
+#### Task 6.1b: Enable TLS for inter-service gRPC
+
+**Deliverable:** Межсервисные gRPC-соединения используют TLS с верификацией серверного сертификата. Опционально — mTLS для production.
+
+**Проблема:** `grpc_client.go:55` использует `insecure.NewCredentials()` — весь межсервисный трафик (JWT-токены, данные онтологий, SPARQL-запросы) идёт в открытом виде. В контейнеризованном деплойменте любой скомпрометированный контейнер может перехватывать или инжектировать трафик.
+
+**Files to change:**
+- `src/services/api-gateway/proxy/grpc_client.go` — replace `insecure.NewCredentials()` with `credentials.NewTLS()` using configurable CA cert
+- `deploy/docker-compose.yml` — add TLS cert volume mounts and `GRPC_TLS_CERT_FILE`, `GRPC_TLS_KEY_FILE` env vars
+- `src/services/ontology-service/src/main.rs` — add TLS server config to tonic `Server`
+- `src/services/versioning-service/src/main.rs` — same
+- `src/services/auth-service/main.go` — same for Go gRPC servers
+- `deploy/ci/gitlab-ci.yml` — add TLS cert generation for CI environments
+- `.env.example` — add `GRPC_TLS_ENABLED`, `GRPC_CA_CERT_FILE` variables
+
+**Key implementation details:**
+- Phase 1 (M2): server-side TLS only (client verifies server cert, server does not verify client)
+- Phase 2 (M3): add mTLS (mutual TLS) for production
+- Self-signed certs for dev/CI; proper CA for staging/production
+- Feature flag: `GRPC_TLS_ENABLED=true/false` для обратной совместимости
+
+**Logging:** INFO on TLS config load, DEBUG on certificate validity.
+
+**Dependencies:** Task 0.6 (gRPC clients and servers must exist).
+
+---
+
+---
+
 #### Task 6.2: Integration test validation (LLM external interfaces)
 
 **Deliverable:** Run and verify integration tests for LLM external interfaces (TDD Rule 4).
@@ -1283,6 +1359,212 @@ interface SequencePreviewEmits {
 
 ---
 
+### Phase 7: AI Orchestration Service Migration
+
+> 🎯 **Миграция в M2.** Согласно [`ADR-DES.INFRA.ai-orchestration-service-strategy`](specs/adr/ADR-DES.INFRA.ai-orchestration-service-strategy.md), AI-хендлеры, LLM Policy Router, Prompt Injection Defense, Template Engine и рефайнмент-состояние выделяются в отдельный `ai-orchestration-service` (Go) с gRPC-контрактом.
+>
+> **Целевая архитектура:** [`specs/c4/ai-orchestration-components.md`](specs/c4/ai-orchestration-components.md) и [`specs/c4/api-gateway-components.md`](specs/c4/api-gateway-components.md).
+>
+> **Что мигрирует:** см. ADR, секция «Что переезжает из Gateway в ai-orchestration-service».
+
+**Covered ADRs:**
+- [`specs/adr/ADR-DES.INFRA.ai-orchestration-service-strategy.md`](specs/adr/ADR-DES.INFRA.ai-orchestration-service-strategy.md) — полный план миграции и чек-лист
+- [`specs/adr/ADR-DES.API.llm-policy-router-strategy.md`](specs/adr/ADR-DES.API.llm-policy-router-strategy.md) — LLM Policy Router мигрирует из Gateway
+- [`specs/adr/ADR-DES.SECURITY.prompt-injection-defense.md`](specs/adr/ADR-DES.SECURITY.prompt-injection-defense.md) — уровни защиты становятся middleware ai-orchestration-service
+- [`specs/adr/ADR-DES.INFRA.doc-extractor-service-strategy.md`](specs/adr/ADR-DES.INFRA.doc-extractor-service-strategy.md) — doc-extractor использует CheckPolicy+LogLLMUsage (Hybrid Model)
+
+---
+
+#### Task 7.1: Define proto contract for ai-orchestration-service
+
+**Deliverable:** gRPC proto-контракт для `ai-orchestration-service`, кодогенерация Go-стабов.
+
+**Files to create:**
+- `src/services/shared/proto/ai-orchestration/v1/ai_orchestration.proto` — сервисные RPC: `GenerateOWL`, `NaturalLanguageQuery`, `RefineOntology`, `Complete`, `ListTemplates`/`GetTemplate`, `CheckPolicy`, `LogLLMUsage` (см. ADR, секция «gRPC-контракт»)
+
+**Files to change:**
+- `src/services/shared/proto/buf.gen.yaml` — add Go generation for ai-orchestration package
+- `src/services/shared/proto/buf.yaml` — add ai-orchestration/v1 module
+- `src/Makefile` — add `proto-generate-ai-orchestration` target
+
+**Key implementation details:**
+- Пакет: `vedo.ai_orchestration.v1`
+- `GenerateOWL`: unary — текст → OWL-структура
+- `RefineOntology`: server-streaming — возвращает обновлённые шаги по мере готовности
+- `Complete`: server-streaming — для UX автодополнения
+- `CheckPolicy`: unary — проверка LLM-политик для document-extractor
+- `LogLLMUsage`: unary — централизованный аудит LLM-вызовов
+
+**Logging:** INFO on proto generation, DEBUG on validation.
+
+**Dependencies:** None (новый proto-пакет).
+
+---
+
+#### Task 7.2: Scaffold ai-orchestration-service
+
+**Deliverable:** Новый Go-микросервис с gRPC-сервером, health-эндпоинтами и интеграцией `shared/llm`.
+
+**Files to create:**
+- `src/services/ai-orchestration-service/go.mod` — зависимости: `shared/llm`, `shared/proto`, `google.golang.org/grpc`, `tonic` (для совместимости)
+- `src/services/ai-orchestration-service/main.go` — gRPC-сервер на порту 9014, HTTP health на 8093
+- `src/services/ai-orchestration-service/Dockerfile` — multi-stage Go build
+- `src/services/ai-orchestration-service/internal/handler/` — gRPC-хендлеры (будут заполнены в 7.3)
+- `src/services/ai-orchestration-service/internal/middleware/` — LLM Policy Router, Prompt Injection (7.3)
+
+**Key implementation details:**
+- gRPC-сервер на порту 9014 (следующий свободный в ADR-диапазоне 9001–9012; резервируем 9014)
+- HTTP `/health` и `/ready` на порту 8093
+- `go.mod` импортирует `vedo-core/src/services/shared/llm` как локальный модуль
+- Структурированное JSON-логирование с trace context
+
+**Logging:** INFO on server start (gRPC + HTTP), DEBUG on each RPC call.
+
+**Dependencies:** Task 7.1 (proto contract).
+
+---
+
+#### Task 7.3: Migrate AI handlers and middleware from Gateway
+
+**Deliverable:** Все AI-хендлеры, LLM Policy Router, Prompt Injection Defense и Template Engine перенесены из `api-gateway` в `ai-orchestration-service` как gRPC-имплементации.
+
+**Files to migrate (из Gateway → в ai-orchestration-service):**
+
+| Из Gateway | В ai-orchestration-service |
+|------------|---------------------------|
+| `handlers/nl_to_owl_handler.go` | `internal/handler/nl_to_owl.go` — реализует `GenerateOWL` RPC |
+| `handlers/ai_completion_handler.go` | `internal/handler/completion.go` — реализует `Complete` RPC |
+| `handlers/refinement_handler.go` | `internal/handler/refinement.go` — реализует `RefineOntology` RPC |
+| `handlers/template_handler.go` | `internal/handler/templates.go` — реализует `ListTemplates`/`GetTemplate` |
+| `handlers/prompt_injection.go` | `internal/middleware/prompt_injection.go` — pre-filter + post-process |
+| `middleware/llm_policy_router.go` | `internal/middleware/llm_policy_router.go` — Policy Router |
+| `models/ai.go` | переиспользуется через `shared/llm` |
+| `internal/templates/` | `internal/templates/` — JSON-шаблоны онтологий |
+
+**Files to delete (из Gateway):**
+- `src/services/api-gateway/handlers/nl_to_owl_handler.go` (и тесты)
+- `src/services/api-gateway/handlers/ai_completion_handler.go` (и тесты)
+- `src/services/api-gateway/handlers/refinement_handler.go` (и тесты)
+- `src/services/api-gateway/handlers/template_handler.go` (и тесты)
+- `src/services/api-gateway/handlers/prompt_injection.go` (и тесты)
+- `src/services/api-gateway/middleware/llm_policy_router.go` (и тесты)
+- `src/services/api-gateway/internal/templates/`
+
+**Key implementation details:**
+- Каждый хендлер адаптируется из HTTP-обработчика Gin в gRPC-имплементацию:
+  - `gin.Context` → `context.Context` + proto request/response
+  - JSON-ответы → proto-сообщения
+  - HTTP error codes → gRPC status codes
+- Prompt Injection Defense: вызывается как interceptor перед каждым AI RPC
+- LLM Policy Router: вызывается как interceptor; использует Redis для кэширования visibility
+- Refinement history: переносится из in-memory map в Redis (TTL 1 час на sequence)
+- Юнит-тесты переносятся и адаптируются под gRPC-хендлеры
+
+**Logging:** Сохраняется существующий уровень (DEBUG на RPC, INFO на результат, WARN на ошибки).
+
+**Dependencies:** Task 7.2 (сервис должен существовать), Phase 4 (хендлеры должны быть реализованы).
+
+---
+
+#### Task 7.4: Update API Gateway — gRPC proxy to ai-orchestration-service
+
+**Deliverable:** API Gateway удаляет AI-бизнес-логику и становится чистым gRPC-прокси для `/api/v1/ai/*`.
+
+**Files to change:**
+- `src/services/api-gateway/routes.go`:
+  - Удалить `initLLMProvider()`, создание AI-хендлеров, `aiRoutes` группу
+  - Добавить `aiOrchGrpc := proxy.NewAIOrchestrationServiceClient(grpcPool, proxy.GrpcAddrAIOrch)`
+  - Заменить AI-маршруты на gRPC-прокси:
+    ```go
+    api.POST("/ontologies/:id/generate-from-text", proxy.GrpcHandler(aiOrchGrpc.GenerateOWL))
+    api.POST("/ontologies/:id/ai/suggest-classes", proxy.GrpcHandler(aiOrchGrpc.Complete))
+    // ...
+    ```
+- `src/services/api-gateway/proxy/grpc_client.go` — добавить адрес `GrpcAddrAIOrch = "ai-orchestration-service:9014"`
+- `src/services/api-gateway/proxy/grpc_ai_orch_client.go` — **NEW:** AIOrchestrationService gRPC client wrapper
+
+**Key implementation details:**
+- Gateway сохраняет: auth (JWT validation, token propagation), rate limiting, CORS, circuit breaker
+- Gateway НЕ содержит: AI-бизнес-логику, LLM-вызовы, промпт-шаблоны, prompt injection defense
+- Circuit breaker для ai-orchestration-service: при деградации AI-функции gracefully unavailable
+- Feature flag: `AI_ORCHESTRATION_ENABLED=true/false` для переключения (на время миграции)
+
+**Logging:** INFO на gRPC-проксировании, DEBUG на forward/receive.
+
+**Dependencies:** Task 7.3 (хендлеры должны быть мигрированы).
+
+---
+
+#### Task 7.5: Update document-extractor — CheckPolicy + LogLLMUsage
+
+**Deliverable:** document-extractor (Python) вызывает `CheckPolicy` перед LLM-вызовом и `LogLLMUsage` после — согласно Hybrid Model из ADR.
+
+**Files to change:**
+- `src/services/document-extractor/grpc_client/ontology.py` — добавить `CheckPolicy` и `LogLLMUsage` gRPC-методы
+- `src/services/document-extractor/llm/client.py` — перед `httpx.post()` вызвать `check_policy(ontology_id, "document_extraction")`; после — `log_usage(...)`
+- `src/services/document-extractor/config.py` — добавить `AI_ORCHESTRATION_URL`
+- `src/services/document-extractor/api/routes.py` — пробрасывать `ontology_id` в LLM-клиент
+
+**Key implementation details:**
+- **Hybrid Model:** doc-extractor сохраняет собственный LLM-клиент (httpx) и промпты (Python), но получает политики и отправляет аудит через gRPC
+- `CheckPolicy` возвращает: `{allowed, provider, model, reason, require_consent}`
+- Если `allowed=false` — вернуть 403 с причиной блокировки
+- `LogLLMUsage` отправляет: `{ontology_id, action, provider, model, tokens_in, tokens_out, cost, trace_id}`
+- gRPC-вызовы — fire-and-forget для аудита (ошибка логируется, но не блокирует)
+
+**Logging:** INFO на CheckPolicy result, DEBUG на LogLLMUsage, WARN на gRPC-ошибках.
+
+**Dependencies:** Task 7.1 (proto contract), Task 7.2 (ai-orchestration-service gRPC).
+
+---
+
+#### Task 7.6: Docker Compose, CI, and integration validation
+
+**Deliverable:** ai-orchestration-service интегрирован в Docker Compose, CI, и проходит интеграционные тесты.
+
+**Files to change:**
+- `deploy/docker-compose.yml` — добавить `ai-orchestration-service`:
+  ```yaml
+  ai-orchestration-service:
+    build:
+      context: ../src/services/ai-orchestration-service
+    expose:
+      - "8093"   # HTTP health
+      - "9014"   # gRPC internal
+    environment:
+      - GRPC_PORT=9014
+      - HEALTH_PORT=8093
+      - LLM_PROVIDER=${LLM_PROVIDER:-}
+      - LLM_API_KEY=${LLM_API_KEY:-}
+      - LLM_MODEL=${LLM_MODEL:-}
+      - REDIS_URL=redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - vedo-network
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD-SHELL", "grpc_health_probe -addr=localhost:9014"]
+  ```
+- `deploy/ci/gitlab-ci.yml` — добавить lint/build/test для ai-orchestration-service
+- `deploy/README.md` — добавить ai-orchestration-service в таблицу портов
+- `src/Makefile` — добавить `docker-build-ai-orchestration` target
+- `.ai-factory/ARCHITECTURE.md` — добавить `ai-orchestration-service` в перечень сервисов
+
+**Docker quality gate:** После `docker compose up -d`:
+- ai-orchestration-service healthy (gRPC health probe)
+- API Gateway проксирует AI-запросы (интеграционный тест)
+- document-extractor вызывает CheckPolicy успешно
+
+**Logging:** Not applicable (infrastructure).
+
+**Dependencies:** Tasks 7.2–7.5 (сервис и интеграции должны существовать).
+
+**Traceability:** Add ai-orchestration-service, Docker Compose changes, CI jobs to `.ai-factory/traceability/traceability.ttl`.
+
+---
+
 ## Commit Plan
 
 | Commit | Tasks | Message |
@@ -1299,9 +1581,12 @@ interface SequencePreviewEmits {
 | 10 | 4.3, 4.4 | `feat(ai): add iterative refinement and domain templates` |
 | 11 | 5.1, 5.2 | `feat(ui): build file upload and sequence preview components` |
 | 12 | 5.3, 5.4 | `feat(ui): build apply workflow and batch upload UI` |
-| 13 | 6.1 | `feat(infra): add document-extractor to Docker Compose, CI, and quality gate` |
+| 13 | 6.1, 6.1b | `feat(infra): add document-extractor to Docker Compose, CI, quality gate, and gRPC TLS` |
 | 14 | 6.2 | `test: integration test validation for LLM external interfaces` |
 | 15 | 6.3, 6.4 | `chore: validate traceability and add Antora documentation` |
+| 16 | 7.1, 7.2 | `feat(ai-orch): define proto contract and scaffold ai-orchestration-service` |
+| 17 | 7.3, 7.4, 7.5 | `refactor(ai-orch): migrate AI handlers from Gateway, update doc-extractor` |
+| 18 | 7.6 | `feat(ai-orch): add ai-orchestration-service to Docker Compose, CI, and integration` |
 
 ---
 
@@ -1316,7 +1601,8 @@ Phase 0 (gRPC — PREREQUISITE)
    ├─► 0.5 (Docker/CI update) ← depends on 0.2, 0.3, 0.4
    └─► 0.6 (proto generation + Go gRPC clients) ← depends on 0.5
         │
-        └─► 0.4 [~] (API Gateway gRPC proxy) ← depends on 0.2, 0.3, 0.6
+        ├─► 0.4 [~] (API Gateway gRPC proxy) ← depends on 0.2, 0.3, 0.6
+        └─► 0.7 (gRPC auth propagation) ← depends on 0.6
 
 Phase 1 (E2E Tests — TDD FIRST)
   1.1, 1.2 ← depend on Phase 0 (infrastructure must be running)
@@ -1337,7 +1623,7 @@ Phase 3 (Document Extractor & ApplySequence)
         └─► 3.5 (ApplySequence domain logic) ← depends on 3.4, 2.2
 
 Phase 4 (NL→OWL & AI)
-  4.1, 4.2 ← depend on 2.2, 2.3, 0.6 (gRPC clients)
+  4.1, 4.2 ← depend on 2.2, 2.3, 0.6 (gRPC clients for ontology context in 4.2)
   4.3 ← depends on 4.1, 2.3
   4.4 ← depends on 0.2, 3.5 (ApplySequence)
   4.5 ← depends on 4.1, 2.3
@@ -1349,8 +1635,17 @@ Phase 5 (Frontend)
 
 Phase 6 (Integration & Validation)
   6.1 ← depends on Phase 0, 3 (including 3.5)
+  6.1b ← depends on 0.6 (gRPC clients + servers)
   6.2 ← depends on all implementation phases (2–5, including 2.5, 3.5, 4.5)
   6.3, 6.4 ← depends on 6.2
+
+Phase 7 (AI Orchestration Migration)
+  7.1 (proto contract)
+   └─► 7.2 (scaffold)
+        ├─► 7.3 (migrate handlers) ← depends on Phase 4 (handlers exist)
+        │    └─► 7.4 (update Gateway proxy)
+        ├─► 7.5 (update doc-extractor) ← depends on 7.1, 7.2
+        └─► 7.6 (Docker/CI) ← depends on 7.2–7.5
 ```
 
 ---
