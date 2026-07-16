@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"os"
@@ -9,6 +10,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+
+	"vedo-core/src/services/api-gateway/auth"
 )
 
 // Deployment mode constants.
@@ -30,6 +33,11 @@ type cachedDecision struct {
 	expires  time.Time
 }
 
+// OntologyVisibilityResolver is an interface for resolving ontology visibility.
+type OntologyVisibilityResolver interface {
+	GetOntologyVisibility(ctx context.Context, ontologyID string) (string, error)
+}
+
 // LLMPolicyRouter returns a Gin middleware that controls LLM access based on
 // ontology visibility and deployment type, per ADR-DES.API.llm-policy-router-strategy.
 //
@@ -42,7 +50,10 @@ type cachedDecision struct {
 //	| Private            | Block/AdminOverride| Allow           | Allow              |
 //
 // Air-gapped mode blocks ALL external LLM providers, only allows local.
-func LLMPolicyRouter() gin.HandlerFunc {
+//
+// If visResolver is nil, the middleware falls back to the old behavior (reading
+// from X-Ontology-Visibility header) for backward compatibility during migration.
+func LLMPolicyRouter(visResolver OntologyVisibilityResolver) gin.HandlerFunc {
 	cache := &policyCache{
 		mu:    &sync.RWMutex{},
 		items: make(map[string]cachedDecision),
@@ -68,7 +79,7 @@ func LLMPolicyRouter() gin.HandlerFunc {
 		decision, ok := cache.get(ontologyID)
 		if !ok {
 			deployMode := getDeployMode()
-			visibility := getOntologyVisibility(c, ontologyID)
+			visibility := resolveOntologyVisibility(c, ontologyID, visResolver)
 			providerType := getProviderType()
 
 			decision = evaluatePolicy(deployMode, visibility, providerType, c)
@@ -101,17 +112,27 @@ func LLMPolicyRouter() gin.HandlerFunc {
 }
 
 // isAIRoute checks if the request path is an AI-related route.
+// Restricted to specific AI endpoint patterns to avoid catching unrelated
+// ontology CRUD routes under /api/v1/ontologies/.
 func isAIRoute(path string) bool {
-	// Exact match for ontology list endpoint
-	if path == "/api/v1/ontologies" {
-		return true
-	}
-	// Prefix match for ontology-specific routes
-	aiPrefixes := []string{
+	aiPatterns := []string{
 		"/api/v1/ontologies/",
 	}
-	for _, p := range aiPrefixes {
-		if strings.HasPrefix(path, p) {
+	for _, p := range aiPatterns {
+		if !strings.HasPrefix(path, p) {
+			continue
+		}
+		// The path after the prefix is: <ontology-id>/<rest-of-path>
+		// Only match specific AI sub-paths, not all ontology routes.
+		remaining := strings.TrimPrefix(path, p)
+		parts := strings.SplitN(remaining, "/", 2)
+		if len(parts) < 2 {
+			return false // Just an ontology ID, no AI route
+		}
+		route := parts[1]
+		if route == "generate-from-text" ||
+			strings.HasPrefix(route, "ai/") ||
+			strings.HasPrefix(route, "documents/extract") {
 			return true
 		}
 	}
@@ -143,29 +164,76 @@ func getProviderType() string {
 	}
 }
 
-// getOntologyVisibility determines the ontology visibility from request context.
-// In the current phase, this reads from X-Ontology-Visibility header or falls back
-// to "private" (most restrictive default).
-func getOntologyVisibility(c *gin.Context, ontologyID string) string {
-	// Try header first (set by upstream or cached from earlier lookup)
+// getOntologyVisibilityFromHeader reads visibility from the (untrusted) client
+// header. This is used as a fallback when no gRPC visibility resolver is available.
+func getOntologyVisibilityFromHeader(c *gin.Context, ontologyID string) string {
 	visibility := c.GetHeader("X-Ontology-Visibility")
 	if visibility != "" {
 		return visibility
 	}
 
-	// Try query parameter
 	visibility = c.Query("visibility")
 	if visibility != "" {
 		return visibility
 	}
 
-	// Fall back to most restrictive default
-	slog.Debug("llm.policy.no_visibility_header",
+	slog.Debug("llm.policy.no_visibility_info",
 		"ontology_id", ontologyID,
 		"fallback", "private",
 		"trace_id", c.GetHeader("X-Trace-Id"),
 	)
 	return "private"
+}
+
+// resolveOntologyVisibility resolves ontology visibility, preferring the server-side
+// gRPC resolver over the client-supplied header. If no resolver is configured,
+// falls back to the X-Ontology-Visibility header (legacy behavior).
+func resolveOntologyVisibility(c *gin.Context, ontologyID string, resolver OntologyVisibilityResolver) string {
+	if resolver != nil {
+		visibility, err := resolver.GetOntologyVisibility(c.Request.Context(), ontologyID)
+		if err == nil && visibility != "" {
+			slog.Debug("llm.policy.visibility_resolved",
+				"ontology_id", ontologyID,
+				"visibility", visibility,
+				"source", "grpc",
+				"trace_id", c.GetHeader("X-Trace-Id"),
+			)
+			return visibility
+		}
+		if err != nil {
+			slog.Warn("llm.policy.visibility_resolver_failed",
+				"ontology_id", ontologyID,
+				"error", err,
+				"trace_id", c.GetHeader("X-Trace-Id"),
+			)
+		}
+	}
+
+	// Fallback to header if resolver is unavailable or fails
+	return getOntologyVisibilityFromHeader(c, ontologyID)
+}
+
+// userIsAdmin checks whether the authenticated user has an admin role
+// by inspecting the JWT claims stored in Gin context by the auth middleware.
+func userIsAdmin(c *gin.Context) bool {
+	rolesAny, exists := c.Get(string(auth.CtxKeyRoles))
+	if !exists {
+		return false
+	}
+	roles, ok := rolesAny.([]string)
+	if !ok || len(roles) == 0 {
+		return false
+	}
+
+	adminRoles := auth.DefaultAdminRoles()
+	for _, role := range roles {
+		for _, admin := range adminRoles {
+			if role == string(admin) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // evaluatePolicy applies the LLM access policy matrix.
@@ -205,9 +273,8 @@ func evaluatePolicy(deployMode, visibility, providerType string, c *gin.Context)
 	// SaaS + External LLM + non-public ontology
 	if deployMode == DeployModeSaaS && providerType == "external" {
 		if visibility == "internal" || visibility == "private" {
-			// Check admin override
-			adminOverride := c.GetHeader("X-Admin-Override")
-			if adminOverride == "true" {
+			// Verify admin override against JWT claims, not just the header
+			if userIsAdmin(c) {
 				slog.Warn("llm.policy.admin_override",
 					"ontology_id", c.Param("id"),
 					"user_id", c.GetHeader("X-User-Id"),
@@ -221,7 +288,7 @@ func evaluatePolicy(deployMode, visibility, providerType string, c *gin.Context)
 
 			return PolicyDecision{
 				Allowed: false,
-				Reason:  "LLM access to " + visibility + " ontology is blocked in SaaS mode with external provider. Use a local LLM provider or request admin override.",
+				Reason:  "LLM access to " + visibility + " ontology is blocked in SaaS mode with external provider. Use a local LLM provider or have an admin override.",
 			}
 		}
 	}

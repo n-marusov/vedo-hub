@@ -40,6 +40,15 @@ func (h *AiCompletionHandler) HandleSuggestClasses(c *gin.Context) {
 	traceID := c.GetHeader("X-Trace-Id")
 	ontologyID := c.Param("id")
 
+	// Nil provider guard
+	if h.provider == nil {
+		slog.Error("ai.suggest_classes.provider_nil", "trace_id", traceID)
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"error": gin.H{"code": "GATEWAY-LLM-UNAVAILABLE", "message": "LLM provider is not configured."},
+		})
+		return
+	}
+
 	if ontologyID == "" {
 		slog.Warn("ai.suggest_classes.missing_ontology_id",
 			"trace_id", traceID,
@@ -58,17 +67,20 @@ func (h *AiCompletionHandler) HandleSuggestClasses(c *gin.Context) {
 	// Empty body is acceptable — use defaults
 	_ = c.ShouldBindJSON(&req)
 
-	ontologyContext := buildOntologyContext(ontologyID, req.ClassID, req.ContextSize)
+	// Sanitize user-supplied class ID against prompt injection
+	safeClassID := SanitizeUserInput(req.ClassID)
+
+	ontologyContext := buildOntologyContext(ontologyID, safeClassID, req.ContextSize)
 
 	slog.Debug("ai.suggest_classes",
 		"trace_id", traceID,
 		"ontology_id", ontologyID,
-		"class_id", req.ClassID,
+		"class_id", safeClassID,
 	)
 
 	templateData := map[string]interface{}{
 		"OntologyContext": ontologyContext,
-		"ClassName":       req.ClassID,
+		"ClassName":       safeClassID,
 		"Depth":           req.ContextSize,
 	}
 
@@ -138,17 +150,20 @@ func (h *AiCompletionHandler) HandleSuggestProperties(c *gin.Context) {
 		return
 	}
 
+	// Sanitize user-supplied class ID against prompt injection
+	safeClassID := SanitizeUserInput(req.ClassID)
+
 	classesContext := buildClassContext(ontologyID)
 
 	slog.Debug("ai.suggest_properties",
 		"trace_id", traceID,
 		"ontology_id", ontologyID,
-		"class_id", req.ClassID,
+		"class_id", safeClassID,
 	)
 
 	templateData := map[string]interface{}{
 		"Classes":       classesContext,
-		"SelectedClass": req.ClassID,
+		"SelectedClass": safeClassID,
 	}
 
 	promptText, err := h.templateEngine.Render("property_suggestion", templateData)
@@ -218,8 +233,11 @@ func (h *AiCompletionHandler) HandleSuggestRelationships(c *gin.Context) {
 		return
 	}
 
+	// Sanitize user-supplied identifiers against prompt injection
+	safeSourceID := SanitizeLLMInput(req.SourceClassID)
+	safeTargetID := SanitizeLLMInput(req.TargetClassID)
 	contextInfo := fmt.Sprintf("Source class: %s\nTarget class: %s\n\nFocus on suggesting object properties (relationships) between these classes.",
-		req.SourceClassID, req.TargetClassID)
+		safeSourceID, safeTargetID)
 
 	slog.Debug("ai.suggest_relationships",
 		"trace_id", traceID,
@@ -230,7 +248,7 @@ func (h *AiCompletionHandler) HandleSuggestRelationships(c *gin.Context) {
 
 	templateData := map[string]interface{}{
 		"OntologyContext": contextInfo,
-		"ClassName":       req.SourceClassID,
+		"ClassName":       safeSourceID,
 		"Depth":           2,
 	}
 
@@ -295,6 +313,16 @@ func (h *AiCompletionHandler) callLLMForSuggestions(c *gin.Context, traceID, pro
 	completion, err := h.provider.Complete(llmCtx, msg)
 	if err != nil {
 		return nil, fmt.Errorf("llm completion failed: %w", err)
+	}
+
+	// Validate LLM output for prompt injection / dangerous content
+	if validationErr := ValidateLLMOutput(completion.Text); validationErr != nil {
+		slog.Warn("ai.parse_suggestions.output_validation_failed",
+			"trace_id", traceID,
+			"error", validationErr,
+			"response_length", len(completion.Text),
+		)
+		return []models.AISuggestion{}, nil
 	}
 
 	suggestions, err := parseSuggestionsFromLLM(completion.Text)

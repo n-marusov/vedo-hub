@@ -4,6 +4,10 @@ import (
 	"errors"
 	"regexp"
 	"strings"
+	"unicode"
+	"unicode/utf8"
+
+	"golang.org/x/text/unicode/norm"
 )
 
 // Common prompt injection patterns to detect and sanitize.
@@ -20,12 +24,36 @@ var (
 	reEnvVars       = regexp.MustCompile(`(?i)(?:AWS_SECRET|API_KEY|PASSWORD|TOKEN|SECRET|PRIVATE_KEY)\s*[:=]\s*['"]?[A-Za-z0-9+/=]{20,}`)
 )
 
+// zeroWidthChars are Unicode code points that are invisible but can be used
+// to bypass prompt injection pattern matching.
+var zeroWidthChars = []*regexp.Regexp{
+	regexp.MustCompile("\u200B"), // ZERO WIDTH SPACE
+	regexp.MustCompile("\u200C"), // ZERO WIDTH NON-JOINER
+	regexp.MustCompile("\u200D"), // ZERO WIDTH JOINER
+	regexp.MustCompile("\uFEFF"), // BYTE ORDER MARK (ZERO WIDTH NO-BREAK SPACE)
+	regexp.MustCompile("\u200E"), // LEFT-TO-RIGHT MARK
+	regexp.MustCompile("\u200F"), // RIGHT-TO-LEFT MARK
+	regexp.MustCompile("\u2060"), // WORD JOINER
+	regexp.MustCompile("\u2061"), // FUNCTION APPLICATION
+	regexp.MustCompile("\u2062"), // INVISIBLE TIMES
+	regexp.MustCompile("\u2063"), // INVISIBLE SEPARATOR
+	regexp.MustCompile("\u2064"), // INVISIBLE PLUS
+}
+
 // SanitizeLLMInput removes or neutralizes prompt injection attempts
 // from user-supplied text before sending it to the LLM.
 // It returns cleaned text with injection patterns removed.
 func SanitizeLLMInput(input string) string {
 	if strings.TrimSpace(input) == "" {
 		return ""
+	}
+
+	// Normalize Unicode to NFC form to catch homoglyph-based bypasses
+	input = norm.NFC.String(input)
+
+	// Remove zero-width and invisible characters that bypass pattern matching
+	for _, re := range zeroWidthChars {
+		input = re.ReplaceAllString(input, "")
 	}
 
 	// Remove system override attempts
@@ -37,6 +65,29 @@ func SanitizeLLMInput(input string) string {
 	input = regexp.MustCompile(`\s+`).ReplaceAllString(input, " ")
 
 	return strings.TrimSpace(input)
+}
+
+// SanitizeUserInput sanitizes user-supplied identifier input for safe use
+// in prompts. It applies Unicode normalization and prompt injection removal.
+func SanitizeUserInput(input string) string {
+	if input == "" {
+		return ""
+	}
+	// Apply NFC normalization
+	input = norm.NFC.String(input)
+	// Remove zero-width characters
+	for _, re := range zeroWidthChars {
+		input = re.ReplaceAllString(input, "")
+	}
+	// Only keep printable characters
+	var b strings.Builder
+	b.Grow(len(input))
+	for _, r := range input {
+		if unicode.IsPrint(r) || r == utf8.RuneSelf {
+			b.WriteRune(r)
+		}
+	}
+	return strings.TrimSpace(b.String())
 }
 
 // ValidateLLMOutput checks the LLM response for dangerous or suspicious

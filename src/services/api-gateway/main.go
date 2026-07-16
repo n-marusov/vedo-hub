@@ -17,6 +17,7 @@ import (
 
 	"vedo-core/src/services/api-gateway/auth"
 	corsmw "vedo-core/src/services/api-gateway/middleware"
+	"vedo-core/src/services/api-gateway/proxy"
 )
 
 const serviceName = "api-gateway"
@@ -129,8 +130,11 @@ func main() {
 	// Timeout middleware for upstream requests (UPSTREAM_TIMEOUT seconds, 30s default)
 	r.Use(corsmw.Timeout(getUpstreamTimeout()))
 
+	// Initialize gRPC client pool for internal service communication.
+	grpcPool := proxy.NewGrpcClientPool(getUpstreamTimeout())
+
 	// Register API route groups with proxy handlers
-	RegisterRoutes(r)
+	RegisterRoutes(r, grpcPool)
 
 	// Start server with timeouts
 	port := getPort()
@@ -155,6 +159,10 @@ func main() {
 
 	sig := <-quit
 	slog.Info("server.shutting_down", "signal", sig.String(), "service", serviceName)
+
+	// Close gRPC connections before HTTP server shutdown
+	grpcPool.Close()
+	slog.Info("grpc.pool.closed", "service", serviceName)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()

@@ -37,8 +37,8 @@ pub async fn execute_step(
         Operation::CreateIndividual => create_individual(tx, ontology_id, step).await,
         Operation::AddAnnotation => add_annotation(tx, ontology_id, step).await,
         Operation::SetParent => set_parent(tx, ontology_id, step).await,
-        Operation::SetDomain => set_domain(tx, step).await,
-        Operation::SetRange => set_range(tx, step).await,
+        Operation::SetDomain => set_domain(tx, ontology_id, step).await,
+        Operation::SetRange => set_range(tx, ontology_id, step).await,
         Operation::Unspecified => {
             warn!("sequence.unspecified_operation: entity_id={}", entity_id);
             Ok(true) // Skip unspecified operations silently
@@ -373,17 +373,19 @@ async fn set_parent(tx: &mut Txn, ontology_id: &str, step: &SequenceStep) -> Res
 }
 
 /// Sets the domain of an existing property.
-async fn set_domain(tx: &mut Txn, step: &SequenceStep) -> Result<bool, String> {
+/// Filters by ontology_id to prevent cross-ontology data corruption.
+async fn set_domain(tx: &mut Txn, ontology_id: &str, step: &SequenceStep) -> Result<bool, String> {
     let entity_id = &step.entity_id;
     let domain_id = &step.domain_id;
 
     let query = neo4rs::query(
         r"
-        MATCH (p {id: $entity_id})
+        MATCH (p {id: $entity_id, ontology_id: $ontology_id})
         SET p.domain_id = $domain_id
         ",
     )
     .param("entity_id", entity_id.to_string())
+    .param("ontology_id", ontology_id.to_string())
     .param("domain_id", domain_id.clone());
 
     tx.run(query)
@@ -398,17 +400,19 @@ async fn set_domain(tx: &mut Txn, step: &SequenceStep) -> Result<bool, String> {
 }
 
 /// Sets the range of an existing property.
-async fn set_range(tx: &mut Txn, step: &SequenceStep) -> Result<bool, String> {
+/// Filters by ontology_id to prevent cross-ontology data corruption.
+async fn set_range(tx: &mut Txn, ontology_id: &str, step: &SequenceStep) -> Result<bool, String> {
     let entity_id = &step.entity_id;
     let range_id = &step.range_id;
 
     let query = neo4rs::query(
         r"
-        MATCH (p {id: $entity_id})
+        MATCH (p {id: $entity_id, ontology_id: $ontology_id})
         SET p.range_id = $range_id
         ",
     )
     .param("entity_id", entity_id.to_string())
+    .param("ontology_id", ontology_id.to_string())
     .param("range_id", range_id.clone());
 
     tx.run(query)

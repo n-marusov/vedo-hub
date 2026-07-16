@@ -8,6 +8,42 @@ import (
 	ontologyv1 "vedo-core/src/services/shared/proto/ontology/v1"
 )
 
+// GetOntologyVisibility resolves ontology visibility from the server,
+// implementing middleware.OntologyVisibilityResolver.
+// Returns the visibility as a string: "public", "internal", "private", or "".
+func (c *OntologyServiceClient) GetOntologyVisibility(ctx context.Context, ontologyID string) (string, error) {
+	stub, err := c.getStub()
+	if err != nil {
+		return "", err
+	}
+	gctx, cancel := context.WithTimeout(ctx, c.pool.GetUpstreamTimeout())
+	defer cancel()
+
+	resp, err := stub.GetOntology(gctx, &ontologyv1.GetOntologyRequest{
+		OntologyId: ontologyID,
+	})
+	if err != nil {
+		slog.Error("grpc.ontology.get_ontology_visibility_failed",
+			"ontology_id", ontologyID, "error", err,
+		)
+		return "", err
+	}
+	if resp.GetOntology() == nil {
+		return "", nil
+	}
+
+	switch resp.GetOntology().GetVisibility() {
+	case ontologyv1.Ontology_VISIBILITY_PUBLIC:
+		return "public", nil
+	case ontologyv1.Ontology_VISIBILITY_INTERNAL:
+		return "internal", nil
+	case ontologyv1.Ontology_VISIBILITY_PRIVATE:
+		return "private", nil
+	default:
+		return "private", nil
+	}
+}
+
 // OntologyServiceClient wraps the generated proto stub with lazy initialization,
 // logging, and context deadlines from the gRPC connection pool.
 type OntologyServiceClient struct {

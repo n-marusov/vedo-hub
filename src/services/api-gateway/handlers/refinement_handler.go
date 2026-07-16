@@ -38,12 +38,24 @@ func NewRefinementHandler(provider llm.Provider, templateEngine PromptRenderer) 
 	}
 }
 
+// MaxFeedbackLength is the maximum allowed length for refinement feedback.
+const MaxFeedbackLength = 10 * 1024 // 10KB
+
 // HandleRefine handles POST /api/v1/ontologies/:id/ai/refine.
 // Accepts user feedback on a generated sequence and returns an updated version.
 func (h *RefinementHandler) HandleRefine(c *gin.Context) {
 	start := time.Now()
 	traceID := c.GetHeader("X-Trace-Id")
 	ontologyID := c.Param("id")
+
+	// Nil provider guard
+	if h.provider == nil {
+		slog.Error("refinement.refine.provider_nil", "trace_id", traceID)
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"error": gin.H{"code": "GATEWAY-LLM-UNAVAILABLE", "message": "LLM provider is not configured."},
+		})
+		return
+	}
 
 	if ontologyID == "" {
 		slog.Warn("refinement.refine.missing_ontology_id",
@@ -70,6 +82,21 @@ func (h *RefinementHandler) HandleRefine(c *gin.Context) {
 		return
 	}
 
+	if len(req.FeedbackText) > MaxFeedbackLength {
+		slog.Warn("refinement.refine.feedback_too_long",
+			"trace_id", traceID,
+			"length", len(req.FeedbackText),
+			"max", MaxFeedbackLength,
+		)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{
+				"code":    "PAYLOAD-TOO-LARGE",
+				"message": fmt.Sprintf("Feedback text exceeds maximum length of %d bytes.", MaxFeedbackLength),
+			},
+		})
+		return
+	}
+
 	if strings.TrimSpace(req.FeedbackText) == "" {
 		slog.Warn("refinement.refine.empty_feedback",
 			"trace_id", traceID,
@@ -82,6 +109,9 @@ func (h *RefinementHandler) HandleRefine(c *gin.Context) {
 
 	// Sanitize user feedback against prompt injection
 	sanitizedFeedback := SanitizeLLMInput(req.FeedbackText)
+
+	// Validate LLM output when refinement response is parsed
+	// (validation happens after LLM call below)
 
 	// Get or create sequence history
 	history := getOrCreateHistory(req.SequenceID, ontologyID)
@@ -163,6 +193,17 @@ func (h *RefinementHandler) HandleRefine(c *gin.Context) {
 		)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": gin.H{"code": "GATEWAY-LLM-ERROR", "message": "Failed to process refinement. Please try again."},
+		})
+		return
+	}
+
+	// Validate LLM output for prompt injection / dangerous content
+	if validationErr := ValidateLLMOutput(completion.Text); validationErr != nil {
+		slog.Error("refinement.refine.output_validation_failed",
+			"trace_id", traceID, "error", validationErr,
+		)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{"code": "GATEWAY-LLM-INVALID-RESPONSE", "message": "LLM response failed safety validation."},
 		})
 		return
 	}

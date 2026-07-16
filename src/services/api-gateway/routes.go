@@ -27,7 +27,7 @@ var openAPISpec []byte
 // proxied endpoint explicitly instead of using a catch-all wildcard. Unknown
 // `/api/v1/*` paths fall through to `r.NoRoute` (set up by the caller) which
 // returns a uniform `GATEWAY-NOT-FOUND` error.
-func RegisterRoutes(r *gin.Engine) {
+func RegisterRoutes(r *gin.Engine, grpcPool *proxy.GrpcClientPool) {
 	// Initialize upstream proxies (HTTP reverse proxy — legacy, being replaced by gRPC)
 	ontologyProxy := mustNewProxy(
 		getEnv("ONTOLOGY_SERVICE_URL", "http://localhost:8082"),
@@ -37,10 +37,6 @@ func RegisterRoutes(r *gin.Engine) {
 		getEnv("VERSIONING_SERVICE_URL", "http://localhost:8083"),
 		"versioning-service",
 	)
-
-	// Initialize gRPC client pool for internal service communication.
-	grpcPool := proxy.NewGrpcClientPool(getUpstreamTimeout())
-	defer grpcPool.Close()
 
 	// Create gRPC service clients for backend communication.
 	ontologyGrpc := proxy.NewOntologyServiceClient(grpcPool, proxy.GrpcAddrOntology)
@@ -126,11 +122,13 @@ func RegisterRoutes(r *gin.Engine) {
 	nl2owlHandler := handlers.NewNlToOwlHandler(aiProvider, templateEngine)
 	aiCompletionH := handlers.NewAiCompletionHandler(aiProvider, templateEngine)
 	refinementH := handlers.NewRefinementHandler(aiProvider, templateEngine)
-	templateHandler := handlers.NewTemplateHandler(aiProvider, templateEngine)
+	templateHandler := handlers.NewTemplateHandler(aiProvider, templateEngine, ontologyGrpc)
 
 	// AI-related routes with LLM Policy Router middleware.
 	// These routes control LLM access based on ontology visibility and deployment mode.
-	aiRoutes := api.Group("", middleware.LLMPolicyRouter())
+	// The ontology gRPC client is used to resolve visibility server-side, preventing
+	// clients from forging X-Ontology-Visibility.
+	aiRoutes := api.Group("", middleware.LLMPolicyRouter(ontologyGrpc))
 	{
 		// NL→OWL generation from text (Phase 4, Task 4.1)
 		aiRoutes.POST("/ontologies/:id/generate-from-text", nl2owlHandler.HandleGenerateFromText)
@@ -146,8 +144,12 @@ func RegisterRoutes(r *gin.Engine) {
 		aiRoutes.POST("/ontologies/:id/ai/refine", refinementH.HandleRefine)
 
 		// Document extractor proxy (Phase 3/4)
-		aiRoutes.POST("/ontologies/:id/documents/extract", gin.WrapH(ontologyProxy))
-		aiRoutes.POST("/ontologies/:id/documents/extract/batch", gin.WrapH(ontologyProxy))
+		documentExtractorProxy := mustNewProxy(
+			getEnv("DOCUMENT_EXTRACTOR_URL", "http://localhost:8092"),
+			"document-extractor",
+		)
+		aiRoutes.POST("/ontologies/:id/documents/extract", gin.WrapH(documentExtractorProxy))
+		aiRoutes.POST("/ontologies/:id/documents/extract/batch", gin.WrapH(documentExtractorProxy))
 	}
 
 	// Ontology template routes (Phase 4, Task 4.4)

@@ -3,13 +3,17 @@ package proxy
 import (
 	"context"
 	"log/slog"
+	"os"
 	"sync"
 	"time"
+	"vedo-core/src/services/api-gateway/auth"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/metadata"
 )
 
 // GrpcClientPool manages gRPC connections to backend services.
@@ -52,9 +56,10 @@ func (p *GrpcClientPool) GetConn(address string) (*grpc.ClientConn, error) {
 	defer cancel()
 
 	dialOpts := []grpc.DialOption{
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithTransportCredentials(getTransportCredentials()),
 		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(50 * 1024 * 1024)), // 50MB
 		grpc.WithUserAgent("vedo-api-gateway/0.2.0"),
+		grpc.WithUnaryInterceptor(authUnaryClientInterceptor()),
 	}
 
 	newConn, err := grpc.DialContext(ctx, address, dialOpts...)
@@ -114,8 +119,40 @@ func (p *GrpcClientPool) Close() {
 	p.conns = make(map[string]*grpc.ClientConn)
 }
 
-// Backend addresses for gRPC connections.
-// These match the ADR-mandated internal gRPC ports.
+// getTransportCredentials returns gRPC transport credentials based on the
+// GRPC_TLS_ENABLED environment variable. When enabled, TLS is configured with
+// system CA certificates. Disabled by default for development environments.
+// Phase 1: server cert verification only (dev: self-signed, prod: proper CA).
+func getTransportCredentials() credentials.TransportCredentials {
+	if os.Getenv("GRPC_TLS_ENABLED") == "true" {
+		slog.Info("grpc.tls.enabled")
+		return credentials.NewClientTLSFromCert(nil, "")
+	}
+	return insecure.NewCredentials()
+}
+
+// authUnaryClientInterceptor returns a gRPC UnaryClientInterceptor that
+// propagates the JWT token from the Go context (set by the auth middleware)
+// to downstream gRPC calls as authorization metadata.
+func authUnaryClientInterceptor() grpc.UnaryClientInterceptor {
+	return func(
+		ctx context.Context,
+		method string,
+		req, reply interface{},
+		cc *grpc.ClientConn,
+		invoker grpc.UnaryInvoker,
+		opts ...grpc.CallOption,
+	) error {
+		// Extract JWT token from context (set by api-gateway auth middleware)
+		if token, ok := ctx.Value(auth.CtxKeyJWTToken).(string); ok && token != "" {
+			md := metadata.Pairs("authorization", "Bearer "+token)
+			ctx = metadata.NewOutgoingContext(ctx, md)
+			slog.Debug("grpc.auth.token_propagated", "method", method)
+		}
+		return invoker(ctx, method, req, reply, cc, opts...)
+	}
+}
+
 const (
 	GrpcAddrOntology     = "ontology-service:9001"
 	GrpcAddrVersioning   = "versioning-service:9002"

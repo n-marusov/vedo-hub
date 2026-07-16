@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -93,7 +94,12 @@ func TestHandleSuggestClasses_Success(t *testing.T) {
 }
 
 func TestHandleSuggestClasses_EmptyOntologyID(t *testing.T) {
-	r := newAiCompletionTestRouter(nil, nil)
+	provider := &mockLLMProvider{
+		completeFunc: func(ctx llm.Context, p llm.Prompt) (llm.Completion, error) {
+			return llm.Completion{}, errors.New("should not be called")
+		},
+	}
+	r := newAiCompletionTestRouter(provider, nil)
 	w := serveAiRequest(r, "POST", "/api/v1/ontologies//ai/suggest-classes",
 		models.SuggestClassesRequest{ClassID: "Person"})
 

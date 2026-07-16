@@ -2,6 +2,7 @@ package providers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -109,7 +110,13 @@ func (p *OpenAICompatibleProvider) Complete(ctx llm.Context, prompt llm.Prompt) 
 		return llm.Completion{}, fmt.Errorf("llm/openai: failed to marshal request: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", p.baseURL+"/chat/completions", bytes.NewReader(jsonBody))
+	// Fall back to Background() if context is nil (test-safe)
+	baseCtx := ctx.BaseCtx
+	if baseCtx == nil {
+		baseCtx = context.Background()
+	}
+
+	req, err := http.NewRequestWithContext(baseCtx, "POST", p.baseURL+"/chat/completions", bytes.NewReader(jsonBody))
 	if err != nil {
 		return llm.Completion{}, fmt.Errorf("llm/openai: failed to create request: %w", err)
 	}
@@ -131,7 +138,9 @@ func (p *OpenAICompatibleProvider) Complete(ctx llm.Context, prompt llm.Prompt) 
 	latency := time.Since(start).Seconds()
 	llm.LLMLatencySeconds.WithLabelValues("openai", p.model).Observe(latency)
 
-	body, err := io.ReadAll(resp.Body)
+	// Limit response body size to prevent unbounded memory allocation
+	const maxResponseSize = 10 * 1024 * 1024 // 10MB
+	body, err := io.ReadAll(io.LimitReader(resp.Body, maxResponseSize))
 	if err != nil {
 		return llm.Completion{}, fmt.Errorf("llm/openai: failed to read response: %w", err)
 	}

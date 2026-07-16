@@ -114,6 +114,7 @@ const (
 	CtxKeyRoles      contextKey = "auth_roles"
 	CtxKeyAuthorized contextKey = "auth_authorized"
 	CtxKeyTraceID    contextKey = "auth_trace_id"
+	CtxKeyJWTToken   contextKey = "auth_jwt_token"
 )
 
 // @hlv:structured_logging_only
@@ -264,6 +265,12 @@ func NewMiddleware(cfg *Config) gin.HandlerFunc {
 		// so we must set them here (not just in Gin context).
 		c.Request.Header.Set("X-User-Id", userID)
 		c.Request.Header.Set("X-User-Roles", strings.Join(roles, ","))
+
+		// Store the raw JWT token in the request context for gRPC auth propagation.
+		// The gRPC client interceptor reads this to add authorization metadata
+		// to downstream gRPC calls.
+		ctx := context.WithValue(c.Request.Context(), CtxKeyJWTToken, tokenString)
+		c.Request = c.Request.WithContext(ctx)
 
 		slog.InfoContext(c.Request.Context(), "auth.granted",
 			"user_id", userID,

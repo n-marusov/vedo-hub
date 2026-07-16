@@ -78,7 +78,13 @@ func serveNlToOwlRequest(r *gin.Engine, ontologyID string, body interface{}) *ht
 }
 
 func TestNlToOwlHandler_EmptyOntologyID(t *testing.T) {
-	r := newNlToOwlTestRouter(nil, nil)
+	// Need a non-nil provider for the nil-guard to pass
+	provider := &mockLLMProvider{
+		completeFunc: func(ctx llm.Context, p llm.Prompt) (llm.Completion, error) {
+			return llm.Completion{}, errors.New("should not be called")
+		},
+	}
+	r := newNlToOwlTestRouter(provider, nil)
 	w := serveNlToOwlRequest(r, "", models.NlToOwlRequest{Text: "Create a person ontology"})
 
 	if w.Code != http.StatusBadRequest {
@@ -88,7 +94,12 @@ func TestNlToOwlHandler_EmptyOntologyID(t *testing.T) {
 }
 
 func TestNlToOwlHandler_MissingText(t *testing.T) {
-	r := newNlToOwlTestRouter(nil, nil)
+	provider := &mockLLMProvider{
+		completeFunc: func(ctx llm.Context, p llm.Prompt) (llm.Completion, error) {
+			return llm.Completion{}, errors.New("should not be called")
+		},
+	}
+	r := newNlToOwlTestRouter(provider, nil)
 
 	// Send body with missing text field
 	req := httptest.NewRequest("POST", "/api/v1/ontologies/test-onto/generate-from-text",
@@ -105,7 +116,12 @@ func TestNlToOwlHandler_MissingText(t *testing.T) {
 }
 
 func TestNlToOwlHandler_EmptyText(t *testing.T) {
-	r := newNlToOwlTestRouter(nil, nil)
+	provider := &mockLLMProvider{
+		completeFunc: func(ctx llm.Context, p llm.Prompt) (llm.Completion, error) {
+			return llm.Completion{}, errors.New("should not be called")
+		},
+	}
+	r := newNlToOwlTestRouter(provider, nil)
 	w := serveNlToOwlRequest(r, "test-onto", models.NlToOwlRequest{Text: "   "})
 
 	if w.Code != http.StatusBadRequest {
@@ -115,12 +131,17 @@ func TestNlToOwlHandler_EmptyText(t *testing.T) {
 }
 
 func TestNlToOwlHandler_TemplateError(t *testing.T) {
+	provider := &mockLLMProvider{
+		completeFunc: func(ctx llm.Context, p llm.Prompt) (llm.Completion, error) {
+			return llm.Completion{}, errors.New("should not be called")
+		},
+	}
 	renderer := &mockPromptRenderer{
 		renderFunc: func(name string, data interface{}) (string, error) {
 			return "", errors.New("template not found")
 		},
 	}
-	r := newNlToOwlTestRouter(nil, renderer)
+	r := newNlToOwlTestRouter(provider, renderer)
 	w := serveNlToOwlRequest(r, "test-onto", models.NlToOwlRequest{Text: "Create a person ontology"})
 
 	if w.Code != http.StatusInternalServerError {

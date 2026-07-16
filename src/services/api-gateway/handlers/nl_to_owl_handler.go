@@ -29,11 +29,26 @@ func NewNlToOwlHandler(provider llm.Provider, templateEngine PromptRenderer) *Nl
 	}
 }
 
+// MaxTextLength is the maximum allowed length for input text sent to the LLM.
+const MaxTextLength = 50 * 1024 // 50KB
+
 // HandleGenerateFromText handles POST /api/v1/ontologies/:id/generate-from-text.
 func (h *NlToOwlHandler) HandleGenerateFromText(c *gin.Context) {
 	start := time.Now()
 	traceID := c.GetHeader("X-Trace-Id")
 	ontologyID := c.Param("id")
+
+	// Nil provider guard
+	if h.provider == nil {
+		slog.Error("nl2owl.generate.provider_nil", "trace_id", traceID)
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"error": gin.H{
+				"code":    "GATEWAY-LLM-UNAVAILABLE",
+				"message": "LLM provider is not configured. Set LLM_PROVIDER, LLM_API_KEY, and LLM_MODEL environment variables.",
+			},
+		})
+		return
+	}
 
 	if ontologyID == "" {
 		slog.Warn("nl2owl.generate.missing_ontology_id",
@@ -61,6 +76,21 @@ func (h *NlToOwlHandler) HandleGenerateFromText(c *gin.Context) {
 			"error": gin.H{
 				"code":    "GATEWAY-INVALID-REQUEST",
 				"message": "Invalid request body. 'text' field is required.",
+			},
+		})
+		return
+	}
+
+	if len(req.Text) > MaxTextLength {
+		slog.Warn("nl2owl.generate.text_too_long",
+			"trace_id", traceID,
+			"length", len(req.Text),
+			"max", MaxTextLength,
+		)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{
+				"code":    "PAYLOAD-TOO-LARGE",
+				"message": fmt.Sprintf("Text content exceeds maximum length of %d bytes.", MaxTextLength),
 			},
 		})
 		return
@@ -150,6 +180,22 @@ func (h *NlToOwlHandler) HandleGenerateFromText(c *gin.Context) {
 			"error": gin.H{
 				"code":    "GATEWAY-LLM-ERROR",
 				"message": "Failed to generate ontology from text. Please try again.",
+			},
+		})
+		return
+	}
+
+	// Validate LLM output for prompt injection / dangerous content
+	if validationErr := ValidateLLMOutput(completion.Text); validationErr != nil {
+		slog.Error("nl2owl.generate.output_validation_failed",
+			"trace_id", traceID,
+			"error", validationErr,
+			"response_length", len(completion.Text),
+		)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{
+				"code":    "GATEWAY-LLM-INVALID-RESPONSE",
+				"message": "LLM response failed safety validation. Please try again.",
 			},
 		})
 		return

@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"vedo-core/src/services/api-gateway/models"
+	"vedo-core/src/services/api-gateway/proxy"
 	"vedo-core/src/services/shared/llm"
 )
 
@@ -17,10 +18,10 @@ import (
 // Helpers — template handler
 // ---------------------------------------------------------------------------
 
-func newTemplateTestRouter(provider llm.Provider, renderer PromptRenderer) *gin.Engine {
+func newTemplateTestRouter(provider llm.Provider, renderer PromptRenderer, grpcClient *proxy.OntologyServiceClient) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	h := NewTemplateHandler(provider, renderer)
+	h := NewTemplateHandler(provider, renderer, grpcClient)
 	api := r.Group("/api/v1")
 	api.GET("/templates/ontologies", h.HandleListTemplates)
 	api.POST("/ontologies/:id/apply-template", h.HandleApplyTemplate)
@@ -51,7 +52,7 @@ func serveApplyTemplate(r *gin.Engine, ontologyID string, body interface{}) *htt
 // ---------------------------------------------------------------------------
 
 func TestHandleListTemplates_Success(t *testing.T) {
-	r := newTemplateTestRouter(nil, nil)
+	r := newTemplateTestRouter(nil, nil, nil)
 	w := serveGetTemplates(r)
 
 	if w.Code != http.StatusOK {
@@ -93,31 +94,21 @@ func TestHandleListTemplates_Success(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestHandleApplyTemplate_Success(t *testing.T) {
-	// We need a provider for the template handler even though
-	// apply-template only uses gRPC (mocked via template load).
-	r := newTemplateTestRouter(nil, nil)
+	// With nil gRPC client, the handler returns 503 (GATEWAY-GRPC-UNAVAILABLE)
+	// because it now requires an actual gRPC connection to apply sequences.
+	r := newTemplateTestRouter(nil, nil, nil)
 	w := serveApplyTemplate(r, "test-onto", models.ApplyTemplateRequest{
 		TemplateID: "person",
 	})
 
-	if w.Code != http.StatusOK {
-		t.Errorf("expected 200, got %d; body: %s", w.Code, w.Body.String())
+	if w.Code != http.StatusServiceUnavailable {
+		t.Errorf("expected 503, got %d; body: %s", w.Code, w.Body.String())
 	}
-
-	var resp models.ApplyTemplateResponse
-	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
-		t.Fatalf("failed to unmarshal: %v", err)
-	}
-	if resp.TemplateID != "person" {
-		t.Errorf("expected template_id 'person', got %q", resp.TemplateID)
-	}
-	if resp.OntologyID != "test-onto" {
-		t.Errorf("expected ontology_id 'test-onto', got %q", resp.OntologyID)
-	}
+	verifyErrorResponse(t, w.Body.Bytes(), "GATEWAY-GRPC-UNAVAILABLE")
 }
 
 func TestHandleApplyTemplate_MissingOntologyID(t *testing.T) {
-	r := newTemplateTestRouter(nil, nil)
+	r := newTemplateTestRouter(nil, nil, nil)
 	w := serveApplyTemplate(r, "", models.ApplyTemplateRequest{
 		TemplateID: "person",
 	})
@@ -128,7 +119,7 @@ func TestHandleApplyTemplate_MissingOntologyID(t *testing.T) {
 }
 
 func TestHandleApplyTemplate_InvalidRequest(t *testing.T) {
-	r := newTemplateTestRouter(nil, nil)
+	r := newTemplateTestRouter(nil, nil, nil)
 
 	// Missing template_id in body
 	req := httptest.NewRequest("POST", "/api/v1/ontologies/test-onto/apply-template",
@@ -144,7 +135,7 @@ func TestHandleApplyTemplate_InvalidRequest(t *testing.T) {
 }
 
 func TestHandleApplyTemplate_UnknownTemplate(t *testing.T) {
-	r := newTemplateTestRouter(nil, nil)
+	r := newTemplateTestRouter(nil, nil, nil)
 	w := serveApplyTemplate(r, "test-onto", models.ApplyTemplateRequest{
 		TemplateID: "nonexistent-template",
 	})

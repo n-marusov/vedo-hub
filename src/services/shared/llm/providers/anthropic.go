@@ -2,6 +2,7 @@ package providers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -104,7 +105,20 @@ func (p *AnthropicProvider) Complete(ctx llm.Context, prompt llm.Prompt) (llm.Co
 		return llm.Completion{}, fmt.Errorf("llm/anthropic: failed to marshal request: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", p.baseURL+"/messages", bytes.NewReader(jsonBody))
+	// Build LLM context
+	llmCtx := llm.Context{
+		BaseCtx:    ctx.BaseCtx,
+		TraceID:    ctx.TraceID,
+		MaxRetries: ctx.MaxRetries,
+	}
+
+	// Fall back to Background() if context is nil (test-safe)
+	baseCtx := llmCtx.BaseCtx
+	if baseCtx == nil {
+		baseCtx = context.Background()
+	}
+
+	req, err := http.NewRequestWithContext(baseCtx, "POST", p.baseURL+"/messages", bytes.NewReader(jsonBody))
 	if err != nil {
 		return llm.Completion{}, fmt.Errorf("llm/anthropic: failed to create request: %w", err)
 	}
@@ -125,7 +139,9 @@ func (p *AnthropicProvider) Complete(ctx llm.Context, prompt llm.Prompt) (llm.Co
 	latency := time.Since(start).Seconds()
 	llm.LLMLatencySeconds.WithLabelValues("anthropic", p.model).Observe(latency)
 
-	body, err := io.ReadAll(resp.Body)
+	// Limit response body size to prevent unbounded memory allocation
+	const maxResponseSize = 10 * 1024 * 1024 // 10MB
+	body, err := io.ReadAll(io.LimitReader(resp.Body, maxResponseSize))
 	if err != nil {
 		return llm.Completion{}, fmt.Errorf("llm/anthropic: failed to read response: %w", err)
 	}

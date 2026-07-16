@@ -123,7 +123,6 @@ SUPPORTED_FORMATS = {
 @router.post("/documents/extract", response_model=ExtractResponse)
 async def extract_document(
     file: UploadFile = File(...),
-    ontology_context: str | None = Form(None),
 ):
     """Extract ontology structure from a single uploaded document.
 

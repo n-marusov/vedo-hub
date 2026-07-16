@@ -31,6 +31,7 @@ import (
 
 	"vedo-core/src/services/api-gateway/auth"
 	corsmw "vedo-core/src/services/api-gateway/middleware"
+	"vedo-core/src/services/api-gateway/proxy"
 )
 
 // testEnv is the configuration shared across all integration tests in this
@@ -115,7 +116,9 @@ func newTestEnv(t *testing.T) *testEnv {
 	r.Use(corsmw.Timeout(2 * time.Second))
 
 	// RegisterRoutes uses the env vars set above to wire proxies.
-	RegisterRoutes(r)
+	grpcPool := proxy.NewGrpcClientPool(2 * time.Second)
+	RegisterRoutes(r, grpcPool)
+	t.Cleanup(grpcPool.Close)
 
 	cleanup := func() {
 		ontologyUpstream.Close()

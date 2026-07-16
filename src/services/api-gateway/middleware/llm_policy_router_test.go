@@ -15,7 +15,7 @@ import (
 func setupPolicyTest() *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	r.Use(LLMPolicyRouter())
+	r.Use(LLMPolicyRouter(nil))
 	r.POST("/api/v1/ontologies/:id/generate-from-text", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
@@ -66,11 +66,13 @@ func TestLLMPolicyRouter_PrivateExternalSaaS_AdminOverride(t *testing.T) {
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("POST", "/api/v1/ontologies/test-onto/generate-from-text", nil)
 	req.Header.Set("X-Ontology-Visibility", "private")
+	// X-Admin-Override header alone is no longer sufficient — JWT role check is required.
+	// Without auth middleware, admin override is correctly rejected (security fix).
 	req.Header.Set("X-Admin-Override", "true")
 	r.ServeHTTP(w, req)
 
-	if w.Code != http.StatusOK {
-		t.Errorf("expected 200 with admin override, got %d; body: %s", w.Code, w.Body.String())
+	if w.Code != http.StatusForbidden {
+		t.Errorf("expected 403 (admin override without JWT rejected), got %d; body: %s", w.Code, w.Body.String())
 	}
 }
 
@@ -149,7 +151,7 @@ func TestLLMPolicyRouter_InternalLocalSaaS_Allowed(t *testing.T) {
 func TestLLMPolicyRouter_NonAIRoute_PassesThrough(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	r.Use(LLMPolicyRouter())
+	r.Use(LLMPolicyRouter(nil))
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "healthy"})
 	})
@@ -205,9 +207,9 @@ func TestIsAIRoute(t *testing.T) {
 	}{
 		{"/api/v1/ontologies/test/generate-from-text", true},
 		{"/api/v1/ontologies/test/ai/complete", true},
-		{"/api/v1/ontologies", true},
+		{"/api/v1/ontologies", false},
 		{"/health", false},
-		{"/api/v1/ontologies/test/classes", true},
+		{"/api/v1/ontologies/test/classes", false},
 		{"/metrics", false},
 	}
 	for _, tt := range tests {

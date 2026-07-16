@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -101,7 +102,13 @@ func TestHandleRefine_Success(t *testing.T) {
 }
 
 func TestHandleRefine_MissingOntologyID(t *testing.T) {
-	r := newRefinementTestRouter(nil, nil)
+	// Need a mock provider for nil-guard to pass
+	provider := &mockLLMProvider{
+		completeFunc: func(ctx llm.Context, p llm.Prompt) (llm.Completion, error) {
+			return llm.Completion{}, errors.New("should not be called - missing ontology ID")
+		},
+	}
+	r := newRefinementTestRouter(provider, nil)
 	w := serveRefineRequest(r, "", models.RefinementRequest{
 		SequenceID:   "seq-1",
 		FeedbackText: "Make it better",
@@ -113,7 +120,12 @@ func TestHandleRefine_MissingOntologyID(t *testing.T) {
 }
 
 func TestHandleRefine_InvalidRequest(t *testing.T) {
-	r := newRefinementTestRouter(nil, nil)
+	provider := &mockLLMProvider{
+		completeFunc: func(ctx llm.Context, p llm.Prompt) (llm.Completion, error) {
+			return llm.Completion{}, errors.New("should not be called - invalid request")
+		},
+	}
+	r := newRefinementTestRouter(provider, nil)
 	req := httptest.NewRequest("POST", "/api/v1/ontologies/test-onto/ai/refine",
 		bytes.NewReader([]byte(`{"feedback_text":"test"}`))) // missing sequence_id
 	req.Header.Set("Content-Type", "application/json")
@@ -127,7 +139,12 @@ func TestHandleRefine_InvalidRequest(t *testing.T) {
 }
 
 func TestHandleRefine_EmptyFeedback(t *testing.T) {
-	r := newRefinementTestRouter(nil, nil)
+	provider := &mockLLMProvider{
+		completeFunc: func(ctx llm.Context, p llm.Prompt) (llm.Completion, error) {
+			return llm.Completion{}, errors.New("should not be called - empty feedback")
+		},
+	}
+	r := newRefinementTestRouter(provider, nil)
 	w := serveRefineRequest(r, "test-onto", models.RefinementRequest{
 		SequenceID:   "seq-1",
 		FeedbackText: "   ",
@@ -206,12 +223,17 @@ func TestHandleRefine_LLMError(t *testing.T) {
 }
 
 func TestHandleRefine_TemplateError(t *testing.T) {
+	provider := &mockLLMProvider{
+		completeFunc: func(ctx llm.Context, p llm.Prompt) (llm.Completion, error) {
+			return llm.Completion{}, errors.New("should not be called - template error")
+		},
+	}
 	renderer := &mockPromptRenderer{
 		renderFunc: func(name string, data interface{}) (string, error) {
 			return "", errMockLLMFailure
 		},
 	}
-	r := newRefinementTestRouter(nil, renderer)
+	r := newRefinementTestRouter(provider, renderer)
 	w := serveRefineRequest(r, "test-onto", models.RefinementRequest{
 		SequenceID:   "seq-template-error",
 		FeedbackText: "Fix the structure",
