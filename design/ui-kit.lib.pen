@@ -1,5 +1,5 @@
 {
-  "version": "2.13",
+  "version": "2.14",
   "children": [
     {
       "type": "frame",
@@ -3264,7 +3264,7 @@
                       "type": "ref",
                       "ref": "VerDQ",
                       "name": "ng2",
-                      "x": 202,
+                      "x": 196,
                       "y": 0.5,
                       "width": "fit_content",
                       "height": "fit_content",
@@ -3836,7 +3836,7 @@
               "content": "COMMENT MOLECULES",
               "fontFamily": "IBM Plex Mono",
               "fontSize": 11,
-              "fontWeight": 600,
+              "fontWeight": "normal",
               "letterSpacing": 1.5
             },
             {
@@ -3864,7 +3864,7 @@
               "content": "MERGE REQUEST MOLECULES",
               "fontFamily": "IBM Plex Mono",
               "fontSize": 11,
-              "fontWeight": 600,
+              "fontWeight": "normal",
               "letterSpacing": 1.5
             },
             {
@@ -3892,7 +3892,7 @@
               "content": "DEPLOYMENT MOLECULES",
               "fontFamily": "IBM Plex Mono",
               "fontSize": 11,
-              "fontWeight": 600,
+              "fontWeight": "normal",
               "letterSpacing": 1.5
             },
             {
@@ -23999,7 +23999,7 @@
                       "type": "ref",
                       "ref": "VerDQ",
                       "name": "ng2",
-                      "x": 202,
+                      "x": 196,
                       "y": 0.5,
                       "width": "fit_content",
                       "height": "fit_content",
@@ -24030,7 +24030,7 @@
                       "ref": "BMhMb",
                       "name": "lm5",
                       "height": "fit_content",
-                      "x": 318,
+                      "x": 312,
                       "descendants": {
                         "28krj": {
                           "x": 8,
@@ -41703,10 +41703,10 @@
                 "cmTimestamp": {
                   "content": "5 hours ago"
                 },
-                "cmBodyGroup/cmAction": {
+                "cmAction": {
                   "content": "commented on merge request !2 \"Fix: Validation rules\" at VEDO / VEDO Core"
                 },
-                "cmBodyGroup/cmText": {
+                "cmText": {
                   "content": "Need to update the SHACL constraints for the new release."
                 }
               }
@@ -41728,10 +41728,10 @@
                 "cmTimestamp": {
                   "content": "1 day ago"
                 },
-                "cmBodyGroup/cmAction": {
+                "cmAction": {
                   "content": "commented on merge request !3 \"Fix: Serialization bug\" at VEDO / VEDO Core"
                 },
-                "cmBodyGroup/cmText": {
+                "cmText": {
                   "content": "The issue was in the RDF/XML writer. Fixed in the latest commit."
                 }
               }
@@ -41746,6 +41746,9 @@
       "x": 2313,
       "y": 36000,
       "name": "Organism/Comments (Light)",
+      "theme": {
+        "mode": "light"
+      },
       "reusable": true,
       "clip": true,
       "width": 600,
@@ -41757,13 +41760,13 @@
       "children": [
         {
           "type": "frame",
-          "id": "cmTimeline",
+          "id": "Ay69D",
           "name": "cmTimeline",
           "width": "fill_container",
           "layout": "vertical",
           "children": [
             {
-              "id": "cmComment1",
+              "id": "iwm89",
               "type": "ref",
               "ref": "mCommentItem",
               "name": "cmComment1",
@@ -41771,7 +41774,7 @@
               "height": "fit_content"
             },
             {
-              "id": "cmComment2",
+              "id": "xsV9P",
               "type": "ref",
               "ref": "mCommentItem",
               "name": "cmComment2",
@@ -41787,16 +41790,16 @@
                 "cmTimestamp": {
                   "content": "5 hours ago"
                 },
-                "cmBodyGroup/cmAction": {
+                "cmAction": {
                   "content": "commented on merge request !2 \"Fix: Validation rules\" at VEDO / VEDO Core"
                 },
-                "cmBodyGroup/cmText": {
+                "cmText": {
                   "content": "Need to update the SHACL constraints for the new release."
                 }
               }
             },
             {
-              "id": "cmComment3",
+              "id": "ucxGw",
               "type": "ref",
               "ref": "mCommentItem",
               "name": "cmComment3",
@@ -41812,20 +41815,17 @@
                 "cmTimestamp": {
                   "content": "1 day ago"
                 },
-                "cmBodyGroup/cmAction": {
+                "cmAction": {
                   "content": "commented on merge request !3 \"Fix: Serialization bug\" at VEDO / VEDO Core"
                 },
-                "cmBodyGroup/cmText": {
+                "cmText": {
                   "content": "The issue was in the RDF/XML writer. Fixed in the latest commit."
                 }
               }
             }
           ]
         }
-      ],
-      "theme": {
-        "mode": "light"
-      }
+      ]
     },
     {
       "type": "frame",
@@ -41909,6 +41909,9 @@
       "x": 2313,
       "y": 37200,
       "name": "Organism/MergeRequests (Light)",
+      "theme": {
+        "mode": "light"
+      },
       "reusable": true,
       "clip": true,
       "width": 600,
@@ -41921,7 +41924,7 @@
       "padding": 16,
       "children": [
         {
-          "id": "mrSection1",
+          "id": "s9PJeg",
           "type": "ref",
           "ref": "mMergeRequestCard",
           "name": "mrSection1",
@@ -41940,7 +41943,7 @@
           }
         },
         {
-          "id": "mrSection2",
+          "id": "a7HlwP",
           "type": "ref",
           "ref": "mMergeRequestCard",
           "name": "mrSection2",
@@ -41959,7 +41962,7 @@
           }
         },
         {
-          "id": "mrSection3",
+          "id": "slmgI",
           "type": "ref",
           "ref": "mMergeRequestCard",
           "name": "mrSection3",
@@ -41977,10 +41980,7 @@
             }
           }
         }
-      ],
-      "theme": {
-        "mode": "light"
-      }
+      ]
     },
     {
       "type": "frame",
@@ -42002,11 +42002,11 @@
           "id": "dpShowStopped",
           "name": "dpShowStopped",
           "width": "fill_container",
-          "alignItems": "center",
           "padding": [
             8,
             0
           ],
+          "alignItems": "center",
           "children": [
             {
               "type": "frame",
@@ -42015,10 +42015,10 @@
               "width": 14,
               "height": 14,
               "fill": "$card",
+              "cornerRadius": 3,
               "stroke": "$border",
               "strokeWidth": 1,
-              "strokeAlignment": "inner",
-              "cornerRadius": 3
+              "strokeAlignment": "inner"
             },
             {
               "type": "text",
@@ -42061,15 +42061,6 @@
                 "dcUrl": {
                   "content": "https://vedo-core-qa.gitlab.io"
                 },
-                "dcCreated": {
-                  "content": "Created 2 days ago"
-                },
-                "dcUpdated": {
-                  "content": "Last updated 2 days ago"
-                },
-                "dcExpiry": {
-                  "content": "Expires in 28 days"
-                },
                 "dcClasses": {
                   "content": "12 classes"
                 },
@@ -42078,6 +42069,15 @@
                 },
                 "dcIndividuals": {
                   "content": "58 individuals"
+                },
+                "dcCreated": {
+                  "content": "Created 2 days ago"
+                },
+                "dcUpdated": {
+                  "content": "Last updated 2 days ago"
+                },
+                "dcExpiry": {
+                  "content": "Expires in 28 days"
                 }
               }
             },
@@ -42096,15 +42096,6 @@
                 "dcUrl": {
                   "content": "https://ontology-staging.gitlab.io"
                 },
-                "dcCreated": {
-                  "content": "Created 1 week ago"
-                },
-                "dcUpdated": {
-                  "content": "Last updated 6 days ago"
-                },
-                "dcExpiry": {
-                  "content": "Expires in 21 days"
-                },
                 "dcClasses": {
                   "content": "8 classes"
                 },
@@ -42113,6 +42104,15 @@
                 },
                 "dcIndividuals": {
                   "content": "23 individuals"
+                },
+                "dcCreated": {
+                  "content": "Created 1 week ago"
+                },
+                "dcUpdated": {
+                  "content": "Last updated 6 days ago"
+                },
+                "dcExpiry": {
+                  "content": "Expires in 21 days"
                 }
               }
             },
@@ -42131,15 +42131,6 @@
                 "dcUrl": {
                   "content": "https://shacl-validator.gitlab.io"
                 },
-                "dcCreated": {
-                  "content": "Created 3 weeks ago"
-                },
-                "dcUpdated": {
-                  "content": "Last updated 3 weeks ago"
-                },
-                "dcExpiry": {
-                  "content": "Expires in 7 days"
-                },
                 "dcClasses": {
                   "content": "42 classes"
                 },
@@ -42148,6 +42139,15 @@
                 },
                 "dcIndividuals": {
                   "content": "197 individuals"
+                },
+                "dcCreated": {
+                  "content": "Created 3 weeks ago"
+                },
+                "dcUpdated": {
+                  "content": "Last updated 3 weeks ago"
+                },
+                "dcExpiry": {
+                  "content": "Expires in 7 days"
                 }
               }
             },
@@ -42166,15 +42166,6 @@
                 "dcUrl": {
                   "content": "https://legacy-ontology.gitlab.io"
                 },
-                "dcCreated": {
-                  "content": "Created 1 year ago"
-                },
-                "dcUpdated": {
-                  "content": "Last updated 8 months ago"
-                },
-                "dcExpiry": {
-                  "content": "Expired"
-                },
                 "dcClasses": {
                   "content": "18 classes"
                 },
@@ -42183,6 +42174,15 @@
                 },
                 "dcIndividuals": {
                   "content": "76 individuals"
+                },
+                "dcCreated": {
+                  "content": "Created 1 year ago"
+                },
+                "dcUpdated": {
+                  "content": "Last updated 8 months ago"
+                },
+                "dcExpiry": {
+                  "content": "Expired"
                 }
               }
             }
@@ -42196,6 +42196,9 @@
       "x": 2313,
       "y": 38400,
       "name": "Organism/Deployments (Light)",
+      "theme": {
+        "mode": "light"
+      },
       "reusable": true,
       "clip": true,
       "width": 600,
@@ -42207,30 +42210,30 @@
       "children": [
         {
           "type": "frame",
-          "id": "dpShowStopped",
+          "id": "x4kQA",
           "name": "dpShowStopped",
           "width": "fill_container",
-          "alignItems": "center",
           "padding": [
             8,
             0
           ],
+          "alignItems": "center",
           "children": [
             {
               "type": "frame",
-              "id": "dpCheckbox",
+              "id": "VrrkP",
               "name": "dpCheckbox",
               "width": 14,
               "height": 14,
               "fill": "$card",
+              "cornerRadius": 3,
               "stroke": "$border",
               "strokeWidth": 1,
-              "strokeAlignment": "inner",
-              "cornerRadius": 3
+              "strokeAlignment": "inner"
             },
             {
               "type": "text",
-              "id": "dpShowStoppedText",
+              "id": "sVhO7",
               "fill": "$muted-foreground",
               "content": "Show stopped deployments",
               "fontFamily": "IBM Plex Mono",
@@ -42241,13 +42244,13 @@
         },
         {
           "type": "frame",
-          "id": "dpList",
+          "id": "nF4h9",
           "name": "dpList",
           "width": "fill_container",
           "layout": "vertical",
           "children": [
             {
-              "id": "dpItem1",
+              "id": "NTGwi",
               "type": "ref",
               "ref": "mDeploymentCard",
               "name": "dpItem1",
@@ -42255,7 +42258,7 @@
               "height": "fit_content"
             },
             {
-              "id": "dpItem2",
+              "id": "KYgAA",
               "type": "ref",
               "ref": "mDeploymentCard",
               "name": "dpItem2",
@@ -42269,15 +42272,6 @@
                 "dcUrl": {
                   "content": "https://vedo-core-qa.gitlab.io"
                 },
-                "dcCreated": {
-                  "content": "Created 2 days ago"
-                },
-                "dcUpdated": {
-                  "content": "Last updated 2 days ago"
-                },
-                "dcExpiry": {
-                  "content": "Expires in 28 days"
-                },
                 "dcClasses": {
                   "content": "12 classes"
                 },
@@ -42286,11 +42280,20 @@
                 },
                 "dcIndividuals": {
                   "content": "58 individuals"
+                },
+                "dcCreated": {
+                  "content": "Created 2 days ago"
+                },
+                "dcUpdated": {
+                  "content": "Last updated 2 days ago"
+                },
+                "dcExpiry": {
+                  "content": "Expires in 28 days"
                 }
               }
             },
             {
-              "id": "dpItem3",
+              "id": "v8r93",
               "type": "ref",
               "ref": "mDeploymentCard",
               "name": "dpItem3",
@@ -42304,15 +42307,6 @@
                 "dcUrl": {
                   "content": "https://ontology-staging.gitlab.io"
                 },
-                "dcCreated": {
-                  "content": "Created 1 week ago"
-                },
-                "dcUpdated": {
-                  "content": "Last updated 6 days ago"
-                },
-                "dcExpiry": {
-                  "content": "Expires in 21 days"
-                },
                 "dcClasses": {
                   "content": "8 classes"
                 },
@@ -42321,11 +42315,20 @@
                 },
                 "dcIndividuals": {
                   "content": "23 individuals"
+                },
+                "dcCreated": {
+                  "content": "Created 1 week ago"
+                },
+                "dcUpdated": {
+                  "content": "Last updated 6 days ago"
+                },
+                "dcExpiry": {
+                  "content": "Expires in 21 days"
                 }
               }
             },
             {
-              "id": "dpItem4",
+              "id": "x7CkY",
               "type": "ref",
               "ref": "mDeploymentCard",
               "name": "dpItem4",
@@ -42339,15 +42342,6 @@
                 "dcUrl": {
                   "content": "https://shacl-validator.gitlab.io"
                 },
-                "dcCreated": {
-                  "content": "Created 3 weeks ago"
-                },
-                "dcUpdated": {
-                  "content": "Last updated 3 weeks ago"
-                },
-                "dcExpiry": {
-                  "content": "Expires in 7 days"
-                },
                 "dcClasses": {
                   "content": "42 classes"
                 },
@@ -42356,11 +42350,20 @@
                 },
                 "dcIndividuals": {
                   "content": "197 individuals"
+                },
+                "dcCreated": {
+                  "content": "Created 3 weeks ago"
+                },
+                "dcUpdated": {
+                  "content": "Last updated 3 weeks ago"
+                },
+                "dcExpiry": {
+                  "content": "Expires in 7 days"
                 }
               }
             },
             {
-              "id": "dpItem5",
+              "id": "X9Edx",
               "type": "ref",
               "ref": "mDeploymentCard",
               "name": "dpItem5",
@@ -42374,15 +42377,6 @@
                 "dcUrl": {
                   "content": "https://legacy-ontology.gitlab.io"
                 },
-                "dcCreated": {
-                  "content": "Created 1 year ago"
-                },
-                "dcUpdated": {
-                  "content": "Last updated 8 months ago"
-                },
-                "dcExpiry": {
-                  "content": "Expired"
-                },
                 "dcClasses": {
                   "content": "18 classes"
                 },
@@ -42391,15 +42385,21 @@
                 },
                 "dcIndividuals": {
                   "content": "76 individuals"
+                },
+                "dcCreated": {
+                  "content": "Created 1 year ago"
+                },
+                "dcUpdated": {
+                  "content": "Last updated 8 months ago"
+                },
+                "dcExpiry": {
+                  "content": "Expired"
                 }
               }
             }
           ]
         }
-      ],
-      "theme": {
-        "mode": "light"
-      }
+      ]
     },
     {
       "type": "frame",
@@ -44416,7 +44416,7 @@
                       "content": "Nikolay Marusov",
                       "fontFamily": "IBM Plex Mono",
                       "fontSize": 12,
-                      "fontWeight": 600
+                      "fontWeight": "normal"
                     },
                     {
                       "type": "text",
@@ -44505,10 +44505,10 @@
           "reusable": true,
           "width": 640,
           "fill": "$card",
+          "cornerRadius": 8,
           "stroke": "$border",
           "strokeWidth": 1,
           "strokeAlignment": "inner",
-          "cornerRadius": 8,
           "layout": "vertical",
           "children": [
             {
@@ -44545,7 +44545,7 @@
                       "content": "Returned to you",
                       "fontFamily": "IBM Plex Mono",
                       "fontSize": 13,
-                      "fontWeight": 500
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -44568,7 +44568,7 @@
                       "content": "0",
                       "fontFamily": "IBM Plex Mono",
                       "fontSize": 11,
-                      "fontWeight": 500
+                      "fontWeight": "normal"
                     }
                   ]
                 }
@@ -44632,7 +44632,7 @@
                   "content": "Active",
                   "fontFamily": "IBM Plex Mono",
                   "fontSize": 11,
-                  "fontWeight": 600
+                  "fontWeight": "normal"
                 },
                 {
                   "type": "text",
@@ -44650,9 +44650,9 @@
               "type": "frame",
               "id": "dcDivider",
               "name": "dcDivider",
-              "fill": "$border",
               "width": "fill_container",
-              "height": 1
+              "height": 1,
+              "fill": "$border"
             },
             {
               "type": "frame",
@@ -52319,5 +52319,6 @@
       "type": "number",
       "value": 9
     }
-  }
+  },
+  "fileToken": "b70a84f0-dfcc-4073-b4f7-256fba254e2e"
 }
