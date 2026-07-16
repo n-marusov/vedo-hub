@@ -52,11 +52,11 @@
 
 ## Testing (TDD)
 
-1. **Follow TDD methodology** — tests act as the reference for behavior verification; subsequent implementation must conform to the behavior described in tests, alongside requirements.
+1. **Follow TDD methodology** — unit tests are the primary reference for behavior verification; subsequent implementation must conform to the behavior described in the unit tests, alongside requirements.
 2. **Plan tests in order via `$aif-plan`** — unit tests per-task first, then integration tests as needed, then E2E tests for the whole feature.
 3. **Major-feature plans start with E2E tests** — a plan for a major feature must begin by implementing the E2E tests for that feature.
 4. **Plan integration tests for external interfaces** — if a feature touches external interfaces, the plan must include integration tests.
-5. **Write unit tests just-in-time per task** — the plan must specify that unit tests are written immediately before each individual task adding new functionality; do not draft all unit tests for a milestone upfront.
+5. **Describe subtask sequence per task** — every task in the plan must describe its ordered sequence of subtasks. When unit tests are needed for the task, the first subtask must be writing those unit tests; subsequent implementation subtasks must use the unit tests as the behavior reference.
 6. **Update traceability for tests** — when tests are written or modified, reflect them in the artifact traceability ontology (`.ai-factory/traceability/traceability.ttl`).
 
 ## Documentation
