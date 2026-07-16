@@ -1063,7 +1063,7 @@ Rules:
 
 ---
 
-#### Task 5.1: Build file upload UI component
+- [x] Task 5.1: Build file upload UI component
 
 **Deliverable:** Reusable Vue 3 component for document upload with drag & drop, format validation, and progress feedback.
 
@@ -1110,7 +1110,7 @@ interface DocumentUploaderEmits {
 
 ---
 
-#### Task 5.2: Build sequence preview table component
+- [x] Task 5.2: Build sequence preview table component
 
 **Deliverable:** Interactive table for reviewing and editing extracted ontology sequences before applying.
 
@@ -1154,7 +1154,7 @@ interface SequencePreviewEmits {
 
 ---
 
-#### Task 5.3: Build apply workflow with progress and commit feedback
+- [x] Task 5.3: Build apply workflow with progress and commit feedback
 
 **Deliverable:** Apply button → progress → success/error with commit link.
 
@@ -1185,7 +1185,7 @@ interface SequencePreviewEmits {
 
 ---
 
-#### Task 5.4: Build batch upload UI with deduplication and conflict resolution
+- [x] Task 5.4: Build batch upload UI with deduplication and conflict resolution
 
 **Deliverable:** Multi-file upload, combined preview, conflict resolution UI.
 

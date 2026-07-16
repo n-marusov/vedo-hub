@@ -18,16 +18,90 @@
         <div class="splitter"><GripVertical :size="8" /></div>
 
         <section class="workspace-content">
-          <div class="workspace-toolbar">
-            <span class="toolbar-title">{{ ontologyData?.name || ontologyId }}</span>
-            <span v-if="ontologyData?.branch" class="toolbar-branch-badge">{{ ontologyData.branch }}</span>
-            <span v-if="ontologyData?.dirty" class="toolbar-dirty-badge">Dirty</span>
-            <span class="toolbar-spacer"></span>
-            <button class="toolbar-btn" type="button">Publish</button>
-            <button class="toolbar-btn toolbar-btn--primary" type="button">Save</button>
-          </div>
+            <div class="workspace-toolbar">
+              <span class="toolbar-title">{{ ontologyData?.name || ontologyId }}</span>
+              <span v-if="ontologyData?.branch" class="toolbar-branch-badge">{{ ontologyData.branch }}</span>
+              <span v-if="ontologyData?.dirty" class="toolbar-dirty-badge">Dirty</span>
+              <span class="toolbar-spacer"></span>
+              <button class="toolbar-btn" type="button">Publish</button>
+              <button class="toolbar-btn toolbar-btn--primary" type="button">Save</button>
+              <button
+                :class="['toolbar-btn', { 'toolbar-btn--active': showAiPanel }]"
+                type="button"
+                @click="showAiPanel = !showAiPanel"
+              >
+                <Zap :size="14" />
+                AI Import
+              </button>
+            </div>
 
-          <div class="workspace-row">
+            <!-- AI Import Panel (toggleable) -->
+            <div v-if="showAiPanel" class="workspace-ai-panel">
+              <div class="ai-panel__header">
+                <h3 class="ai-panel__title">AI-Assisted Ontology Import</h3>
+                <p class="ai-panel__desc">Upload documents to extract ontology classes, properties, and individuals.</p>
+              </div>
+
+              <!-- Upload section -->
+              <div v-if="uploadMode === 'single'" class="ai-panel__section">
+                <DocumentUploader
+                  :ontology-id="ontologyId"
+                  :mode="'single'"
+                  @upload-complete="onUploadComplete"
+                  @upload-error="onUploadError"
+                />
+              </div>
+              <div v-else class="ai-panel__section">
+                <BatchUploader
+                  :ontology-id="ontologyId"
+                  @batch-complete="onBatchComplete"
+                  @batch-error="onUploadError"
+                  @reset="onBatchReset"
+                />
+              </div>
+
+              <!-- Mode toggle -->
+              <div class="ai-panel__mode-toggle">
+                <button
+                  :class="['ai-panel__mode-btn', { 'ai-panel__mode-btn--active': uploadMode === 'single' }]"
+                  type="button"
+                  @click="uploadMode = 'single'"
+                >
+                  Single file
+                </button>
+                <button
+                  :class="['ai-panel__mode-btn', { 'ai-panel__mode-btn--active': uploadMode === 'batch' }]"
+                  type="button"
+                  @click="uploadMode = 'batch'"
+                >
+                  Batch upload
+                </button>
+              </div>
+
+              <!-- Sequence Preview (after upload) -->
+              <div v-if="extractionSteps.length > 0" class="ai-panel__section">
+                <SequencePreview
+                  :steps="extractionSteps"
+                  :ontology-id="ontologyId"
+                  @apply="onApplySequence"
+                  @cancel="onApplyCancel"
+                />
+              </div>
+
+              <!-- Apply button (shown after preview) -->
+              <div v-if="showApplyButton && extractionSteps.length > 0" class="ai-panel__apply">
+                <ApplySequenceButton
+                  :ontology-id="ontologyId"
+                  :steps="extractionSteps"
+                  :disabled="extractionSteps.filter(s => s.included).length === 0"
+                  @apply-success="onApplySuccess"
+                  @apply-error="onApplyError"
+                />
+              </div>
+            </div>
+
+            <!-- Regular workspace view (hidden when AI panel is open) -->
+            <div v-if="!showAiPanel" class="workspace-row">
             <aside class="class-panel card-side">
               <div class="panel-tools">
                 <Search :size="14" class="muted" />
@@ -124,116 +198,210 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import { useQuery } from '@vue/apollo-composable'
-import { useRoute } from 'vue-router'
+import ApplySequenceButton from "@/components/ontology/ApplySequenceButton.vue";
+import BatchUploader from "@/components/ontology/BatchUploader.vue";
+import DocumentUploader from "@/components/ontology/DocumentUploader.vue";
+import SequencePreview from "@/components/ontology/SequencePreview.vue";
+import GraphVisualization from "@/components/organisms/GraphVisualization.vue";
+import { useQuery } from "@vue/apollo-composable";
 import {
-  ChevronRight,
-  Folder,
-  GripVertical,
-  Search
-} from 'lucide-vue-next'
-import GraphVisualization from '@/components/organisms/GraphVisualization.vue'
+	ChevronRight,
+	Folder,
+	GripVertical,
+	Search,
+	Zap,
+} from "lucide-vue-next";
+import { computed, ref, watch } from "vue";
+import { useRoute } from "vue-router";
 import {
-  ONTOLOGY_QUERY,
-  CLASS_TREE_QUERY,
-  LIST_INDIVIDUALS_QUERY
-} from '../apollo/queries'
+	CLASS_TREE_QUERY,
+	LIST_INDIVIDUALS_QUERY,
+	ONTOLOGY_QUERY,
+} from "../apollo/queries";
+import type { ExtractionPreview, SequenceStep } from "../types/extraction";
 
-const route = useRoute()
-const ontologyId = ref((route.params.id as string) || 'default')
-const selectedClassId = ref<string | null>(null)
-const selectedIndividualId = ref<string | null>(null)
-const viewMode = ref<'graph' | 'table'>('table')
+const route = useRoute();
+const ontologyId = ref((route.params.id as string) || "default");
+const selectedClassId = ref<string | null>(null);
+const selectedIndividualId = ref<string | null>(null);
+const viewMode = ref<"graph" | "table">("table");
+
+// ── AI Import Panel state ──────────────────────────────────────────────────
+
+const showAiPanel = ref(false);
+const uploadMode = ref<"single" | "batch">("single");
+const extractionSteps = ref<SequenceStep[]>([]);
+const showApplyButton = ref(false);
+
+function onUploadComplete(result: ExtractionPreview) {
+	console.info("[OntologyWorkspace] upload complete", {
+		steps: result.steps.length,
+	});
+	extractionSteps.value = result.steps.map((s) => ({ ...s, included: true }));
+	showApplyButton.value = true;
+}
+
+function onUploadError(error: { code: string; message: string } | string) {
+	const errMsg = typeof error === "string" ? error : error.message;
+	console.error("[OntologyWorkspace] upload error", {
+		message: errMsg,
+	});
+}
+
+function onApplySequence(steps: SequenceStep[]) {
+	// Steps flow through to ApplySequenceButton
+	console.debug("[OntologyWorkspace] ready to apply", {
+		stepCount: steps.filter((s) => s.included).length,
+	});
+}
+
+function onBatchComplete(result: { steps: SequenceStep[] }) {
+	console.info("[OntologyWorkspace] batch complete", {
+		steps: result.steps.length,
+	});
+	extractionSteps.value = result.steps.map((s) => ({ ...s, included: true }));
+	showApplyButton.value = true;
+}
+
+function onBatchReset() {
+	extractionSteps.value = [];
+	showApplyButton.value = false;
+}
+
+function onApplyCancel() {
+	extractionSteps.value = [];
+	showApplyButton.value = false;
+}
+
+function onApplySuccess(result: { commitId?: string; commitUrl?: string }) {
+	console.info("[OntologyWorkspace] apply success", {
+		commitId: result.commitId,
+	});
+	// Reset after successful apply
+	extractionSteps.value = [];
+	showApplyButton.value = false;
+	showAiPanel.value = false;
+}
+
+function onApplyError(error: string) {
+	console.error("[OntologyWorkspace] apply error", { error });
+}
 
 // ── Graph visualization data ───────────────────────────────────────────────────────────
 
 const graphNodes = computed(() => {
-  const nodes: Array<{ id: string; label: string; type: 'class' | 'property' | 'individual'; x: number; y: number }> = []
-  let idx = 0
-  // Add classes as nodes
-  for (const cls of classTree.value) {
-    nodes.push({ id: cls.id, label: cls.label, type: 'class', x: 50 + (idx % 5) * 200, y: 50 + Math.floor(idx / 5) * 80 })
-    idx++
-  }
-  // Add individuals as nodes
-  for (const ind of individuals.value) {
-    if (!ind.id) continue
-    nodes.push({ id: ind.id, label: ind.label || ind.id, type: 'individual', x: 50 + (idx % 5) * 200, y: 50 + Math.floor(idx / 5) * 80 })
-    idx++
-  }
-  return nodes
-})
+	const nodes: Array<{
+		id: string;
+		label: string;
+		type: "class" | "property" | "individual";
+		x: number;
+		y: number;
+	}> = [];
+	let idx = 0;
+	// Add classes as nodes
+	for (const cls of classTree.value) {
+		nodes.push({
+			id: cls.id,
+			label: cls.label,
+			type: "class",
+			x: 50 + (idx % 5) * 200,
+			y: 50 + Math.floor(idx / 5) * 80,
+		});
+		idx++;
+	}
+	// Add individuals as nodes
+	for (const ind of individuals.value) {
+		if (!ind.id) continue;
+		nodes.push({
+			id: ind.id,
+			label: ind.label || ind.id,
+			type: "individual",
+			x: 50 + (idx % 5) * 200,
+			y: 50 + Math.floor(idx / 5) * 80,
+		});
+		idx++;
+	}
+	return nodes;
+});
 
 const graphEdges = computed(() => {
-  const edges: Array<{ source: string; target: string; type: 'subclass_of' | 'object_property' | 'datatype_property' }> = []
-  for (const ind of individuals.value) {
-    if (ind.classId) {
-      edges.push({ source: ind.id, target: ind.classId, type: 'subclass_of' })
-    }
-  }
-  return edges
-})
+	const edges: Array<{
+		source: string;
+		target: string;
+		type: "subclass_of" | "object_property" | "datatype_property";
+	}> = [];
+	for (const ind of individuals.value) {
+		if (ind.classId) {
+			edges.push({ source: ind.id, target: ind.classId, type: "subclass_of" });
+		}
+	}
+	return edges;
+});
 
 function onGraphNodeClick(node: { id: string; label: string; type: string }) {
-  if (node.type === 'individual') {
-    selectedIndividualId.value = node.id
-  } else if (node.type === 'class') {
-    selectedClassId.value = node.id
-  }
+	if (node.type === "individual") {
+		selectedIndividualId.value = node.id;
+	} else if (node.type === "class") {
+		selectedClassId.value = node.id;
+	}
 }
 
 // ── Ontology metadata ────────────────────────────────────────────────────────────────
 
 const {
-  result: ontologyResult,
-  loading,
-  error
+	result: ontologyResult,
+	loading,
+	error,
 } = useQuery(ONTOLOGY_QUERY, () => ({ id: ontologyId.value }), {
-  fetchPolicy: 'cache-and-network'
-})
+	fetchPolicy: "cache-and-network",
+});
 
-const ontologyData = computed(() => ontologyResult.value?.ontology)
+const ontologyData = computed(() => ontologyResult.value?.ontology);
 
 // ── Class tree ───────────────────────────────────────────────────────────────────────
 
-const {
-  result: classTreeResult
-} = useQuery(CLASS_TREE_QUERY, () => ({ ontologyId: ontologyId.value }), {
-  fetchPolicy: 'cache-and-network'
-})
+const { result: classTreeResult } = useQuery(
+	CLASS_TREE_QUERY,
+	() => ({ ontologyId: ontologyId.value }),
+	{
+		fetchPolicy: "cache-and-network",
+	},
+);
 
-const classTree = computed(() => classTreeResult.value?.classTree || [])
+const classTree = computed(() => classTreeResult.value?.classTree || []);
 
 // ── Individuals by class ─────────────────────────────────────────────────────────────
 
-const {
-  result: individualsResult,
-  refetch: refetchIndividuals
-} = useQuery(LIST_INDIVIDUALS_QUERY, () => ({
-  ontologyId: ontologyId.value,
-  classId: selectedClassId.value || '',
-  page: 0,
-  perPage: 50
-}), {
-  fetchPolicy: 'cache-and-network',
-  enabled: computed(() => !!selectedClassId.value)
-})
+const { result: individualsResult, refetch: refetchIndividuals } = useQuery(
+	LIST_INDIVIDUALS_QUERY,
+	() => ({
+		ontologyId: ontologyId.value,
+		classId: selectedClassId.value || "",
+		page: 0,
+		perPage: 50,
+	}),
+	{
+		fetchPolicy: "cache-and-network",
+		enabled: computed(() => !!selectedClassId.value),
+	},
+);
 
-const individuals = computed(() => individualsResult.value?.individuals?.items || [])
+const individuals = computed(
+	() => individualsResult.value?.individuals?.items || [],
+);
 
 // ── Selection handling ────────────────────────────────────────────────────────────────
 
 function selectClass(classId: string) {
-  selectedClassId.value = classId
-  selectedIndividualId.value = null
+	selectedClassId.value = classId;
+	selectedIndividualId.value = null;
 }
 
 watch(selectedClassId, () => {
-  if (selectedClassId.value) {
-    refetchIndividuals()
-  }
-})
+	if (selectedClassId.value) {
+		refetchIndividuals();
+	}
+});
 </script>
 
 <style scoped>
@@ -326,6 +494,11 @@ watch(selectedClassId, () => {
 }
 
 .toolbar-spacer { flex: 1; }
+
+.toolbar-btn--active {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
 
 .toolbar-btn {
   height: 32px;
@@ -524,6 +697,73 @@ watch(selectedClassId, () => {
 .i-type--active { color: var(--primary); font-weight: 600; }
 
 .muted { color: var(--muted-foreground); }
+
+/* ── AI Import Panel ────────────────────────────────────────────────────── */
+
+.workspace-ai-panel {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-6, 24px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 16px);
+}
+
+.ai-panel__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1, 4px);
+}
+
+.ai-panel__title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: var(--font-size-lg, 16px);
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--text-primary, #fafafa);
+  margin: 0;
+}
+
+.ai-panel__desc {
+  font-size: var(--font-size-sm, 13px);
+  color: var(--text-muted, #64748b);
+  margin: 0;
+}
+
+.ai-panel__section {
+  /* Section wrapper */
+}
+
+.ai-panel__mode-toggle {
+  display: flex;
+  gap: var(--spacing-2, 8px);
+}
+
+.ai-panel__mode-btn {
+  padding: var(--spacing-1, 4px) var(--spacing-3, 12px);
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary, #6b7280);
+  font-size: var(--font-size-sm, 13px);
+  cursor: pointer;
+  transition: all var(--transition-fast, 0.15s);
+}
+
+.ai-panel__mode-btn:hover {
+  border-color: var(--primary, #10b981);
+  color: var(--text-primary, #fafafa);
+}
+
+.ai-panel__mode-btn--active {
+  background: var(--primary, #10b981);
+  border-color: var(--primary, #10b981);
+  color: var(--text-inverse, #0a0a0a);
+}
+
+.ai-panel__apply {
+  display: flex;
+  justify-content: flex-start;
+}
 
 @media (max-width: 1280px) {
   .group-sidebar,

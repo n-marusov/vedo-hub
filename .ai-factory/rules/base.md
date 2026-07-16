@@ -44,3 +44,23 @@
 - **Security tests:** BOLA/BFLA negative authorization tests (Python pytest + TypeScript vitest patterns)
 - **E2E tests:** Playwright for frontend at `tests/e2e/`
 - **Test boundaries:** Contract tests (per-service), integration tests (cross-service), security gates, platform integrity checks
+
+## TDD Compliance (Override Rule)
+
+**This rule overrides the `aif-implement` skill's general «NEVER write tests» instruction whenever a plan task explicitly includes test files or TDD requirements.**
+
+- When a plan task lists `.spec.ts`, `_test.go`, `_test.py`, `*_test.rs` or similar test files in its **«Files to create»** section, those test files MUST be created during implementation — they are not optional.
+- When a plan task has a **«Unit tests (TDD Rule 5)»** section describing what to test, those tests MUST be written as part of the task, not deferred or skipped.
+- **Priority:** Task-level requirements (explicit test files and TDD sections in the plan) take precedence over the general «NEVER write tests» rule in the agent skill.
+- This applies to ALL phases and ALL languages (Go, Rust, Python, TypeScript/Vue).
+
+## Verification Lint & Format Requirement
+
+**This rule overrides the conditional "If linters are configured" check in `$aif-verify` — lint and format checks are REQUIRED, not optional.**
+
+- TypeScript/Vue (frontend): Run `npx biome check` on changed files under `src/services/frontend/`.
+- Go services: Run `gofmt -l` and `golangci-lint run` on changed Go files.
+- Rust services: Run `cargo clippy` and `cargo fmt --check` on changed Rust crates.
+- Python services: Run `ruff check` on changed Python files.
+- If any check fails, the verification report MUST list specific errors with file:line references.
+- Exception: If a language toolchain is not available in the environment, emit WARN [lint] <tool> not available — skipping.
