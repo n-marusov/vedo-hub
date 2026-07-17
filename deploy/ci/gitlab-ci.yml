@@ -28,6 +28,29 @@ stages:
 
 # --- Lint Stage ---
 
+test-quality-gate:
+  stage: lint
+  image: alpine:3.19
+  before_script:
+    - apk add --no-cache grep findutils
+  script:
+    - chmod +x src/scripts/test-quality-gate.sh
+    - src/scripts/test-quality-gate.sh src/services
+  allow_failure: false
+  rules:
+    - changes:
+        - src/services/**/*_test.go
+        - src/services/**/*_test.rs
+        - src/services/**/tests/*.rs
+        - src/services/**/test_*.py
+        - src/services/**/*_test.py
+        - src/services/**/*.spec.ts
+        - src/services/**/*.test.ts
+        - src/services/**/*.go
+        - src/services/**/*.rs
+        - src/services/**/*.py
+        - src/services/**/*.ts
+
 frontend-lint:
   stage: lint
   image: node:20-alpine
