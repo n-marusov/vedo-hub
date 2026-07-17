@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     ONTOLOGY_SERVICE_URL: str = "ontology-service:9001"
     """gRPC target for the ontology-service ApplySequence RPC."""
 
+    AI_ORCHESTRATION_URL: str = "ai-orchestration-service:9014"
+    """gRPC target for the ai-orchestration-service CheckPolicy and LogLLMUsage RPCs."""
+
     # ─── LLM ─────────────────────────────────────────────────────────────────
     LLM_PROVIDER: str = "openai"
     """LLM provider name: openai, anthropic, or custom-compatible API."""

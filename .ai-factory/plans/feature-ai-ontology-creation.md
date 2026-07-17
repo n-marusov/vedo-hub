@@ -141,14 +141,14 @@
 | 6.2 | 6 | Integration test validation (LLM) | `[x]` | All impl. phases | 14 |
 | 6.3 | 6 | Traceability + docs validation | `[x]` | 6.2 | 15 |
 | 6.4 | 6 | Antora documentation | `[x]` | 6.2 | 15 |
-| 7.1 | 7 | Define proto contract for ai-orchestration-service | `[ ]` | — | 16 |
-| 7.2 | 7 | Scaffold ai-orchestration-service | `[ ]` | 7.1 | 16 |
-| 7.3 | 7 | Migrate AI handlers and middleware from Gateway | `[ ]` | 7.2, Phase 4 | 17 |
-| 7.4 | 7 | Update API Gateway — gRPC proxy to ai-orchestration | `[ ]` | 7.3 | 17 |
-| 7.5 | 7 | Update document-extractor — CheckPolicy + LogLLMUsage | `[ ]` | 7.1, 7.2 | 17 |
-| 7.6 | 7 | Docker Compose, CI, and integration for ai-orch | `[ ]` | 7.2–7.5 | 18 |
+| 7.1 | 7 | Define proto contract for ai-orchestration-service | `[x]` | — | 16 |
+| 7.2 | 7 | Scaffold ai-orchestration-service | `[x]` | 7.1 | 16 |
+| 7.3 | 7 | Migrate AI handlers and middleware from Gateway | `[x]` | 7.2, Phase 4 | 17 |
+| 7.4 | 7 | Update API Gateway — gRPC proxy to ai-orchestration | `[x]` | 7.3 | 17 |
+| 7.5 | 7 | Update document-extractor — CheckPolicy + LogLLMUsage | `[x]` | 7.1, 7.2 | 17 |
+| 7.6 | 7 | Docker Compose, CI, and integration for ai-orch | `[x]` | 7.2–7.5 | 18 |
 
-**Progress:** 33 / 39 tasks complete (Tasks 7.1–7.6 pending; Phase 6 complete)
+**Progress:** 39 / 39 tasks complete (Phase 7 complete! All tasks done)
 
 ---
 

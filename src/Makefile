@@ -41,7 +41,7 @@ help: ## Show this help message
 		/^[a-zA-Z_-]+:.*## / {printf "  \\033[36m%-22s\\033[0m %s\\n", $$1, $$2} \
 		/^##@/ {printf "\\n\\033[1m%s\\033[0m\\n", substr($$0, 5)}' $(MAKEFILE_LIST)
 
-STUB_SERVICES := api-gateway auth-service ontology-service versioning-service metrics-service publisher-service public-browse-api commenting-service ticket-api ticket-classifier ticket-telemetry-listener ticket-notifier frontend publish-browse-ui document-extractor
+STUB_SERVICES := api-gateway auth-service ontology-service versioning-service metrics-service publisher-service public-browse-api commenting-service ticket-api ticket-classifier ticket-telemetry-listener ticket-notifier frontend publish-browse-ui document-extractor ai-orchestration-service
 
 
 ##@ Proto — gRPC code generation
@@ -80,8 +80,34 @@ proto-generate-python: ## Generate Python gRPC stubs for document-extractor
 	@echo "[Proto] Python code generated to src/services/document-extractor/grpc_client/"
 	@echo "[Proto] Note: run 'pip install grpcio-tools' if grpc_tools is not available"
 
+.PHONY: proto-generate-ai-orchestration
+proto-generate-ai-orchestration: ## Generate Go gRPC stubs for ai-orchestration-service
+@echo "[Proto] generating ai-orchestration Go code..."
+@cd $(PROTO_DIR) && buf generate ai-orchestration/v1/ai_orchestration.proto
+@echo "[Proto] ai-orchestration Go code generated"
+
+.PHONY: proto-generate-ai-orchestration-python
+proto-generate-ai-orchestration-python: ## Generate Python gRPC stubs for ai-orchestration (document-extractor)
+@echo "[Proto] generating ai-orchestration Python code..."
+@cd $(PROTO_DIR) && python -m grpc_tools.protoc \
+	--proto_path=. \
+	--python_out=../../../../services/document-extractor/grpc_client \
+	--grpc_python_out=../../../../services/document-extractor/grpc_client \
+	common/v1/common.proto \
+	ai-orchestration/v1/ai_orchestration.proto
+@echo "[Proto] ai-orchestration Python code generated to src/services/document-extractor/grpc_client/"
+
 ##@ Build
 build: build-rust build-go build-python build-typescript ## Build all services (Rust, Go, Python, TypeScript)
+
+.PHONY: docker-build-ai-orchestration
+docker-build-ai-orchestration: ## Build ai-orchestration-service Docker image
+	@echo "[Docker] building ai-orchestration-service image"
+	@docker build \
+		-t vedo-core/ai-orchestration-service:latest \
+		-f $(ROOT)/services/ai-orchestration-service/Dockerfile \
+		$(ROOT)/services/ai-orchestration-service 2>&1 || { echo "BUILD_FAILED: docker build for ai-orchestration-service"; exit 1; }
+	@echo "[Docker] ai-orchestration-service image built"
 
 ##@ Lint
 lint: lint-rust lint-go lint-python lint-typescript lint-yaml ## Run all linters

@@ -13,7 +13,7 @@ import os
 import tempfile
 from typing import Any
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
 from pydantic import BaseModel
 
 from config import settings
@@ -26,6 +26,18 @@ from sequence.validator import validate_llm_response
 logger = logging.getLogger(settings.SERVICE_NAME)
 
 router = APIRouter()
+
+
+# ─── Helper to extract ontology context ─────────────────────────────────────────
+
+
+def _get_ontology_context(request: Request) -> tuple[str, str, str]:
+    """Extract ontology_id, user_id, and trace_id from request headers."""
+    ontology_id = request.headers.get("X-Ontology-Id", "")
+    user_id = request.headers.get("X-User-Id", "")
+    trace_id = request.headers.get("X-Trace-Id", request.headers.get("traceparent", ""))
+    return ontology_id, user_id, trace_id
+
 
 # ─── Request/Response Models ───────────────────────────────────────────────────
 
@@ -122,6 +134,7 @@ SUPPORTED_FORMATS = {
 
 @router.post("/documents/extract", response_model=ExtractResponse)
 async def extract_document(
+    request: Request,
     file: UploadFile = File(...),
 ):
     """Extract ontology structure from a single uploaded document.
@@ -129,10 +142,14 @@ async def extract_document(
     The pipeline:
     1. Save uploaded file to temp location
     2. Parse the file using the appropriate format parser
-    3. Send parsed content to LLM for ontology extraction
-    4. Validate the LLM response sequence
-    5. Return the validated sequence as a preview
+    3. Check LLM policy via ai-orchestration-service
+    4. Send parsed content to LLM for ontology extraction
+    5. Validate the LLM response sequence
+    6. Log LLM usage to ai-orchestration-service
+    7. Return the validated sequence as a preview
     """
+    # Extract ontology context from headers
+    ontology_id, user_id, trace_id = _get_ontology_context(request)
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file provided")
 
@@ -233,6 +250,9 @@ async def extract_document(
                         messages,
                         temperature=0.3,
                         max_tokens=4096,
+                        ontology_id=ontology_id,
+                        trace_id=trace_id,
+                        user_id=user_id,
                     )
 
                     # Step 4: Validate

@@ -101,11 +101,13 @@ docker compose \
 | Public Browse API | 8087 | 9011 | gRPC |
 | Ticket API | 8088 (CLI) | 9010 | HTTP + gRPC |
 | Document Extractor | 8092 | 9013 | gRPC |
+| AI Orchestration | 8093 | 9014 | gRPC |
 
 Ports 9006–9009 are reserved for future services.
 Port 9012 is reserved for Metrics Service gRPC (if needed).
+Port 9014 is the AI Orchestration Service gRPC endpoint.
 
-> **Internal communication** uses gRPC on ports 9001–9013.
+> **Internal communication** uses gRPC on ports 9001–9014.
 > **Health checks** remain on HTTP ports (8081–8092) for Docker health probes.
 > **External clients** connect to the API Gateway on port 8080 (REST/GraphQL).
 

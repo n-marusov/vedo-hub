@@ -53,6 +53,7 @@ See `.ai-factory/DESCRIPTION.md` for detailed project specification.
 │   │   ├── auth-service/        # Go — Authentication & authorization
 │   │   ├── commenting-service/  # Go — Commenting & collaboration
 │   │   ├── document-extractor/   # Python — AI document extraction & NL→OWL
+│   │   ├── ai-orchestration-service/ # Go — LLM orchestration, policy, audit, templates
 │   │   ├── frontend/            # Vue 3 — Web UI
 │   │   ├── metrics-service/     # Python — Metrics & analytics
 │   │   ├── ontology-service/    # Rust — Ontology CRUD & Neo4j

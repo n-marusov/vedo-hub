@@ -38,7 +38,8 @@ services:
   # API Gateway
   api-gateway:
     build:
-      context: ../src/services/api-gateway
+      context: ../src/services
+      dockerfile: api-gateway/Dockerfile
     ports:
       - "8080:8080"
     environment:
@@ -55,6 +56,7 @@ services:
       - GRPC_PUBLIC_BROWSE_ADDR=public-browse-api:9011
       - GRPC_TLS_ENABLED=${GRPC_TLS_ENABLED:-false}
       - GRPC_CA_CERT_FILE=${GRPC_CA_CERT_FILE:-}
+      - KEYCLOAK_JWKS_URL=http://keycloak:8080/realms/vedo-core/protocol/openid-connect/certs
     depends_on:
       ontology-service:
         condition: service_healthy
@@ -68,6 +70,10 @@ services:
         condition: service_healthy
       public-browse-api:
         condition: service_healthy
+      ai-orchestration-service:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
     networks:
       - vedo-network
     healthcheck:
@@ -77,9 +83,8 @@ services:
   # Rust Services
   ontology-service:
     build:
-      context: ../src/services/ontology-service
-    ports:
-      - "9001:9001"
+      context: ../src/services
+      dockerfile: ontology-service/Dockerfile
     expose:
       - "8082"
     environment:
@@ -104,7 +109,8 @@ services:
 
   versioning-service:
     build:
-      context: ../src/services/versioning-service
+      context: ../src/services
+      dockerfile: versioning-service/Dockerfile
     ports:
       - "9002:9002"
     expose:
@@ -125,11 +131,12 @@ services:
     # debian:bookworm-slim runtime has no wget/curl — use bash /dev/tcp
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/9002; printf "" >&3'"]
+      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/9002'"]
 
   auth-service:
     build:
-      context: ../src/services/auth-service
+      context: ../src/services
+      dockerfile: auth-service/Dockerfile
     ports:
       - "9003:9003"
     expose:
@@ -196,7 +203,8 @@ services:
   # Publishing — Rust publisher service
   publisher-service:
     build:
-      context: ../src/services/publisher-service
+      context: ../src/services
+      dockerfile: publisher-service/Dockerfile
     ports:
       - "9005:9005"
     expose:
@@ -213,12 +221,13 @@ services:
     # debian:bookworm-slim runtime has no wget/curl — use bash /dev/tcp
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/9005; printf "" >&3'"]
+      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/9005'"]
 
   # Public browse — Rust public read-only API
   public-browse-api:
     build:
-      context: ../src/services/public-browse-api
+      context: ../src/services
+      dockerfile: public-browse-api/Dockerfile
     ports:
       - "9011:9011"
     expose:
@@ -238,12 +247,13 @@ services:
     # debian:bookworm-slim runtime has no wget/curl — use bash /dev/tcp
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/9011; printf "" >&3'"]
+      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/9011'"]
 
   # Commenting — Go service
   commenting-service:
     build:
-      context: ../src/services/commenting-service
+      context: ../src/services
+      dockerfile: commenting-service/Dockerfile
     ports:
       - "9004:9004"
     expose:
@@ -265,7 +275,8 @@ services:
   # Ticket domain — Go (Gin) API
   ticket-api:
     build:
-      context: ../src/services/ticket-api
+      context: ../src/services
+      dockerfile: ticket-api/Dockerfile
     ports:
       - "9010:9010"
       - "8088:8088"
@@ -351,6 +362,31 @@ services:
     healthcheck:
       <<: *healthcheck-defaults
       test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/8092; printf \"GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3; grep -q \"200 OK\" <&3'"]
+
+  # AI Orchestration Service — Go gRPC service for LLM-powered features
+  ai-orchestration-service:
+    build:
+      context: ../src/services
+      dockerfile: ai-orchestration-service/Dockerfile
+    expose:
+      - "8093"   # HTTP health
+      - "9014"   # gRPC internal
+    environment:
+      - HOST=0.0.0.0
+      - GRPC_PORT=9014
+      - HEALTH_PORT=8093
+      - LLM_PROVIDER=${LLM_PROVIDER:-}
+      - LLM_API_KEY=${LLM_API_KEY:-}
+      - LLM_MODEL=${LLM_MODEL:-}
+      - REDIS_URL=redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - vedo-network
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8093/health"]
 
   # Ticket notifier — Go (Gin), reads STUB_PORT
   ticket-notifier:

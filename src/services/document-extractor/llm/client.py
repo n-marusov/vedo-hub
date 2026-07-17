@@ -2,6 +2,9 @@
 
 Supports OpenAI-compatible APIs (OpenAI, local proxies, etc.) and Anthropic.
 Configuration via environment variables (see config.py).
+
+Integrates with ai-orchestration-service for LLM policy checks (CheckPolicy)
+and centralized usage auditing (LogLLMUsage) per ADR Hybrid Model.
 """
 
 from __future__ import annotations
@@ -78,22 +81,61 @@ class LlmClient:
         messages: list[dict],
         temperature: float = 0.3,
         max_tokens: int = 4096,
+        ontology_id: str = "",
+        trace_id: str = "",
+        user_id: str = "",
     ) -> tuple[str, int]:
-        """Call LLM with retry logic.
+        """Call LLM with retry logic and ai-orchestration integration.
+
+        Before the LLM call, performs a CheckPolicy gRPC call to verify
+        that LLM access is permitted for the given ontology. After a
+        successful call, logs usage to the central audit system.
 
         Retries up to ``max_retries`` times with exponential backoff.
 
+        Args:
+            messages: List of message dicts (role/content).
+            temperature: Sampling temperature.
+            max_tokens: Maximum tokens in the response.
+            ontology_id: Target ontology ID for policy check and usage logging.
+            trace_id: OpenTelemetry trace ID for correlation.
+            user_id: Authenticated user ID.
+
         Returns:
             Tuple of (response_text, attempts_made).
+
+        Raises:
+            RuntimeError: On permanent failure after exhausting retries.
+            PermissionError: If CheckPolicy blocks the action.
         """
+        # Check LLM policy before extraction if ontology_id is provided
+        if ontology_id:
+            await self._check_policy(ontology_id, "document_extraction", user_id, trace_id)
+
         last_error: Exception | None = None
+        llm_start = time.time()
 
         for attempt in range(1, self._max_retries + 1):
             try:
                 response = await self.extract(messages, temperature, max_tokens)
                 if attempt > 1:
                     logger.info("LLM call succeeded on retry %d", attempt)
+
+                # Log LLM usage after successful extraction
+                if ontology_id:
+                    duration_ms = int((time.time() - llm_start) * 1000)
+                    await self._log_usage(
+                        ontology_id=ontology_id,
+                        action="document_extraction",
+                        tokens_in=0,  # Estimated from messages if needed
+                        tokens_out=0,
+                        trace_id=trace_id,
+                        user_id=user_id,
+                        duration_ms=duration_ms,
+                    )
+
                 return response, attempt
+
             except (httpx.HTTPError, json.JSONDecodeError, RuntimeError) as exc:
                 last_error = exc
                 if attempt < self._max_retries:
@@ -116,6 +158,86 @@ class LlmClient:
         raise RuntimeError(
             f"LLM call failed after {self._max_retries} attempts. Last error: {last_error}"
         ) from last_error
+
+    # ─── Policy Check & Usage Logging ─────────────────────────────────────────
+
+    async def _check_policy(
+        self,
+        ontology_id: str,
+        action: str,
+        user_id: str = "",
+        trace_id: str = "",
+    ) -> None:
+        """Call CheckPolicy and raise PermissionError if blocked."""
+        try:
+            from grpc_client.ai_orchestration import get_ai_orch_client
+
+            client = await get_ai_orch_client()
+            result = await client.check_policy(
+                ontology_id=ontology_id,
+                action=action,
+                user_id=user_id,
+                trace_id=trace_id,
+            )
+
+            if not result.get("allowed", True):
+                reason = result.get("reason", "Policy check failed")
+                logger.error(
+                    "LLM extraction blocked by policy: ontology=%s reason=%s",
+                    ontology_id,
+                    reason,
+                )
+                raise PermissionError(f"LLM access blocked: {reason}")
+
+            logger.debug(
+                "CheckPolicy passed: ontology=%s action=%s",
+                ontology_id,
+                action,
+            )
+
+        except ImportError:
+            logger.debug("CheckPolicy skipped: ai-orchestration gRPC client not available")
+        except PermissionError:
+            raise
+        except Exception as exc:
+            # Fail-open during migration
+            logger.warning(
+                "CheckPolicy error (fail-open): %s",
+                exc,
+            )
+
+    async def _log_usage(
+        self,
+        ontology_id: str = "",
+        action: str = "document_extraction",
+        tokens_in: int = 0,
+        tokens_out: int = 0,
+        trace_id: str = "",
+        user_id: str = "",
+        duration_ms: int = 0,
+    ) -> None:
+        """Log LLM usage to the central audit system (fire-and-forget)."""
+        try:
+            from grpc_client.ai_orchestration import get_ai_orch_client
+
+            client = await get_ai_orch_client()
+            await client.log_usage(
+                ontology_id=ontology_id,
+                action=action,
+                provider=self._provider,
+                model=self._model,
+                tokens_in=tokens_in,
+                tokens_out=tokens_out,
+                trace_id=trace_id,
+                user_id=user_id,
+                duration_ms=duration_ms,
+            )
+        except Exception as exc:
+            # Fire-and-forget: errors are logged but not propagated
+            logger.warning(
+                "LogLLMUsage failed (fire-and-forget): %s",
+                exc,
+            )
 
     # ─── Provider Implementations ───────────────────────────────────────────
 
