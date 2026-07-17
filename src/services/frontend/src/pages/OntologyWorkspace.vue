@@ -198,210 +198,198 @@
 </template>
 
 <script setup lang="ts">
-import ApplySequenceButton from "@/components/ontology/ApplySequenceButton.vue";
-import BatchUploader from "@/components/ontology/BatchUploader.vue";
-import DocumentUploader from "@/components/ontology/DocumentUploader.vue";
-import SequencePreview from "@/components/ontology/SequencePreview.vue";
-import GraphVisualization from "@/components/organisms/GraphVisualization.vue";
-import { useQuery } from "@vue/apollo-composable";
-import {
-	ChevronRight,
-	Folder,
-	GripVertical,
-	Search,
-	Zap,
-} from "lucide-vue-next";
-import { computed, ref, watch } from "vue";
-import { useRoute } from "vue-router";
-import {
-	CLASS_TREE_QUERY,
-	LIST_INDIVIDUALS_QUERY,
-	ONTOLOGY_QUERY,
-} from "../apollo/queries";
-import type { ExtractionPreview, SequenceStep } from "../types/extraction";
+import ApplySequenceButton from '@/components/ontology/ApplySequenceButton.vue'
+import BatchUploader from '@/components/ontology/BatchUploader.vue'
+import DocumentUploader from '@/components/ontology/DocumentUploader.vue'
+import SequencePreview from '@/components/ontology/SequencePreview.vue'
+import GraphVisualization from '@/components/organisms/GraphVisualization.vue'
+import { useQuery } from '@vue/apollo-composable'
+import { ChevronRight, Folder, GripVertical, Search, Zap } from 'lucide-vue-next'
+import { computed, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { CLASS_TREE_QUERY, LIST_INDIVIDUALS_QUERY, ONTOLOGY_QUERY } from '../apollo/queries'
+import type { ExtractionPreview, SequenceStep } from '../types/extraction'
 
-const route = useRoute();
-const ontologyId = ref((route.params.id as string) || "default");
-const selectedClassId = ref<string | null>(null);
-const selectedIndividualId = ref<string | null>(null);
-const viewMode = ref<"graph" | "table">("table");
+const route = useRoute()
+const ontologyId = ref((route.params.id as string) || 'default')
+const selectedClassId = ref<string | null>(null)
+const selectedIndividualId = ref<string | null>(null)
+const viewMode = ref<'graph' | 'table'>('table')
 
 // ── AI Import Panel state ──────────────────────────────────────────────────
 
-const showAiPanel = ref(false);
-const uploadMode = ref<"single" | "batch">("single");
-const extractionSteps = ref<SequenceStep[]>([]);
-const showApplyButton = ref(false);
+const showAiPanel = ref(false)
+const uploadMode = ref<'single' | 'batch'>('single')
+const extractionSteps = ref<SequenceStep[]>([])
+const showApplyButton = ref(false)
 
 function onUploadComplete(result: ExtractionPreview) {
-	console.info("[OntologyWorkspace] upload complete", {
-		steps: result.steps.length,
-	});
-	extractionSteps.value = result.steps.map((s) => ({ ...s, included: true }));
-	showApplyButton.value = true;
+  console.info('[OntologyWorkspace] upload complete', {
+    steps: result.steps.length
+  })
+  extractionSteps.value = result.steps.map((s) => ({ ...s, included: true }))
+  showApplyButton.value = true
 }
 
 function onUploadError(error: { code: string; message: string } | string) {
-	const errMsg = typeof error === "string" ? error : error.message;
-	console.error("[OntologyWorkspace] upload error", {
-		message: errMsg,
-	});
+  const errMsg = typeof error === 'string' ? error : error.message
+  console.error('[OntologyWorkspace] upload error', {
+    message: errMsg
+  })
 }
 
 function onApplySequence(steps: SequenceStep[]) {
-	// Steps flow through to ApplySequenceButton
-	console.debug("[OntologyWorkspace] ready to apply", {
-		stepCount: steps.filter((s) => s.included).length,
-	});
+  // Steps flow through to ApplySequenceButton
+  console.debug('[OntologyWorkspace] ready to apply', {
+    stepCount: steps.filter((s) => s.included).length
+  })
 }
 
 function onBatchComplete(result: { steps: SequenceStep[] }) {
-	console.info("[OntologyWorkspace] batch complete", {
-		steps: result.steps.length,
-	});
-	extractionSteps.value = result.steps.map((s) => ({ ...s, included: true }));
-	showApplyButton.value = true;
+  console.info('[OntologyWorkspace] batch complete', {
+    steps: result.steps.length
+  })
+  extractionSteps.value = result.steps.map((s) => ({ ...s, included: true }))
+  showApplyButton.value = true
 }
 
 function onBatchReset() {
-	extractionSteps.value = [];
-	showApplyButton.value = false;
+  extractionSteps.value = []
+  showApplyButton.value = false
 }
 
 function onApplyCancel() {
-	extractionSteps.value = [];
-	showApplyButton.value = false;
+  extractionSteps.value = []
+  showApplyButton.value = false
 }
 
 function onApplySuccess(result: { commitId?: string; commitUrl?: string }) {
-	console.info("[OntologyWorkspace] apply success", {
-		commitId: result.commitId,
-	});
-	// Reset after successful apply
-	extractionSteps.value = [];
-	showApplyButton.value = false;
-	showAiPanel.value = false;
+  console.info('[OntologyWorkspace] apply success', {
+    commitId: result.commitId
+  })
+  // Reset after successful apply
+  extractionSteps.value = []
+  showApplyButton.value = false
+  showAiPanel.value = false
 }
 
 function onApplyError(error: string) {
-	console.error("[OntologyWorkspace] apply error", { error });
+  console.error('[OntologyWorkspace] apply error', { error })
 }
 
 // ── Graph visualization data ───────────────────────────────────────────────────────────
 
 const graphNodes = computed(() => {
-	const nodes: Array<{
-		id: string;
-		label: string;
-		type: "class" | "property" | "individual";
-		x: number;
-		y: number;
-	}> = [];
-	let idx = 0;
-	// Add classes as nodes
-	for (const cls of classTree.value) {
-		nodes.push({
-			id: cls.id,
-			label: cls.label,
-			type: "class",
-			x: 50 + (idx % 5) * 200,
-			y: 50 + Math.floor(idx / 5) * 80,
-		});
-		idx++;
-	}
-	// Add individuals as nodes
-	for (const ind of individuals.value) {
-		if (!ind.id) continue;
-		nodes.push({
-			id: ind.id,
-			label: ind.label || ind.id,
-			type: "individual",
-			x: 50 + (idx % 5) * 200,
-			y: 50 + Math.floor(idx / 5) * 80,
-		});
-		idx++;
-	}
-	return nodes;
-});
+  const nodes: Array<{
+    id: string
+    label: string
+    type: 'class' | 'property' | 'individual'
+    x: number
+    y: number
+  }> = []
+  let idx = 0
+  // Add classes as nodes
+  for (const cls of classTree.value) {
+    nodes.push({
+      id: cls.id,
+      label: cls.label,
+      type: 'class',
+      x: 50 + (idx % 5) * 200,
+      y: 50 + Math.floor(idx / 5) * 80
+    })
+    idx++
+  }
+  // Add individuals as nodes
+  for (const ind of individuals.value) {
+    if (!ind.id) continue
+    nodes.push({
+      id: ind.id,
+      label: ind.label || ind.id,
+      type: 'individual',
+      x: 50 + (idx % 5) * 200,
+      y: 50 + Math.floor(idx / 5) * 80
+    })
+    idx++
+  }
+  return nodes
+})
 
 const graphEdges = computed(() => {
-	const edges: Array<{
-		source: string;
-		target: string;
-		type: "subclass_of" | "object_property" | "datatype_property";
-	}> = [];
-	for (const ind of individuals.value) {
-		if (ind.classId) {
-			edges.push({ source: ind.id, target: ind.classId, type: "subclass_of" });
-		}
-	}
-	return edges;
-});
+  const edges: Array<{
+    source: string
+    target: string
+    type: 'subclass_of' | 'object_property' | 'datatype_property'
+  }> = []
+  for (const ind of individuals.value) {
+    if (ind.classId) {
+      edges.push({ source: ind.id, target: ind.classId, type: 'subclass_of' })
+    }
+  }
+  return edges
+})
 
 function onGraphNodeClick(node: { id: string; label: string; type: string }) {
-	if (node.type === "individual") {
-		selectedIndividualId.value = node.id;
-	} else if (node.type === "class") {
-		selectedClassId.value = node.id;
-	}
+  if (node.type === 'individual') {
+    selectedIndividualId.value = node.id
+  } else if (node.type === 'class') {
+    selectedClassId.value = node.id
+  }
 }
 
 // ── Ontology metadata ────────────────────────────────────────────────────────────────
 
 const {
-	result: ontologyResult,
-	loading,
-	error,
+  result: ontologyResult,
+  loading,
+  error
 } = useQuery(ONTOLOGY_QUERY, () => ({ id: ontologyId.value }), {
-	fetchPolicy: "cache-and-network",
-});
+  fetchPolicy: 'cache-and-network'
+})
 
-const ontologyData = computed(() => ontologyResult.value?.ontology);
+const ontologyData = computed(() => ontologyResult.value?.ontology)
 
 // ── Class tree ───────────────────────────────────────────────────────────────────────
 
 const { result: classTreeResult } = useQuery(
-	CLASS_TREE_QUERY,
-	() => ({ ontologyId: ontologyId.value }),
-	{
-		fetchPolicy: "cache-and-network",
-	},
-);
+  CLASS_TREE_QUERY,
+  () => ({ ontologyId: ontologyId.value }),
+  {
+    fetchPolicy: 'cache-and-network'
+  }
+)
 
-const classTree = computed(() => classTreeResult.value?.classTree || []);
+const classTree = computed(() => classTreeResult.value?.classTree || [])
 
 // ── Individuals by class ─────────────────────────────────────────────────────────────
 
 const { result: individualsResult, refetch: refetchIndividuals } = useQuery(
-	LIST_INDIVIDUALS_QUERY,
-	() => ({
-		ontologyId: ontologyId.value,
-		classId: selectedClassId.value || "",
-		page: 0,
-		perPage: 50,
-	}),
-	{
-		fetchPolicy: "cache-and-network",
-		enabled: computed(() => !!selectedClassId.value),
-	},
-);
+  LIST_INDIVIDUALS_QUERY,
+  () => ({
+    ontologyId: ontologyId.value,
+    classId: selectedClassId.value || '',
+    page: 0,
+    perPage: 50
+  }),
+  {
+    fetchPolicy: 'cache-and-network',
+    enabled: computed(() => !!selectedClassId.value)
+  }
+)
 
-const individuals = computed(
-	() => individualsResult.value?.individuals?.items || [],
-);
+const individuals = computed(() => individualsResult.value?.individuals?.items || [])
 
 // ── Selection handling ────────────────────────────────────────────────────────────────
 
 function selectClass(classId: string) {
-	selectedClassId.value = classId;
-	selectedIndividualId.value = null;
+  selectedClassId.value = classId
+  selectedIndividualId.value = null
 }
 
 watch(selectedClassId, () => {
-	if (selectedClassId.value) {
-		refetchIndividuals();
-	}
-});
+  if (selectedClassId.value) {
+    refetchIndividuals()
+  }
+})
 </script>
 
 <style scoped>

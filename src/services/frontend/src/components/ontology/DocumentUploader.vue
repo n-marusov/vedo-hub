@@ -87,210 +87,203 @@
 </template>
 
 <script setup lang="ts">
-import { AlertCircle, CheckCircle, FileText, Upload } from "lucide-vue-next";
-import { computed, ref } from "vue";
-import {
-	ALLOWED_FORMATS,
-	FORMAT_LABELS,
-	uploadDocument,
-} from "../../api/extraction";
-import type {
-	ExtractionError,
-	ExtractionPreview,
-} from "../../types/extraction";
+import { AlertCircle, CheckCircle, FileText, Upload } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
+import { ALLOWED_FORMATS, FORMAT_LABELS, uploadDocument } from '../../api/extraction'
+import type { ExtractionError, ExtractionPreview } from '../../types/extraction'
 
 const props = defineProps<{
-	ontologyId: string;
-	maxFileSizeMb?: number;
-	allowedFormats?: string[];
-	mode?: "single" | "batch";
-}>();
+  ontologyId: string
+  maxFileSizeMb?: number
+  allowedFormats?: string[]
+  mode?: 'single' | 'batch'
+}>()
 
 const emit = defineEmits<{
-	"upload-complete": [result: ExtractionPreview];
-	"upload-error": [error: ExtractionError];
-	"upload-progress": [progress: number];
-}>();
+  'upload-complete': [result: ExtractionPreview]
+  'upload-error': [error: ExtractionError]
+  'upload-progress': [progress: number]
+}>()
 
 // ── State ──────────────────────────────────────────────────────────────────
 
-type UploadState = "idle" | "uploading" | "success" | "error";
+type UploadState = 'idle' | 'uploading' | 'success' | 'error'
 
-const state = ref<UploadState>("idle");
-const isDragOver = ref(false);
-const uploadProgress = ref(0);
-const currentFileName = ref("");
-const currentFileSize = ref("");
-const localError = ref<ExtractionError | null>(null);
-const pendingFile = ref<File | null>(null);
-const lastResult = ref<ExtractionPreview | null>(null);
-const stepCount = ref(0);
-const fileInputRef = ref<HTMLInputElement | null>(null);
+const state = ref<UploadState>('idle')
+const isDragOver = ref(false)
+const uploadProgress = ref(0)
+const currentFileName = ref('')
+const currentFileSize = ref('')
+const localError = ref<ExtractionError | null>(null)
+const pendingFile = ref<File | null>(null)
+const lastResult = ref<ExtractionPreview | null>(null)
+const stepCount = ref(0)
+const fileInputRef = ref<HTMLInputElement | null>(null)
 
-const maxSize = computed(() => props.maxFileSizeMb ?? 20);
-const formats = computed(() => props.allowedFormats ?? ALLOWED_FORMATS);
-const acceptedExtensions = computed(() => formats.value.join(","));
+const maxSize = computed(() => props.maxFileSizeMb ?? 20)
+const formats = computed(() => props.allowedFormats ?? ALLOWED_FORMATS)
+const acceptedExtensions = computed(() => formats.value.join(','))
 const formatList = computed(() => {
-	return formats.value.map((f) => FORMAT_LABELS[f] || f).join(", ");
-});
-const disabled = computed(() => state.value === "uploading");
+  return formats.value.map((f) => FORMAT_LABELS[f] || f).join(', ')
+})
+const disabled = computed(() => state.value === 'uploading')
 
 // ── File validation ─────────────────────────────────────────────────────────
 
 function validateFile(file: File): string | null {
-	const ext = `.${file.name.split(".").pop()?.toLowerCase()}`;
+  const ext = `.${file.name.split('.').pop()?.toLowerCase()}`
 
-	if (!formats.value.includes(ext)) {
-		return `Unsupported format "${ext}". Allowed: ${formatList.value}`;
-	}
+  if (!formats.value.includes(ext)) {
+    return `Unsupported format "${ext}". Allowed: ${formatList.value}`
+  }
 
-	const maxBytes = maxSize.value * 1024 * 1024;
-	if (file.size > maxBytes) {
-		return `File too large (${formatFileSize(file.size)}). Maximum: ${maxSize.value} MB`;
-	}
+  const maxBytes = maxSize.value * 1024 * 1024
+  if (file.size > maxBytes) {
+    return `File too large (${formatFileSize(file.size)}). Maximum: ${maxSize.value} MB`
+  }
 
-	if (file.size === 0) {
-		return "File is empty";
-	}
+  if (file.size === 0) {
+    return 'File is empty'
+  }
 
-	return null;
+  return null
 }
 
 function formatFileSize(bytes: number): string {
-	if (bytes < 1024) return `${bytes} B`;
-	if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-	return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
 // ── Drag & drop handlers ────────────────────────────────────────────────────
 
-let dragCounter = 0;
+let dragCounter = 0
 
 function onDragEnter() {
-	if (disabled.value) return;
-	dragCounter++;
-	isDragOver.value = true;
+  if (disabled.value) return
+  dragCounter++
+  isDragOver.value = true
 }
 
 function onDragOver() {
-	if (disabled.value) return;
-	isDragOver.value = true;
+  if (disabled.value) return
+  isDragOver.value = true
 }
 
 function onDragLeave() {
-	dragCounter--;
-	if (dragCounter <= 0) {
-		dragCounter = 0;
-		isDragOver.value = false;
-	}
+  dragCounter--
+  if (dragCounter <= 0) {
+    dragCounter = 0
+    isDragOver.value = false
+  }
 }
 
 function onDrop(event: DragEvent) {
-	dragCounter = 0;
-	isDragOver.value = false;
+  dragCounter = 0
+  isDragOver.value = false
 
-	if (disabled.value) return;
+  if (disabled.value) return
 
-	const files = event.dataTransfer?.files;
-	if (!files || files.length === 0) return;
+  const files = event.dataTransfer?.files
+  if (!files || files.length === 0) return
 
-	handleFile(files[0]);
+  handleFile(files[0])
 }
 
 // ── Browse handlers ─────────────────────────────────────────────────────────
 
 function onBrowseClick() {
-	if (disabled.value) return;
-	fileInputRef.value?.click();
+  if (disabled.value) return
+  fileInputRef.value?.click()
 }
 
 function onFileSelected(event: Event) {
-	const input = event.target as HTMLInputElement;
-	const file = input.files?.[0];
-	if (file) {
-		handleFile(file);
-	}
-	input.value = "";
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (file) {
+    handleFile(file)
+  }
+  input.value = ''
 }
 
 // ── Upload logic ────────────────────────────────────────────────────────────
 
 async function handleFile(file: File) {
-	const validationError = validateFile(file);
-	if (validationError) {
-		const err: ExtractionError = {
-			code: "VALIDATION_FAILED",
-			message: validationError,
-		};
-		console.warn("[DocumentUploader] validation failed", {
-			fileName: file.name,
-			fileSize: file.size,
-			error: validationError,
-		});
-		localError.value = err;
-		state.value = "error";
-		emit("upload-error", err);
-		return;
-	}
+  const validationError = validateFile(file)
+  if (validationError) {
+    const err: ExtractionError = {
+      code: 'VALIDATION_FAILED',
+      message: validationError
+    }
+    console.warn('[DocumentUploader] validation failed', {
+      fileName: file.name,
+      fileSize: file.size,
+      error: validationError
+    })
+    localError.value = err
+    state.value = 'error'
+    emit('upload-error', err)
+    return
+  }
 
-	pendingFile.value = file;
-	currentFileName.value = file.name;
-	currentFileSize.value = formatFileSize(file.size);
-	state.value = "uploading";
-	uploadProgress.value = 0;
+  pendingFile.value = file
+  currentFileName.value = file.name
+  currentFileSize.value = formatFileSize(file.size)
+  state.value = 'uploading'
+  uploadProgress.value = 0
 
-	try {
-		console.debug("[DocumentUploader] starting upload", {
-			fileName: file.name,
-			fileSize: file.size,
-		});
+  try {
+    console.debug('[DocumentUploader] starting upload', {
+      fileName: file.name,
+      fileSize: file.size
+    })
 
-		const preview = await uploadDocument({
-			ontologyId: props.ontologyId,
-			file,
-			onProgress: (pct) => {
-				uploadProgress.value = pct;
-				emit("upload-progress", pct);
-			},
-		});
+    const preview = await uploadDocument({
+      ontologyId: props.ontologyId,
+      file,
+      onProgress: (pct) => {
+        uploadProgress.value = pct
+        emit('upload-progress', pct)
+      }
+    })
 
-		console.info("[DocumentUploader] upload complete", {
-			fileName: file.name,
-			steps: preview.steps.length,
-		});
+    console.info('[DocumentUploader] upload complete', {
+      fileName: file.name,
+      steps: preview.steps.length
+    })
 
-		lastResult.value = preview;
-		stepCount.value = preview.totalSteps;
-		state.value = "success";
-		emit("upload-complete", preview);
-	} catch (error) {
-		const err = error as ExtractionError;
-		localError.value = err;
-		state.value = "error";
-		emit("upload-error", err);
-	}
+    lastResult.value = preview
+    stepCount.value = preview.totalSteps
+    state.value = 'success'
+    emit('upload-complete', preview)
+  } catch (error) {
+    const err = error as ExtractionError
+    localError.value = err
+    state.value = 'error'
+    emit('upload-error', err)
+  }
 }
 
 function retryUpload() {
-	if (pendingFile.value) {
-		handleFile(pendingFile.value);
-	}
+  if (pendingFile.value) {
+    handleFile(pendingFile.value)
+  }
 }
 
 function dismissError() {
-	localError.value = null;
-	state.value = "idle";
-	pendingFile.value = null;
-	uploadProgress.value = 0;
+  localError.value = null
+  state.value = 'idle'
+  pendingFile.value = null
+  uploadProgress.value = 0
 }
 
 function resetUpload() {
-	lastResult.value = null;
-	stepCount.value = 0;
-	currentFileName.value = "";
-	currentFileSize.value = "";
-	uploadProgress.value = 0;
-	state.value = "idle";
+  lastResult.value = null
+  stepCount.value = 0
+  currentFileName.value = ''
+  currentFileSize.value = ''
+  uploadProgress.value = 0
+  state.value = 'idle'
 }
 </script>
 
