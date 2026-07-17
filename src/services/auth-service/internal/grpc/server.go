@@ -31,7 +31,7 @@ package grpcserver
 //		return nil, status.Errorf(codes.Unimplemented, "method GetUserRoles not implemented")
 //	}
 //
+//
 //	func (s *AuthGrpcServer) ListPermissions(ctx context.Context, req *authv1.ListPermissionsRequest) (*authv1.ListPermissionsResponse, error) {
 //		return nil, status.Errorf(codes.Unimplemented, "method ListPermissions not implemented")
 //	}
-package grpcserver

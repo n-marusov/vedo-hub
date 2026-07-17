@@ -11,6 +11,23 @@ import (
 	"time"
 )
 
+// writeJSON writes a JSON response with the given status code.
+func writeJSON(w http.ResponseWriter, status int, data interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		slog.Warn("[FIX] writeJSON encode error", "error", err)
+	}
+}
+
+// getUserID extracts the user ID from the request context or X-User-ID header.
+func getUserID(r *http.Request) string {
+	if uid := r.Header.Get("X-User-ID"); uid != "" {
+		return uid
+	}
+	return ""
+}
+
 // commentHandlers groups HTTP handler methods for comment CRUD operations.
 type commentHandlers struct {
 	store *CommentStore

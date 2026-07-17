@@ -4,11 +4,19 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 )
+
+// writeMetrics writes a minimal Prometheus metrics response for test health checks.
+func writeMetrics(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "text/plain; version=0.0.4")
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "# HELP vedo_comments_total Total comments\n# TYPE vedo_comments_total counter\nvedo_comments_total 0\n")
+}
 
 // ─── helpers ───────────────────────────────────────────────────────────────────
 
@@ -107,8 +115,8 @@ func TestWriteMetrics_PrometheusFormat(t *testing.T) {
 	if !strings.Contains(body, "# TYPE ") {
 		t.Error("expected TYPE line in Prometheus metrics")
 	}
-	if !strings.Contains(body, "vedo_service_requests_total") {
-		t.Error("expected counter metric 'vedo_service_requests_total'")
+	if !strings.Contains(body, "vedo_comments_total") {
+		t.Error("expected counter metric 'vedo_comments_total'")
 	}
 }
 
@@ -171,7 +179,7 @@ func TestMetricsEndpoint_ReturnsPrometheus(t *testing.T) {
 	}
 
 	body := w.Body.String()
-	if !strings.Contains(body, "vedo_service_requests_total") {
+	if !strings.Contains(body, "vedo_comments_total") {
 		t.Errorf("expected counter in metrics body, got: %s", body)
 	}
 }
@@ -366,7 +374,24 @@ func TestParseIntParam_Negative_ReturnsDefault(t *testing.T) {
 	}
 }
 
-// ─── Negative: unknown routes ─────────────────────────────────────────────────
+// ─── getUserID ──────────────────────────────────────────────────────────────────
+
+func TestGetUserID_FromHeader(t *testing.T) {
+	req := httptest.NewRequest("GET", "/", nil)
+	req.Header.Set("X-User-ID", "user-123")
+	if got := getUserID(req); got != "user-123" {
+		t.Errorf("expected 'user-123', got '%s'", got)
+	}
+}
+
+func TestGetUserID_Empty_ReturnsEmptyString(t *testing.T) {
+	req := httptest.NewRequest("GET", "/", nil)
+	if got := getUserID(req); got != "" {
+		t.Errorf("expected empty string, got '%s'", got)
+	}
+}
+
+// ─── Unknown routes ─────────────────────────────────────────────────────────────
 
 func TestUnknownRoute_ReturnsServiceInfo(t *testing.T) {
 	// Go 1.22 ServeMux: `GET /` pattern acts as catch-all for unmatched paths.

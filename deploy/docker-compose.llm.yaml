@@ -1,0 +1,37 @@
+name: vedo-core-llm
+
+# =============================================================================
+# LLM Service Overrides for Local Development
+# =============================================================================
+# Use this file to run a local LLM (e.g., Ollama) alongside VEDO Core for
+# development and testing of AI-assisted ontology features.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.llm.yaml up -d
+#
+# After startup, configure the document-extractor to use the local LLM:
+#   export LLM_PROVIDER=ollama
+#   export LLM_PROVIDERS_OLLAMA_BASE_URL=http://ollama:11434/v1
+#   export LLM_PROVIDERS_OLLAMA_MODEL=llama3
+# =============================================================================
+
+services:
+  # Ollama — local LLM server for development and testing
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["llm"]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - vedo-network
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list 2>/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+volumes:
+  ollama_data:

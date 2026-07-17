@@ -1,8 +1,10 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
+use tonic::transport::server::TlsConfig;
 use tonic::transport::Server;
 use tracing::info;
 use vedo_shared::protos::public_browse::v1::public_browse_service_server::PublicBrowseServiceServer;
+use vedo_shared::tls;
 
 mod grpc;
 
@@ -28,9 +30,21 @@ async fn main() {
     let grpc_addr: SocketAddr = format!("0.0.0.0:{grpc_port}")
         .parse()
         .expect("invalid gRPC address");
+
+    // Configure TLS for gRPC server if enabled
+    let grpc_builder = Server::builder();
+    let grpc_builder = if let Some(identity) = tls::load_grpc_identity().await {
+        let tls_config = TlsConfig::new().identity(identity);
+        grpc_builder
+            .tls_config(tls_config)
+            .expect("invalid gRPC TLS config")
+    } else {
+        grpc_builder
+    };
+
     let grpc_task = tokio::spawn(async move {
         info!(grpc_port = %grpc_port_clone, "Starting public-browse-api gRPC server");
-        Server::builder()
+        grpc_builder
             .add_service(grpc_svc)
             .serve(grpc_addr)
             .await

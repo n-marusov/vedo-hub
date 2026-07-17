@@ -433,6 +433,16 @@ base:code/document-extractor-validator a vdo:CodeArtifact ;
     rdfs:comment "Validate LLM output: JSON parse, operation types, entity reference consistency, circular reference detection"@en ;
     vdo:filePath "src/services/document-extractor/sequence/validator.py" .
 
+base:code/document-extractor-dockerignore a vdo:CodeArtifact ;
+    rdfs:label "Document Extractor .dockerignore"@en ;
+    rdfs:comment "Docker build context exclusions for document-extractor service"@en ;
+    vdo:filePath "src/services/document-extractor/.dockerignore" .
+
+base:code/vedo-shared-tls a vdo:CodeArtifact ;
+    rdfs:label "VEDO Shared TLS Module"@en ;
+    rdfs:comment "Shared TLS configuration helper for Rust gRPC servers"@en ;
+    vdo:filePath "src/services/shared/src/tls.rs" .
+
 base:code/document-extractor-api-routes a vdo:CodeArtifact ;
     rdfs:label "Document Extractor — API Routes"@en ;
     rdfs:comment "FastAPI routes: POST /documents/extract, /documents/apply, /documents/validate"@en ;
@@ -831,12 +841,17 @@ base:deploy/docker-compose a vdo:DeploymentConfig ;
     rdfs:comment "All-services Docker Compose orchestration"@en ;
     vdo:filePath "deploy/docker-compose.yml" ;
     vdo:deploys base:service/api-gateway, base:service/ontology-service, base:service/versioning-service ;
-    vdo:deploys base:service/auth-service, base:service/frontend, base:service/metrics-service .
+    vdo:deploys base:service/auth-service, base:service/frontend, base:service/metrics-service, base:service/document-extractor .
 
 base:deploy/docker-compose-observability a vdo:DeploymentConfig ;
     rdfs:label "Docker Compose (Observability)"@en ;
     rdfs:comment "Observability stack Docker Compose (Prometheus, Loki, Tempo, Grafana)"@en ;
     vdo:filePath "deploy/docker-compose.observability.yml" .
+
+base:deploy/docker-compose-llm a vdo:DeploymentConfig ;
+    rdfs:label "Docker Compose (LLM)"@en ;
+    rdfs:comment "Local LLM service (Ollama) for development of AI-assisted ontology features"@en ;
+    vdo:filePath "deploy/docker-compose.llm.yaml" .
 
 base:deploy/docker-compose-docs a vdo:DeploymentConfig ;
     rdfs:label "Docker Compose (Documentation)"@en ;
@@ -914,7 +929,7 @@ base:design/ui-kit a vdo:DesignArtifact ;
 
 base:docs/antora a vdo:Documentation ;
     rdfs:label "Antora Documentation"@en ;
-    rdfs:comment "Antora-based documentation site (user, developer, admin, operator guides)"@en ;
+    rdfs:comment "Antora-based documentation site (user, developer, admin, operator guides) with M2 AI creation, document-extractor, and gRPC modules"@en ;
     vdo:filePath "src/docs/antora/" .
 
 base:docs/specs-context a vdo:Documentation ;
@@ -931,6 +946,11 @@ base:docs/specs-glossary a vdo:Documentation ;
     rdfs:label "Glossary"@en ;
     rdfs:comment "Domain-specific terminology and definitions"@en ;
     vdo:filePath "specs/glossary.md" .
+
+base:docs/deploy-readme a vdo:Documentation ;
+    rdfs:label "Deploy README"@en ;
+    rdfs:comment "Docker Compose setup, port reference, run modes, and LLM configuration guide"@en ;
+    vdo:filePath "deploy/README.md" .
 
 # =============================================================================
 # CHANGE IMPACT ANALYSIS
@@ -951,7 +971,7 @@ base:security/auth-boundary vdo:affectedBy base:service/api-gateway, base:servic
 base:design/frontend vdo:affectedBy base:service/frontend .
 
 # Changing deployment affects:
-base:deploy/docker-compose vdo:affectedBy base:service/api-gateway, base:service/ontology-service, base:service/versioning-service, base:service/auth-service, base:service/frontend, base:service/metrics-service .
+base:deploy/docker-compose vdo:affectedBy base:service/api-gateway, base:service/ontology-service, base:service/versioning-service, base:service/auth-service, base:service/frontend, base:service/metrics-service, base:service/document-extractor .
 
 # --- GraphQL Artifacts (M1) ---
 
@@ -1086,11 +1106,18 @@ base:m2-ontology-templates a vdo:TestSuite ;
     vdo:filePath "tests/e2e/playwright/tests/m2/ontology-templates.spec.ts" ;
     vdo:validates base:user/US-io.ontology.templates .
 
+# --- M2 LLM Integration Test Suite ---
+
+base:test/m2-llm-integration a vdo:TestSuite ;
+    rdfs:label "M2 LLM Integration Tests"@en ;
+    rdfs:comment "Go integration tests for LLM provider interfaces: real HTTP calls, streaming, timeout handling, token counting. Build tag: integration. Enable with LLM_INTEGRATION_TESTS=1"@en ;
+    vdo:filePath "src/services/shared/llm/integration_test.go" .
+
 # --- Update coverage summary metrics ---
 # GraphQL artifacts: 5 (100% traced)
 
     rdfs:label "Traceability Coverage Summary"@en ;
-# M2 Code artifacts: 8 (document-extractor: main, config, parsers, llm-client, prompts, validator, api-routes, grpc-client)
+# M2 Code artifacts: 11 (document-extractor: main, config, parsers, llm-client, prompts, validator, api-routes, grpc-client, dockerignore; shared: tls, integration_test)
 # M2 Proto generator: 1
 
     rdfs:comment "Summary of traceability coverage across artifact domains"@en .
@@ -1100,11 +1127,11 @@ base:m2-ontology-templates a vdo:TestSuite ;
 # - CLI commands: 5 (100% traced to spec)
 # - Security boundaries: 6 (100% identified)
 # - Error codes: 17 (100% identified in Go CLI)
-# - Test suites: 10 (100% traced)
+# - Test suites: 11 (100% traced)
 # - Test contracts: 13 (100% identified)
-# - Deployment configs: 5 (100% traced)
+# - Deployment configs: 6 (100% traced)
 # - Observability configs: 4 (100% traced)
-# - Documentation: 3 (specs traced)
+# - Documentation: 4 (specs traced, deploy README)
 # - Design artifacts: 2 (traced)
 # - Architecture decisions: 3 (traced)
 # - NFRs: 4 (traced to tests/observability)

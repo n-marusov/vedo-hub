@@ -1,0 +1,45 @@
+= Iterative Refinement
+:description: Refine generated ontologies with natural language feedback.
+
+== Overview
+
+The iterative refinement feature lets you improve AI-generated ontology structures through natural language feedback. Instead of starting over, you can provide specific instructions to modify the existing structure.
+
+== How Refinement Works
+
+. Generate an initial ontology (via document extraction, NL→OWL, or template)
+. Review the proposed sequence of ontology operations
+. Provide natural language feedback (e.g., "Merge Employee and Customer into Person with roles")
+. The LLM generates a refined sequence incorporating your feedback
+. Multiple rounds of refinement can be applied sequentially
+
+== Refinement Examples
+
+.Before refinement
+[source]
+....
+Classes: Person, Employee, Customer, Vendor
+....
+
+.Feedback
+[source]
+....
+Merge Employee and Customer into Person with a "type" property.
+Add Organization class and relate Person via "memberOf".
+....
+
+.After refinement
+[source]
+....
+Classes: Person (with type property: employee, customer, vendor)
+         Organization
+Object property: memberOf (Person → Organization)
+....
+
+== Tips
+
+* Be specific about what to add, modify, or remove
+* Reference existing class and property names in your feedback
+* Use multiple rounds for complex refinements — each round builds on the previous
+* Review the changes before applying to ensure they match your intent
+* If the result is unsatisfactory, provide more detailed feedback in the next round

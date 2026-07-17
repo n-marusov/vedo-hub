@@ -132,15 +132,15 @@
 | 4.3 | 4 | Iterative refinement workflow | `[x]` | 4.1, 2.3 | 10 |
 | 4.4 | 4 | Ontology domain templates | `[x]` | 0.2, 3.5 | 10 |
 | 4.5 | 4 | Implement prompt injection defense | `[x]` | 4.1, 2.3 | 9 |
-| 5.1 | 5 | File upload UI component | `[ ]` | 3.4, 0.4 | 11 |
-| 5.2 | 5 | Sequence preview table component | `[ ]` | 5.1, 3.4 | 11 |
-| 5.3 | 5 | Apply workflow with progress | `[ ]` | 5.2, 3.4 | 12 |
-| 5.4 | 5 | Batch upload + conflict resolution | `[ ]` | 5.1, 5.2, 3.4 | 12 |
-| 6.1 | 6 | Docker Compose, CI, quality gate | `[ ]` | 3.1–3.5, 0.5 | 13 |
-| 6.1b | 6 | Enable TLS for inter-service gRPC | `[ ]` | 0.6 | 13 |
-| 6.2 | 6 | Integration test validation (LLM) | `[ ]` | All impl. phases | 14 |
-| 6.3 | 6 | Traceability + docs validation | `[ ]` | 6.2 | 15 |
-| 6.4 | 6 | Antora documentation | `[ ]` | 6.2 | 15 |
+| 5.1 | 5 | File upload UI component | `[x]` | 3.4, 0.4 | 11 |
+| 5.2 | 5 | Sequence preview table component | `[x]` | 5.1, 3.4 | 11 |
+| 5.3 | 5 | Apply workflow with progress | `[x]` | 5.2, 3.4 | 12 |
+| 5.4 | 5 | Batch upload + conflict resolution | `[x]` | 5.1, 5.2, 3.4 | 12 |
+| 6.1 | 6 | Docker Compose, CI, quality gate | `[x]` | 3.1–3.5, 0.5 | 13 |
+| 6.1b | 6 | Enable TLS for inter-service gRPC | `[x]` | 0.6 | 13 |
+| 6.2 | 6 | Integration test validation (LLM) | `[x]` | All impl. phases | 14 |
+| 6.3 | 6 | Traceability + docs validation | `[x]` | 6.2 | 15 |
+| 6.4 | 6 | Antora documentation | `[x]` | 6.2 | 15 |
 | 7.1 | 7 | Define proto contract for ai-orchestration-service | `[ ]` | — | 16 |
 | 7.2 | 7 | Scaffold ai-orchestration-service | `[ ]` | 7.1 | 16 |
 | 7.3 | 7 | Migrate AI handlers and middleware from Gateway | `[ ]` | 7.2, Phase 4 | 17 |
@@ -148,7 +148,7 @@
 | 7.5 | 7 | Update document-extractor — CheckPolicy + LogLLMUsage | `[ ]` | 7.1, 7.2 | 17 |
 | 7.6 | 7 | Docker Compose, CI, and integration for ai-orch | `[ ]` | 7.2–7.5 | 18 |
 
-**Progress:** 24 / 39 tasks complete (Tasks 6.1b, 7.1–7.6 pending; Phases 0–4 complete)
+**Progress:** 33 / 39 tasks complete (Tasks 7.1–7.6 pending; Phase 6 complete)
 
 ---
 
@@ -1223,6 +1223,9 @@ interface SequencePreviewEmits {
 - [`specs/adr/ADR-IMPL.STACK.port-mapping-strategy.md`](specs/adr/ADR-IMPL.STACK.port-mapping-strategy.md) — validates gRPC port alignment in Docker Compose and CI
 - [`specs/adr/ADR-IMPL.STACK.antora-docs-adoption.md`](specs/adr/ADR-IMPL.STACK.antora-docs-adoption.md) — Antora for documentation site, module structure for M2 docs
 - [`specs/adr/ADR-DES.INFRA.otel-observability-strategy.md`](specs/adr/ADR-DES.INFRA.otel-observability-strategy.md) — validates OpenTelemetry instrumentation across all new services
+
+**C4 Architecture Diagrams:**
+- [`specs/c4/deployment.md`](specs/c4/deployment.md) — deployment diagram: Docker Compose, CI/CD, observability stack for local dev, SaaS, and on-premise
 
 ---
 

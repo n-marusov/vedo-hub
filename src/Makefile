@@ -41,7 +41,7 @@ help: ## Show this help message
 		/^[a-zA-Z_-]+:.*## / {printf "  \\033[36m%-22s\\033[0m %s\\n", $$1, $$2} \
 		/^##@/ {printf "\\n\\033[1m%s\\033[0m\\n", substr($$0, 5)}' $(MAKEFILE_LIST)
 
-STUB_SERVICES := api-gateway auth-service ontology-service versioning-service metrics-service publisher-service public-browse-api commenting-service ticket-api ticket-classifier ticket-telemetry-listener ticket-notifier frontend publish-browse-ui
+STUB_SERVICES := api-gateway auth-service ontology-service versioning-service metrics-service publisher-service public-browse-api commenting-service ticket-api ticket-classifier ticket-telemetry-listener ticket-notifier frontend publish-browse-ui document-extractor
 
 
 ##@ Proto — gRPC code generation

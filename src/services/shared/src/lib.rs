@@ -1,5 +1,6 @@
 pub mod health;
 pub mod metrics;
+pub mod tls;
 pub mod tracing;
 
 pub use health::*;

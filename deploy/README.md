@@ -29,7 +29,24 @@ docker compose \
   --profile obs up -d
 ```
 
-### 3) Stop and remove containers
+### 3) Core + LLM (local Ollama for AI-assisted ontology features)
+
+```bash
+docker compose \
+  -f docker-compose.yml \
+  -f docker-compose.llm.yaml \
+  --profile llm up -d
+```
+
+After startup, configure the document-extractor to use the local LLM:
+
+```bash
+export LLM_PROVIDER=ollama
+export LLM_PROVIDERS_OLLAMA_BASE_URL=http://ollama:11434/v1
+export LLM_PROVIDERS_OLLAMA_MODEL=llama3
+```
+
+### 4) Stop and remove containers
 
 ```bash
 docker compose \
@@ -83,12 +100,13 @@ docker compose \
 | Publisher Service | 8086 | 9005 | gRPC |
 | Public Browse API | 8087 | 9011 | gRPC |
 | Ticket API | 8088 (CLI) | 9010 | HTTP + gRPC |
+| Document Extractor | 8092 | 9013 | gRPC |
 
 Ports 9006–9009 are reserved for future services.
 Port 9012 is reserved for Metrics Service gRPC (if needed).
 
-> **Internal communication** uses gRPC on ports 9001–9012.
-> **Health checks** remain on HTTP ports (8081–8091) for Docker health probes.
+> **Internal communication** uses gRPC on ports 9001–9013.
+> **Health checks** remain on HTTP ports (8081–8092) for Docker health probes.
 > **External clients** connect to the API Gateway on port 8080 (REST/GraphQL).
 
 ### Legacy Ports (deprecated)
@@ -112,6 +130,55 @@ These ports are now internal-only (`expose` in Docker Compose) or removed:
 - Prometheus: `http://localhost:9090`
 - Loki: `http://localhost:3100/ready`
 - Tempo: `http://localhost:3200/ready`
+
+## Document Extractor & LLM Configuration
+
+The **document-extractor** service provides AI-assisted ontology extraction from documents.
+It uses an LLM provider (OpenAI-compatible or Anthropic) for natural language processing.
+
+### Configuration
+
+Set the following environment variables before starting the stack:
+
+```bash
+# LLM Provider (required for document-extractor functionality)
+export LLM_PROVIDER=openai          # openai, anthropic, or ollama
+export LLM_API_KEY=sk-...          # API key for the provider
+export LLM_MODEL=gpt-4o-mini       # Model identifier
+
+# Optional: Custom base URL for OpenAI-compatible APIs
+export LLM_BASE_URL=http://localhost:11434/v1
+
+# Provider-specific overrides
+export LLM_PROVIDERS_OLLAMA_BASE_URL=http://localhost:11434/v1
+export LLM_PROVIDERS_OLLAMA_MODEL=llama3
+```
+
+### Local LLM (Ollama)
+
+For development without external API calls, use the included Ollama profile:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.llm.yaml --profile llm up -d
+```
+
+After pulling a model (e.g., `ollama pull llama3`), configure:
+
+```bash
+export LLM_PROVIDER=ollama
+export LLM_PROVIDERS_OLLAMA_BASE_URL=http://ollama:11434/v1
+export LLM_PROVIDERS_OLLAMA_MODEL=llama3
+docker compose up -d  # restart document-extractor with LLM config
+```
+
+### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/upload` | POST | Upload a document for ontology extraction |
+| `/api/v1/convert` | POST | NL→OWL conversion from natural language |
+| `/health` | GET | Health check |
+| `/ready` | GET | Readiness check |
 
 ## Notes
 

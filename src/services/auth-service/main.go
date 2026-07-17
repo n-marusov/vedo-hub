@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"log/slog"
 	"net"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
@@ -27,6 +29,36 @@ func getPort(envVar, fallback string) string {
 		return p
 	}
 	return fallback
+}
+
+func grpcServerOptions() []grpc.ServerOption {
+	if os.Getenv("GRPC_TLS_ENABLED") != "true" {
+		slog.Debug("grpc.tls.disabled")
+		return nil
+	}
+
+	certFile := os.Getenv("GRPC_TLS_CERT_FILE")
+	if certFile == "" {
+		certFile = "/etc/vedo/tls/grpc-server.crt"
+	}
+	keyFile := os.Getenv("GRPC_TLS_KEY_FILE")
+	if keyFile == "" {
+		keyFile = "/etc/vedo/tls/grpc-server.key"
+	}
+
+	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+	if err != nil {
+		slog.Warn("grpc.tls.server_config_failed", "error", err)
+		return nil
+	}
+
+	creds := credentials.NewTLS(&tls.Config{
+		Certificates: []tls.Certificate{cert},
+		ClientAuth:   tls.NoClientCert, // Phase 1: server-side TLS only
+	})
+
+	slog.Info("grpc.tls.server_enabled", "cert", certFile)
+	return []grpc.ServerOption{grpc.Creds(creds)}
 }
 
 func main() {
@@ -47,7 +79,8 @@ func main() {
 	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	// ---- gRPC Server (auth service) ----
-	grpcSrv := grpc.NewServer()
+	grpcOpts := grpcServerOptions()
+	grpcSrv := grpc.NewServer(grpcOpts...)
 
 	// Health check service for gRPC
 	healthSrv := health.NewServer()

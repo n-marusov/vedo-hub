@@ -1,0 +1,105 @@
+= gRPC API Reference
+:description: gRPC service contracts and API reference for external integrators.
+
+== Overview
+
+VEDO Core exposes gRPC services for internal service-to-service communication. This reference documents the available gRPC services, RPCs, and message types.
+
+== OntologyService
+
+Located in `proto/ontology/v1/ontology.proto`.
+
+=== ApplySequence
+
+Applies a sequence of ontology operations (class/property/individual creation) in a single transactional call.
+
+....
+rpc ApplySequence(ApplySequenceRequest) returns (ApplySequenceResponse);
+....
+
+.Request
+[source,protobuf]
+....
+message ApplySequenceRequest {
+  string ontology_id = 1;
+  string commit_message = 2;
+  repeated SequenceStep steps = 3;
+}
+
+message SequenceStep {
+  string operation = 1;     // "CREATE_CLASS", "CREATE_PROPERTY", "DELETE", "UPDATE"
+  string entity_type = 2;   // "CLASS", "OBJECT_PROPERTY", "DATA_PROPERTY", "INDIVIDUAL"
+  string entity_id = 3;
+  map<string, string> attributes = 4;
+}
+....
+
+.Response
+[source,protobuf]
+....
+message ApplySequenceResponse {
+  string commit_id = 1;
+  int32 entities_created = 2;
+  int32 entities_modified = 3;
+  repeated string warnings = 4;
+  ErrorDetail error = 5;
+}
+....
+
+=== GetClass
+
+....
+rpc GetClass(GetClassRequest) returns (GetClassResponse);
+....
+
+=== ListClasses
+
+....
+rpc ListClasses(ListClassesRequest) returns (ListClassesResponse);
+....
+
+== VersioningService
+
+Located in `proto/versioning/v1/versioning.proto`.
+
+=== CreateCommit
+
+....
+rpc CreateCommit(CreateCommitRequest) returns (CreateCommitResponse);
+....
+
+=== ListCommits
+
+....
+rpc ListCommits(ListCommitsRequest) returns (ListCommitsResponse);
+....
+
+== AuthService
+
+Located in `proto/auth/v1/auth.proto`.
+
+=== ValidateToken
+
+....
+rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
+....
+
+== Error Handling
+
+All gRPC responses include standard gRPC status codes:
+
+|===
+| Code | Description
+| OK | Success
+| INVALID_ARGUMENT | Invalid request parameters
+| NOT_FOUND | Resource not found
+| PERMISSION_DENIED | Authentication/authorization failure
+| INTERNAL | Internal server error
+| DEADLINE_EXCEEDED | Timeout from upstream service
+|===
+
+== Connection Details
+
+* **Target:** `api-gateway:8080` (REST/GraphQL entry point)
+* **Internal services:** Direct gRPC on ports 9001-9013
+* **TLS:** Optional, via `GRPC_TLS_ENABLED` (default: disabled)

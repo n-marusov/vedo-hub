@@ -60,6 +60,19 @@ go-lint:
     - changes:
         - src/cli/**/*.go, src/services/**/*.go
 
+document-extractor-lint:
+  stage: lint
+  image: python:3.12-slim
+  script:
+    - cd src/services/document-extractor
+    - pip install -e ".[dev]"
+    - ruff check .
+    - pip install basedpyright
+    - basedpyright main.py config.py
+  rules:
+    - changes:
+        - src/services/document-extractor/**/*.py
+
 docs-lint:
   stage: lint
   image: node:20-alpine
@@ -83,6 +96,26 @@ proto-lint:
   rules:
     - changes:
         - src/services/shared/proto/**/*.proto
+
+tls-certs:
+  stage: build
+  image: alpine:latest
+  script:
+    - apk add --no-cache openssl
+    - mkdir -p /etc/vedo/tls
+    - openssl req -x509 -nodes -days 365 -newkey rsa:2048
+      -keyout /etc/vedo/tls/grpc-server.key
+      -out /etc/vedo/tls/grpc-server.crt
+      -subj "/CN=localhost"
+      -addext "subjectAltName=DNS:localhost,DNS:*.vedo-network,DNS:ontology-service,DNS:versioning-service,DNS:auth-service,DNS:commenting-service,DNS:publisher-service,DNS:public-browse-api"
+    - cp /etc/vedo/tls/grpc-server.crt /etc/vedo/tls/ca.crt
+  artifacts:
+    paths:
+      - /etc/vedo/tls/
+    expire_in: 30 days
+  rules:
+    - if: '$GRPC_TLS_ENABLED == "true"'
+  allow_failure: true
 
 proto-breaking:
   stage: lint
@@ -137,6 +170,20 @@ contract-tests-python:
   artifacts:
     reports:
       junit: src/services/metrics-service/junit.xml
+
+document-extractor-test:
+  stage: test
+  image: python:3.12-slim
+  script:
+    - cd src/services/document-extractor
+    - pip install -e ".[dev]"
+    - pytest tests/
+  artifacts:
+    reports:
+      junit: src/services/document-extractor/junit.xml
+  rules:
+    - changes:
+        - src/services/document-extractor/**/*.py
 
 vitest-contract-tests:
   stage: test
@@ -235,6 +282,18 @@ build-metrics-service:
     - docker build -t ${REGISTRY}/vedo-metrics-service:${CI_COMMIT_SHORT_SHA} -t ${REGISTRY}/vedo-metrics-service:latest src/services/metrics-service
     - docker push ${REGISTRY}/vedo-metrics-service:${CI_COMMIT_SHORT_SHA}
     - docker push ${REGISTRY}/vedo-metrics-service:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+document-extractor-build:
+  stage: build
+  image: docker:24.0-cli
+  services:
+    - docker:24.0-dind
+  script:
+    - docker build -t ${REGISTRY}/vedo-document-extractor:${CI_COMMIT_SHORT_SHA} -t ${REGISTRY}/vedo-document-extractor:latest src/services/document-extractor
+    - docker push ${REGISTRY}/vedo-document-extractor:${CI_COMMIT_SHORT_SHA}
+    - docker push ${REGISTRY}/vedo-document-extractor:latest
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
 
@@ -346,6 +405,7 @@ deploy-staging:
     - build-versioning-service
     - build-auth-service
     - build-metrics-service
+    - document-extractor-build
     - docs-build
     - integration-tests
     - security-sast
