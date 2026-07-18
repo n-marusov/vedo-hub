@@ -451,13 +451,13 @@ impl ClassRepository {
         let skip = params.page * params.per_page;
         let limit = params.per_page.min(100);
 
-        let query = "\
-            MATCH (c:Class {ontology_id: $ontology_id})\
-            WHERE $search = '' OR toLower(c.label) CONTAINS toLower($search)\
-            OPTIONAL MATCH (c)-[:CHILD_OF]->(p:Class)\
-            WITH c, collect(DISTINCT p.id) AS parent_ids\
-            RETURN c.id AS id, c.label AS label, c.comment AS comment, parent_ids\
-            ORDER BY c.label SKIP $skip LIMIT $limit\
+        let query = r"
+            MATCH (c:Class {ontology_id: $ontology_id})
+            WHERE $search = '' OR toLower(c.label) CONTAINS toLower($search)
+            OPTIONAL MATCH (c)-[:CHILD_OF]->(p:Class)
+            WITH c, collect(DISTINCT p.id) AS parent_ids
+            RETURN c.id AS id, c.label AS label, c.comment AS comment, parent_ids
+            ORDER BY c.label SKIP $skip LIMIT $limit
         ";
 
         let q = neo4rs::Query::new(query.to_string())
@@ -508,12 +508,12 @@ impl ClassRepository {
         let skip = params.page * params.per_page;
         let limit = params.per_page.min(100);
 
-        let query = "\
-            MATCH (c:Class {ontology_id: $ontology_id})\
-            WHERE NOT EXISTS((c)-[:CHILD_OF]->())\
-              AND ($search = '' OR toLower(c.label) CONTAINS toLower($search))\
-            RETURN c.id AS id, c.label AS label, c.comment AS comment\
-            ORDER BY c.label SKIP $skip LIMIT $limit\
+        let query = r"
+            MATCH (c:Class {ontology_id: $ontology_id})
+            WHERE NOT EXISTS((c)-[:CHILD_OF]->())
+              AND ($search = '' OR toLower(c.label) CONTAINS toLower($search))
+            RETURN c.id AS id, c.label AS label, c.comment AS comment
+            ORDER BY c.label SKIP $skip LIMIT $limit
         ";
 
         let q = neo4rs::Query::new(query.to_string())

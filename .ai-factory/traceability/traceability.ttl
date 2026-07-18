@@ -1121,6 +1121,34 @@ base:graphql/apollo-client a vdo:CodeArtifact ;
     vdo:filePath "src/services/frontend/src/apollo/client.ts" ;
     vdo:implements base:spec/gui-ow-001 .
 
+base:test/m2-5-real-playwright-config a vdo:DeploymentConfig ;
+    rdfs:label "M2.5 Real Backend Playwright Config"@en ;
+    rdfs:comment "Playwright webServer configuration that starts the Docker test stack and Vite frontend against the real API Gateway"@en ;
+    vdo:filePath "tests/e2e/playwright/playwright.m2.5.real.config.ts" ;
+    vdo:validates base:spec/gui-ow-001 ;
+    vdo:affectedBy base:deploy/docker-compose-test, base:service/frontend, base:service/api-gateway .
+
+base:deploy/docker-compose-test a vdo:DeploymentConfig ;
+    rdfs:label "Docker Compose Test Stack"@en ;
+    rdfs:comment "Real-backend test stack for API Gateway, ontology-service, versioning-service, Neo4j, PostgreSQL, and supporting dependencies"@en ;
+    vdo:filePath "deploy/docker-compose.test.yml" ;
+    vdo:deploys base:service/api-gateway, base:service/ontology-service, base:service/versioning-service .
+
+base:test/m2-5-gui-fixtures a vdo:TestFixture ;
+    rdfs:label "M2.5 GUI E2E Fixtures"@en ;
+    rdfs:comment "Playwright fixtures that inject owner JWT auth and deterministic GUI GraphQL data for dashboard-level M2.5 page wiring tests"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/m2.5-fixtures.ts" ;
+    vdo:validates base:spec/gui-ow-001 ;
+    vdo:affectedBy base:graphql/frontend-queries, base:service/frontend .
+
+base:test/m2-5-api-gateway-real a vdo:TestSuite ;
+    rdfs:label "M2.5 API Gateway Real Backend Integration Tests"@en ;
+    rdfs:comment "Playwright API integration tests that verify real API Gateway routing, auth, GraphQL, SPARQL guard, health, readiness, and OpenAPI behavior against docker-compose.test.yml"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/m2.5/api-gateway-full.spec.ts" ;
+    vdo:validates base:service/api-gateway ;
+    vdo:validates base:service/ontology-service ;
+    vdo:validates base:service/versioning-service .
+
 # --- M2 Document Extraction E2E Test Suites ---
 
 base:test/m2-document-extraction a vdo:TestSuite ;

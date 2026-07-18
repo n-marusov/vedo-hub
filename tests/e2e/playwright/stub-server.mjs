@@ -119,9 +119,9 @@ const MOCK_MERGE_REQUESTS_GQL = [
 
 const MOCK_COMMITS = {
   items: [
-    { id: 'commit-001', branchId: 'branch-main', parentCommitId: 'commit-000', message: 'Initial ontology setup', authorId: 'user-456', authorName: 'owner_seed', totalChanges: 15, createdAt: '2026-03-01T10:00:00Z' },
-    { id: 'commit-002', branchId: 'branch-main', parentCommitId: 'commit-001', message: 'Add Person class', authorId: 'user-789', authorName: 'editor_seed', totalChanges: 3, createdAt: '2026-03-05T14:00:00Z' },
-    { id: 'commit-003', branchId: 'branch-main', parentCommitId: 'commit-002', message: 'Add properties', authorId: 'user-789', authorName: 'editor_seed', totalChanges: 8, createdAt: '2026-03-10T09:00:00Z' },
+    { __typename: 'Commit', id: 'commit-001', branchId: 'branch-main', parentCommitId: 'commit-000', message: 'Initial ontology setup', authorId: 'user-456', authorName: 'owner_seed', totalChanges: 15, createdAt: '2026-03-01T10:00:00Z' },
+    { __typename: 'Commit', id: 'commit-002', branchId: 'branch-main', parentCommitId: 'commit-001', message: 'Add Person class', authorId: 'user-789', authorName: 'editor_seed', totalChanges: 3, createdAt: '2026-03-05T14:00:00Z' },
+    { __typename: 'Commit', id: 'commit-003', branchId: 'branch-main', parentCommitId: 'commit-002', message: 'Add properties', authorId: 'user-789', authorName: 'editor_seed', totalChanges: 8, createdAt: '2026-03-10T09:00:00Z' },
   ],
   total: 3,
   page: 1,
@@ -130,8 +130,8 @@ const MOCK_COMMITS = {
 
 const MOCK_BRANCHES = {
   items: [
-    { id: 'branch-main', name: 'main', ontologyId: 'ont-001', headCommitId: 'commit-003', createdAt: '2026-01-15T10:00:00Z', isProtected: true, lastCommitMessage: 'Add properties', lastCommitAuthor: 'editor_seed', aheadCount: 0, behindCount: 0 },
-    { id: 'branch-dev', name: 'develop', ontologyId: 'ont-001', headCommitId: 'commit-002', createdAt: '2026-02-01T10:00:00Z', isProtected: false, lastCommitMessage: 'Add Person class', lastCommitAuthor: 'editor_seed', aheadCount: 1, behindCount: 0 },
+    { __typename: 'Branch', id: 'branch-main', name: 'main', ontologyId: 'ont-001', headCommitId: 'commit-003', createdAt: '2026-01-15T10:00:00Z', isProtected: true, lastCommitMessage: 'Add properties', lastCommitAuthor: 'editor_seed', aheadCount: 0, behindCount: 0 },
+    { __typename: 'Branch', id: 'branch-dev', name: 'develop', ontologyId: 'ont-001', headCommitId: 'commit-002', createdAt: '2026-02-01T10:00:00Z', isProtected: false, lastCommitMessage: 'Add Person class', lastCommitAuthor: 'editor_seed', aheadCount: 1, behindCount: 0 },
   ],
 };
 

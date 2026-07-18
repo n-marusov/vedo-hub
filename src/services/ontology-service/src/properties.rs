@@ -881,14 +881,14 @@ impl PropertyRepository {
         let type_pred = type_filter(&params.property_type);
 
         let query = format!(
-            "\
-            MATCH (p:Property {{ontology_id: $ontology_id}})\
-            WHERE ($search = '' OR toLower(p.label) CONTAINS toLower($search)) {type_pred}\
-            OPTIONAL MATCH (p)-[:DOMAIN]->(d:Class)\
-            WITH p, collect(DISTINCT d.id) AS domain_ids\
-            RETURN p.id AS id, p.label AS label, \
-                   p.property_type AS property_type, p.xsd_type AS xsd_type, domain_ids\
-            ORDER BY p.label SKIP $skip LIMIT $limit\
+            r"
+            MATCH (p:Property {{ontology_id: $ontology_id}})
+            WHERE ($search = '' OR toLower(p.label) CONTAINS toLower($search)) {type_pred}
+            OPTIONAL MATCH (p)-[:DOMAIN]->(d:Class)
+            WITH p, collect(DISTINCT d.id) AS domain_ids
+            RETURN p.id AS id, p.label AS label,
+                   p.property_type AS property_type, p.xsd_type AS xsd_type, domain_ids
+            ORDER BY p.label SKIP $skip LIMIT $limit
         "
         );
 
