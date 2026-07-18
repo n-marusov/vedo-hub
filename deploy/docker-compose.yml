@@ -59,6 +59,7 @@ services:
       - GRPC_TLS_ENABLED=${GRPC_TLS_ENABLED:-false}
       - GRPC_CA_CERT_FILE=${GRPC_CA_CERT_FILE:-}
       - KEYCLOAK_JWKS_URL=http://keycloak:8080/realms/vedo-core/protocol/openid-connect/certs
+      - ENABLE_SWAGGER_UI=true
     depends_on:
       ontology-service:
         condition: service_healthy
