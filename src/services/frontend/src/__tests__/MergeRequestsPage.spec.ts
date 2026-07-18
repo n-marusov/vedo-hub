@@ -1,17 +1,20 @@
 // @m2.5 — MergeRequestsPage vitest spec (RED phase for Block В)
+// Validates: REQ-USR.UI.gui-implementation
 // After GREEN (Task 4.5): page should render MR sections, filter tabs, and data from API
 
 import {
 	describePage,
 	mountWithProviders,
+	resetMockResults,
+	setMockOperationResult,
 	waitForQuery,
 } from "@/__tests__/setup/mock-providers";
-import { beforeEach, expect, it } from "vitest";
+import { afterEach, expect, it } from "vitest";
 import { nextTick } from "vue";
 
 describePage("MergeRequestsPage", () => {
-	beforeEach(async () => {
-		// Router setup handled by mountWithProviders
+	afterEach(() => {
+		resetMockResults();
 	});
 
 	it("should render merge requests page layout", async () => {
@@ -57,5 +60,39 @@ describePage("MergeRequestsPage", () => {
 		await waitForQuery();
 		await nextTick();
 		expect(wrapper.find(".mr-breadcrumbs").exists()).toBe(true);
+	});
+
+	it("should show error state when merge requests API fails", async () => {
+		setMockOperationResult(
+			"ListMergeRequests",
+			null,
+			new Error("Failed to load merge requests"),
+		);
+		const MergeRequestsPage = (await import("@/pages/MergeRequestsPage.vue"))
+			.default;
+		const wrapper = mountWithProviders(MergeRequestsPage);
+		await waitForQuery();
+		await nextTick();
+		expect(
+			wrapper.find(".error-state").exists() ||
+				wrapper.text().includes("retry") ||
+				wrapper.text().includes("error"),
+		).toBe(true);
+	});
+
+	it("should show empty state when no merge requests exist", async () => {
+		setMockOperationResult("ListMergeRequests", {
+			listMergeRequests: { sections: [], total: 0 },
+		});
+		const MergeRequestsPage = (await import("@/pages/MergeRequestsPage.vue"))
+			.default;
+		const wrapper = mountWithProviders(MergeRequestsPage);
+		await waitForQuery();
+		await nextTick();
+		expect(
+			wrapper.find(".mr-empty").exists() ||
+				wrapper.find(".empty-state").exists() ||
+				wrapper.text().includes("No merge requests"),
+		).toBe(true);
 	});
 });

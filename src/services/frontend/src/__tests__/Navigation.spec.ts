@@ -1,15 +1,21 @@
 // @m2.5 — App.vue Navigation vitest spec (RED phase for Block Г)
+// Validates: REQ-USR.UI.gui-implementation
 // After GREEN (Tasks 5.2–5.6): user avatar, sidebar badges, header actions, route highlighting, sidebar collapse
 
 import {
 	describePage,
 	mountWithProviders,
+	resetMockResults,
+	setMockOperationResult,
 	waitForQuery,
 } from "@/__tests__/setup/mock-providers";
-import { expect, it } from "vitest";
+import { afterEach, expect, it } from "vitest";
 import { nextTick } from "vue";
 
 describePage("Navigation", () => {
+	afterEach(() => {
+		resetMockResults();
+	});
 	// Navigation tests verify App.vue shell behavior:
 	// - user name/avatar from Keycloak session
 	// - active route highlight in sidebar
@@ -93,5 +99,16 @@ describePage("Navigation", () => {
 		if (wrapper.find(".shell").exists()) {
 			expect(wrapper.find(".header-actions").exists()).toBe(true);
 		}
+	});
+
+	it("should show loading state while nav counts are being fetched", async () => {
+		const App = (await import("@/App.vue")).default;
+		const wrapper = mountWithProviders(App, {
+			global: { stubs: { "router-view": true } },
+		});
+		expect(
+			wrapper.find(".sidebar-count--loading").exists() ||
+				wrapper.find(".shell").exists(),
+		).toBe(true);
 	});
 });

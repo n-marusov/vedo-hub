@@ -1,16 +1,19 @@
 // @m2.5 — GroupsPage vitest spec (GREEN: uses mountWithProviders)
+// Validates: REQ-USR.UI.gui-implementation
 // Tests: groups hierarchy from LIST_GROUPS_QUERY via Apollo
 import {
 	describePage,
 	mountWithProviders,
+	resetMockResults,
+	setMockOperationResult,
 	waitForQuery,
 } from "@/__tests__/setup/mock-providers";
-import { beforeEach, expect, it } from "vitest";
+import { afterEach, expect, it } from "vitest";
 import { nextTick } from "vue";
 
 describePage("GroupsPage", () => {
-	beforeEach(async () => {
-		// Router setup handled by mountWithProviders
+	afterEach(() => {
+		resetMockResults();
 	});
 
 	it("should render groups page title", async () => {
@@ -35,7 +38,6 @@ describePage("GroupsPage", () => {
 		const wrapper = mountWithProviders(GroupsPage);
 		await waitForQuery();
 		await nextTick();
-		// Page renders with either group rows or empty state — both valid
 		expect(
 			wrapper.find(".gp-list").exists() || wrapper.find(".gp-empty").exists(),
 		).toBe(true);
@@ -62,7 +64,22 @@ describePage("GroupsPage", () => {
 		const wrapper = mountWithProviders(GroupsPage);
 		await waitForQuery();
 		await nextTick();
-		// Chevrons should exist if there are rows; page still renders without them
 		expect(wrapper.find(".gp-top").exists()).toBe(true);
+	});
+
+	it("should not crash when groups API fails", async () => {
+		setMockOperationResult(
+			"ListGroups",
+			null,
+			new Error("Failed to load groups"),
+		);
+		const GroupsPage = (await import("@/pages/GroupsPage.vue")).default;
+		const wrapper = mountWithProviders(GroupsPage);
+		await waitForQuery();
+		await nextTick();
+		// Component should render without crashing on API failure
+		expect(
+			wrapper.find(".gp-top").exists() || wrapper.find(".gp-page").exists(),
+		).toBe(true);
 	});
 });

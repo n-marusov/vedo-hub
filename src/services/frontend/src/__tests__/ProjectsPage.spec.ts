@@ -1,16 +1,19 @@
 // @m2.5 — ProjectsPage vitest spec (GREEN: uses mountWithProviders)
+// Validates: REQ-USR.UI.gui-implementation
 // Tests: projects list from LIST_PROJECTS_QUERY via Apollo
 import {
 	describePage,
 	mountWithProviders,
+	resetMockResults,
+	setMockOperationResult,
 	waitForQuery,
 } from "@/__tests__/setup/mock-providers";
-import { beforeEach, expect, it } from "vitest";
+import { afterEach, expect, it } from "vitest";
 import { nextTick } from "vue";
 
 describePage("ProjectsPage", () => {
-	beforeEach(async () => {
-		// Router setup handled by mountWithProviders
+	afterEach(() => {
+		resetMockResults();
 	});
 
 	it("should render projects list page title", async () => {
@@ -65,5 +68,21 @@ describePage("ProjectsPage", () => {
 		const newBtn = wrapper.find(".pp-new-btn");
 		expect(newBtn.exists()).toBe(true);
 		expect(newBtn.text()).toContain("New project");
+	});
+
+	it("should not crash when projects API fails", async () => {
+		setMockOperationResult(
+			"ListProjects",
+			null,
+			new Error("Failed to load projects"),
+		);
+		const ProjectsPage = (await import("@/pages/ProjectsPage.vue")).default;
+		const wrapper = mountWithProviders(ProjectsPage);
+		await waitForQuery();
+		await nextTick();
+		// Component should render without crashing on API failure
+		expect(
+			wrapper.find(".pp-top").exists() || wrapper.find(".pp-page").exists(),
+		).toBe(true);
 	});
 });

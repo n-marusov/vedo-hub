@@ -1,4 +1,5 @@
 // @m2.5 — AnnotationDialog vitest spec
+// Validates: REQ-USR.UI.gui-implementation
 import {
 	mountWithProviders,
 	waitForQuery,
@@ -45,5 +46,19 @@ describe("AnnotationDialog", () => {
 		await saveBtn.trigger("click");
 		await new Promise((resolve) => setTimeout(resolve, 600));
 		expect(wrapper.emitted("saved")).toBeTruthy();
+	});
+
+	it("should emit close on cancel", async () => {
+		const wrapper = mountWithProviders(AnnotationDialog, {
+			props: { open: true },
+			global: { stubs: { Teleport: TeleportStub } },
+		});
+		await nextTick();
+		const cancelBtn = wrapper
+			.findAll("button")
+			.filter((b) => b.text().includes("Cancel"));
+		expect(cancelBtn.length).toBeGreaterThanOrEqual(1);
+		await cancelBtn[0]?.trigger("click");
+		expect(wrapper.emitted("close")).toBeTruthy();
 	});
 });

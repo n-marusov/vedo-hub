@@ -1,3 +1,5 @@
+// Validates: REQ-CON.STACK.frontend-stack
+
 import { describe, expect, it } from "vitest";
 
 /**

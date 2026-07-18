@@ -3,12 +3,18 @@
 import {
 	describePage,
 	mountWithProviders,
+	resetMockResults,
+	setMockOperationResult,
 	waitForQuery,
 } from "@/__tests__/setup/mock-providers";
-import { expect, it } from "vitest";
+import { afterEach, expect, it } from "vitest";
 import { nextTick } from "vue";
 
 describePage("VersioningTabs", () => {
+	afterEach(() => {
+		resetMockResults();
+	});
+
 	it("should show Tags tab with tag data label rendered", async () => {
 		const VersioningPage = (await import("@/pages/VersioningPage.vue")).default;
 		const wrapper = mountWithProviders(VersioningPage);
@@ -58,5 +64,21 @@ describePage("VersioningTabs", () => {
 		await waitForQuery();
 		await nextTick();
 		expect(wrapper.find(".tab--active").exists()).toBe(true);
+	});
+
+	it("should not crash when versioning API fails", async () => {
+		setMockOperationResult(
+			"GetCommitHistory",
+			null,
+			new Error("Failed to load commits"),
+		);
+		const VersioningPage = (await import("@/pages/VersioningPage.vue")).default;
+		const wrapper = mountWithProviders(VersioningPage);
+		await waitForQuery();
+		await nextTick();
+		// Component should render without crashing on API failure
+		expect(
+			wrapper.find(".tab").exists() || wrapper.find(".vng-page").exists(),
+		).toBe(true);
 	});
 });

@@ -1,3 +1,5 @@
+// Validates: REQ-USR.UI.gui-implementation
+// Validates: REQ-FUN.PROCESS.e2e-testing
 // @ctx: M2.5 Merge Requests page — sections, toggle, filter tabs
 import { test, expect } from '../m2.5-fixtures'
 import { MergeRequestsPage } from '../../pages/merge-requests.page'

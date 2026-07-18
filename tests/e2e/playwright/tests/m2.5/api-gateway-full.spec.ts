@@ -1,3 +1,5 @@
+// Validates: REQ-FUN.PROCESS.e2e-testing
+// Validates: REQ-NFR.SECURITY.bola-bfla-negative-tests
 // @ctx: M2.5 API Gateway integration tests — full endpoint coverage via page.request
 // @hlv:artifact tests-api-gateway validates REQ-FUN.PROCESS.e2e-testing
 // Covers: 20+ REST + GraphQL endpoints + auth/error scenarios

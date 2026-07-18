@@ -1,3 +1,5 @@
+// Validates: REQ-USR.UI.gui-implementation
+// Validates: REQ-FUN.PROCESS.e2e-testing
 // @ctx: M2.5 Projects page — list, search, sort, click→navigate, empty state
 import { test, expect } from '../m2.5-fixtures'
 import { ProjectsPage } from '../../pages/projects.page'

@@ -1,3 +1,5 @@
+// Validates: REQ-USR.UI.gui-implementation
+// Validates: REQ-FUN.PROCESS.e2e-testing
 // @ctx: M2.5 Metrics page — KPI counters from API, trend chart, loading skeleton
 import { test, expect } from '../m2.5-fixtures'
 import { MetricsPage } from '../../pages/metrics.page'

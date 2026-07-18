@@ -1,3 +1,5 @@
+// Validates: REQ-USR.UI.gui-implementation
+// Validates: REQ-FUN.PROCESS.e2e-testing
 // @ctx: M2.5 Dashboard wiring — widgets, attention items, activity feed, recent ontologies from API
 import { test, expect } from '../m2.5-fixtures'
 import { DashboardPage } from '../../pages/dashboard.page'

@@ -1,3 +1,5 @@
+// Validates: REQ-USR.UI.gui-implementation
+// Validates: REQ-FUN.PROCESS.e2e-testing
 // @ctx: M2.5 SPARQL GUI — enter query, run, results table, loading, error, export
 import { test, expect } from '../m2.5-fixtures'
 import { SparqlPage } from '../../pages/sparql.page'

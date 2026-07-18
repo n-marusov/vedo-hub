@@ -23,6 +23,31 @@ import { createMemoryHistory, createRouter } from "vue-router";
 
 // @m2.5 — Vitest mock data for operations not covered by mock-data.ts
 // Provides realistic defaults so all component tests can mount without a real server
+// @m2.5 — Per-test result overrides for edge-case simulation
+// Use setMockOperationResult() before mounting to simulate errors or custom data
+const overrideResults: Map<
+	string,
+	() => { data?: Record<string, unknown>; error?: Error }
+> = new Map();
+
+export function setMockOperationResult(
+	operationName: string,
+	data: Record<string, unknown> | null,
+	error?: Error,
+): void {
+	if (error) {
+		overrideResults.set(operationName, () => ({ error }));
+	} else if (data) {
+		overrideResults.set(operationName, () => ({ data }));
+	} else {
+		overrideResults.delete(operationName);
+	}
+}
+
+export function resetMockResults(): void {
+	overrideResults.clear();
+}
+
 const VITEST_MOCK_RESOLVERS: Record<string, () => unknown> = {
 	DashboardAggregate: () => MOCK_DASHBOARD_DATA,
 	OntologyMetrics: () => MOCK_METRICS_DATA,
@@ -93,10 +118,22 @@ class VitestMockLink extends ApolloLink {
 	request(operation: Operation): Observable<FetchResult> | null {
 		const opName = operation.operationName || "unknown";
 		const resolver = VITEST_MOCK_RESOLVERS[opName];
+		const override = overrideResults.get(opName);
 
 		return new Observable<FetchResult>((observer) => {
 			// 20ms delay — faster than the 200ms production mock for quicker tests
 			setTimeout(() => {
+				// Per-test override takes priority
+				if (override) {
+					const result = override();
+					if (result.error) {
+						observer.error(result.error);
+					} else if (result.data) {
+						observer.next({ data: result.data });
+						observer.complete();
+					}
+					return;
+				}
 				if (resolver) {
 					observer.next({ data: resolver() as Record<string, unknown> });
 				} else {

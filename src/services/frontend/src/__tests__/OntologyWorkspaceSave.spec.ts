@@ -1,16 +1,19 @@
 // @m2.5 — OntologyWorkspace Save button vitest spec (GREEN: uses mountWithProviders)
+// Validates: REQ-USR.UI.gui-implementation
 // Tests: save button via useDraftState().saveDraft()
 import {
 	describePage,
 	mountWithProviders,
+	resetMockResults,
+	setMockOperationResult,
 	waitForQuery,
 } from "@/__tests__/setup/mock-providers";
-import { beforeEach, expect, it } from "vitest";
+import { afterEach, expect, it } from "vitest";
 import { nextTick } from "vue";
 
 describePage("OntologyWorkspaceSave", () => {
-	beforeEach(async () => {
-		// Router setup handled by mountWithProviders
+	afterEach(() => {
+		resetMockResults();
 	});
 
 	it("should have a Save button that saves draft via useDraftState when clicked", async () => {
@@ -31,7 +34,6 @@ describePage("OntologyWorkspaceSave", () => {
 		await waitForQuery();
 		await nextTick();
 		const saveBtn = wrapper.find(".toolbar-btn--primary");
-		// Save button should bind to hasUnsavedChanges from useDraftState
 		expect(saveBtn.attributes("disabled")).toBeDefined();
 	});
 
@@ -50,6 +52,25 @@ describePage("OntologyWorkspaceSave", () => {
 		const wrapper = mountWithProviders(OntologyWorkspace);
 		await waitForQuery();
 		await nextTick();
+		expect(wrapper.find(".workspace-page").exists()).toBe(true);
+	});
+
+	it("should not crash when save fails due to API error", async () => {
+		setMockOperationResult(
+			"UpdateDraft",
+			null,
+			new Error("Failed to save draft"),
+		);
+		const OntologyWorkspace = (await import("@/pages/OntologyWorkspace.vue"))
+			.default;
+		const wrapper = mountWithProviders(OntologyWorkspace);
+		await waitForQuery();
+		await nextTick();
+		const saveBtn = wrapper.find(".toolbar-btn--primary");
+		await saveBtn.trigger("click");
+		await waitForQuery();
+		await nextTick();
+		// Component should render without crashing on save failure
 		expect(wrapper.find(".workspace-page").exists()).toBe(true);
 	});
 });

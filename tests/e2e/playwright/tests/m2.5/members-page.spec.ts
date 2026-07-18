@@ -1,3 +1,5 @@
+// Validates: REQ-USR.UI.gui-implementation
+// Validates: REQ-FUN.PROCESS.e2e-testing
 // @ctx: M2.5 Members page — list with roles, inline edit, remove with confirmation, last-owner protection
 import { test, expect } from '../m2.5-fixtures'
 import { MembersPage } from '../../pages/members.page'

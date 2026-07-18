@@ -1,3 +1,5 @@
+// Validates: REQ-USR.UI.gui-implementation
+// Validates: REQ-FUN.PROCESS.e2e-testing
 // @ctx: M2.5 Versioning tabs — commits with data, branches, tags, graph nodes, compare diff
 import { test, expect } from '../m2.5-fixtures'
 import { VersioningPage } from '../../pages/versioning.page'

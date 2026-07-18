@@ -1,3 +1,5 @@
+// Validates: REQ-USR.UI.gui-implementation
+// Validates: REQ-FUN.PROCESS.e2e-testing
 // @ctx: M2.5 Validation page — run button → spinner → results; SHACL OK stub; timestamp update
 import { test, expect } from '../m2.5-fixtures'
 import { ValidationPage } from '../../pages/validation.page'

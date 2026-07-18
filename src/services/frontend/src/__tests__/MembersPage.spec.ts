@@ -1,4 +1,5 @@
 // @m2.5 — MembersPage vitest spec (GREEN: uses mountWithProviders)
+// Validates: REQ-USR.UI.gui-implementation
 // Tests: members list from LIST_MEMBERS_QUERY via Apollo
 import {
 	describePage,
