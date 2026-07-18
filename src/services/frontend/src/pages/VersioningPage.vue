@@ -3,7 +3,7 @@
   <div class="version-page" role="main" aria-label="Versioning content">
     <section class="version-head">
       <h1 class="version-title">{{ titles[view] || 'Commit History' }}</h1>
-      <span v-if="view === 'commits'" class="branch-badge">main</span>
+      <span v-if="view === 'commits'" class="branch-badge">{{ currentBranch }}</span>
     </section>
 
     <section class="version-tabs" role="tablist" aria-label="Versioning tabs">
@@ -18,30 +18,49 @@
       </button>
     </section>
 
-    <section v-if="view === 'commits'" class="filter-row">
-      <div class="filter-box">
-        <GitBranch :size="14" class="muted" />
-        <span class="filter-text">main</span>
-      </div>
-      <span class="fill"></span>
-      <div class="filter-box">
-        <User :size="14" class="muted" />
-        <span class="filter-text">All authors</span>
-      </div>
-      <div class="filter-box filter-box--wide">
-        <Search :size="14" class="muted" />
-        <span class="filter-text">Search by message...</span>
-      </div>
-    </section>
+    <!-- Loading state -->
+    <div v-if="loading" class="version-loading">
+      <div class="skeleton" v-for="n in 3" :key="n"></div>
+    </div>
 
-    <section class="version-card">
-      <CommitHistory v-if="view === 'commits'" :commits="commits" />
-      <BranchList v-else-if="view === 'branches'" :branches="branches" />
-      <DiffView v-else-if="view === 'compare'" :changes="changes" :commit-options="commitOptions" />
-      <TagList v-else-if="view === 'tags'" :tags="tags" />
-      <RepositoryGraph v-else-if="view === 'graph'" :nodes="graphNodes" />
-      <div v-else class="mr-placeholder">Merge requests content goes here</div>
-    </section>
+    <!-- Error state -->
+    <div v-else-if="error" class="version-error" role="alert">
+      <span>Failed to load versioning data</span>
+      <button class="retry-btn" type="button" @click="refetchAll">Retry</button>
+    </div>
+
+    <!-- Empty state -->
+    <div v-else-if="view === 'commits' && commits.length === 0" class="version-empty">
+      No commits yet.
+    </div>
+
+    <!-- Data state -->
+    <template v-else>
+      <section v-if="view === 'commits'" class="filter-row">
+        <div class="filter-box">
+          <GitBranch :size="14" class="muted" />
+          <span class="filter-text">{{ currentBranch }}</span>
+        </div>
+        <span class="fill"></span>
+        <div class="filter-box">
+          <User :size="14" class="muted" />
+          <span class="filter-text">All authors</span>
+        </div>
+        <div class="filter-box filter-box--wide">
+          <Search :size="14" class="muted" />
+          <span class="filter-text">Search by message...</span>
+        </div>
+      </section>
+
+      <section class="version-card">
+        <CommitHistory v-if="view === 'commits'" :commits="commits" />
+        <BranchList v-else-if="view === 'branches'" :branches="branches" />
+        <DiffView v-else-if="view === 'compare'" :changes="changes" :commit-options="commitOptions" />
+        <TagList v-else-if="view === 'tags'" :tags="tags" />
+        <RepositoryGraph v-else-if="view === 'graph'" :nodes="graphNodes" />
+        <div v-else class="mr-placeholder">Merge requests content goes here</div>
+      </section>
+    </template>
   </div>
 </template>
 

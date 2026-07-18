@@ -212,7 +212,7 @@ Block А uses queries that ALREADY EXIST (GET_COMMIT_HISTORY_QUERY, GET_BRANCHES
 
 **Error handling (all tasks):** GraphQL errors → `useErrorPresentation().addError(code, message)`. Retry button → `refetch()`. Follow structured error contract from `specs/adr/ADR-DES.UI.error-feedback-strategy.md`.
 
-- [ ] **Task 2.1 (RED): Write vitest specs for A1–A3** *(depends on Task 1.3)*
+- [x] **Task 2.1 (RED): Write vitest specs for A1–A3** *(depends on Task 1.3)*
 
   **Files:** `VersioningPage.spec.ts`, `OntologyWorkspaceSave.spec.ts`, `SPARQLPage.spec.ts`.
 
