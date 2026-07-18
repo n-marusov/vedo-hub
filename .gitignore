@@ -37,3 +37,4 @@ nul
 # Python build artifacts
 *.egg-info/
 .venv/
+**/test-results/
