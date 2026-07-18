@@ -1,5 +1,5 @@
 // @ctx: M2.5 Deployments page — cards from API, show/hide stopped, delete
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../m2.5-fixtures'
 import { DeploymentsPage } from '../../pages/deployments.page'
 
 test.describe('M2.5 Deployments Page', () => {

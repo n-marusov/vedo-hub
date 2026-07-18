@@ -1,5 +1,5 @@
 // @ctx: M2.5 SPARQL GUI — enter query, run, results table, loading, error, export
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../m2.5-fixtures'
 import { SparqlPage } from '../../pages/sparql.page'
 
 test.describe('M2.5 SPARQL GUI', () => {
@@ -25,7 +25,7 @@ test.describe('M2.5 SPARQL GUI', () => {
     await sparql.goto('ont-123')
     await sparql.enterQuery('SELECT * WHERE { ?s ?p ?o } LIMIT 10')
     await sparql.runQuery()
-    await expect(page.locator('.loading-indicator, .spinner')).toBeVisible({ timeout: 2000 })
+    await expect(page.locator('.spq-loading')).toBeVisible({ timeout: 2000 })
   })
 
   test('should show error message when query execution fails', async ({ page }) => {

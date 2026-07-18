@@ -1,5 +1,5 @@
 // @ctx: M2.5 Metrics page — KPI counters from API, trend chart, loading skeleton
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../m2.5-fixtures'
 import { MetricsPage } from '../../pages/metrics.page'
 
 test.describe('M2.5 Metrics Page', () => {

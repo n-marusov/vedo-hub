@@ -11,7 +11,7 @@ export class ProjectsPage {
   }
 
   getProjects() {
-    return this.page.locator('.project-row');
+    return this.page.locator('.pp-row');
   }
 
   async search(query: string) {
@@ -27,6 +27,6 @@ export class ProjectsPage {
   }
 
   async clickProject(name: string) {
-    await this.page.locator('.project-row', { hasText: name }).click();
+    await this.page.locator('.pp-row', { hasText: name }).click();
   }
 }

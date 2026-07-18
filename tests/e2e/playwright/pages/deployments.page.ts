@@ -19,7 +19,7 @@ export class DeploymentsPage {
   }
 
   async deleteDeployment(url: string) {
-    await this.page.locator('.deployment-card', { hasText: url }).locator('.delete-deployment-btn').click();
+    await this.page.locator('.deployment-card', { hasText: url }).locator('.dc-delete-btn').click();
     await this.page.getByRole('button', { name: /confirm/i }).click();
   }
 }

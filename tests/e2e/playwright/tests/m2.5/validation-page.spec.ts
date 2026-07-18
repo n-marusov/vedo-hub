@@ -1,11 +1,12 @@
 // @ctx: M2.5 Validation page — run button → spinner → results; SHACL OK stub; timestamp update
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../m2.5-fixtures'
 import { ValidationPage } from '../../pages/validation.page'
 
 test.describe('M2.5 Validation Page', () => {
   test('should show validation summary when page loads', async ({ page }) => {
     const validation = new ValidationPage(page)
     await validation.goto('ont-123')
+    await validation.runValidation()
     const summary = validation.getSummary()
     await expect(summary).toBeVisible()
   })

@@ -12,6 +12,6 @@ export class MetricsPage {
   }
 
   getKpiCounters() {
-    return this.page.locator('.kpi-counter');
+    return this.page.locator('.kpi-card');
   }
 }

@@ -1,5 +1,5 @@
 // @ctx: M2.5 Dashboard navigation — click recent project → workspace; user name in header; active route highlight; persistence across reload
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../m2.5-fixtures'
 import { DashboardPage } from '../../pages/dashboard.page'
 
 test.describe('M2.5 Dashboard Navigation', () => {

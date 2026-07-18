@@ -11,11 +11,11 @@ export class MergeRequestsPage {
   }
 
   getSections() {
-    return this.page.locator('.merge-request-section');
+    return this.page.locator('.mr-card');
   }
 
   async toggleSection(title: string) {
-    await this.page.locator('.merge-request-section-header', { hasText: title }).click();
+    await this.page.locator('.mrc-header', { hasText: title }).click();
   }
 
   async switchTab(tab: string) {

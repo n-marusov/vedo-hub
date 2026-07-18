@@ -1,5 +1,5 @@
 // @ctx: M2.5 Members page — list with roles, inline edit, remove with confirmation, last-owner protection
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../m2.5-fixtures'
 import { MembersPage } from '../../pages/members.page'
 
 test.describe('M2.5 Members Page', () => {
@@ -27,8 +27,8 @@ test.describe('M2.5 Members Page', () => {
   test('should prevent removing the last owner', async ({ page }) => {
     const members = new MembersPage(page)
     await members.goto('ont-123')
-    const lastOwner = page.locator('.member-row.owner').last()
-    await lastOwner.locator('.remove-member-btn').click()
+    const lastOwner = page.locator('.table-row').filter({ hasText: 'owner' }).last()
+    await lastOwner.getByRole('button', { name: /remove/i }).click()
     await expect(page.getByText(/cannot remove last owner/i)).toBeVisible()
   })
 })

@@ -1,5 +1,5 @@
 // @ctx: M2.5 Dashboard wiring — widgets, attention items, activity feed, recent ontologies from API
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../m2.5-fixtures'
 import { DashboardPage } from '../../pages/dashboard.page'
 
 test.describe('M2.5 Dashboard Wiring', () => {
@@ -8,9 +8,9 @@ test.describe('M2.5 Dashboard Wiring', () => {
     await dashboard.goto()
     const widgets = dashboard.getWidgets()
     await expect(widgets).toHaveCount(3)
-    await expect(dashboard.page.getByText('Merge Requests')).toBeVisible()
-    await expect(dashboard.page.getByText('Reviews')).toBeVisible()
-    await expect(dashboard.page.getByText('Work Items')).toBeVisible()
+    await expect(widgets.getByText('Merge Requests', { exact: true })).toBeVisible()
+    await expect(widgets.getByText('Reviews', { exact: true })).toBeVisible()
+    await expect(widgets.getByText('Work Items', { exact: true })).toBeVisible()
   })
 
   test('should show attention items with counts from API', async ({ page }) => {

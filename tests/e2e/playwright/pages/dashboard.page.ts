@@ -11,7 +11,7 @@ export class DashboardPage {
   }
 
   getWidgets() {
-    return this.page.locator('.dashboard-widget');
+    return this.page.locator('.widget.card');
   }
 
   getAttentionItems() {
@@ -19,15 +19,15 @@ export class DashboardPage {
   }
 
   getActivityFeed() {
-    return this.page.locator('.activity-feed');
+    return this.page.locator('.activity-card');
   }
 
   getRecentOntologies() {
-    return this.page.locator('.recent-ontology-row');
+    return this.page.locator('.onto-item');
   }
 
   async clickOntology(name: string) {
-    await this.page.locator('.recent-ontology-row', { hasText: name }).click();
+    await this.page.locator('.onto-item', { hasText: name }).click();
   }
 
   async setStatus(text: string) {

@@ -21,11 +21,11 @@ export class VersioningPage {
   }
 
   getBranches() {
-    return this.page.locator('.branch-item');
+    return this.page.locator('.branch-list__item');
   }
 
   getTags() {
-    return this.page.locator('.tag-item');
+    return this.page.locator('.tag-list__table tbody tr');
   }
 
   getGraphNodes() {

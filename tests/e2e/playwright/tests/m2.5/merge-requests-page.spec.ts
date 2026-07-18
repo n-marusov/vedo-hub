@@ -1,5 +1,5 @@
 // @ctx: M2.5 Merge Requests page — sections, toggle, filter tabs
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../m2.5-fixtures'
 import { MergeRequestsPage } from '../../pages/merge-requests.page'
 
 test.describe('M2.5 Merge Requests Page', () => {

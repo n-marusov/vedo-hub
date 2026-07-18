@@ -11,15 +11,15 @@ export class GroupsPage {
   }
 
   getGroups() {
-    return this.page.locator('.group-row');
+    return this.page.locator('.gp-row');
   }
 
   async expandGroup(name: string) {
-    await this.page.locator('.group-row', { hasText: name }).locator('.group-expand-btn').click();
+    await this.page.locator('.gp-row', { hasText: name }).locator('.gp-row-chevron').click();
   }
 
   async collapseGroup(name: string) {
-    await this.page.locator('.group-row', { hasText: name }).locator('.group-collapse-btn').click();
+    await this.page.locator('.gp-row', { hasText: name }).locator('.gp-row-chevron').click();
   }
 
   async search(query: string) {

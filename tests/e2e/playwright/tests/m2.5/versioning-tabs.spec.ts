@@ -1,5 +1,5 @@
 // @ctx: M2.5 Versioning tabs — commits with data, branches, tags, graph nodes, compare diff
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../m2.5-fixtures'
 import { VersioningPage } from '../../pages/versioning.page'
 
 test.describe('M2.5 Versioning Tabs', () => {

@@ -16,10 +16,10 @@ export class ValidationPage {
   }
 
   getSummary() {
-    return this.page.locator('.validation-summary');
+    return this.page.locator('.validation-report__summary');
   }
 
   getResults() {
-    return this.page.locator('.validation-results');
+    return this.page.locator('.validation-report__table, .validation-report__empty');
   }
 }

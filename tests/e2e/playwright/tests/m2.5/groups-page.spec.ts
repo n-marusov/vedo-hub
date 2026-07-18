@@ -1,5 +1,5 @@
 // @ctx: M2.5 Groups page — hierarchy, expand/collapse, lazy loading, search
-import { test, expect } from '@playwright/test'
+import { test, expect } from '../m2.5-fixtures'
 import { GroupsPage } from '../../pages/groups.page'
 
 test.describe('M2.5 Groups Page', () => {
