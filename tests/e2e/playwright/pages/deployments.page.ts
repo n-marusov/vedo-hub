@@ -1,0 +1,25 @@
+import { type Page, expect } from '@playwright/test';
+
+// Page Object Model for Deployments page
+// Covers: screen 15 — Deployment cards with show/hide and delete
+
+export class DeploymentsPage {
+  constructor(public readonly page: Page) {}
+
+  async goto() {
+    await this.page.goto('/dashboard/deployments');
+  }
+
+  async getDeployments() {
+    return this.page.locator('.deployment-card');
+  }
+
+  async toggleShowStopped() {
+    await this.page.getByRole('button', { name: /show stopped|hide stopped/i }).click();
+  }
+
+  async deleteDeployment(url: string) {
+    await this.page.locator('.deployment-card', { hasText: url }).locator('.delete-deployment-btn').click();
+    await this.page.getByRole('button', { name: /confirm/i }).click();
+  }
+}

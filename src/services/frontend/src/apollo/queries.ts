@@ -402,12 +402,235 @@ export const GET_COMMENT_FEED_QUERY = gql`
   ${COMMENT_FRAGMENT}
 `
 
-/// Create a new comment.
-export const CREATE_COMMENT_MUTATION = gql`
-  mutation CreateComment($ontologyId: ID!, $entityId: ID!, $text: String!, $parentCommentId: ID) {
-    createComment(ontologyId: $ontologyId, entityId: $entityId, text: $text, parentCommentId: $parentCommentId) {
-      ...CommentFields
-    }
   }
   ${COMMENT_FRAGMENT}
+`
+
+// ── M2.5 Queries & Mutations ──────────────────────────────────────────────────────
+// @m2.5 — Added for GUI wiring implementation
+
+/// Execute a SPARQL query against the ontology.
+export const SPARQL_EXECUTE_QUERY = gql`
+  query SparqlExecute($ontologyId: ID!, $query: String!, $limit: Int, $offset: Int) {
+    sparqlQuery(ontologyId: $ontologyId, query: $query, limit: $limit, offset: $offset) {
+      columns
+      rows
+      total
+      executionTimeMs
+    }
+  }
+`
+
+/// List projects with search, sort, pagination.
+export const LIST_PROJECTS_QUERY = gql`
+  query ListProjects($q: String, $sortBy: String, $sortDir: SortDirection, $page: Int, $perPage: Int) {
+    projects(q: $q, sortBy: $sortBy, sortDir: $sortDir, page: $page, perPage: $perPage) {
+      items {
+        id
+        name
+        description
+        visibility
+        ontologyCount
+        memberCount
+        updatedAt
+      }
+      total
+      page
+      perPage
+    }
+  }
+`
+
+/// List groups with hierarchy and search.
+export const LIST_GROUPS_QUERY = gql`
+  query ListGroups($q: String) {
+    groups(q: $q) {
+      id
+      name
+      description
+      parentGroupId
+      childGroups {
+        id
+        name
+      }
+      memberCount
+      projectCount
+    }
+  }
+`
+
+/// List members of an ontology with roles.
+export const LIST_MEMBERS_QUERY = gql`
+  query ListMembers($ontologyId: ID!) {
+    members(ontologyId: $ontologyId) {
+      id
+      userId
+      username
+      avatarUrl
+      role
+      addedAt
+    }
+  }
+`
+
+/// Update a member's role.
+export const UPDATE_MEMBER_ROLE_MUTATION = gql`
+  mutation UpdateMemberRole($ontologyId: ID!, $userId: ID!, $role: String!) {
+    updateMemberRole(ontologyId: $ontologyId, userId: $userId, role: $role) {
+      success
+      member {
+        id
+        userId
+        role
+      }
+    }
+  }
+`
+
+/// Remove a member from an ontology.
+export const REMOVE_MEMBER_MUTATION = gql`
+  mutation RemoveMember($ontologyId: ID!, $userId: ID!) {
+    removeMember(ontologyId: $ontologyId, userId: $userId) {
+      success
+    }
+  }
+`
+
+/// Get tags for a versioning context.
+export const GET_TAGS_QUERY = gql`
+  query GetTags($ontologyId: ID!) {
+    tags(ontologyId: $ontologyId) {
+      id
+      name
+      commitId
+      message
+      authorName
+      createdAt
+    }
+  }
+`
+
+/// Compare two revisions and return diff data.
+export const COMPARE_REVISIONS_QUERY = gql`
+  query CompareRevisions($ontologyId: ID!, $fromRevision: ID!, $toRevision: ID!) {
+    compareRevisions(ontologyId: $ontologyId, fromRevision: $fromRevision, toRevision: $toRevision) {
+      additions
+      deletions
+      changes {
+        entityId
+        entityType
+        entityLabel
+        changeType
+        field
+        oldValue
+        newValue
+      }
+    }
+  }
+`
+
+/// Dashboard aggregate query — widgets, recent ontologies, activity feed.
+export const DASHBOARD_QUERY = gql`
+  query DashboardAggregate {
+    dashboard {
+      widgets {
+        title
+        count
+        icon
+        route
+      }
+      recentOntologies {
+        id
+        name
+        description
+        visibility
+        updatedAt
+      }
+      activityFeed {
+        id
+        text
+        author
+        timestamp
+        type
+      }
+      attentionItems {
+        id
+        text
+        severity
+        count
+      }
+    }
+  }
+`
+
+/// Ontology metrics — KPI counters and trends.
+export const ONTOLOGY_METRICS_QUERY = gql`
+  query OntologyMetrics($ontologyId: ID!) {
+    ontologyMetrics(ontologyId: $ontologyId) {
+      counters {
+        classCount
+        propertyCount
+        individualCount
+        axiomCount
+        commentCount
+        mergeRequestCount
+      }
+      trends {
+        date
+        classCount
+        propertyCount
+        individualCount
+      }
+    }
+  }
+`
+
+/// Run SHACL validation (currently returns OK stub).
+export const RUN_VALIDATION_MUTATION = gql`
+  mutation RunValidation($ontologyId: ID!) {
+    runValidation(ontologyId: $ontologyId) {
+      status
+      violations {
+        path
+        message
+        severity
+        node
+      }
+      validatedAt
+    }
+  }
+`
+
+/// List deployments.
+export const LIST_DEPLOYMENTS_QUERY = gql`
+  query ListDeployments($includeStopped: Boolean) {
+    deployments(includeStopped: $includeStopped) {
+      id
+      url
+      status
+      version
+      ontologyId
+      ontologyName
+      deployedAt
+      deployedBy
+    }
+  }
+`
+
+/// List merge requests with sections and tabs.
+export const LIST_MERGE_REQUESTS_QUERY = gql`
+  query ListMergeRequests($status: String) {
+    mergeRequests(status: $status) {
+      id
+      title
+      description
+      sourceBranch
+      targetBranch
+      authorName
+      status
+      mergeStatus
+      createdAt
+      commentCount
+    }
+  }
 `

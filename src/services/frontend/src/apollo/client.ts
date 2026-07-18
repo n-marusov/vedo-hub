@@ -4,6 +4,7 @@ import { ApolloClient, InMemoryCache, createHttpLink, from } from '@apollo/clien
 import { setContext } from '@apollo/client/link/context'
 import { onError } from '@apollo/client/link/error'
 import { RetryLink } from '@apollo/client/link/retry'
+import { MockApolloLink, isMockApiEnabled } from './mock-link'
 
 // structured logging for Apollo operations (observability constraint)
 const log = {
@@ -66,8 +67,15 @@ const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
   }
 })
 
+// When VITE_USE_MOCK_API=true, insert MockApolloLink before retryLink
+const mockLink = isMockApiEnabled() ? new MockApolloLink() : null
+
+const links = mockLink
+  ? [mockLink, retryLink, errorLink, authLink, httpLink]
+  : [retryLink, errorLink, authLink, httpLink]
+
 export const apolloClient = new ApolloClient({
-  link: from([retryLink, errorLink, authLink, httpLink]),
+  link: from(links),
   cache: new InMemoryCache({
     typePolicies: {
       Query: {

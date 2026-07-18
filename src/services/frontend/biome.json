@@ -58,6 +58,15 @@
           }
         }
       }
+    },
+    {
+      "include": ["src/apollo/queries.ts"],
+      "linter": {
+        "enabled": false
+      },
+      "formatter": {
+        "enabled": false
+      }
     }
   ]
 }

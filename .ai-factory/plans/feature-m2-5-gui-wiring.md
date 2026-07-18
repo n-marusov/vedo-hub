@@ -131,7 +131,7 @@ This plan implements the following specifications. Each task references its gove
 
 **Test infrastructure:** `tests/e2e/playwright/` — Playwright config: 3 браузера, baseURL `http://localhost:3000`, retries=2.
 
-- [ ] **Task 0.1: Create Page Object Models for M2.5 pages** *(no deps)*
+- [x] **Task 0.1: Create Page Object Models for M2.5 pages** *(no deps)*
 
   Create 10 POM classes following the pattern from `tests/e2e/playwright/pages/ontology-workspace.page.ts`.
 
@@ -147,7 +147,7 @@ This plan implements the following specifications. Each task references its gove
   - `tests/e2e/playwright/pages/deployments.page.ts` — `DeploymentsPage` class: `goto()`, `getDeployments()`, `toggleShowStopped()`, `deleteDeployment(url)`
   - `tests/e2e/playwright/pages/merge-requests.page.ts` — `MergeRequestsPage` class: `goto()`, `getSections()`, `toggleSection(title)`, `switchTab(tab)`
 
-- [ ] **Task 0.2: Write E2E tests for all M2.5 pages** *(depends on Task 0.1)*
+- [x] **Task 0.2: Write E2E tests for all M2.5 pages** *(depends on Task 0.1)*
 
   11 Playwright E2E spec files. Define acceptance criteria for M2.5. Will FAIL (RED) until Phases 3–6.
 
@@ -166,7 +166,7 @@ This plan implements the following specifications. Each task references its gove
 
   > **BDD naming:** `'should <expected> when <condition>'`
 
-- [ ] **Task 0.3: Write API Gateway integration tests (full endpoint coverage)** *(no deps)*
+- [x] **Task 0.3: Write API Gateway integration tests (full endpoint coverage)** *(no deps)*
 
   `tests/e2e/playwright/tests/m2.5/api-gateway-full.spec.ts` — 20+ API endpoints via `page.request`:
 
@@ -184,19 +184,19 @@ This plan implements the following specifications. Each task references its gove
 
 **Governing spec:** `specs/requirements/REQ-USR.UI.gui-implementation.md` § API Layer.
 
-- [ ] **Task 1.1: Expand queries.ts** *(no deps)*
+- [x] **Task 1.1: Expand queries.ts** *(no deps)*
 
   Add 13 queries/mutations to `src/services/frontend/src/apollo/queries.ts`. Mark each with `// @m2.5`.
   **Specs:** `specs/adr/ADR-DES.API.graphql-sparql-split-strategy.md`; `specs/c4/frontend-components.md` — ApolloClient.
 
   Queries: `SPARQL_EXECUTE_QUERY`, `LIST_PROJECTS_QUERY`, `LIST_GROUPS_QUERY`, `LIST_MEMBERS_QUERY` + `UPDATE_MEMBER_ROLE_MUTATION` + `REMOVE_MEMBER_MUTATION`, `GET_TAGS_QUERY`, `COMPARE_REVISIONS_QUERY`, `DASHBOARD_QUERY` (aggregate), `ONTOLOGY_METRICS_QUERY`, `RUN_VALIDATION_MUTATION`, `LIST_DEPLOYMENTS_QUERY`, `LIST_MERGE_REQUESTS_QUERY`
 
-- [ ] **Task 1.2: Build mock Apollo link** *(no deps — parallel with 1.1)*
+- [x] **Task 1.2: Build mock Apollo link** *(no deps — parallel with 1.1)*
 
   Mock link intercepts Block В queries with realistic data. 200ms artificial delay.
   **Files:** `src/services/frontend/src/apollo/mock-data.ts`, `mock-link.ts`, `test-utils.ts`. Modify `client.ts` — add mock link before retryLink when `VITE_USE_MOCK_API=true`.
 
-- [ ] **Task 1.3: Vitest test setup** *(no deps — parallel with 1.1, 1.2)*
+- [x] **Task 1.3: Vitest test setup** *(no deps — parallel with 1.1, 1.2)*
 
   `src/services/frontend/src/__tests__/setup/mock-providers.ts`: `createMockRouter()`, `mountWithProviders()`, `waitForQuery()`, `describePage()`.
 
