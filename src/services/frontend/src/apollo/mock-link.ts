@@ -1,9 +1,8 @@
 // @m2.5 — Apollo mock link for Block В (Backend Pages)
 // Intercepts specific queries with realistic mock data when VITE_USE_MOCK_API=true
 
-import type { Operation } from "@apollo/client/core";
+import type { FetchResult, Operation } from "@apollo/client/core";
 import { ApolloLink, Observable } from "@apollo/client/core";
-import { print } from "graphql";
 import {
 	MOCK_DASHBOARD_DATA,
 	MOCK_DEPLOYMENTS_DATA,
@@ -28,36 +27,29 @@ const mockResolvers: Record<string, () => unknown> = {
 };
 
 export class MockApolloLink extends ApolloLink {
-	request(operation: Operation): Observable<unknown> {
-		return new Observable((observer) => {
-			const definition = operation.query.definitions.find(
-				(d) => d.kind === "OperationDefinition",
-			);
-			// Extract operation name from the printed query or the operation context
-			const opName = operation.operationName || "unknown";
+	request(operation: Operation): Observable<FetchResult> | null {
+		const opName = operation.operationName || "unknown";
 
-			// Log mock usage
-			console.debug(
-				JSON.stringify({
-					level: "debug",
-					msg: "mock.link.intercepted",
-					operation: opName,
-					ts: new Date().toISOString(),
-				}),
-			);
+		// Check if we have mock data for this operation
+		const resolver = mockResolvers[opName];
+		if (!resolver) {
+			return null; // forward to next link for unmocked operations
+		}
 
-			// Check if we have mock data for this operation
-			const resolver = mockResolvers[opName];
-			if (!resolver) {
-				// Forward to next link for unmocked operations
-				observer.complete();
-				return;
-			}
+		// Log mock usage
+		console.debug(
+			JSON.stringify({
+				level: "debug",
+				msg: "mock.link.intercepted",
+				operation: opName,
+				ts: new Date().toISOString(),
+			}),
+		);
 
-			// Apply artificial delay for realistic behavior
+		// Apply artificial delay for realistic behavior
+		return new Observable<FetchResult>((observer) => {
 			delay(200).then(() => {
-				const data = resolver();
-				observer.next({ data });
+				observer.next({ data: resolver() as Record<string, unknown> });
 				observer.complete();
 			});
 		});

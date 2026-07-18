@@ -1,12 +1,86 @@
 // @m2.5 — Mock data for Apollo mock link — Block В (Backend Pages)
 // Realistic data shapes matching queries.ts GraphQL contracts
 
-import type {
-	DashboardAggregateQuery,
-	ListDeploymentsQuery,
-	ListMergeRequestsQuery,
-	OntologyMetricsQuery,
-} from "@/types/graphql";
+// @m2.5 — Inline type definitions matching queries.ts GraphQL contracts
+// These replace @/types/graphql (module not yet created — to be generated from schema)
+
+interface DashboardAggregateQuery {
+	dashboard: {
+		widgets: Array<{
+			title: string;
+			count: number;
+			icon: string;
+			route: string;
+		}>;
+		recentOntologies: Array<{
+			id: string;
+			name: string;
+			description: string;
+			visibility: string;
+			updatedAt: string;
+		}>;
+		activityFeed: Array<{
+			id: string;
+			text: string;
+			author: string;
+			timestamp: string;
+			type: string;
+		}>;
+		attentionItems: Array<{
+			id: string;
+			text: string;
+			severity: string;
+			count: number;
+		}>;
+	};
+}
+
+interface OntologyMetricsQuery {
+	ontologyMetrics: {
+		counters: {
+			classCount: number;
+			propertyCount: number;
+			individualCount: number;
+			axiomCount: number;
+			commentCount: number;
+			mergeRequestCount: number;
+		};
+		trends: Array<{
+			date: string;
+			classCount: number;
+			propertyCount: number;
+			individualCount: number;
+		}>;
+	};
+}
+
+interface ListDeploymentsQuery {
+	deployments: Array<{
+		id: string;
+		url: string;
+		status: string;
+		version: string;
+		ontologyId: string;
+		ontologyName: string;
+		deployedAt: string;
+		deployedBy: string;
+	}>;
+}
+
+interface ListMergeRequestsQuery {
+	mergeRequests: Array<{
+		id: string;
+		title: string;
+		description: string;
+		sourceBranch: string;
+		targetBranch: string;
+		authorName: string;
+		status: string;
+		mergeStatus: string;
+		createdAt: string;
+		commentCount: number;
+	}>;
+}
 
 export const MOCK_DASHBOARD_DATA: DashboardAggregateQuery = {
 	dashboard: {
