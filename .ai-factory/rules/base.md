@@ -56,11 +56,106 @@
 
 ## Verification Lint & Format Requirement
 
-**This rule overrides the conditional "If linters are configured" check in `$aif-verify` — lint and format checks are REQUIRED, not optional.**
+**This rule adds a project-specific static-analysis gate for `$aif-verify`.** It is cumulative with the base skill: changed-file checks remain useful for focused feedback, and the project gate below runs before a final `pass` result is emitted.
 
-- TypeScript/Vue (frontend): Run `npx biome check` on changed files under `src/services/frontend/`.
-- Go services: Run `gofmt -l` and `golangci-lint run` on changed Go files.
-- Rust services: Run `cargo clippy` and `cargo fmt --check` on changed Rust crates.
-- Python services: Run `ruff check` on changed Python files.
+**Scope rule:** Checks run on ALL files in every affected service, not only changed files.
+Changed-files-only checking is useful for fast feedback, but it is insufficient as the final verification gate because pre-existing IDE-visible errors can slip through.
+When ANY file in a service is changed, run the full check on the ENTIRE service directory as the project gate.
+
+### Validation Gates (per language)
+
+**TypeScript/Vue:**
+- `npx biome check --apply .` — lint + format entire service
+- Services: `src/services/frontend/`, `src/services/publish-browse-ui/`
+
+**Go (compilation → lint → deps):**
+- `go vet ./...` — compilation + basic static analysis (MANDATORY, runs first)
+- `gofmt -l .` — format check (MANDATORY)
+- `golangci-lint run ./...` — advanced lint (MANDATORY, requires `.golangci.yml`)
+- `go mod tidy && git diff --exit-code go.mod go.sum` — dependency drift check (MANDATORY)
+- Services: `api-gateway`, `auth-service`, `commenting-service`, `ticket-api`, `ticket-notifier`,
+  `ticket-sync`, `ticket-telemetry-listener`, `support-service`, `ai-orchestration-service`,
+  `shared/llm`, `shared/proto`, `cli`
+
+**Rust (compilation → lint → format):**
+- `cargo check` — compilation gate (MANDATORY, catches namespacing/type errors that clippy misses)
+- `cargo clippy --lib -- -D warnings` — lint gate (MANDATORY)
+- `cargo fmt --check` — format gate (MANDATORY)
+- Services: `ontology-service`, `versioning-service`, `publisher-service`, `public-browse-api`
+- Also: `src/services/shared/src/` (shared Rust library)
+
+**Python (lint → type-check):**
+- `ruff check .` — lint + format (MANDATORY)
+- `basedpyright .` — strict type checking (MANDATORY, catches type errors, import resolution, implicit imports)
+- Services: `document-extractor`, `metrics-service`, `ticket-classifier`
+
+### Failure Handling
 - If any check fails, the verification report MUST list specific errors with file:line references.
-- Exception: If a language toolchain is not available in the environment, emit WARN [lint] <tool> not available — skipping.
+- The verification gate status is `fail` if any available mandatory validation gate reports errors.
+- Do NOT skip remaining gates after a failure — run all of them and report cumulative results.
+- Exception: If a language toolchain is not available in the environment, emit `WARN [lint] <tool> not available — skipping` and continue with the remaining checks.
+
+### Service Matrix Maintenance
+
+When a new service is added to the monorepo (a new directory under `src/services/`),
+the service lists in this file, in `skill-context/aif-verify/SKILL.md`, and in
+`skill-context/aif-implement/SKILL.md` MUST be updated. Run:
+
+```bash
+find src/services -name go.mod -o -name Cargo.toml -o -name pyproject.toml -o -name package.json | sort
+```
+
+Cross-reference against the service lists and add any missing entries.
+
+### Traceability Integrity
+
+When artifacts are created, modified, or deleted during implementation, the
+traceability matrix at `.ai-factory/traceability/traceability.ttl` must reflect
+the change.
+
+**Artifact taxonomy (directory → vdo class):**
+
+| Directory / Pattern | vdo Class |
+|---------------------|-----------|
+| `specs/requirements/REQ-BIZ-*` | `vdo:BusinessRequirement` |
+| `specs/requirements/REQ-FUN-*` | `vdo:FunctionalRequirement` |
+| `specs/requirements/REQ-NFR-*` | `vdo:NonFunctionalRequirement` |
+| `specs/requirements/REQ-CON-*` | `vdo:FunctionalRequirement` |
+| `specs/requirements/REQ-USR-*` | `vdo:FunctionalRequirement` |
+| `specs/user-stories/US-*` | `vdo:UserStory` |
+| `specs/use-cases/UC-*` | `vdo:UseCase` |
+| `specs/adr/ADR-*` | `vdo:ArchitectureDecisionRecord` |
+| `specs/c4/*` | `vdo:DesignArtifact` |
+| `specs/ui/*` | `vdo:DesignArtifact` |
+| `specs/vision.md`, `specs/context.md`, `specs/stack.md`, `specs/glossary.md` | `vdo:Specification` |
+| `src/services/<name>/` (whole directory) | `vdo:Service` |
+| `src/services/<name>/**/*.{go,rs,py,ts,vue}` | `vdo:CodeArtifact` (skip if directory already covered) |
+| `src/cli/` | `vdo:CLICommand` |
+| `src/services/shared/proto/*.proto` | `vdo:CodeArtifact` |
+| `src/templates/` | `vdo:CodeArtifact` |
+| `tests/e2e/*`, `tests/cli/*` | `vdo:TestSuite` |
+| `tests/security/*` | `vdo:TestContract` |
+| `tests/ticket-api/*` | `vdo:TestContract` |
+| `src/**/*_test.{go,rs}`, `src/**/test_*.py`, `src/**/*_test.py`, `src/**/*.{spec,test}.ts` | `vdo:TestSuite` / `vdo:TestContract` |
+| `src/docs/antora/**/*.adoc` | `vdo:Documentation` |
+| `deploy/docker-compose.yml` | `vdo:DeploymentConfig` |
+| `deploy/helm/*` | `vdo:DeploymentConfig` |
+| `deploy/keycloak/*` | `vdo:DeploymentConfig` |
+| `deploy/ci/gitlab-ci.yml` | `vdo:CIPipeline` |
+| `deploy/observability/*` | `vdo:ObservabilityConfig` |
+| `design/*.pen` | `vdo:DesignArtifact` |
+| `specs/adr/ADR-DES.SECURITY-*` | `vdo:SecurityBoundary` |
+
+- **Service added/removed:** add/remove `vdo:Service` instance with matching `vdo:filePath` and `vdo:language`.
+- **Source file added/removed:** add/remove `vdo:CodeArtifact` or related instance unless already covered by a directory-level `vdo:filePath`.
+- **Renamed/relocated artifact:** update `vdo:filePath`.
+- **Reference updated:** verify `vdo:implements`, `vdo:validates`, `vdo:tests`, `vdo:documents` IRIs all resolve to existing instances.
+- **Check command:** `grep` for the artifact path in `traceability.ttl` — if not found and the change is structural, a new instance is needed.
+
+This rule applies to `$aif-verify`, `$aif-implement`, and `$aif-plan`.
+
+### Docker Compose & CI Gate
+
+When adding a service, verify it is included in Docker Compose (`deploy/docker-compose.yml`)
+and CI pipeline (`deploy/ci/gitlab-ci.yml`). Cross-reference service lists with
+`deploy/docker-compose.yml` service entries.
