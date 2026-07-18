@@ -2,7 +2,8 @@
 
 Branch: feature/m2-5-gui-wiring
 Created: 2026-07-18
-Improved: 2026-07-18 — $aif-improve pass (3 missing tasks, 3 task improvements, 2 dependency fixes, 1 out-of-scope)
+Improved: 2026-07-18 — $aif-improve pass 1 (3 missing tasks, 3 task improvements, 2 dependency fixes, 1 out-of-scope)
+Improved: 2026-07-18 — $aif-improve pass 2 (7 missing sub-tasks for E2E test fixes, 4 task improvements, 1 dependency fix, 1 out-of-scope)
 
 ## Settings
 - Testing: yes — **TDD (tests first)**: E2E contracts → vitest RED → implementation GREEN → E2E GREEN
@@ -407,30 +408,147 @@ Block В depends on mock Apollo link (Task 1.2).
 
 **Governing spec:** `specs/requirements/REQ-FUN.PROCESS.e2e-testing.md`; `specs/user-stories/E2E-editor.workflow.full-cycle.md`.
 
-- [x] **Task 6.1: Run E2E GUI tests — fix until GREEN**
+**Overall status: 42/71 passing.** API infrastructure (stub server + Vite proxy + mock auth) is fully working. Remaining 29 failures are test-level selector/interaction mismatches between Phase 0 tests and Phase 2-5 component implementations, broken into 7 fix categories below.
 
-  **Status: 42/71 passing.** API infrastructure (stub server + Vite proxy + mock auth) is fully working. Remaining 29 failures are test-level selector/interaction mismatches between Phase 0 tests and Phase 2-5 component implementations.
+**Infrastructure fixes applied (✅ done):**
+- Created stub API server at `tests/e2e/playwright/stub-server.mjs`
+- Added Vite proxy for `/api/v1` → stub server in `src/services/frontend/vite.config.ts`
+- Created `tests/e2e/playwright/tests/m2.5-fixtures.ts` for mock auth injection
+- Created `tests/e2e/playwright/playwright.m2.5.config.ts` for lightweight E2E test config
+- Fixed all POM files to match actual component CSS selectors
+- Fixed GraphQL mock data format to match query field names
+- Fixed double body parsing bug in stub server
+- Fixed test file selector scoping issues
 
-  **Fixes applied:**
-  - Created stub API server at `tests/e2e/playwright/stub-server.mjs`
-  - Added Vite proxy for `/api/v1` → stub server in `src/services/frontend/vite.config.ts`
-  - Created `tests/e2e/playwright/tests/m2.5-fixtures.ts` for mock auth injection
-  - Created `tests/e2e/playwright/playwright.m2.5.config.ts` for lightweight E2E test config
-  - Fixed all POM files to match actual component CSS selectors
-  - Fixed GraphQL mock data format to match query field names
-  - Fixed double body parsing bug in stub server
-  - Fixed test file selector scoping issues
+---
 
-  **Known remaining issues (29 tests):**
-  - Groups/Members/Metrics/Projects/SPARQL/Versions page: selector/interaction mismatches
-  - Validation page: loading indicator selector mismatch
-  - Auth 401 test: stub server header handling
+- [ ] **Task 6.1a: Fix GroupsPage — expand/collapse interactivity** *(no deps — independent)*
 
-  Run command:
-  ```bash
-  cd tests/e2e/playwright
-  npx playwright test --config=playwright.m2.5.config.ts --project=chromium
-  ```
+  **Affected tests (3):** `should expand group`, `should collapse group`, `groups-page.spec.ts` lines 13–28.
+
+  **Root cause:** Component renders all rows flat via `walk()` — no `@click` on `.gp-row-chevron`, no reactive expand/collapse state. Test expects `.group-child-row` class which doesn't exist (all rows use `.gp-row`).
+
+  **Fix (component):** Add reactive `expanded` map in `GroupsPage.vue`. Toggle on `.gp-row-chevron` click. Filter child rows based on parent expanded state. Add CSS class `.gp-row--child` (or `.group-child-row`) to child rows so tests can target them.
+
+  **Files:** `src/services/frontend/src/pages/GroupsPage.vue` (modify — add `@click` on chevron, `expanded` state, child class)
+  **POM:** `tests/e2e/playwright/pages/groups.page.ts` (update `.group-child-row` → `.gp-row--child` if renamed)
+
+  **Logging:** `DEBUG [Groups.expand] group=<name> expanded=<bool>`
+
+- [ ] **Task 6.1b: Fix MembersPage — edit role and remove member interactivity** *(no deps — independent)*
+
+  **Affected tests (3):** `should change member role`, `should show confirmation dialog`, `should prevent removing last owner`, `members-page.spec.ts` lines 13–33.
+
+  **Root cause:** Edit button has `aria-label="Edit member"` but no `@click` handler. Remove button similarly inert. `.role-pill` is a static `<span>`. No confirmation dialog or last-owner protection logic exists.
+
+  **Fix (component):**
+  - Add `@click="startEdit(member)"` on Edit button → toggle inline role select (`v-if` `editingMember`)
+  - Replace static `.role-pill` with `<select v-model>` when editing, `<span class="role-pill">` when not
+  - Add `@click="confirmRemove(member)"` on Remove button → show `<Dialog>` confirmation (`B:aTMES` ui-kit)
+  - Guard: disable Remove button with tooltip when member is the last owner
+  - Emit toast on role update: "role updated"
+
+  **Files:**
+  - `src/services/frontend/src/pages/MembersPage.vue` (modify — add edit/remove handlers, dialog, guard)
+  - `tests/e2e/playwright/pages/members.page.ts` (verify `editRole()` POM matches new select flow)
+
+  **Logging:**
+  - `DEBUG [Members.edit] member=<name> newRole=<role>`
+  - `DEBUG [Members.remove] member=<name> isLastOwner=<bool>`
+
+- [ ] **Task 6.1c: Fix ProjectsPage — sort and row navigation interactivity** *(no deps — independent)*
+
+  **Affected tests (2):** `should sort projects`, `should navigate to workspace when project row is clicked`, `projects-page.spec.ts` lines 21–36.
+
+  **Root cause:** Sort controls are static `<span>` elements, not `<button>` — POM `sortBy()` calls `getByRole('button', name)` and fails. Row click navigation is missing — no `@click`/`router-link` on `.pp-row`. Query hardcodes `sortDir: "ASC"`.
+
+  **Fix (component):**
+  - Replace `<span class="pp-sort-label">` with `<button>` elements, add `@click` to toggle sort field/direction
+  - Add reactive `sortBy`/`sortDir` refs fed into `LIST_PROJECTS_QUERY` variables
+  - Add `@click="router.push({ name: 'ontology-workspace', params: { id: p.name } })"` on `.pp-row` or wrap with `<router-link>`
+
+  **Files:** `src/services/frontend/src/pages/ProjectsPage.vue` (modify — sort buttons, row links)
+  **POM:** `tests/e2e/playwright/pages/projects.page.ts` (verify `sortBy()` works with new button selectors)
+
+  **Logging:**
+  - `DEBUG [Projects.sort] field=<field> dir=<dir>`
+  - `DEBUG [Projects.navigate] project=<name>`
+
+- [ ] **Task 6.1d: Fix organism component selectors — CommitHistory, RepositoryGraph** *(no deps — independent)*
+
+  **Affected tests (2):** `should render commit history`, `should render version graph`, `versioning-tabs.spec.ts` lines 6–11, 27–32.
+
+  **Root cause:**
+  - POM `getCommits()` returns `.commit-item` → CommitHistory.vue uses `<tr>` inside `.commit-history__table` (NO `.commit-item` class)
+  - POM `getGraphNodes()` returns `.versioning-graph-node, .repository-graph-node` → RepositoryGraph.vue uses `.repo-graph__node`
+
+  **Fix (minimum — align POM to reality):**
+  - Update `versioning.page.ts` `getCommits()` → `.commit-history__table tbody tr`
+  - Update `versioning.page.ts` `getGraphNodes()` → `.repo-graph__node`
+
+  **Alternative (better for resilience):** Add `data-testid` attributes to organism components and use them in POM selectors.
+
+  **Files:**
+  - `tests/e2e/playwright/pages/versioning.page.ts` (update selectors)
+  - Optionally: `src/services/frontend/src/components/organisms/CommitHistory.vue`, `RepositoryGraph.vue` (add `data-testid`)
+
+- [ ] **Task 6.1e: Fix VersioningPage tab ARIA roles** *(no deps — independent)*
+
+  **Affected tests (1):** `should switch tabs and show different content`, `versioning-tabs.spec.ts` line 40–46.
+
+  **Root cause:** POM `switchTab()` uses `getByRole('tab', { name: RegExp })`. VersioningPage tab buttons are `<button class="tab">` WITHOUT `role="tab"` attribute (only the section has `role="tablist"`). Playwright `getByRole` requires explicit `role` on the element.
+
+  **Fix:** Add `role="tab"` and `aria-selected="<bool>"` to each tab `<button>` in `VersioningPage.vue`. This is a 2-line template change and makes the component ARIA-compliant.
+
+  **Files:** `src/services/frontend/src/pages/VersioningPage.vue` (modify — add `role="tab"` + `aria-selected`)
+
+- [ ] **Task 6.1f: Normalize loading-state CSS classes across pages** *(no deps — independent)*
+
+  **Affected tests (3):**
+  - `versioning-tabs.spec.ts` line 48–52 — tests `.loading-indicator, .spinner` → component uses `.version-loading .skeleton`
+  - `validation-page.spec.ts` line 14–20 — tests `.loading-indicator, .spinner` → component uses Loader icon with `.spinning` class
+  - `metrics-page.spec.ts` line 19–22 — tests `.skeleton, .loading-skeleton` → component uses `.skeleton` (may pass, but `.loading-skeleton` doesn't exist)
+
+  **Root cause:** Each page uses different CSS classes for loading state. Tests look for generic `.loading-indicator, .spinner` which exist nowhere. Pages also lack `.validation-timestamp` class (ValidationPage) and `.trend-chart, .metrics-chart` classes (MetricsPage).
+
+  **Fix:**
+  - **Option A (update tests):** Replace generic `.loading-indicator, .spinner` in test files with page-specific selectors: `.version-loading` (Versioning), `.spinning` (Validation), `.metrics-content .skeleton` (Metrics)
+  - **Option B (update components):** Add `.loading-indicator` class to loading wrappers in all 3 pages
+
+  **Additional class fixes:**
+  - `MetricsPage.vue`: add class `.metrics-chart` to `.chart-card .chart-placeholder` div
+  - `ValidationPage.vue`: add class `.validation-timestamp` to the timestamp `<span>`
+
+  **Files:**
+  - E2E test files (update selectors) OR component files (add classes)
+  - `src/services/frontend/src/pages/MetricsPage.vue`
+  - `src/services/frontend/src/pages/ValidationPage.vue`
+
+- [ ] **Task 6.1g: Fix SPARQL export button and remaining edge cases** *(no deps — independent)*
+
+  **Affected tests (1):** `should export results when export button is clicked`, `sparql-gui.spec.ts` lines 53–58.
+
+  **Root cause:** `SPARQLQueryEditor.vue` has Run, Format, and Select buttons but NO Export button. The component also has its own results table (`.sparql-editor__table`) that may shadow the parent's `.query-results-table`.
+
+  **Fix:**
+  - Add Export button to `SPARQLQueryEditor.vue` toolbar emitting `export` event
+  - Handle export in `SPARQLPage.vue` (download CSV/JSON of current results)
+  - Verify test selectors: POM `enterQuery()` uses `.sparql-editor textarea, .cm-editor` → component uses `<textarea class="sparql-editor__textarea">` which IS a child of `.sparql-editor` div — should match `".sparql-editor textarea"`
+  - Verify SPARQL error test: route override returns `{ errors: [{ message: 'Query error' }] }` → Apollo throws → caught in `catch` block → `error.value = message` → rendered as `<p class="spq-error">{{ error }}</p>`. Test checks `getByText(/error/i)` — message text "Query error" should match.
+
+  **Files:**
+  - `src/services/frontend/src/components/organisms/SPARQLQueryEditor.vue` (add Export button)
+  - `src/services/frontend/src/pages/SPARQLPage.vue` (handle export event)
+
+  **Logging:** `DEBUG [SPARQL.export] format=<csv|json> rows=<N>`
+
+---
+
+**Phase 6 run command (after all fixes):**
+```bash
+cd tests/e2e/playwright
+npx playwright test --config=playwright.m2.5.config.ts --project=chromium
+```
 
 - [x] **Task 6.2: Run API Gateway integration tests — fix until GREEN**
 
@@ -460,7 +578,7 @@ Block В depends on mock Apollo link (Task 1.2).
 
 ### Phase 7: Documentation & Quality Gate
 
-- [ ] **Task 7.1: Acceptance criteria — Test Quality Gate**
+- [ ] **Task 7.1: Acceptance criteria — Test Quality Gate** *(depends on Tasks 6.1a–6.1g)*
 
   **Specs:** `specs/requirements/REQ-FUN.PROCESS.e2e-testing.md`; `specs/requirements/REQ-CON.STACK.frontend-stack.md`.
 
@@ -540,7 +658,28 @@ Block В depends on mock Apollo link (Task 1.2).
 
 ## $aif-improve Changelog (2026-07-18)
 
-### 🆕 Missing Tasks Added
+### Pass 2 — E2E Test Fix Breakdown (2026-07-18)
+
+#### 🆕 Missing Tasks Added (7 sub-tasks)
+- **Task 6.1a:** Fix GroupsPage — expand/collapse interactivity (no `@click` on chevron, flat rendering, missing `.group-child-row` class)
+- **Task 6.1b:** Fix MembersPage — edit role and remove member interactivity (inert Edit/Remove buttons, no confirmation dialog, no last-owner guard)
+- **Task 6.1c:** Fix ProjectsPage — sort and row navigation interactivity (sort controls are `<span>` not `<button>`, no `@click` on rows)
+- **Task 6.1d:** Fix organism component selectors — CommitHistory (`.commit-item` → `commit-history__table tr`), RepositoryGraph (`.versioning-graph-node` → `.repo-graph__node`)
+- **Task 6.1e:** Fix VersioningPage tab ARIA roles — POM uses `getByRole('tab')` but buttons lack `role="tab"`
+- **Task 6.1f:** Normalize loading-state CSS classes — `.loading-indicator`/`.spinner` don't exist; `.trend-chart`/`.validation-timestamp` missing
+- **Task 6.1g:** Fix SPARQL export button and remaining edge cases — no Export button, verify textarea/error selectors
+
+#### 📝 Task Improvements
+- **Task 6.1 (monolithic):** Split into 7 granular sub-tasks 6.1a–6.1g, each targeting one category of test failures with concrete files and fix strategies
+- **Task 7.1 (Quality Gate):** Now depends on Tasks 6.1a–6.1g — cannot gate on E2E passing until fixes are applied
+
+#### 🔗 Dependency Fixes
+- **Task 7.1 should depend on Tasks 6.1a–6.1g.** Reason: Quality Gate checks "All Playwright E2E tests pass" — impossible without Phase 6 E2E fixes.
+
+#### 💡 Out of Scope
+- **POM↔Component contract enforcement:** System-level pattern of selector mismatches (Phase 0 defines contract, Phase 2-5 uses different names). Long-term solution (ESLint rule, snapshot-based contract testing) is outside M2.5 scope.
+
+### Pass 1 — Initial Plan Creation (2026-07-18)
 - **Task 5.4:** Wire App.vue sidebar badge counts to real API (MR, Commits, Comments, Deployments)
 - **Task 5.5:** Wire App.vue header action buttons (Create, MR, Comments, Help, Search)
 - **Task 5.6:** Wire App.vue active route + sidebar collapsed state persistence
