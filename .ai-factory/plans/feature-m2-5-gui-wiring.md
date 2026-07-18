@@ -1,0 +1,545 @@
+# Implementation Plan: M2.5 GUI Wiring & Frontend Integration
+
+Branch: feature/m2-5-gui-wiring
+Created: 2026-07-18
+Improved: 2026-07-18 — $aif-improve pass (3 missing tasks, 3 task improvements, 2 dependency fixes, 1 out-of-scope)
+
+## Settings
+- Testing: yes — **TDD (tests first)**: E2E contracts → vitest RED → implementation GREEN → E2E GREEN
+- Logging: verbose (DEBUG level — structured JSON with component/operation tags)
+- Docs: yes (mandatory docs checkpoint after implementation)
+
+## Roadmap Linkage
+Milestone: "M2.5: GUI Wiring & Frontend Integration"
+Rationale: Direct implementation of the M2.5 milestone — replaces all hardcoded frontend stubs (69/86 interactive elements have no API calls) with real GraphQL/REST calls to M0–M2 backend services.
+
+## Specification References
+
+This plan implements the following specifications. Each task references its governing specs.
+
+### Primary Requirement
+| Spec | Title | Relevance |
+|------|-------|-----------|
+| **`specs/requirements/REQ-USR.UI.gui-implementation.md`** | GUI Implementation | **P0** — Master GUI spec: 15 screens, 21 organism components, 28 ui-kit types, 8 dialogs. |
+| **`specs/ui/gui-tree.yaml`** | GUI Component Tree | Component hierarchy with design frame IDs for each screen |
+
+### Architecture Decision Records
+| ADR | Title | Phase |
+|-----|-------|-------|
+| **`specs/adr/ADR-DES.API.graphql-sparql-split-strategy.md`** | GraphQL + SPARQL split | Phases 0, 3 |
+| **`specs/adr/ADR-DES.UI.navigation-state-strategy.md`** | Navigation State Store + URL/session persistence | Phase 6 |
+| **`specs/adr/ADR-DES.UI.version-context-visibility-strategy.md`** | Version Context Provider | Phases 3, 4 |
+| **`specs/adr/ADR-DES.UI.error-feedback-strategy.md`** | Structured error contract (error_code, severity, field_path, message_key) | All phases |
+| **`specs/adr/ADR-DES.UI.data-loss-prevention-strategy.md`** | Draft Store + read-after-write + UI state machine | Phase 3 (Task 3.3) |
+| **`specs/adr/ADR-IMPL.STACK.frontend-vue-strategy.md`** | Vue 3 + TypeScript + Vite + Apollo + Vue Flow | All phases |
+| **`specs/adr/ADR-DES.PROCESS.merge-request-strategy.md`** | Merge Request review workflow | Phases 0, 5 |
+| **`specs/adr/ADR-DES.SECURITY.gitlab-like-organization-model.md`** | Groups/projects/visibility/membership model | Phase 4 |
+
+### Error Handling Reference (all page wiring tasks)
+| Composable | Path | Usage |
+|------------|------|-------|
+| **`useErrorPresentation`** | `src/services/frontend/src/composables/useErrorPresentation.ts` | Structured error rendering: `addError(code, message)` → toast/inline. Implements ADR-DES.UI.error-feedback-strategy.md contract. Used by ALL page wiring tasks for error states. |
+| **`useDraftState`** | `src/services/frontend/src/composables/useDraftState.ts` | Already implements full save flow: `apolloClient.mutate(UPDATE_DRAFT_MUTATION)` → clear changes → return success. Used by Task 2.3 (Save button wiring). |
+
+### C4 Architecture Diagrams
+| Diagram | Title | Relevance |
+|---------|-------|-----------|
+| **`specs/c4/frontend-components.md`** | Frontend Vue 3 SPA components | All phases |
+| **`specs/c4/ontology-service-components.md`** | Ontology service components | Phases 4, 5 |
+| **`specs/c4/versioning-service-components.md`** | Versioning service components | Phases 3, 4 |
+| **`specs/c4/commenting-service-components.md`** | Commenting service components | Phase 5 (Dashboard) |
+| **`specs/c4/metrics-service-components.md`** | Metrics service components | Phase 5 (Metrics) |
+
+### Use Cases
+| Use Case | Phase |
+|----------|-------|
+| **`specs/use-cases/UC-browse.tree.view-ontology-tree-and-graph.md`** | Phases 0, 3, 6 |
+| **`specs/use-cases/UC-browse.search.execute-sparql-query-through-gui.md`** | Phases 0, 3 |
+| **`specs/use-cases/UC-git.commits.manage-commit-history.md`** | Phases 0, 3 |
+| **`specs/use-cases/UC-git.branches.manage-branch-workflow.md`** | Phases 0, 3 |
+| **`specs/use-cases/UC-git.commits.compare-ontology-versions.md`** | Phases 0, 4 |
+| **`specs/use-cases/UC-admin.access.manage-membership-and-permissions.md`** | Phases 0, 4 |
+| **`specs/use-cases/UC-editor.classes.validate-ontology-with-shacl.md`** | Phases 0, 5 |
+| **`specs/use-cases/UC-metrics.analytics.view-ontology-metrics.md`** | Phases 0, 5 |
+| **`specs/use-cases/UC-io.publish.publish-ontology-snapshot.md`** | Phases 0, 5 |
+
+### User Stories (E2E flows)
+| Story | Phase |
+|-------|-------|
+| **`specs/user-stories/E2E-editor.workflow.full-cycle.md`** | Phases 0, 7 |
+| **`specs/user-stories/E2E-browse.graph-view.md`** | Phases 0, 3, 6 |
+| **`specs/user-stories/E2E-query.sparql.execute.md`** | Phases 0, 3 |
+| **`specs/user-stories/E2E-versioning.branches.switch-rollback.md`** | Phases 0, 3 |
+| **`specs/user-stories/E2E-api.integration.rest.md`** | Phases 0, 7 |
+| **`specs/user-stories/E2E-team.collaboration.parallel.md`** | Phase 6 |
+
+### Functional Requirements
+| Requirement | Phase |
+|-------------|-------|
+| **`specs/requirements/REQ-NFR.UI.error-feedback.md`** | All — loading/error/empty states |
+| **`specs/requirements/REQ-USR.UI.critical-errors.md`** | All — error feedback with retry |
+| **`specs/requirements/REQ-FUN.API.graphql-sparql.md`** | Phases 0, 3 |
+| **`specs/requirements/REQ-FUN.DATA.versioning.md`** | Phases 0, 3, 4 |
+| **`specs/requirements/REQ-FUN.DATA.ontology-visibility-levels.md`** | Phase 4 |
+| **`specs/requirements/REQ-NFR.SECURITY.organization-access-model.md`** | Phase 4 |
+| **`specs/requirements/REQ-FUN.PROCESS.e2e-testing.md`** | Phases 0, 7 |
+| **`specs/requirements/REQ-CON.STACK.frontend-stack.md`** | All — Vue 3, Apollo, Vite |
+| **`specs/requirements/REQ-CON.STACK.documentation-tool.md`** | Phase 7 |
+
+### Existing Tests (baseline — already pass BEFORE M2.5)
+
+| Test File | Coverage |
+|-----------|----------|
+| `tests/e2e/playwright/tests/ontology-lifecycle.spec.ts` | Full lifecycle: classes → commit → branches → rollback |
+| `tests/e2e/playwright/tests/api-integration.spec.ts` | REST: ontology/class CRUD, auth, Turtle export, webhooks |
+| `tests/e2e/playwright/tests/query-execution.spec.ts` | SPARQL/CYPHER SELECT, read-only enforcement, auth |
+| `tests/e2e/playwright/tests/commenting-flow.spec.ts` | Comment → feed → reply, entity scoping |
+| `tests/e2e/playwright/tests/graph-visualization.spec.ts` | Nodes/edges, zoom, click→detail panel |
+| `tests/e2e/playwright/tests/screens-rendering.spec.ts` | Login (5 providers), dashboard, 3-panel, 6 tabs, 404 |
+| `tests/e2e/playwright/tests/keyboard-navigation.spec.ts` | Keyboard navigation scenarios |
+| `tests/e2e/playwright/tests/axe-audit.spec.ts` | Accessibility audit (axe-core) |
+| `tests/e2e/playwright/tests/contrast-check.spec.ts` | Color contrast validation |
+| `tests/e2e/playwright/tests/m2/*.spec.ts` (10 files) | M2 AI: generation, extraction, templates |
+
+### Key Codebase Findings (from $aif-improve analysis)
+
+| Finding | Impact |
+|---------|--------|
+| `App.vue` contains the ENTIRE shell layout inline (header + sidebar). `components/Header.vue`, `components/Sidebar.vue`, `organisms/Header.vue`, `organisms/Sidebar.vue` are **NOT imported** — they are orphan code. All layout changes target `App.vue` directly. | Phase 5 tasks corrected to reference `App.vue` instead of orphan component files. |
+| `App.vue` sidebar has hardcoded `badge: '0'` for MRs, Commits, Comments, Deployments (lines 133–153). | New Task 5.4: wire badges to real counts. |
+| `App.vue` header action buttons (Create, MR, Comments, Help, Search) have NO `@click` handlers (lines 26–42, 249–270). | New Task 5.5: wire all header buttons. |
+| `App.vue` user avatar is hardcoded `<User :size="16" />` (line 39). | New Task 5.6: wire to useCurrentUser. |
+| `useDraftState` composable already implements `saveDraft()` with `apolloClient.mutate(UPDATE_DRAFT_MUTATION)`. | Task 2.3 simplified: just wire button to `useDraftState().saveDraft()`. |
+| `useErrorPresentation` composable provides structured error contract (`addError(code, message)`). | All page wiring tasks now reference this composable for error handling. |
+
+## Commit Plan
+
+- **Commit 1** (after Phase 0): `test: add E2E and API integration test contracts for M2.5 pages`
+- **Commit 2** (after Phase 1): `feat: add GraphQL queries and mock Apollo link for M2.5 pages`
+- **Commit 3** (after Phase 2 — Block А GREEN): `feat: wire VersioningPage, Save, and SPARQL — vitest green`
+- **Commit 4** (after Phase 3 — Block Б GREEN): `feat: wire Projects, Groups, Members, and Versioning tabs — vitest green`
+- **Commit 5** (after Phase 4 — Block В GREEN): `feat: wire Dashboard, Metrics, Validation, Deployments, MR — vitest green`
+- **Commit 6** (after Phase 5 — Block Г GREEN): `feat: wire App.vue layout — user, sidebar, navigation — vitest green`
+- **Commit 7** (after Phase 6 — E2E GREEN): `test: E2E tests pass — all M2.5 pages verified end-to-end`
+- **Commit 8** (after Phase 7): `docs: M2.5 documentation and traceability update`
+
+## Tasks
+
+### Phase 0: E2E & API Integration Test Contracts (RED — written FIRST, will FAIL)
+
+**Governing spec:** `specs/requirements/REQ-FUN.PROCESS.e2e-testing.md`. Все тесты пишутся ДО реализации — они определяют контракт ожидаемого поведения.
+
+**Test infrastructure:** `tests/e2e/playwright/` — Playwright config: 3 браузера, baseURL `http://localhost:3000`, retries=2.
+
+- [ ] **Task 0.1: Create Page Object Models for M2.5 pages** *(no deps)*
+
+  Create 10 POM classes following the pattern from `tests/e2e/playwright/pages/ontology-workspace.page.ts`.
+
+  **New POM files:**
+  - `tests/e2e/playwright/pages/dashboard.page.ts` — `DashboardPage` class: `goto()`, `getWidgets()`, `getAttentionItems()`, `getActivityFeed()`, `getRecentOntologies()`, `clickOntology(name)`, `setStatus(text)`, `toggleActivityFilter(mode)`
+  - `tests/e2e/playwright/pages/projects.page.ts` — `ProjectsPage` class: `goto()`, `getProjects()`, `search(query)`, `sortBy(field, dir)`, `clickProject(name)`
+  - `tests/e2e/playwright/pages/groups.page.ts` — `GroupsPage` class: `goto()`, `getGroups()`, `expandGroup(name)`, `collapseGroup(name)`, `search(query)`
+  - `tests/e2e/playwright/pages/members.page.ts` — `MembersPage` class: `goto()`, `getMembers()`, `editRole(member, role)`, `removeMember(member)`
+  - `tests/e2e/playwright/pages/sparql.page.ts` — `SparqlPage` class: `goto(ontologyId)`, `enterQuery(text)`, `runQuery()`, `getResults()`, `formatQuery()`
+  - `tests/e2e/playwright/pages/versioning.page.ts` — `VersioningPage` class: `goto(ontologyId, view)`, `switchTab(tab)`, `getCommits()`, `getBranches()`, `getTags()`, `getGraphNodes()`
+  - `tests/e2e/playwright/pages/metrics.page.ts` — `MetricsPage` class: `goto(ontologyId)`, `getKpiCounters()`
+  - `tests/e2e/playwright/pages/validation.page.ts` — `ValidationPage` class: `goto(ontologyId)`, `runValidation()`, `getSummary()`, `getResults()`
+  - `tests/e2e/playwright/pages/deployments.page.ts` — `DeploymentsPage` class: `goto()`, `getDeployments()`, `toggleShowStopped()`, `deleteDeployment(url)`
+  - `tests/e2e/playwright/pages/merge-requests.page.ts` — `MergeRequestsPage` class: `goto()`, `getSections()`, `toggleSection(title)`, `switchTab(tab)`
+
+- [ ] **Task 0.2: Write E2E tests for all M2.5 pages** *(depends on Task 0.1)*
+
+  11 Playwright E2E spec files. Define acceptance criteria for M2.5. Will FAIL (RED) until Phases 3–6.
+
+  **Test files (all in `tests/e2e/playwright/tests/m2.5/`):**
+  - `dashboard-wiring.spec.ts` — widgets, attention items, activity feed, recent ontologies from API; error state + retry
+  - `projects-page.spec.ts` — list, search, sort, click→navigate, empty state
+  - `groups-page.spec.ts` — hierarchy, expand/collapse, lazy loading, search
+  - `members-page.spec.ts` — list with roles, inline edit, remove with confirmation, last-owner protection
+  - `sparql-gui.spec.ts` — enter query, run, results table, loading, error, export
+  - `versioning-tabs.spec.ts` — commits with data, branches, tags, graph nodes, compare diff
+  - `metrics-page.spec.ts` — KPI counters from API, trend chart, loading skeleton
+  - `validation-page.spec.ts` — run button → spinner → results; SHACL OK stub; timestamp update
+  - `deployments-page.spec.ts` — cards from API, show/hide stopped, delete
+  - `merge-requests-page.spec.ts` — sections, toggle, filter tabs
+  - `dashboard-navigation.spec.ts` — click recent project → workspace; user name in header; active route highlight; persistence across reload
+
+  > **BDD naming:** `'should <expected> when <condition>'`
+
+- [ ] **Task 0.3: Write API Gateway integration tests (full endpoint coverage)** *(no deps)*
+
+  `tests/e2e/playwright/tests/m2.5/api-gateway-full.spec.ts` — 20+ API endpoints via `page.request`:
+
+  **REST:** `GET/POST /api/v1/ontologies` (list + create), `GET /api/v1/groups`, `GET /api/v1/ontologies/{id}/members`, `PUT/DELETE /api/v1/ontologies/{id}/members/{uid}` (role change + remove), `GET /api/v1/versioning/{id}/tags`, `POST /api/v1/versioning/{id}/compare`, `GET /api/v1/metrics/{id}` + trends, `POST /api/v1/validation/{id}/run`, `GET /api/v1/deployments`, `GET /api/v1/merge-requests`, `GET /api/v1/health`, `GET /api/v1/ready`
+
+  **GraphQL:** dashboard aggregate, versioning graph neighborhood, save draft mutation
+
+  **Auth/Error:** 401 unauthenticated, 401 expired JWT, 403 read-only, 400 malformed JSON, 404 non-existent, 429 rate limit
+
+<!-- ===================================================================================== -->
+<!-- Commit checkpoint: Phase 0 → "test: add E2E and API integration test contracts for M2.5 pages" -->
+<!-- ===================================================================================== -->
+
+### Phase 1: Foundation — Infrastructure for TDD
+
+**Governing spec:** `specs/requirements/REQ-USR.UI.gui-implementation.md` § API Layer.
+
+- [ ] **Task 1.1: Expand queries.ts** *(no deps)*
+
+  Add 13 queries/mutations to `src/services/frontend/src/apollo/queries.ts`. Mark each with `// @m2.5`.
+  **Specs:** `specs/adr/ADR-DES.API.graphql-sparql-split-strategy.md`; `specs/c4/frontend-components.md` — ApolloClient.
+
+  Queries: `SPARQL_EXECUTE_QUERY`, `LIST_PROJECTS_QUERY`, `LIST_GROUPS_QUERY`, `LIST_MEMBERS_QUERY` + `UPDATE_MEMBER_ROLE_MUTATION` + `REMOVE_MEMBER_MUTATION`, `GET_TAGS_QUERY`, `COMPARE_REVISIONS_QUERY`, `DASHBOARD_QUERY` (aggregate), `ONTOLOGY_METRICS_QUERY`, `RUN_VALIDATION_MUTATION`, `LIST_DEPLOYMENTS_QUERY`, `LIST_MERGE_REQUESTS_QUERY`
+
+- [ ] **Task 1.2: Build mock Apollo link** *(no deps — parallel with 1.1)*
+
+  Mock link intercepts Block В queries with realistic data. 200ms artificial delay.
+  **Files:** `src/services/frontend/src/apollo/mock-data.ts`, `mock-link.ts`, `test-utils.ts`. Modify `client.ts` — add mock link before retryLink when `VITE_USE_MOCK_API=true`.
+
+- [ ] **Task 1.3: Vitest test setup** *(no deps — parallel with 1.1, 1.2)*
+
+  `src/services/frontend/src/__tests__/setup/mock-providers.ts`: `createMockRouter()`, `mountWithProviders()`, `waitForQuery()`, `describePage()`.
+
+<!-- ===================================================================================== -->
+<!-- Commit checkpoint: Phase 1 → "feat: add GraphQL queries and mock Apollo link for M2.5 pages" -->
+<!-- ===================================================================================== -->
+
+### Phase 2: Block А TDD — Quick Wins (vitest RED → GREEN)
+
+Block А uses queries that ALREADY EXIST (GET_COMMIT_HISTORY_QUERY, GET_BRANCHES_QUERY, UPDATE_DRAFT_MUTATION) or one new query (SPARQL_EXECUTE_QUERY from Task 1.1).
+
+**Governing spec:** `specs/requirements/REQ-USR.UI.gui-implementation.md` § screens 3, 4, 10–14.
+
+**Error handling (all tasks):** GraphQL errors → `useErrorPresentation().addError(code, message)`. Retry button → `refetch()`. Follow structured error contract from `specs/adr/ADR-DES.UI.error-feedback-strategy.md`.
+
+- [ ] **Task 2.1 (RED): Write vitest specs for A1–A3** *(depends on Task 1.3)*
+
+  **Files:** `VersioningPage.spec.ts`, `OntologyWorkspaceSave.spec.ts`, `SPARQLPage.spec.ts`.
+
+- [ ] **Task 2.2 (GREEN A1): Wire VersioningPage — Commits and Branches** *(depends on Task 2.1)*
+
+  **Specs:** `specs/requirements/REQ-USR.UI.gui-implementation.md` § screens 10–11; `specs/adr/ADR-DES.UI.version-context-visibility-strategy.md`; `specs/requirements/REQ-FUN.DATA.versioning.md`.
+  **Files:** `VersioningPage.vue`, `CommitHistory.vue`, `BranchList.vue`.
+
+- [ ] **Task 2.3 (GREEN A2): Wire OntologyWorkspace Save button** *(depends on Task 2.1)*
+
+  ⚠️ **IMPROVED:** Use existing `useDraftState().saveDraft()` — the composable at `src/services/frontend/src/composables/useDraftState.ts` ALREADY implements the full save flow: `apolloClient.mutate(UPDATE_DRAFT_MUTATION)` → clear `changes` → return `true/false`.
+
+  **Specs:** `specs/adr/ADR-DES.UI.data-loss-prevention-strategy.md` § Draft Store + UI state machine; `specs/requirements/REQ-NFR.UI.data-loss-prevention.md`.
+  **Files:** `OntologyWorkspace.vue` — add `@click="saveDraft"` where `saveDraft = useDraftState().saveDraft`. Save button enabled only when `useDraftState().hasUnsavedChanges`. Add loading/error/success states.
+
+- [ ] **Task 2.4 (GREEN A3): Wire SPARQLPage query execution** *(depends on Task 2.1)*
+
+  **Specs:** `specs/adr/ADR-DES.API.graphql-sparql-split-strategy.md` § SPARQL; `specs/use-cases/UC-browse.search.execute-sparql-query-through-gui.md`.
+  **Files:** `SPARQLPage.vue`, `SPARQLQueryEditor.vue`.
+
+<!-- ===================================================================================== -->
+<!-- Commit checkpoint: Phase 2 → "feat: wire VersioningPage, Save, and SPARQL — vitest green" -->
+<!-- ===================================================================================== -->
+
+### Phase 3: Block Б TDD — New Queries (vitest RED → GREEN)
+
+**Governing spec:** `specs/adr/ADR-DES.SECURITY.gitlab-like-organization-model.md`.
+
+**Error handling (all tasks):** Use `useErrorPresentation().addError()` for GraphQL errors.
+
+- [ ] **Task 3.1 (RED): Write vitest specs for Б1–Б4** *(depends on Task 1.3)*
+
+  **Files:** `ProjectsPage.spec.ts`, `GroupsPage.spec.ts`, `MembersPage.spec.ts`, `VersioningTabs.spec.ts`.
+
+- [ ] **Task 3.2 (GREEN Б1): Wire ProjectsPage** *(depends on Task 3.1)*
+
+  **Specs:** `specs/requirements/REQ-FUN.DATA.ontology-visibility-levels.md`.
+  **Files:** `ProjectsPage.vue` (major rewrite).
+
+- [ ] **Task 3.3 (GREEN Б2): Wire GroupsPage** *(depends on Task 3.1)*
+
+  **Files:** `GroupsPage.vue` (major rewrite).
+
+- [ ] **Task 3.4 (GREEN Б3): Wire MembersPage** *(depends on Task 3.1)*
+
+  **Specs:** `specs/use-cases/UC-admin.access.manage-membership-and-permissions.md`.
+  **Files:** `MembersPage.vue`.
+
+- [ ] **Task 3.5 (GREEN Б4): Wire VersioningPage — Tags, Graph, Compare** *(depends on Task 3.1)*
+
+  **Specs:** `specs/requirements/REQ-USR.UI.gui-implementation.md` § screens 12–14; `specs/c4/versioning-service-components.md`.
+  **Files:** `VersioningPage.vue` (extend), `TagList.vue`, `RepositoryGraph.vue`, `DiffView.vue`.
+
+<!-- ===================================================================================== -->
+<!-- Commit checkpoint: Phase 3 → "feat: wire Projects, Groups, Members, and Versioning tabs — vitest green" -->
+<!-- ===================================================================================== -->
+
+### Phase 4: Block В TDD — Mock Backend Pages (vitest RED → GREEN)
+
+Block В depends on mock Apollo link (Task 1.2).
+
+**Governing spec:** `specs/requirements/REQ-USR.UI.gui-implementation.md` § screens 2, 5, 8, 9, 15.
+
+**Error handling (all tasks):** Use `useErrorPresentation().addError()`.
+
+- [ ] **Task 4.1 (RED): Write vitest specs for В1–В4** *(depends on Task 1.3)*
+
+  **Files:** `DashboardPage.spec.ts`, `MetricsPage.spec.ts`, `ValidationPage.spec.ts`, `DeploymentsPage.spec.ts`, `MergeRequestsPage.spec.ts`.
+
+- [ ] **Task 4.2 (GREEN В1): Wire DashboardPage** *(depends on Tasks 4.1, 1.2)*
+
+  ⚠️ **DEPENDENCY FIX:** Now depends on Task 1.2 (mock link) — Dashboard uses `DASHBOARD_QUERY` served by mock Apollo link.
+
+  **Specs:** `specs/requirements/REQ-USR.UI.gui-implementation.md` § screen 2; `specs/c4/commenting-service-components.md`.
+  **Files:** `DashboardPage.vue` (major rewrite).
+
+- [ ] **Task 4.3 (GREEN В2): Wire MetricsPage** *(depends on Task 4.1)*
+
+  **Specs:** `specs/use-cases/UC-metrics.analytics.view-ontology-metrics.md`; `specs/c4/metrics-service-components.md`.
+  **Files:** `MetricsPage.vue`.
+
+- [ ] **Task 4.4 (GREEN В3): Wire ValidationPage + SHACL mock backend** *(depends on Task 4.1)*
+
+  **Specs:** `specs/use-cases/UC-editor.classes.validate-ontology-with-shacl.md`; `specs/requirements/REQ-USR.UI.validation-feedback.md`.
+  Backend SHACL stub: `{ status: "ok", violations: [] }`.
+  **Files:** `ValidationPage.vue`, `src/services/ontology-service/src/...` (mock endpoint).
+
+- [ ] **Task 4.5 (GREEN В4): Wire DeploymentsPage + MergeRequestsPage** *(depends on Task 4.1)*
+
+  **Specs:** `specs/use-cases/UC-io.publish.publish-ontology-snapshot.md`; `specs/adr/ADR-DES.PROCESS.merge-request-strategy.md`.
+  **Files:** `DeploymentsPage.vue`, `Deployments.vue`, `MergeRequestsPage.vue`, `MergeRequests.vue`.
+
+<!-- ===================================================================================== -->
+<!-- Commit checkpoint: Phase 4 → "feat: wire Dashboard, Metrics, Validation, Deployments, MR — vitest green" -->
+<!-- ===================================================================================== -->
+
+### Phase 5: Block Г TDD — App.vue Layout & Navigation (vitest RED → GREEN)
+
+⚠️ **IMPROVED — File paths corrected after codebase analysis:** The entire shell layout (header + sidebar) is defined inline in `src/services/frontend/src/App.vue`. The files `components/Header.vue`, `components/Sidebar.vue`, `organisms/Header.vue`, `organisms/Sidebar.vue` are **NOT imported** by App.vue — they are orphan code. All layout modifications target `App.vue` directly.
+
+**Governing spec:** `specs/adr/ADR-DES.UI.navigation-state-strategy.md` — Navigation State Store + URL/session persistence.
+
+- [ ] **Task 5.1 (RED): Write vitest spec for navigation + user display** *(depends on Task 1.3)*
+
+  **File:** `Navigation.spec.ts`.
+  Tests: user name from Keycloak, avatar/initials fallback, active route highlight in sidebar, dashboard row click → navigate to workspace, sidebar badge counts from API.
+
+  > **BDD naming:** `'should <expected> when <condition>'`
+
+- [ ] **Task 5.2 (GREEN Г1): Wire App.vue — user avatar + name from Keycloak session** *(depends on Task 5.1)*
+
+  ⚠️ **IMPROVED:** Target `App.vue` (line 39 — hardcoded `<User :size="16" />`), not orphan Header.vue.
+
+  **Specs:** `specs/adr/ADR-DES.UI.navigation-state-strategy.md`; `specs/c4/frontend-components.md` — navigation_state + theme_provider.
+
+  Create `src/services/frontend/src/composables/useCurrentUser.ts` — decode JWT from Keycloak session, expose `{ name, email, avatarUrl, initials }`.
+  In `App.vue`: replace `<User :size="16" />` with real avatar (or initials circle). Display user name in `header-avatar-menu` button. Pass user data to `DashboardPage.vue` greeting via composable.
+
+  **Files:**
+  - `src/services/frontend/src/composables/useCurrentUser.ts` (new)
+  - `src/services/frontend/src/App.vue` (modify — avatar + name in header)
+  - `src/services/frontend/src/pages/DashboardPage.vue` (modify — real user name/role in greeting)
+
+- [ ] **Task 5.3 (GREEN Г2): Wire Dashboard ontology links** *(depends on Task 5.1)*
+
+  **Specs:** `specs/requirements/REQ-USR.UI.graph-navigation.md`.
+  Add `<router-link>` or `@click="router.push(...)"` on «Recent project» rows.
+  **Files:** `DashboardPage.vue`.
+
+- [ ] **Task 5.4 (GREEN Г3): Wire App.vue sidebar badge counts** 🆕 *(depends on Task 5.1)*
+
+  ⚠️ **NEW — found by $aif-improve.** The sidebar in `App.vue` (lines 133–153) has hardcoded `badge: '0'` for Merge Requests, Commits, Comments, and Deployments. Replace with live counts from API.
+
+  **Implementation:**
+  - Add `useQuery(DASHBOARD_QUERY)` or lightweight `NAV_COUNTS_QUERY` in `App.vue`
+  - Replace `badge: '0'` with reactive values: `badge: String(mrCount)`, etc.
+  - Handle loading state: show `—` or hide badge while loading
+  - Handle zero: show no badge when count is 0 (cleaner UI)
+  - Handle error: show `!` badge (indicates stale data)
+
+  **Files:** `src/services/frontend/src/App.vue` (modify — sidebar nav items badges)
+
+  **Logging:**
+  - `DEBUG [App.shell] nav counts loaded: mr=N, commits=N, comments=N, deployments=N`
+  - `ERROR [App.shell] failed to load nav counts: <error>`
+
+- [ ] **Task 5.5 (GREEN Г4): Wire App.vue header action buttons** 🆕 *(depends on Task 5.1)*
+
+  ⚠️ **NEW — found by $aif-improve.** The header in `App.vue` (lines 26–42) contains 5 interactive elements with NO `@click` handlers:
+
+  | Button | Line | Action |
+  |--------|------|--------|
+  | «Create» (Plus icon) | 25 | Open create dialog (class/property/individual — context-dependent) |
+  | «Merge requests» (GitMerge + badge) | 27–29 | Navigate to `/dashboard/merge_requests` |
+  | «Comments» (MessageSquare + badge) | 31–33 | Navigate to `/comments` |
+  | «Help» (CircleHelp) | 35 | Navigate to `/help` or open docs |
+  | Search bar (`/` shortcut) | 13–19 | Global search — navigate to search results page with query param |
+
+  **Implementation:**
+  - Add `@click="router.push(...)"` to MR, Comments, Help buttons
+  - Add `@click="openCreateDialog()"` to Create button (opens modal — use `Dialog` ui-kit component `B:aTMES`)
+  - Add `@keydown.ctrl.k`, `@keydown./` listeners for search shortcut → focus search input
+  - Search input: `v-model="searchQuery"`, on Enter → `router.push({ name: 'search', query: { q: searchQuery } })`
+
+  **Files:** `src/services/frontend/src/App.vue` (modify — add handlers to header buttons)
+
+  **Logging:**
+  - `DEBUG [App.shell] header action: create|mr|comments|help|search`
+  - `DEBUG [App.shell] global search: q=<query>`
+
+- [ ] **Task 5.6 (GREEN Г5): Wire App.vue active route + sidebar collapsed state persistence** *(depends on Task 5.1)*
+
+  ⚠️ **IMPROVED — already partially implemented.** `App.vue` already has `isActive()` (line 155) and sidebar collapse persistence to localStorage (lines 171–181). This task verifies the existing implementation is correct and ensures ALL sidebar items have proper `matches` patterns for all M2.5 routes.
+
+  **Implementation:**
+  - Verify sidebar items have correct `matches` arrays for all M2.5 page routes
+  - Add missing routes to matches (if any)
+  - Verify `collapsed` state persists correctly with `useNavigationState` composable (already exists at `composables/useNavigationState.ts`)
+  - Add keyboard shortcut for sidebar toggle (`Ctrl+B` or `Cmd+B`)
+
+  **Files:** `src/services/frontend/src/App.vue` (modify — sidebar matches, keyboard shortcut)
+
+  **Logging:**
+  - `DEBUG [App.shell] sidebar collapsed=<bool>`
+  - `DEBUG [App.shell] active route: <route.path>`
+
+<!-- ===================================================================================== -->
+<!-- Commit checkpoint: Phase 5 → "feat: wire App.vue layout — user, sidebar, navigation — vitest green" -->
+<!-- ===================================================================================== -->
+
+### Phase 6: E2E Validation — Run Phase 0 Tests (RED → GREEN)
+
+**Governing spec:** `specs/requirements/REQ-FUN.PROCESS.e2e-testing.md`; `specs/user-stories/E2E-editor.workflow.full-cycle.md`.
+
+- [ ] **Task 6.1: Run E2E GUI tests — fix until GREEN**
+
+  Run 11 E2E test files from Task 0.2. All should PASS.
+  ```bash
+  cd tests/e2e/playwright
+  npx playwright test tests/m2.5/ --project=chromium
+  ```
+
+- [ ] **Task 6.2: Run API Gateway integration tests — fix until GREEN**
+
+  Run API test file from Task 0.3. Backend stubs should satisfy.
+  ```bash
+  npx playwright test tests/m2.5/api-gateway-full.spec.ts --project=chromium
+  ```
+
+- [ ] **Task 6.3: Run full E2E suite (regression check)**
+
+  All previously passing tests must still pass.
+  ```bash
+  npx playwright test --project=chromium
+  ```
+
+<!-- ===================================================================================== -->
+<!-- Commit checkpoint: Phase 6 → "test: E2E tests pass — all M2.5 pages verified end-to-end" -->
+<!-- ===================================================================================== -->
+
+### Phase 7: Documentation & Quality Gate
+
+- [ ] **Task 7.1: Acceptance criteria — Test Quality Gate**
+
+  **Specs:** `specs/requirements/REQ-FUN.PROCESS.e2e-testing.md`; `specs/requirements/REQ-CON.STACK.frontend-stack.md`.
+
+  ```markdown
+  ## Acceptance Criteria
+  - [ ] All vitest tests pass: `cd src/services/frontend && npm test`
+  - [ ] All Playwright E2E tests pass: `npx playwright test` (3 browsers)
+  - [ ] All API integration tests pass: `npx playwright test tests/m2.5/api-gateway-full.spec.ts`
+  - [ ] Test Quality Score (TQS) ≥ bronze (6.0) for all new vitest files
+  - [ ] No B1–B7 anti-patterns (see .ai-factory/rules/test-quality.md)
+  - [ ] Frontend: 14 vitest spec files (3 + 4 + 5 + 1 + 1)
+  - [ ] E2E: 11 new spec files + 1 API integration file (all GREEN)
+  - [ ] RED→GREEN flow: vitest RED before implementation, E2E RED after Phase 0
+  - [ ] TypeScript compiles: `npm run typecheck`
+  - [ ] Lint passes: `npm run lint:ci`
+  - [ ] **Traceability.ttl validation:** All new test files have `vdo:TestSuite` entries with `vdo:validates` triples. No stale entries for deleted/renamed files. `vdo:filePath` matches actual file paths.
+  ```
+
+  **Verification commands:**
+  ```bash
+  cd src/services/frontend && npm test && npm run typecheck && npm run lint:ci
+  cd tests/e2e/playwright && npx playwright test
+  ```
+
+- [ ] **Task 7.2: Documentation + traceability.ttl update**
+
+  **Specs:** `specs/requirements/REQ-CON.STACK.documentation-tool.md`; `specs/adr/ADR-IMPL.PROCESS.c4-notation-adoption.md`.
+
+  Run `$aif-docs`. Document: GUI wiring architecture (page→query mapping), mock link mechanism, SHACL stub status.
+
+  **Traceability.ttl update (mandatory):**
+  - Add `vdo:TestSuite` entry for EACH new test file (14 vitest + 11 E2E + 1 API = 26 entries)
+  - Add `vdo:validates` triple for each test suite referencing the relevant spec/user story/use case
+  - Add `vdo:filePath` with the actual file path relative to project root
+  - Format:
+    ```turtle
+    base:test/m2.5-dashboard-wiring a vdo:TestSuite ;
+        rdfs:label "M2.5 Dashboard Wiring E2E Tests"@en ;
+        vdo:filePath "tests/e2e/playwright/tests/m2.5/dashboard-wiring.spec.ts" ;
+        vdo:validates base:req/REQ-USR.UI.gui-implementation .
+    ```
+  - Verify no stale entries for files that don't exist
+  - Verify every `vdo:validates` target actually exists in specs/
+
+  **Files:**
+  - `.ai-factory/traceability/traceability.ttl` (modify — add test suite entries)
+  - `docs/` (via $aif-docs)
+
+- [ ] **Task 7.3: Manual walkthrough verification**
+
+  Full lifecycle per `specs/user-stories/E2E-editor.workflow.full-cycle.md`:
+  Login → Dashboard → Projects → Workspace → Versioning → AI Import → SPARQL → Members → Metrics → Validation → Deployments → MR.
+
+<!-- ===================================================================================== -->
+<!-- Commit checkpoint: Phase 7 → "docs: M2.5 documentation and traceability update" -->
+<!-- ===================================================================================== -->
+
+## Acceptance Criteria (Project-level)
+
+- [ ] All 12 wired pages render without hardcoded data — validates `specs/requirements/REQ-USR.UI.gui-implementation.md`
+- [ ] Full ontology lifecycle works from GUI — validates `specs/user-stories/E2E-editor.workflow.full-cycle.md`
+- [ ] Every page has three states: loading (skeleton), error (retry), data (render) — validates `specs/adr/ADR-DES.UI.error-feedback-strategy.md`
+- [ ] Empty states show contextual CTAs
+- [ ] All vitest tests pass: `cd src/services/frontend && npm test`
+- [ ] All Playwright E2E tests pass (3 browsers): `npx playwright test`
+- [ ] All API Gateway integration tests pass: `npx playwright test tests/m2.5/api-gateway-full.spec.ts`
+- [ ] Test Quality Score (TQS) ≥ bronze (6.0) for new vitest files
+- [ ] No B1–B7 anti-patterns in new tests
+- [ ] TypeScript compiles, lint passes
+- [ ] TDD RED→GREEN flow verified (vitest + E2E)
+- [ ] **Traceability.ttl validation:** 26 `vdo:TestSuite` entries (one per test file). Every entry has `vdo:filePath` + `vdo:validates` triples. No stale entries. All `vdo:validates` targets exist in `specs/`.
+- [ ] API calls follow `specs/adr/ADR-DES.API.graphql-sparql-split-strategy.md`
+- [ ] Error handling follows `specs/adr/ADR-DES.UI.error-feedback-strategy.md`
+- [ ] Save flow follows `specs/adr/ADR-DES.UI.data-loss-prevention-strategy.md` — uses existing `useDraftState().saveDraft()`
+- [ ] Navigation state follows `specs/adr/ADR-DES.UI.navigation-state-strategy.md`
+- [ ] App.vue layout: sidebar badges show real counts, header buttons have handlers, user avatar shows real data
+
+## $aif-improve Changelog (2026-07-18)
+
+### 🆕 Missing Tasks Added
+- **Task 5.4:** Wire App.vue sidebar badge counts to real API (MR, Commits, Comments, Deployments)
+- **Task 5.5:** Wire App.vue header action buttons (Create, MR, Comments, Help, Search)
+- **Task 5.6:** Wire App.vue active route + sidebar collapsed state persistence
+
+### 📝 Task Improvements
+- **Task 2.3:** Simplified — now uses existing `useDraftState().saveDraft()` instead of reimplementing Apollo mutation. Composable already handles `UPDATE_DRAFT_MUTATION`, dirty state management, and error handling.
+- **Phase 5 tasks:** File paths corrected. `components/Header.vue`, `components/Sidebar.vue`, `organisms/Header.vue`, `organisms/Sidebar.vue` are NOT imported by App.vue (verified by grep). All layout changes target `src/services/frontend/src/App.vue` directly.
+- **All page wiring tasks:** Added reference to `useErrorPresentation().addError(code, message)` for consistent structured error handling per ADR-DES.UI.error-feedback-strategy.md.
+
+### 🔗 Dependency Fixes
+- **Tasks 0.2.1–0.2.11** now depend on **Task 0.1** (E2E tests import POM classes)
+- **Task 4.2** (DashboardPage) now depends on **Task 1.2** (mock link — Dashboard uses DASHBOARD_QUERY)
+
+### 💡 Out of Scope
+- **CommitsPage.vue vs RecentCommitsPage.vue duplication:** `CommitsPage.vue` is a bare "No commits yet" stub. `RecentCommitsPage.vue` delegates to `RecentCommits.vue` organism (mock data). Both map to `/commits` and `/recent-commits`. Only one should exist — routing cleanup belongs to M5 (MVP UX), not M2.5.
+
+### 🏷️ Traceability.ttl Validation Added
+- Acceptance criteria now require: 26 `vdo:TestSuite` entries (one per new test file), `vdo:filePath` + `vdo:validates` triples, no stale entries, all targets exist in `specs/`.
+- Task 7.2 includes explicit traceability.ttl update with TTL format example.
+
+## Risk Notes
+
+- **E2E test RED phase:** All 11 E2E tests + 1 API integration file will FAIL after Phase 0 — by DESIGN (TDD contract). GREEN in Phase 6.
+- **Mock link scope:** Block В pages ONLY. Disablable via `VITE_USE_MOCK_API=false`.
+- **SHACL limitation:** Returns `OK` with no violations. Real implementation in M10.
+- **Merge Requests placeholder:** `REQ-USR.UI.gui-implementation.md` § screen 15 (G83Yfe) — placeholder. M2.5 provides mock data; full Organism in M6.
+- **App.vue is the single layout file:** `components/Header.vue`, `components/Sidebar.vue`, `organisms/Header.vue`, `organisms/Sidebar.vue` are orphan code — not imported anywhere. All layout changes in App.vue.
