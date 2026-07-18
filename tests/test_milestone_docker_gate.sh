@@ -123,22 +123,27 @@ test_build_images_exist() {
 
     while IFS= read -r svc; do
         [ -z "$svc" ] && continue
+
+        # Skip services that use pre-built images (no 'build:' section)
+        local svc_block
+        svc_block=$(cd "$COMPOSE_DIR" && docker compose config 2>/dev/null \
+            | grep -A5 "^  ${svc}:" || true)
+        if ! echo "$svc_block" | grep -q "build:"; then
+            continue  # service uses pre-built image, no local build to verify
+        fi
+
         local img
         img=$(cd "$COMPOSE_DIR" && docker compose config 2>/dev/null \
-            | grep -A2 "  ${svc}:" \
+            | grep -A2 "^  ${svc}:" \
             | grep 'image:' \
             | awk '{print $2}' || true)
         if [ -z "$img" ]; then
-            # Service uses 'build:' — infer image name from compose project
+            # Service uses 'build:' without explicit 'image:' — infer from project
             img="vedo-core-${svc}"
         fi
         if ! docker image inspect "$img" &>/dev/null; then
-            # Try alternate naming pattern
-            img="vedo-core/${svc}"
-            if ! docker image inspect "$img" &>/dev/null; then
-                fail "Image not found for service '$svc' (tried vedo-core-${svc} and vedo-core/${svc})"
-                missing=$((missing + 1))
-            fi
+            fail "Image not found for service '$svc' (tried: $img)"
+            missing=$((missing + 1))
         fi
     done < <(cd "$COMPOSE_DIR" && docker compose config --services 2>/dev/null)
 
@@ -214,8 +219,17 @@ test_containers_running() {
     log "Gate: verify all services have running containers"
     local expected_count
     expected_count=$(cd "$COMPOSE_DIR" && docker compose config --services 2>/dev/null | wc -l)
-    local actual_count
-    actual_count=$(cd "$COMPOSE_DIR" && docker compose ps --format '{{.Name}}' 2>/dev/null | wc -l)
+
+    # Retry loop — containers may briefly lag during startup
+    local retries=3
+    local actual_count=0
+    for i in $(seq 1 $retries); do
+        actual_count=$(cd "$COMPOSE_DIR" && docker compose ps --format '{{.Name}}' 2>/dev/null | wc -l)
+        if [ "$actual_count" -ge "$expected_count" ]; then
+            break
+        fi
+        sleep 2
+    done
 
     if [ "$actual_count" -ge "$expected_count" ]; then
         pass "All ${expected_count} services have running containers (${actual_count} total)"

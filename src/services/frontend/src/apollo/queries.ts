@@ -402,6 +402,16 @@ export const GET_COMMENT_FEED_QUERY = gql`
   ${COMMENT_FRAGMENT}
 `;
 
+/// Create a new comment on an entity.
+export const CREATE_COMMENT_MUTATION = gql`
+  mutation CreateComment($ontologyId: ID!, $entityId: ID!, $text: String!) {
+    createComment(ontologyId: $ontologyId, entityId: $entityId, text: $text) {
+      ...CommentFields
+    }
+  }
+  ${COMMENT_FRAGMENT}
+`;
+
 // ── M2.5 Queries & Mutations ──────────────────────────────────────────────────────
 // @m2.5 — Added for GUI wiring implementation
 

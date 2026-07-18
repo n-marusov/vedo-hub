@@ -26,7 +26,7 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 COPY . .
 
 # Build — vite handles TS transpilation without typecheck
-RUN node --input-type=module -e "import { build } from 'vite'; build()"
+RUN npx vite build
 
 # Production stage
 FROM nginx:1.25-alpine

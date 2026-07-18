@@ -37,6 +37,13 @@ RUN cargo build --package public-browse-api --release
 
 FROM debian:bookworm-slim
 WORKDIR /app
+
+# Install runtime dependencies (libssl3 for reqwest, ca-certificates for HTTPS)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libssl3 \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY --from=builder /src/target/release/public-browse-api /app/service
 ENV SERVICE_PORT=8087
 EXPOSE 8087

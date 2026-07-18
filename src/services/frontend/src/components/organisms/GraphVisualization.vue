@@ -124,7 +124,6 @@ import CustomEdge from "./CustomEdge.vue";
 import "@vue-flow/core/dist/style.css";
 import "@vue-flow/core/dist/theme-default.css";
 import "@vue-flow/controls/dist/style.css";
-import "@vue-flow/background/dist/style.css";
 
 interface GraphNode {
 	id: string;
