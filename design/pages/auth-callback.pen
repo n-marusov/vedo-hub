@@ -1,0 +1,229 @@
+{
+  "version": "2.13",
+  "imports": {
+    "B": "../ui-kit.lib.pen"
+  },
+  "children": [
+    {
+      "type": "frame",
+      "id": "authCb",
+      "x": 0,
+      "y": 0,
+      "name": "Auth Callback Page",
+      "width": 1920,
+      "height": 1080,
+      "fill": "$B:background",
+      "layout": "vertical",
+      "justifyContent": "center",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "text",
+          "id": "authCC",
+          "x": 0,
+          "y": -10,
+          "name": "_authCallbackComment",
+          "enabled": false,
+          "fill": "$B:muted-foreground",
+          "content": "Auth Callback Page — OAuth redirect handler for VEDO Core. States: loading, success, error.",
+          "fontFamily": "IBM Plex Mono",
+          "fontSize": 10,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "authCard",
+          "width": 560,
+          "fill": "$B:card",
+          "cornerRadius": 16,
+          "stroke": "$B:border",
+          "strokeWidth": 1,
+          "strokeAlignment": "inner",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": 40,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "authHeader",
+              "width": "fill_container",
+              "gap": 12,
+              "alignItems": "center",
+              "justifyContent": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "authLogo",
+                  "width": 56,
+                  "height": 56,
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "../vedo-core-logo-1.jpg",
+                    "mode": "fit"
+                  },
+                  "cornerRadius": 12,
+                  "justifyContent": "center",
+                  "alignItems": "center"
+                },
+                {
+                  "type": "text",
+                  "id": "authTitle",
+                  "fill": "$B:foreground",
+                  "content": "Virtual Environment for Developing Ontologies",
+                  "textAlign": "center",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 18,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "authSep1",
+              "width": "fill_container",
+              "height": 1,
+              "fill": "$B:border"
+            },
+            {
+              "type": "frame",
+              "id": "authLoading",
+              "name": "Loading State",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "authSpinner",
+                  "width": 32,
+                  "height": 32,
+                  "cornerRadius": 16,
+                  "fill": "$B:primary"
+                },
+                {
+                  "type": "text",
+                  "id": "authLoadingText",
+                  "fill": "$B:muted-foreground",
+                  "content": "Authenticating...",
+                  "textAlign": "center",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "authSuccess",
+              "name": "Success State",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "authSuccessIcon",
+                  "width": 48,
+                  "height": 48,
+                  "cornerRadius": 24,
+                  "fill": "$B:success",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "authChk",
+                      "fill": "$B:success-foreground",
+                      "content": "✓",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 24,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "authSuccessText",
+                  "fill": "$B:foreground",
+                  "content": "Signed in successfully. Redirecting...",
+                  "textAlign": "center",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "authError",
+              "name": "Error State",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "authErrorIcon",
+                  "width": 48,
+                  "height": 48,
+                  "cornerRadius": 24,
+                  "fill": "$B:danger",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "authWarn",
+                      "fill": "$B:danger-foreground",
+                      "content": "!",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 24,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "authErrorMsg",
+                  "fill": "$B:muted-foreground",
+                  "content": "Authentication failed. Please try again.",
+                  "textAlign": "center",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "authRetryBtn",
+                  "width": 200,
+                  "height": 40,
+                  "cornerRadius": 8,
+                  "fill": "$B:primary",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "authRetryLabel",
+                      "fill": "$B:primary-foreground",
+                      "content": "Retry",
+                      "textAlign": "center",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 13,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

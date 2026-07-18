@@ -112,6 +112,12 @@ const routes: RouteRecordRaw[] = [
 		meta: { requiresAuth: true, title: "Validation" },
 	},
 	{
+		path: "/ontology/:id/shacl",
+		name: "ontology-shacl",
+		component: () => import("@/pages/ShaclPage.vue"),
+		meta: { requiresAuth: true, title: "SHACL Rule Builder" },
+	},
+	{
 		path: "/ontology/:id/versioning/:view(commits|branches|compare|tags|graph|merge_requests)",
 		name: "ontology-versioning",
 		component: () => import("@/pages/VersioningPage.vue"),
