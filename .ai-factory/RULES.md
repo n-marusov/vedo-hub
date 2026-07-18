@@ -22,6 +22,7 @@
 6. **Docker quality gate** — the quality gate must verify Docker container builds, docker-compose startup, and health status of all services.
 7. **Milestone Docker gate** — at every milestone completion, run `tests/test_milestone_docker_gate.sh` as a mandatory gate. All services must build successfully and report healthy before the milestone can be marked complete. The gate is also wired into CI via `tests/run_all_tests.sh`.
 8. **Linter/formatter compliance** — `$aif-implement` must follow linter and formatter configurations defined in each service project. After implementation, run the project's linter and formatter on all changed files: `ruff check --fix && ruff format` for Python services, `biome check --fix` for TypeScript/Vue services. Fix any issues before marking a task complete.
+9. **uv is the Python package manager** — all Python services must use `uv` (not pip) for dependency management, both locally (`uv sync`) and in Docker (`uv sync --frozen --no-dev --no-editable`). Use `uv lock` to generate and commit `uv.lock` alongside `pyproject.toml` for reproducible builds. Two-stage Docker builds are mandatory: builder stage with `uv sync`, runtime stage with `uvx`/`uv` or the `.venv` copied.
 
 ## Domain Terminology
 
