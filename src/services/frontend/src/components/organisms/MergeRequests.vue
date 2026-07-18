@@ -62,9 +62,6 @@ interface MRSection {
 const openCount = computed(
 	() => props.mergeRequests.filter((mr) => mr.status === "open").length,
 );
-const mergedCount = computed(
-	() => props.mergeRequests.filter((mr) => mr.status === "merged").length,
-);
 
 const sections: MRSection[] = reactive([
 	{

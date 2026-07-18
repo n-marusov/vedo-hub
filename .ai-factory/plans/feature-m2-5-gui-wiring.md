@@ -408,7 +408,7 @@ Block В depends on mock Apollo link (Task 1.2).
 
 **Governing spec:** `specs/requirements/REQ-FUN.PROCESS.e2e-testing.md`; `specs/user-stories/E2E-editor.workflow.full-cycle.md`.
 
-**Overall status: 42/71 passing.** API infrastructure (stub server + Vite proxy + mock auth) is fully working. Remaining 29 failures are test-level selector/interaction mismatches between Phase 0 tests and Phase 2-5 component implementations, broken into 7 fix categories below.
+**Overall status: 71/71 passing.** All 7 E2E fix categories (6.1a–6.1g) have been implemented. Component fixes applied: GroupsPage expand/collapse, MembersPage edit/remove/last-owner, ProjectsPage sort/row-nav, CommitHistory+RepositoryGraph selectors, VersioningPage ARIA roles, loading-state CSS normalization, SPARQL export button.
 
 **Infrastructure fixes applied (✅ done):**
 - Created stub API server at `tests/e2e/playwright/stub-server.mjs`
@@ -422,7 +422,7 @@ Block В depends on mock Apollo link (Task 1.2).
 
 ---
 
-- [ ] **Task 6.1a: Fix GroupsPage — expand/collapse interactivity** *(no deps — independent)*
+- [x] **Task 6.1a: Fix GroupsPage — expand/collapse interactivity** *(no deps — independent)*
 
   **Affected tests (3):** `should expand group`, `should collapse group`, `groups-page.spec.ts` lines 13–28.
 
@@ -435,7 +435,7 @@ Block В depends on mock Apollo link (Task 1.2).
 
   **Logging:** `DEBUG [Groups.expand] group=<name> expanded=<bool>`
 
-- [ ] **Task 6.1b: Fix MembersPage — edit role and remove member interactivity** *(no deps — independent)*
+- [x] **Task 6.1b: Fix MembersPage — edit role and remove member interactivity** *(no deps — independent)*
 
   **Affected tests (3):** `should change member role`, `should show confirmation dialog`, `should prevent removing last owner`, `members-page.spec.ts` lines 13–33.
 
@@ -456,7 +456,7 @@ Block В depends on mock Apollo link (Task 1.2).
   - `DEBUG [Members.edit] member=<name> newRole=<role>`
   - `DEBUG [Members.remove] member=<name> isLastOwner=<bool>`
 
-- [ ] **Task 6.1c: Fix ProjectsPage — sort and row navigation interactivity** *(no deps — independent)*
+- [x] **Task 6.1c: Fix ProjectsPage — sort and row navigation interactivity** *(no deps — independent)*
 
   **Affected tests (2):** `should sort projects`, `should navigate to workspace when project row is clicked`, `projects-page.spec.ts` lines 21–36.
 
@@ -474,7 +474,7 @@ Block В depends on mock Apollo link (Task 1.2).
   - `DEBUG [Projects.sort] field=<field> dir=<dir>`
   - `DEBUG [Projects.navigate] project=<name>`
 
-- [ ] **Task 6.1d: Fix organism component selectors — CommitHistory, RepositoryGraph** *(no deps — independent)*
+- [x] **Task 6.1d: Fix organism component selectors — CommitHistory, RepositoryGraph** *(no deps — independent)*
 
   **Affected tests (2):** `should render commit history`, `should render version graph`, `versioning-tabs.spec.ts` lines 6–11, 27–32.
 
@@ -492,7 +492,7 @@ Block В depends on mock Apollo link (Task 1.2).
   - `tests/e2e/playwright/pages/versioning.page.ts` (update selectors)
   - Optionally: `src/services/frontend/src/components/organisms/CommitHistory.vue`, `RepositoryGraph.vue` (add `data-testid`)
 
-- [ ] **Task 6.1e: Fix VersioningPage tab ARIA roles** *(no deps — independent)*
+- [x] **Task 6.1e: Fix VersioningPage tab ARIA roles** *(no deps — independent)*
 
   **Affected tests (1):** `should switch tabs and show different content`, `versioning-tabs.spec.ts` line 40–46.
 
@@ -502,7 +502,7 @@ Block В depends on mock Apollo link (Task 1.2).
 
   **Files:** `src/services/frontend/src/pages/VersioningPage.vue` (modify — add `role="tab"` + `aria-selected`)
 
-- [ ] **Task 6.1f: Normalize loading-state CSS classes across pages** *(no deps — independent)*
+- [x] **Task 6.1f: Normalize loading-state CSS classes across pages** *(no deps — independent)*
 
   **Affected tests (3):**
   - `versioning-tabs.spec.ts` line 48–52 — tests `.loading-indicator, .spinner` → component uses `.version-loading .skeleton`
@@ -524,7 +524,7 @@ Block В depends on mock Apollo link (Task 1.2).
   - `src/services/frontend/src/pages/MetricsPage.vue`
   - `src/services/frontend/src/pages/ValidationPage.vue`
 
-- [ ] **Task 6.1g: Fix SPARQL export button and remaining edge cases** *(no deps — independent)*
+- [x] **Task 6.1g: Fix SPARQL export button and remaining edge cases** *(no deps — independent)*
 
   **Affected tests (1):** `should export results when export button is clicked`, `sparql-gui.spec.ts` lines 53–58.
 
@@ -566,7 +566,7 @@ npx playwright test --config=playwright.m2.5.config.ts --project=chromium
 
   ```bash
   # Vite proxy only affects dev server — production nginx is unchanged
-  cd src/services/frontend && npx vitest run  # 121/121 pass
+  cd src/services/frontend && pnpm exec vitest run  # 121/121 pass
 
   # Full Playwright regression (requires Docker stack):
   # cd tests/e2e/playwright && npx playwright test --project=chromium
@@ -584,7 +584,7 @@ npx playwright test --config=playwright.m2.5.config.ts --project=chromium
 
   ```markdown
   ## Acceptance Criteria
-  - [ ] All vitest tests pass: `cd src/services/frontend && npm test`
+  - [ ] All vitest tests pass: `cd src/services/frontend && pnpm test`
   - [ ] All Playwright E2E tests pass: `npx playwright test` (3 browsers)
   - [ ] All API integration tests pass: `npx playwright test tests/m2.5/api-gateway-full.spec.ts`
   - [ ] Test Quality Score (TQS) ≥ bronze (6.0) for all new vitest files
@@ -592,14 +592,14 @@ npx playwright test --config=playwright.m2.5.config.ts --project=chromium
   - [ ] Frontend: 14 vitest spec files (3 + 4 + 5 + 1 + 1)
   - [ ] E2E: 11 new spec files + 1 API integration file (all GREEN)
   - [ ] RED→GREEN flow: vitest RED before implementation, E2E RED after Phase 0
-  - [ ] TypeScript compiles: `npm run typecheck`
-  - [ ] Lint passes: `npm run lint:ci`
+  - [ ] TypeScript compiles: `pnpm typecheck`
+  - [ ] Lint passes: `pnpm lint:ci`
   - [ ] **Traceability.ttl validation:** All new test files have `vdo:TestSuite` entries with `vdo:validates` triples. No stale entries for deleted/renamed files. `vdo:filePath` matches actual file paths.
   ```
 
   **Verification commands:**
   ```bash
-  cd src/services/frontend && npm test && npm run typecheck && npm run lint:ci
+  cd src/services/frontend && pnpm test && pnpm typecheck && pnpm lint:ci
   cd tests/e2e/playwright && npx playwright test
   ```
 
@@ -642,7 +642,7 @@ npx playwright test --config=playwright.m2.5.config.ts --project=chromium
 - [ ] Full ontology lifecycle works from GUI — validates `specs/user-stories/E2E-editor.workflow.full-cycle.md`
 - [ ] Every page has three states: loading (skeleton), error (retry), data (render) — validates `specs/adr/ADR-DES.UI.error-feedback-strategy.md`
 - [ ] Empty states show contextual CTAs
-- [ ] All vitest tests pass: `cd src/services/frontend && npm test`
+- [ ] All vitest tests pass: `cd src/services/frontend && pnpm test`
 - [ ] All Playwright E2E tests pass (3 browsers): `npx playwright test`
 - [ ] All API Gateway integration tests pass: `npx playwright test tests/m2.5/api-gateway-full.spec.ts`
 - [ ] Test Quality Score (TQS) ≥ bronze (6.0) for new vitest files
@@ -661,13 +661,13 @@ npx playwright test --config=playwright.m2.5.config.ts --project=chromium
 ### Pass 2 — E2E Test Fix Breakdown (2026-07-18)
 
 #### 🆕 Missing Tasks Added (7 sub-tasks)
-- **Task 6.1a:** Fix GroupsPage — expand/collapse interactivity (no `@click` on chevron, flat rendering, missing `.group-child-row` class)
-- **Task 6.1b:** Fix MembersPage — edit role and remove member interactivity (inert Edit/Remove buttons, no confirmation dialog, no last-owner guard)
-- **Task 6.1c:** Fix ProjectsPage — sort and row navigation interactivity (sort controls are `<span>` not `<button>`, no `@click` on rows)
-- **Task 6.1d:** Fix organism component selectors — CommitHistory (`.commit-item` → `commit-history__table tr`), RepositoryGraph (`.versioning-graph-node` → `.repo-graph__node`)
-- **Task 6.1e:** Fix VersioningPage tab ARIA roles — POM uses `getByRole('tab')` but buttons lack `role="tab"`
-- **Task 6.1f:** Normalize loading-state CSS classes — `.loading-indicator`/`.spinner` don't exist; `.trend-chart`/`.validation-timestamp` missing
-- **Task 6.1g:** Fix SPARQL export button and remaining edge cases — no Export button, verify textarea/error selectors
+- [x] **Task 6.1a:** Fix GroupsPage — expand/collapse interactivity (no `@click` on chevron, flat rendering, missing `.group-child-row` class)
+- [x] **Task 6.1b:** Fix MembersPage — edit role and remove member interactivity (inert Edit/Remove buttons, no confirmation dialog, no last-owner guard)
+- [x] **Task 6.1c:** Fix ProjectsPage — sort and row navigation interactivity (sort controls are `<span>` not `<button>`, no `@click` on rows)
+- [x] **Task 6.1d:** Fix organism component selectors — CommitHistory (`.commit-item` → `commit-history__table tr`), RepositoryGraph (`.versioning-graph-node` → `.repo-graph__node`)
+- [x] **Task 6.1e:** Fix VersioningPage tab ARIA roles — POM uses `getByRole('tab')` but buttons lack `role="tab"`
+- [x] **Task 6.1f:** Normalize loading-state CSS classes — `.loading-indicator`/`.spinner` don't exist; `.trend-chart`/`.validation-timestamp` missing
+- [x] **Task 6.1g:** Fix SPARQL export button and remaining edge cases — no Export button, verify textarea/error selectors
 
 #### 📝 Task Improvements
 - **Task 6.1 (monolithic):** Split into 7 granular sub-tasks 6.1a–6.1g, each targeting one category of test failures with concrete files and fix strategies

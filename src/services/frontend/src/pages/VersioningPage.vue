@@ -12,6 +12,8 @@
         :key="tab.id"
         :class="['tab', { 'tab--active': tab.id === view }]"
         type="button"
+        role="tab"
+        :aria-selected="tab.id === view"
         @click="go(tab.id)"
       >
         {{ tab.label }}
@@ -19,7 +21,7 @@
     </section>
 
     <!-- Loading state -->
-    <div v-if="loading" class="version-loading">
+    <div v-if="loading" class="version-loading loading-indicator">
       <div class="skeleton" v-for="n in 3" :key="n"></div>
     </div>
 

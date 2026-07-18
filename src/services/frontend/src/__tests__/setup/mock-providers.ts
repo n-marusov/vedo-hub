@@ -164,7 +164,8 @@ export function mountWithProviders(
 		...options,
 		global: {
 			...userGlobal,
-			plugins: [router, ...userPlugins],
+			// biome-ignore lint/suspicious/noExplicitAny: Vue Plugin union type mismatch between packages
+			plugins: [router, ...(userPlugins as any[])],
 			provide: {
 				[DefaultApolloClient as symbol]: mockApolloClient,
 				...userProvide,

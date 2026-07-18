@@ -140,7 +140,6 @@ import {
 	Settings,
 	Smile,
 	User,
-	UserCheck,
 } from "lucide-vue-next";
 import { computed, ref } from "vue";
 import { useRouter } from "vue-router";

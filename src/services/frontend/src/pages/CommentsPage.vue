@@ -66,7 +66,7 @@ const commentItems = computed(() => {
 		}) => ({
 			author: c.authorName ?? c.author,
 			handle: `@${c.author}`,
-			timestamp: formatRelativeTime(c.createdAt),
+			timestamp: formatRelativeTime(c.createdAt ?? ""),
 			action: `commented on entity ${c.entityId}`,
 			text: c.text,
 		}),

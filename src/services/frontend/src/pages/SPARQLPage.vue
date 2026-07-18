@@ -24,6 +24,7 @@
         @update:query="queryText = $event"
         @run="onRunQuery"
         @format="onFormatQuery"
+        @export="onExportQuery"
       />
     </section>
 
@@ -165,6 +166,44 @@ async function onRunQuery(q?: string): Promise<void> {
 	} finally {
 		loading.value = false;
 	}
+}
+
+function onExportQuery(_q: string): void {
+	if (!results.value) return;
+	const format = "csv";
+	let content = "";
+	const cols = results.value.columns;
+	if (format === "csv") {
+		content = `${cols.join(",")}\n`;
+		content += results.value.rows
+			.map((row) =>
+				row.map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(","),
+			)
+			.join("\n");
+	} else {
+		content = JSON.stringify(
+			{ columns: cols, rows: results.value.rows, total: results.value.total },
+			null,
+			2,
+		);
+	}
+	const blob = new Blob([content], { type: "text/csv" });
+	const url = URL.createObjectURL(blob);
+	const a = document.createElement("a");
+	a.href = url;
+	a.download = `sparql-results.${format}`;
+	a.click();
+	URL.revokeObjectURL(url);
+
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "SPARQL.export",
+			format,
+			rows: results.value.total,
+			ts: new Date().toISOString(),
+		}),
+	);
 }
 
 function onFormatQuery(q: string): void {

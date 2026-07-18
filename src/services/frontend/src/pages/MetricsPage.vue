@@ -66,11 +66,11 @@
       <div class="charts-grid">
         <article class="chart-card">
           <h2>Trend overview</h2>
-          <div class="chart-placeholder">Activity chart (trends data loaded)</div>
+          <div class="chart-placeholder metrics-chart">Activity chart (trends data loaded)</div>
         </article>
         <article class="chart-card">
           <h2>Validation distribution</h2>
-          <div class="chart-placeholder">Distribution chart</div>
+          <div class="chart-placeholder metrics-chart">Distribution chart</div>
         </article>
       </div>
     </section>

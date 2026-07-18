@@ -26,11 +26,15 @@
                 />
             </div>
             <div class="pp-sort-wrap">
-                <span class="pp-sort-label">Name</span>
-                <ChevronDown :size="12" class="pp-sort-chevron" />
+                <button class="pp-sort-btn" type="button" @click="toggleSortField">
+                    <span class="pp-sort-label">{{ sortField }}</span>
+                    <ChevronDown :size="12" class="pp-sort-chevron" />
+                </button>
                 <span class="pp-sort-divider"></span>
-                <span class="pp-sort-label">Ascending</span>
-                <ChevronDown :size="12" class="pp-sort-chevron" />
+                <button class="pp-sort-btn" type="button" @click="toggleSortDir">
+                    <span class="pp-sort-label">{{ sortDir === 'ASC' ? 'Ascending' : 'Descending' }}</span>
+                    <ChevronDown :size="12" class="pp-sort-chevron" />
+                </button>
             </div>
         </section>
 
@@ -49,7 +53,7 @@
         <!-- Error state -->
         <div v-else-if="error" class="pp-error" role="alert">
             <span>Failed to load projects</span>
-            <button class="retry-btn" type="button" @click="refetch">Retry</button>
+            <button class="retry-btn" type="button" @click="() => refetch()">Retry</button>
         </div>
 
         <!-- Empty state -->
@@ -59,7 +63,7 @@
 
         <!-- Data state -->
         <section v-else class="pp-list">
-            <article v-for="p in projects" :key="p.name" class="pp-row">
+            <article v-for="p in projects" :key="p.name" class="pp-row" @click="router.push({ name: 'ontology-workspace', params: { id: p.name } })">
                 <div class="pp-row-body">
                     <div class="pp-row-body-top">
                         <Folder :size="20" class="pp-row-folder-icon" />
@@ -68,7 +72,7 @@
                             :style="{ background: p.logoBg }"
                             >{{ p.logoLetter }}</span
                         >
-                        <span class="pp-row-name">{{ p.name }}</span>
+                        <span class="pp-row-name project-name">{{ p.name }}</span>
                         <Globe
                             v-if="p.visibility === 'public'"
                             :size="12"
@@ -137,8 +141,44 @@ import {
 	Star,
 } from "lucide-vue-next";
 import { computed, ref, watch } from "vue";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
 
 const searchQuery = ref("");
+const sortField = ref("Name");
+const sortDir = ref("ASC");
+
+const sortByMap: Record<string, string> = {
+	Name: "name",
+	"Updated At": "updatedAt",
+};
+
+function toggleSortField(): void {
+	sortField.value = sortField.value === "Name" ? "Updated At" : "Name";
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "Projects.sort",
+			field: sortField.value,
+			dir: sortDir.value,
+			ts: new Date().toISOString(),
+		}),
+	);
+}
+
+function toggleSortDir(): void {
+	sortDir.value = sortDir.value === "ASC" ? "DESC" : "ASC";
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "Projects.sort",
+			field: sortField.value,
+			dir: sortDir.value,
+			ts: new Date().toISOString(),
+		}),
+	);
+}
 
 interface ProjectRow {
 	name: string;
@@ -158,8 +198,8 @@ const { result, loading, error, refetch } = useQuery(
 	LIST_PROJECTS_QUERY,
 	() => ({
 		q: searchQuery.value || undefined,
-		sortBy: "name",
-		sortDir: "ASC",
+		sortBy: sortByMap[sortField.value] || "name",
+		sortDir: sortDir.value,
 		page: 1,
 		perPage: 50,
 	}),
@@ -182,7 +222,7 @@ const projects = computed<ProjectRow[]>(() => {
 		mergeRequests: Number(p.mergeRequests || 0),
 		created: String(p.created || ""),
 		verified: Boolean(p.verified),
-		logoLetter: String(p.name ? p.name[0] : "?").toUpperCase(),
+		logoLetter: String(p.name ? (p.name as string)[0] : "?").toUpperCase(),
 		logoBg: "#6366f126",
 	}));
 });
@@ -326,6 +366,24 @@ watch(error, (err) => {
     align-items: center;
     gap: 8px;
     flex-shrink: 0;
+}
+
+.pp-sort-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted-foreground);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.pp-sort-btn:hover {
+    background: var(--muted);
 }
 
 .pp-sort-label {

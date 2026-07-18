@@ -41,7 +41,7 @@
     <!-- Error state -->
     <div v-else-if="error" class="gp-error" role="alert">
       <span>Failed to load groups</span>
-      <button class="retry-btn" type="button" @click="refetch">Retry</button>
+      <button class="retry-btn" type="button" @click="() => refetch()">Retry</button>
     </div>
 
     <!-- Empty state -->
@@ -51,11 +51,17 @@
 
     <!-- Data state -->
     <section v-else class="gp-list">
-      <div v-for="(row, i) in groupRows" :key="row.name + i" class="gp-row">
+      <div v-for="(row, i) in groupRows" :key="row.name + i" :class="['gp-row', { 'group-child-row': row.isChild } ]">
         <div class="gp-row-body">
           <div class="gp-row-body-top">
             <div class="gp-row-indent" :style="{ width: row.indent + 'px' }"></div>
-            <component v-if="row.type === 'group'" :is="row.chevronIcon" :size="12" class="gp-row-chevron" />
+            <component
+              v-if="row.type === 'group'"
+              :is="row.chevronIcon"
+              :size="12"
+              class="gp-row-chevron"
+              @click="toggleExpand(row.name)"
+            />
             <FolderTree v-if="row.type === 'group'" :size="20" class="gp-row-folder-icon" />
             <Folder v-else :size="20" class="gp-row-folder-icon" />
             <span class="gp-row-logo" :style="{ background: row.logoBg }">{{ row.logoLetter }}</span>
@@ -110,9 +116,26 @@ import {
 	Users,
 } from "lucide-vue-next";
 import type { Component } from "vue";
-import { computed, ref, watch } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 
 const searchQuery = ref("");
+
+// @m2.5 Reactive expand/collapse map — keyed by group name
+type ExpandedMap = Record<string, boolean>;
+const expanded = reactive<ExpandedMap>({});
+
+function toggleExpand(name: string): void {
+	expanded[name] = !expanded[name];
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "Groups.expand",
+			group: name,
+			expanded: expanded[name],
+			ts: new Date().toISOString(),
+		}),
+	);
+}
 
 type RowType = "group" | "project";
 
@@ -131,6 +154,7 @@ interface GroupRow {
 	stars?: number;
 	created: string;
 	active: boolean;
+	isChild: boolean;
 }
 
 const { result, loading, error, refetch } = useQuery(
@@ -148,11 +172,18 @@ const groupRows = computed<GroupRow[]>(() => {
 	}
 	// Build flat hierarchy from nested API response
 	const rows: GroupRow[] = [];
-	function walk(group: Record<string, unknown>, indent: number): void {
+	function walk(
+		group: Record<string, unknown>,
+		indent: number,
+		isChild: boolean,
+	): void {
+		const groupName = String(group.name || "");
 		rows.push({
-			name: String(group.name || ""),
+			name: groupName,
 			indent,
-			chevronIcon: group.childGroups?.length ? ChevronDown : ChevronRight,
+			chevronIcon: (group.childGroups as unknown[])?.length
+				? ChevronDown
+				: ChevronRight,
 			logoLetter: String(
 				group.name ? (group.name as string)[0] : "?",
 			).toUpperCase(),
@@ -160,21 +191,22 @@ const groupRows = computed<GroupRow[]>(() => {
 			visibility: (group.visibility as "public" | "private") || "public",
 			description: String(group.description || ""),
 			type: "group",
-			subgroups: Number(group.childGroups?.length || 0),
+			subgroups: Number((group.childGroups as unknown[])?.length || 0),
 			projects: Number(group.projectCount || 0),
 			members: Number(group.memberCount || 0),
 			created: "",
 			active: false,
+			isChild,
 		});
-		// Flatten child groups recursively
-		if (group.childGroups) {
+		// Only walk children if this group is expanded
+		if (group.childGroups && expanded[groupName]) {
 			for (const child of group.childGroups as Record<string, unknown>[]) {
-				walk(child, indent + 18);
+				walk(child, indent + 18, true);
 			}
 		}
 	}
 	for (const g of items as Record<string, unknown>[]) {
-		walk(g, 0);
+		walk(g, 0, false);
 	}
 	return rows;
 });

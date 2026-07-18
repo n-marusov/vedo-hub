@@ -16,7 +16,7 @@
       <GitBranch :size="14" class="muted" />
       <span class="context-badge">main</span>
       <Calendar :size="14" class="muted" />
-      <span class="context-time">Last validation: {{ lastValidatedAt }}</span>
+      <span class="context-time validation-timestamp">Last validation: {{ lastValidatedAt }}</span>
     </section>
 
     <section class="validation-actions">
@@ -26,14 +26,14 @@
         :disabled="loading"
         @click="runValidation"
       >
-        <Loader v-if="loading" :size="14" class="spinning" />
+        <Loader v-if="loading" :size="14" class="spinning spinner" />
         <Play v-else :size="14" />
         {{ loading ? 'Running...' : 'Run validation' }}
       </button>
     </section>
 
     <section class="validation-card">
-      <ValidationReport v-if="validationResult" :summary="summary" :results="validationResult.violations" />
+      <ValidationReport v-if="validationResult" :summary="summary" :results="(validationResult.violations as Array<{ rule_id: string; rule_name: string; severity: string; focus_node: string; message: string }>)" />
     </section>
   </div>
 </template>

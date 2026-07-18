@@ -17,7 +17,7 @@
     <!-- Error state -->
     <div v-else-if="error" class="members-error" role="alert">
       <span>Failed to load members</span>
-      <button class="retry-btn" type="button" @click="refetch">Retry</button>
+      <button class="retry-btn" type="button" @click="() => refetch()">Retry</button>
     </div>
 
     <!-- Empty state -->
@@ -45,23 +45,68 @@
         <div class="sep"></div>
         <div v-for="member in members" :key="member.name + member.mail" class="table-row">
           <span class="member-col member-name">{{ member.name }}</span>
-          <span class="role-col"><span class="role-pill">{{ member.role }}</span></span>
+          <span class="role-col">
+            <!-- @m2.5 Inline role edit: select when editing, pill when not -->
+            <select
+              v-if="editingMemberName === member.name"
+              :value="member.role"
+              class="role-select"
+              aria-label="Select role"
+              @change="onRoleChange(member, ($event.target as HTMLSelectElement).value)"
+              @blur="onRoleBlur(member)"
+            >
+              <option value="Owner">Owner</option>
+              <option value="Editor">Editor</option>
+              <option value="Viewer">Viewer</option>
+            </select>
+            <span v-else class="role-pill">{{ member.role }}</span>
+          </span>
           <span class="mail-col muted">{{ member.mail }}</span>
           <span class="actions-col row-actions">
-            <button class="icon-btn" type="button" aria-label="Edit member"><Pencil :size="14" /></button>
-            <button class="icon-btn danger" type="button" aria-label="Remove member"><Trash2 :size="14" /></button>
+            <button
+              class="icon-btn"
+              type="button"
+              aria-label="Edit member"
+              @click="startEdit(member)"
+            ><Pencil :size="14" /></button>
+            <button
+              class="icon-btn danger"
+              type="button"
+              aria-label="Remove member"
+              :disabled="isLastOwner(member.name)"
+              :title="isLastOwner(member.name) ? 'Cannot remove last owner' : ''"
+              @click="confirmRemove(member)"
+            ><Trash2 :size="14" /></button>
           </span>
         </div>
       </section>
     </template>
+
+    <!-- @m2.5 Remove confirmation dialog -->
+    <Dialog
+      :open="removeDialogOpen"
+      title="Remove member"
+      size="sm"
+      @close="removeDialogOpen = false"
+    >
+      <p>Are you sure you want to remove <strong>{{ removingMemberName }}</strong>?</p>
+      <template #footer>
+        <button class="dialog-cancel-btn" type="button" @click="removeDialogOpen = false">Cancel</button>
+        <button class="dialog-confirm-btn" type="button" @click="doRemoveMember">Confirm</button>
+      </template>
+    </Dialog>
+
+    <!-- @m2.5 Notification toast -->
+    <div v-if="notifyMessage" class="members-notify" role="status">{{ notifyMessage }}</div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { LIST_MEMBERS_QUERY } from "@/apollo/queries";
+import Dialog from "@/components/ui-kit/Dialog.vue";
 import { useQuery } from "@vue/apollo-composable";
 import { Folder, Pencil, Shield, Trash2, Users } from "lucide-vue-next";
-import { computed, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
@@ -84,17 +129,90 @@ const { result, loading, error, refetch } = useQuery(
 	},
 );
 
-const members = computed<MemberRow[]>(() => {
-	const items = result.value?.members;
-	if (!items || items.length === 0) {
-		return [];
+const members = ref<MemberRow[]>([]);
+
+// Sync from Apollo data
+watch(
+	() => result.value?.members,
+	(items) => {
+		if (!items || items.length === 0) {
+			members.value = [];
+			return;
+		}
+		members.value = items.map((m: Record<string, unknown>) => ({
+			name: String(m.username || m.userId || ""),
+			role: String(m.role || "Viewer"),
+			mail: `${String(m.username || "").toLowerCase()}@vedo.local`,
+		}));
+	},
+	{ immediate: true },
+);
+
+// ── @m2.5 Inline Edit State ─────────────────────────────────────────────────────
+
+const editingMemberName = ref<string | null>(null);
+const notifyMessage = ref<string | null>(null);
+
+function startEdit(member: MemberRow): void {
+	editingMemberName.value = member.name;
+	notifyMessage.value = null;
+}
+
+function onRoleChange(member: MemberRow, newRole: string): void {
+	member.role = newRole;
+	editingMemberName.value = null;
+	notifyMessage.value = "role updated";
+	setTimeout(() => {
+		notifyMessage.value = null;
+	}, 3000);
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "Members.edit",
+			member: member.name,
+			newRole,
+			ts: new Date().toISOString(),
+		}),
+	);
+}
+
+function onRoleBlur(_member: MemberRow): void {
+	editingMemberName.value = null;
+}
+
+// ── @m2.5 Remove Member ─────────────────────────────────────────────────────────
+
+const removeDialogOpen = ref(false);
+const removingMemberName = ref("");
+
+function isLastOwner(name: string): boolean {
+	const owners = members.value.filter((m) => m.role === "Owner");
+	return owners.length <= 1 && owners.some((m) => m.name === name);
+}
+
+function confirmRemove(member: MemberRow): void {
+	if (isLastOwner(member.name)) {
+		notifyMessage.value = "Cannot remove last owner";
+		setTimeout(() => {
+			notifyMessage.value = null;
+		}, 3000);
+		return;
 	}
-	return items.map((m: Record<string, unknown>) => ({
-		name: String(m.username || m.userId || ""),
-		role: String(m.role || "Viewer"),
-		mail: `${String(m.username || "").toLowerCase()}@vedo.local`,
-	}));
-});
+	removingMemberName.value = member.name;
+	removeDialogOpen.value = true;
+}
+
+function doRemoveMember(): void {
+	const idx = members.value.findIndex(
+		(m) => m.name === removingMemberName.value,
+	);
+	if (idx !== -1) {
+		members.value.splice(idx, 1);
+	}
+	removeDialogOpen.value = false;
+	removingMemberName.value = "";
+	notifyMessage.value = null;
+}
 
 // ── Logging ─────────────────────────────────────────────────────────────────
 
@@ -306,6 +424,59 @@ watch(error, (err) => {
   font-size: 12px;
   padding: 0 12px;
   cursor: pointer;
+}
+
+/* @m2.5 Dialog buttons */
+.dialog-cancel-btn {
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  padding: 0 12px;
+  cursor: pointer;
+}
+
+.dialog-confirm-btn {
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--destructive);
+  background: var(--destructive);
+  color: white;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  padding: 0 12px;
+  cursor: pointer;
+}
+
+/* @m2.5 Role select */
+.role-select {
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  padding: 0 8px;
+  cursor: pointer;
+}
+
+/* @m2.5 Notification toast */
+.members-notify {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 100;
 }
 
 @media (max-width: 1024px) {

@@ -17,7 +17,7 @@ export class VersioningPage {
   }
 
   getCommits() {
-    return this.page.locator('.commit-item');
+    return this.page.locator('.commit-history__table tbody tr');
   }
 
   getBranches() {
@@ -29,6 +29,6 @@ export class VersioningPage {
   }
 
   getGraphNodes() {
-    return this.page.locator('.versioning-graph-node, .repository-graph-node');
+    return this.page.locator('.repo-graph__node');
   }
 }
