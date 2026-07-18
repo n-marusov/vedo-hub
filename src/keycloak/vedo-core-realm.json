@@ -1,0 +1,154 @@
+{
+  "id": "vedo-core",
+  "realm": "vedo-core",
+  "displayName": "VEDO Core",
+  "displayNameHtml": "<div class=\"kc-logo-text\"><span>VEDO Core</span></div>",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "bruteForceProtected": false,
+  "defaultRoles": ["viewer"],
+
+  "roles": {
+    "realm": [
+      { "name": "viewer",     "description": "Read-only access — browse classes, properties, individuals, graphs" },
+      { "name": "editor",     "description": "Read + write — create, update, delete ontology elements with class-level write permission" },
+      { "name": "reviewer",   "description": "Read + review — writes trigger review_required instead of allow" },
+      { "name": "maintainer", "description": "Read + write + review — manage protected branches, merge requests, merge into main; cannot manage membership" },
+      { "name": "admin",      "description": "Full read/write/review/admin — quotas, access points, storage bindings, backup policies" },
+      { "name": "owner",      "description": "Full privileges + membership management — add/remove members, assign roles, transfer ownership, delete group/ontology" },
+      { "name": "service",    "description": "Service account — system-to-system; same permissions as admin" }
+    ]
+  },
+
+  "users": [
+    {
+      "username": "alice",
+      "email": "alice@vedo.ai",
+      "firstName": "Alice",
+      "lastName": "Viewer",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "password", "temporary": false }],
+      "realmRoles": ["viewer"]
+    },
+    {
+      "username": "bob",
+      "email": "bob@vedo.ai",
+      "firstName": "Bob",
+      "lastName": "Editor",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "password", "temporary": false }],
+      "realmRoles": ["editor"]
+    },
+    {
+      "username": "carol",
+      "email": "carol@vedo.ai",
+      "firstName": "Carol",
+      "lastName": "Reviewer",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "password", "temporary": false }],
+      "realmRoles": ["reviewer"]
+    },
+    {
+      "username": "dave",
+      "email": "dave@vedo.ai",
+      "firstName": "Dave",
+      "lastName": "Maintainer",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "password", "temporary": false }],
+      "realmRoles": ["maintainer"]
+    },
+    {
+      "username": "eve",
+      "email": "eve@vedo.ai",
+      "firstName": "Eve",
+      "lastName": "Admin",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "password", "temporary": false }],
+      "realmRoles": ["admin"]
+    },
+    {
+      "username": "frank",
+      "email": "frank@vedo.ai",
+      "firstName": "Frank",
+      "lastName": "Owner",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "password", "temporary": false }],
+      "realmRoles": ["owner"]
+    },
+    {
+      "username": "system-bot",
+      "email": "system@vedo.ai",
+      "firstName": "System",
+      "lastName": "Service",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "password", "temporary": false }],
+      "realmRoles": ["service"]
+    }
+  ],
+
+  "clients": [
+    {
+      "clientId": "vedo-core-api",
+      "name": "VEDO Core API Gateway",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "vedo-core-api-secret",
+      "protocol": "openid-connect",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "redirectUris": ["http://localhost:8080/*"],
+      "webOrigins": ["http://localhost:8080"],
+      "protocolMappers": [
+        {
+          "name": "realm roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "multivalued": true,
+            "user.attribute": "foo",
+            "access.token.claim": true,
+            "id.token.claim": true,
+            "claim.name": "realm_access.roles",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "vedo-core-frontend",
+      "name": "VEDO Core Frontend (SPA)",
+      "enabled": true,
+      "publicClient": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": ["http://localhost:3000/*"],
+      "webOrigins": ["http://localhost:3000"],
+      "protocolMappers": [
+        {
+          "name": "realm roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "multivalued": true,
+            "user.attribute": "foo",
+            "access.token.claim": true,
+            "id.token.claim": true,
+            "claim.name": "realm_access.roles",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    }
+  ]
+}
