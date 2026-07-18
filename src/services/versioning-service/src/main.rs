@@ -1,5 +1,5 @@
 use std::net::SocketAddr;
-use tonic::transport::server::TlsConfig;
+use tonic::transport::server::ServerTlsConfig;
 use tonic::transport::Server;
 use tracing::info;
 use vedo_shared::protos::versioning::v1::versioning_service_server::VersioningServiceServer;
@@ -32,8 +32,8 @@ async fn main() {
 
     // Configure TLS for gRPC server if enabled
     let grpc_builder = Server::builder();
-    let grpc_builder = if let Some(identity) = tls::load_grpc_identity().await {
-        let tls_config = TlsConfig::new().identity(identity);
+    let mut grpc_builder = if let Some(identity) = tls::load_grpc_identity().await {
+        let tls_config = ServerTlsConfig::new().identity(identity);
         grpc_builder
             .tls_config(tls_config)
             .expect("invalid gRPC TLS config")

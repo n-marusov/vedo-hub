@@ -2,7 +2,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use ontology_service::{build_app, init_neo4j_pool, AppState, DEFAULT_PORT, SERVICE_NAME};
-use tonic::transport::server::TlsConfig;
+use tonic::transport::server::ServerTlsConfig;
 use tonic::transport::Server;
 use vedo_shared::protos::ontology::v1::ontology_service_server::OntologyServiceServer;
 use vedo_shared::tls;
@@ -37,8 +37,8 @@ async fn main() {
 
     // Configure TLS for gRPC server if enabled
     let grpc_builder = Server::builder();
-    let grpc_builder = if let Some(identity) = tls::load_grpc_identity().await {
-        let tls_config = TlsConfig::new().identity(identity);
+    let mut grpc_builder = if let Some(identity) = tls::load_grpc_identity().await {
+        let tls_config = ServerTlsConfig::new().identity(identity);
         grpc_builder
             .tls_config(tls_config)
             .expect("invalid gRPC TLS config")
