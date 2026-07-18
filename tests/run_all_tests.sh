@@ -44,4 +44,8 @@ echo "=== Running native stub tests ==="
 bash "$ROOT/tests/test_native_stubs.sh"
 
 echo ""
+echo "=== Running milestone Docker gate (health-only) ==="
+bash "$ROOT/tests/test_milestone_docker_gate.sh" --health-only
+
+echo ""
 echo "=== All tests passed ==="

@@ -20,7 +20,8 @@
 4. **Error codes** — use domain-prefixed error codes (e.g., `CLI-TICKET-NOT-FOUND`).
 5. **No stub markers** — production code must not contain `[STUB]` prefixes or stubbed versions.
 6. **Docker quality gate** — the quality gate must verify Docker container builds, docker-compose startup, and health status of all services.
-7. **Linter/formatter compliance** — `$aif-implement` must follow linter and formatter configurations defined in each service project. After implementation, run the project's linter and formatter on all changed files: `ruff check --fix && ruff format` for Python services, `biome check --fix` for TypeScript/Vue services. Fix any issues before marking a task complete.
+7. **Milestone Docker gate** — at every milestone completion, run `tests/test_milestone_docker_gate.sh` as a mandatory gate. All services must build successfully and report healthy before the milestone can be marked complete. The gate is also wired into CI via `tests/run_all_tests.sh`.
+8. **Linter/formatter compliance** — `$aif-implement` must follow linter and formatter configurations defined in each service project. After implementation, run the project's linter and formatter on all changed files: `ruff check --fix && ruff format` for Python services, `biome check --fix` for TypeScript/Vue services. Fix any issues before marking a task complete.
 
 ## Domain Terminology
 

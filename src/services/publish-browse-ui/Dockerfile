@@ -8,10 +8,10 @@ RUN npm install -g pnpm@9
 RUN echo "node-linker=hoisted" > .npmrc
 
 # Copy dependency manifests
-COPY package.json ./
+COPY package.json pnpm-lock.yaml ./
 
-# Install dependencies
-RUN pnpm install --ignore-scripts
+# Install dependencies (frozen lockfile ensures reproducible builds)
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # Copy source code
 COPY . .
