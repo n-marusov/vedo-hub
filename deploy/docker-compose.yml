@@ -12,14 +12,13 @@ services:
   # Frontend
   frontend:
     build:
-      context: ../src/services/frontend
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: src/docker/Dockerfile.typescript
       args:
-        # Browser-facing Keycloak — compose publishes 8180:8080 on the host.
-        # Realm `vedo-core` declares client `vedo-core-frontend` (not `vedo-spa`).
-        - VITE_KEYCLOAK_REALM=vedo-core
-        - VITE_KEYCLOAK_CLIENT_ID=vedo-core-frontend
-        - VITE_KEYCLOAK_URL=http://localhost:8180
+        SERVICE_DIR: src/services/frontend
+        VITE_KEYCLOAK_REALM: vedo-core
+        VITE_KEYCLOAK_CLIENT_ID: vedo-core-frontend
+        VITE_KEYCLOAK_URL: http://localhost:8180
     ports:
       - "3000:3000"
     environment:
@@ -38,8 +37,11 @@ services:
   # API Gateway
   api-gateway:
     build:
-      context: ../src/services
-      dockerfile: api-gateway/Dockerfile
+      context: ..
+      dockerfile: src/docker/Dockerfile.go
+      args:
+        SERVICE_DIR: src/services
+        BINARY_NAME: api-gateway
     ports:
       - "8080:8080"
     environment:
@@ -83,8 +85,11 @@ services:
   # Rust Services
   ontology-service:
     build:
-      context: ../src/services
-      dockerfile: ontology-service/Dockerfile
+      context: ..
+      dockerfile: src/docker/Dockerfile.rust
+      args:
+        SERVICE_DIR: src/services
+        BINARY_NAME: ontology-service
     expose:
       - "8082"
     environment:
@@ -109,8 +114,11 @@ services:
 
   versioning-service:
     build:
-      context: ../src/services
-      dockerfile: versioning-service/Dockerfile
+      context: ..
+      dockerfile: src/docker/Dockerfile.rust
+      args:
+        SERVICE_DIR: src/services
+        BINARY_NAME: versioning-service
     ports:
       - "9002:9002"
     expose:
@@ -135,8 +143,11 @@ services:
 
   auth-service:
     build:
-      context: ../src/services
-      dockerfile: auth-service/Dockerfile
+      context: ..
+      dockerfile: src/docker/Dockerfile.go
+      args:
+        SERVICE_DIR: src/services
+        BINARY_NAME: auth-service
     ports:
       - "9003:9003"
     expose:
@@ -166,7 +177,10 @@ services:
   # Python Services
   metrics-service:
     build:
-      context: ../src/services/metrics-service
+      context: ..
+      dockerfile: src/docker/Dockerfile.python
+      args:
+        SERVICE_DIR: src/services/metrics-service
     ports:
       - "8084:8084"
     environment:
@@ -189,8 +203,10 @@ services:
   # Publishing — Vue 3 viewer for published ontologies
   publish-browse-ui:
     build:
-      context: ../src/services/publish-browse-ui
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: src/docker/Dockerfile.typescript
+      args:
+        SERVICE_DIR: src/services/publish-browse-ui
     ports:
       - "3002:3002"
     networks:
@@ -203,8 +219,11 @@ services:
   # Publishing — Rust publisher service
   publisher-service:
     build:
-      context: ../src/services
-      dockerfile: publisher-service/Dockerfile
+      context: ..
+      dockerfile: src/docker/Dockerfile.rust
+      args:
+        SERVICE_DIR: src/services
+        BINARY_NAME: publisher-service
     ports:
       - "9005:9005"
     expose:
@@ -226,8 +245,11 @@ services:
   # Public browse — Rust public read-only API
   public-browse-api:
     build:
-      context: ../src/services
-      dockerfile: public-browse-api/Dockerfile
+      context: ..
+      dockerfile: src/docker/Dockerfile.rust
+      args:
+        SERVICE_DIR: src/services
+        BINARY_NAME: public-browse-api
     ports:
       - "9011:9011"
     expose:
@@ -252,8 +274,11 @@ services:
   # Commenting — Go service
   commenting-service:
     build:
-      context: ../src/services
-      dockerfile: commenting-service/Dockerfile
+      context: ..
+      dockerfile: src/docker/Dockerfile.go
+      args:
+        SERVICE_DIR: src/services
+        BINARY_NAME: commenting-service
     ports:
       - "9004:9004"
     expose:
@@ -275,8 +300,11 @@ services:
   # Ticket domain — Go (Gin) API
   ticket-api:
     build:
-      context: ../src/services
-      dockerfile: ticket-api/Dockerfile
+      context: ..
+      dockerfile: src/docker/Dockerfile.go
+      args:
+        SERVICE_DIR: src/services
+        BINARY_NAME: ticket-api
     ports:
       - "9010:9010"
       - "8088:8088"
@@ -300,7 +328,10 @@ services:
   # Ticket classifier — Python (reads SERVICE_PORT)
   ticket-classifier:
     build:
-      context: ../src/services/ticket-classifier
+      context: ..
+      dockerfile: src/docker/Dockerfile.python
+      args:
+        SERVICE_DIR: src/services/ticket-classifier
     ports:
       - "8089:8089"
     environment:
@@ -317,8 +348,11 @@ services:
   # Dockerfile copies ticket-api/ via go.mod replace -> build context = src/services/.
   ticket-telemetry-listener:
     build:
-      context: ../src/services
-      dockerfile: ticket-telemetry-listener/Dockerfile
+      context: ..
+      dockerfile: src/docker/Dockerfile.go
+      args:
+        SERVICE_DIR: src/services
+        BINARY_NAME: ticket-telemetry-listener
     ports:
       - "8090:8090"
     environment:
@@ -337,7 +371,10 @@ services:
   # Document Extractor — Python service for AI-assisted ontology extraction
   document-extractor:
     build:
-      context: ../src/services/document-extractor
+      context: ..
+      dockerfile: src/docker/Dockerfile.python
+      args:
+        SERVICE_DIR: src/services/document-extractor
     ports:
       - "9013:9013"
     expose:
@@ -366,8 +403,11 @@ services:
   # AI Orchestration Service — Go gRPC service for LLM-powered features
   ai-orchestration-service:
     build:
-      context: ../src/services
-      dockerfile: ai-orchestration-service/Dockerfile
+      context: ..
+      dockerfile: src/docker/Dockerfile.go
+      args:
+        SERVICE_DIR: src/services
+        BINARY_NAME: ai-orchestration-service
     expose:
       - "8093"   # HTTP health
       - "9014"   # gRPC internal
@@ -391,7 +431,11 @@ services:
   # Ticket notifier — Go (Gin), reads STUB_PORT
   ticket-notifier:
     build:
-      context: ../src/services/ticket-notifier
+      context: ..
+      dockerfile: src/docker/Dockerfile.go
+      args:
+        SERVICE_DIR: src/services
+        BINARY_NAME: ticket-notifier
     ports:
       - "8091:8091"
     environment:

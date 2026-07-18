@@ -1,20 +1,67 @@
-# @ctx: Multi-stage TypeScript builder with pnpm — PLAT-LOCAL-002 / DEPLOY-OPS-001
-# Build: docker build -f llm/src/docker/Dockerfile.typescript \
-#   --build-arg SERVICE_DIR=llm/src/<name> \
-#   -t vedo-core/<name>:latest .
+# @ctx: Centralized multi-stage TypeScript/Vue builder — pnpm + nginx
+#
+# Build (from project root):
+#   docker build -f src/docker/Dockerfile.typescript \
+#     --build-arg SERVICE_DIR=src/services/<name> \
+#     -t vedo-core/<name>:latest .
+#
+# Args:
+#   NODE_IMAGE    — builder image (default: node:20-alpine)
+#   NGINX_IMAGE   — runtime image (default: nginx:1.25-alpine)
+#   SERVICE_DIR   — path to service directory relative to context
+#   VITE_*        — any VITE_ prefixed build args (injected as ENV for vite)
 
-ARG NODE_BASE_IMAGE
-ARG NGINX_IMAGE
+ARG NODE_IMAGE=node:20-alpine
+ARG NGINX_IMAGE=nginx:1.25-alpine
+
+# ── Builder Stage ──────────────────────────────────────────────────────────────
+FROM ${NODE_IMAGE} AS builder
+
 ARG SERVICE_DIR
 
-FROM ${NODE_BASE_IMAGE} AS builder
 WORKDIR /app
-COPY ${SERVICE_DIR}/package.json ${SERVICE_DIR}/pnpm-lock.yaml* ./
-RUN corepack enable && pnpm install --frozen-lockfile
-COPY ${SERVICE_DIR}/ .
-RUN pnpm build
 
+# Install pnpm 9 (compatible with Node.js 20)
+RUN npm install -g pnpm@9
+
+# Configure pnpm to use hoisted node_modules (npm-compatible)
+RUN echo "node-linker=hoisted" > .npmrc
+
+# VITE_* build args — vite reads these at build time (ENV instead of ARG so
+# they're visible during the build step)
+ARG VITE_KEYCLOAK_REALM=
+ARG VITE_KEYCLOAK_CLIENT_ID=
+ARG VITE_KEYCLOAK_URL=
+ENV VITE_KEYCLOAK_REALM=${VITE_KEYCLOAK_REALM}
+ENV VITE_KEYCLOAK_CLIENT_ID=${VITE_KEYCLOAK_CLIENT_ID}
+ENV VITE_KEYCLOAK_URL=${VITE_KEYCLOAK_URL}
+
+# Copy dependency manifests first for layer caching
+COPY ${SERVICE_DIR}/package.json ${SERVICE_DIR}/pnpm-lock.yaml* ./
+
+# Install dependencies with frozen lockfile for reproducibility
+RUN pnpm install --frozen-lockfile --ignore-scripts
+
+# Copy application source code
+COPY ${SERVICE_DIR}/ .
+
+# Build — vite handles TS transpilation without typecheck
+RUN npx vite build
+
+
+# ── Runtime Stage ──────────────────────────────────────────────────────────────
 FROM ${NGINX_IMAGE} AS runtime
+
+ARG SERVICE_DIR
+
+# Copy built static files
 COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copy nginx config if it exists in the service directory
+COPY ${SERVICE_DIR}/nginx.conf /etc/nginx/conf.d/default.conf
+
 EXPOSE 80
+
+STOPSIGNAL SIGQUIT
+
 CMD ["nginx", "-g", "daemon off;"]

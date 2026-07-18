@@ -1,21 +1,52 @@
-# @ctx: Multi-stage Python builder — PLAT-LOCAL-002 / DEPLOY-OPS-001
-# Build: docker build -f llm/src/docker/Dockerfile.python \
-#   --build-arg SERVICE_DIR=llm/src/<name> \
-#   -t vedo-core/<name>:latest .
+# @ctx: Centralized multi-stage Python builder — uv-based
+#
+# Build (from project root):
+#   docker build -f src/docker/Dockerfile.python \
+#     --build-arg SERVICE_DIR=src/services/<name> \
+#     -t vedo-core/<name>:latest .
+#
+# Args:
+#   PYTHON_IMAGE       — builder image (default: python:3.12-slim)
+#   PYTHON_RUNTIME_IMAGE — runtime image (default: python:3.12-slim)
+#   SERVICE_DIR        — path to service directory relative to context
 
-ARG PYTHON_BASE_IMAGE
-ARG PYTHON_RUNTIME_IMAGE
+ARG PYTHON_IMAGE=python:3.12-slim
+ARG PYTHON_RUNTIME_IMAGE=python:3.12-slim
+
+# ── Builder Stage ──────────────────────────────────────────────────────────────
+FROM ${PYTHON_IMAGE} AS builder
+
 ARG SERVICE_DIR
 
-FROM ${PYTHON_BASE_IMAGE} AS builder
-WORKDIR /app
-COPY ${SERVICE_DIR}/requirements.txt .
-RUN pip install --user --no-cache-dir -r requirements.txt
+WORKDIR /build
 
-FROM ${PYTHON_RUNTIME_IMAGE} AS runtime
-WORKDIR /app
-COPY --from=builder /root/.local /root/.local
+# Install uv (fast Python package manager)
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Copy dependency files first for layer caching
+COPY ${SERVICE_DIR}/pyproject.toml ${SERVICE_DIR}/uv.lock ./
+
+# Install production dependencies (frozen = use lockfile, no-dev = prod only)
+RUN uv sync --frozen --no-dev --no-editable
+
+# Copy application source code
 COPY ${SERVICE_DIR}/ .
-ENV PATH=/root/.local/bin:$PATH
+
+# Re-run uv sync to install the package itself (non-editable)
+RUN uv sync --frozen --no-dev --no-editable
+
+
+# ── Runtime Stage ──────────────────────────────────────────────────────────────
+FROM ${PYTHON_RUNTIME_IMAGE} AS runtime
+
+WORKDIR /app
+
+# Copy installed dependencies and application from builder
+COPY --from=builder /build/.venv /app/.venv
+COPY --from=builder /build /app/
+
+ENV PATH="/app/.venv/bin:$PATH"
+ENV HOST=0.0.0.0
 EXPOSE 8080
-CMD ["python", "main.py"]
+
+CMD ["python", "-u", "main.py"]
