@@ -1,4 +1,5 @@
 <!-- @ctx: Metrics page strictly mirrored from design/frontend.pen frame metDas -->
+<!-- @m2.5 — Wired to ONTOLOGY_METRICS_QUERY via Apollo GraphQL -->
 <template>
   <div class="metrics-page" role="main" aria-label="Metrics Dashboard content">
     <section class="metrics-title-row">
@@ -11,26 +12,61 @@
     <section class="metrics-context">
       <Folder :size="14" class="muted" />
       <span class="context-label">Analyzing ontology:</span>
-      <span class="context-badge context-badge--primary">ProductOntology</span>
+      <span class="context-badge context-badge--primary">{{ ontologyId || '—' }}</span>
       <GitBranch :size="14" class="muted" />
       <span class="context-badge">main</span>
       <Calendar :size="14" class="muted" />
-      <span class="context-time">Last updated: May 15, 2026</span>
+      <span class="context-time">Last updated: {{ lastUpdated }}</span>
     </section>
 
-    <section class="metrics-content card">
+    <!-- @m2.5 Loading state -->
+    <section v-if="loading" class="metrics-content card">
       <div class="kpi-grid">
-        <article v-for="kpi in kpis" :key="kpi.label" class="kpi-card">
-          <span class="kpi-label">{{ kpi.label }}</span>
-          <strong class="kpi-value">{{ kpi.value }}</strong>
-          <span class="kpi-sub">{{ kpi.sub }}</span>
+        <article v-for="n in 4" :key="n" class="kpi-card skeleton">
+          <div class="skeleton-line skeleton-line--label"></div>
+          <div class="skeleton-line skeleton-line--value"></div>
+          <div class="skeleton-line skeleton-line--sub"></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- @m2.5 Error state -->
+    <section v-else-if="error" class="metrics-content card">
+      <div class="error-state">
+        <p>Failed to load metrics data.</p>
+        <button class="retry-btn" type="button" @click="refetch()">Retry</button>
+      </div>
+    </section>
+
+    <!-- @m2.5 Data state — KPI counters from ONTOLOGY_METRICS_QUERY -->
+    <section v-else class="metrics-content card">
+      <div class="kpi-grid">
+        <article class="kpi-card">
+          <span class="kpi-label">Classes</span>
+          <strong class="kpi-value">{{ counters.classCount }}</strong>
+          <span class="kpi-sub">{{ trendSummary.classCount }}</span>
+        </article>
+        <article class="kpi-card">
+          <span class="kpi-label">Properties</span>
+          <strong class="kpi-value">{{ counters.propertyCount }}</strong>
+          <span class="kpi-sub">{{ trendSummary.propertyCount }}</span>
+        </article>
+        <article class="kpi-card">
+          <span class="kpi-label">Individuals</span>
+          <strong class="kpi-value">{{ counters.individualCount }}</strong>
+          <span class="kpi-sub">{{ trendSummary.individualCount }}</span>
+        </article>
+        <article class="kpi-card">
+          <span class="kpi-label">Axioms</span>
+          <strong class="kpi-value">{{ counters.axiomCount }}</strong>
+          <span class="kpi-sub">Total logical axioms</span>
         </article>
       </div>
 
       <div class="charts-grid">
         <article class="chart-card">
           <h2>Trend overview</h2>
-          <div class="chart-placeholder">Activity chart</div>
+          <div class="chart-placeholder">Activity chart (trends data loaded)</div>
         </article>
         <article class="chart-card">
           <h2>Validation distribution</h2>
@@ -42,14 +78,92 @@
 </template>
 
 <script setup lang="ts">
-import { Calendar, ChartColumn, Folder, GitBranch } from 'lucide-vue-next'
+import { ONTOLOGY_METRICS_QUERY } from "@/apollo/queries";
+import { useQuery } from "@vue/apollo-composable";
+import { Calendar, ChartColumn, Folder, GitBranch } from "lucide-vue-next";
+import { computed, watch } from "vue";
+import { useRoute } from "vue-router";
 
-const kpis = [
-  { label: 'Classes', value: '42', sub: '+3 this week' },
-  { label: 'Properties', value: '18', sub: '+1 this week' },
-  { label: 'Individuals', value: '156', sub: '+24 this week' },
-  { label: 'Axioms', value: '890', sub: '+48 this week' }
-]
+const route = useRoute();
+const ontologyId = computed(
+	() =>
+		(route.params.ontologyId as string) ||
+		(route.query.ontologyId as string) ||
+		"",
+);
+
+// @m2.5 — Wire metrics to ONTOLOGY_METRICS_QUERY
+const { result, loading, error, refetch } = useQuery(
+	ONTOLOGY_METRICS_QUERY,
+	() => ({
+		ontologyId: ontologyId.value || "default",
+	}),
+	{ enabled: true },
+);
+
+const counters = computed(() => {
+	const c = result.value?.ontologyMetrics?.counters;
+	return {
+		classCount: c?.classCount ?? 0,
+		propertyCount: c?.propertyCount ?? 0,
+		individualCount: c?.individualCount ?? 0,
+		axiomCount: c?.axiomCount ?? 0,
+	};
+});
+
+const trendSummary = computed(() => {
+	const trends = result.value?.ontologyMetrics?.trends;
+	if (!trends || trends.length < 2) {
+		return { classCount: "", propertyCount: "", individualCount: "" };
+	}
+	const latest = trends[trends.length - 1];
+	const previous = trends[trends.length - 2];
+	const diff = (field: string) => {
+		const d = (latest[field] || 0) - (previous[field] || 0);
+		return d >= 0 ? `+${d} this period` : `${d} this period`;
+	};
+	return {
+		classCount: diff("classCount"),
+		propertyCount: diff("propertyCount"),
+		individualCount: diff("individualCount"),
+	};
+});
+
+const lastUpdated = computed(() => {
+	const trends = result.value?.ontologyMetrics?.trends;
+	if (!trends?.length) return "N/A";
+	return new Date(trends[trends.length - 1].date).toLocaleDateString("en-US", {
+		month: "short",
+		day: "numeric",
+		year: "numeric",
+	});
+});
+
+// ── Logging ─────────────────────────────────────────────────────────────────
+
+watch(counters, (val) => {
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "metrics.counters.loaded",
+			classCount: val.classCount,
+			ts: new Date().toISOString(),
+		}),
+	);
+});
+
+watch(error, (err) => {
+	if (err) {
+		console.error(
+			JSON.stringify({
+				level: "error",
+				msg: "metrics.query.error",
+				error: String(err),
+				ts: new Date().toISOString(),
+			}),
+		);
+	}
+});
 </script>
 
 <style scoped>
@@ -189,6 +303,40 @@ const kpis = [
 
 .primary { color: var(--primary); }
 .muted { color: var(--muted-foreground); }
+
+/* @m2.5 Skeleton loading */
+.skeleton { animation: pulse 1.5s ease-in-out infinite; }
+.skeleton-line { height: 14px; border-radius: 4px; background: var(--muted); }
+.skeleton-line--label { width: 50%; }
+.skeleton-line--value { width: 35%; height: 28px; margin-top: 6px; }
+.skeleton-line--sub { width: 60%; margin-top: 4px; }
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+/* @m2.5 Error state */
+.error-state {
+  grid-column: 1 / -1;
+  padding: 32px;
+  text-align: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px;
+  color: var(--muted-foreground);
+}
+.retry-btn {
+  margin-top: 12px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0 12px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  background: var(--card);
+  color: var(--foreground);
+  cursor: pointer;
+}
+.retry-btn:hover { background: var(--muted); }
 
 @media (max-width: 1100px) {
   .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

@@ -1,6 +1,6 @@
 <!-- @hlv:artifact code-frontend implements spec-gui-ow-001 -->
 <!-- @ctx: Organism/Deployments — list of deployment cards with show stopped checkbox and delete -->
-<!-- Matches design/ui-kit.lib.pen orgDeployments (Organism/Deployments) -->
+<!-- @m2.5 — Wired: accepts deployments as prop from DeploymentsPage -->
 <template>
     <div class="deployments" role="region" aria-label="Deployments">
         <label class="dp-show-stopped">
@@ -8,21 +8,23 @@
             <span class="dp-show-stopped-text">Show stopped deployments</span>
         </label>
 
-        <div class="dp-list">
+        <div v-if="filteredDeployments.length === 0" class="dp-empty">
+            <p>No deployments to display.</p>
+        </div>
+
+        <div v-else class="dp-list">
             <DeploymentCard
                 v-for="dep in filteredDeployments"
-                :key="dep.url"
-                :status="dep.status"
+                :key="dep.id"
+                :status="dep.status === 'active' ? 'Active' : 'Stopped'"
                 :url="dep.url"
-                :classes="dep.classes"
-                :individuals="dep.individuals"
-                :created="dep.created"
-                :updated="dep.updated"
-                :expiry="dep.expiry"
-                :stopped="dep.stopped"
-                @delete="
-                    deployments = deployments.filter((d) => d.url !== dep.url)
-                "
+                :classes="dep.ontologyName + ' ontology'"
+                :individuals="'v' + (dep.version || '—')"
+                :created="'Deployed ' + formatDate(dep.deployedAt)"
+                :updated="'By ' + (dep.deployedBy || 'unknown')"
+                :expiry="dep.status === 'stopped' ? 'Expired' : 'Active'"
+                :stopped="dep.status === 'stopped'"
+                @delete="$emit('delete', dep.id)"
             />
         </div>
     </div>
@@ -32,72 +34,46 @@
 import { computed, ref } from "vue";
 import DeploymentCard from "./DeploymentCard.vue";
 
+// @m2.5 — Deployment entry from LIST_DEPLOYMENTS_QUERY
 interface DeploymentEntry {
+	id: string;
 	status: string;
 	url: string;
-	classes: string;
-	individuals: string;
-	created: string;
-	updated: string;
-	expiry: string;
+	version: string;
+	ontologyId: string;
+	ontologyName: string;
+	deployedAt: string;
+	deployedBy: string;
 	stopped?: boolean;
 }
 
+const props = defineProps<{
+	deployments: DeploymentEntry[];
+}>();
+
+defineEmits<{
+	delete: [deploymentId: string];
+}>();
+
 const showStopped = ref(true);
 
-const deployments = ref<DeploymentEntry[]>([
-	{
-		status: "Active",
-		url: "https://philosophy-aa4ded.gitlab.io",
-		classes: "12 classes",
-		individuals: "58 individuals",
-		created: "Created 5 months ago",
-		updated: "Last updated 5 months ago",
-		expiry: "Never expires",
-	},
-	{
-		status: "Active",
-		url: "https://vedo-core-qa.gitlab.io",
-		classes: "35 classes",
-		individuals: "142 individuals",
-		created: "Created 2 days ago",
-		updated: "Last updated 2 days ago",
-		expiry: "Expires in 28 days",
-	},
-	{
-		status: "Active",
-		url: "https://ontology-staging.gitlab.io",
-		classes: "8 classes",
-		individuals: "23 individuals",
-		created: "Created 1 week ago",
-		updated: "Last updated 6 days ago",
-		expiry: "Expires in 21 days",
-	},
-	{
-		status: "Active",
-		url: "https://shacl-validator.gitlab.io",
-		classes: "42 classes",
-		individuals: "197 individuals",
-		created: "Created 3 weeks ago",
-		updated: "Last updated 3 weeks ago",
-		expiry: "Expires in 7 days",
-	},
-	{
-		status: "Stopped",
-		url: "https://legacy-ontology.gitlab.io",
-		classes: "18 classes",
-		individuals: "76 individuals",
-		created: "Created 1 year ago",
-		updated: "Last updated 8 months ago",
-		expiry: "Expired",
-		stopped: true,
-	},
-]);
-
 const filteredDeployments = computed(() => {
-	if (showStopped.value) return deployments.value;
-	return deployments.value.filter((d) => !d.stopped);
+	if (showStopped.value) return props.deployments;
+	return props.deployments.filter((d) => d.status !== "stopped");
 });
+
+function formatDate(dateStr: string): string {
+	if (!dateStr) return "unknown";
+	const date = new Date(dateStr);
+	const now = new Date();
+	const diffMs = now.getTime() - date.getTime();
+	const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+	if (diffDays === 0) return "today";
+	if (diffDays === 1) return "yesterday";
+	if (diffDays < 30) return `${diffDays} days ago`;
+	if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
+	return `${Math.floor(diffDays / 365)} years ago`;
+}
 </script>
 
 <style scoped>
@@ -132,5 +108,14 @@ const filteredDeployments = computed(() => {
     display: flex;
     flex-direction: column;
     gap: 0;
+}
+
+/* @m2.5 Empty state */
+.dp-empty {
+    padding: 32px;
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--muted-foreground);
 }
 </style>

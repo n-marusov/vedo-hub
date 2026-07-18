@@ -15,7 +15,7 @@
     <section class="gp-toolbar">
       <div class="gp-search-wrap">
         <Search :size="14" class="gp-search-icon" />
-        <input class="gp-search-input" type="text" placeholder="Search groups" aria-label="Search groups" />
+        <input class="gp-search-input" type="text" v-model="searchQuery" placeholder="Search groups" aria-label="Search groups" />
       </div>
       <div class="gp-sort-wrap">
         <span class="gp-sort-label">Name</span>
@@ -26,7 +26,31 @@
       </div>
     </section>
 
-    <section class="gp-list">
+    <!-- Loading state -->
+    <div v-if="loading" class="gp-list">
+      <div v-for="n in 3" :key="n" class="gp-row gp-skeleton-row">
+        <div class="gp-row-body">
+          <div class="gp-row-body-top">
+            <div class="skeleton skeleton--circle"></div>
+            <div class="skeleton skeleton--text skeleton--name"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error state -->
+    <div v-else-if="error" class="gp-error" role="alert">
+      <span>Failed to load groups</span>
+      <button class="retry-btn" type="button" @click="refetch">Retry</button>
+    </div>
+
+    <!-- Empty state -->
+    <div v-else-if="groupRows.length === 0" class="gp-empty">
+      <span>No groups found.</span>
+    </div>
+
+    <!-- Data state -->
+    <section v-else class="gp-list">
       <div v-for="(row, i) in groupRows" :key="row.name + i" class="gp-row">
         <div class="gp-row-body">
           <div class="gp-row-body-top">
@@ -70,139 +94,116 @@
 </template>
 
 <script setup lang="ts">
+import { LIST_GROUPS_QUERY } from "@/apollo/queries";
+import { useQuery } from "@vue/apollo-composable";
 import {
-  ChevronDown,
-  ChevronRight,
-  Folder,
-  FolderTree,
-  Globe,
-  Lock,
-  MoreVertical,
-  Plus,
-  Search,
-  Star,
-  Users
-} from 'lucide-vue-next'
-import type { Component } from 'vue'
+	ChevronDown,
+	ChevronRight,
+	Folder,
+	FolderTree,
+	Globe,
+	Lock,
+	MoreVertical,
+	Plus,
+	Search,
+	Star,
+	Users,
+} from "lucide-vue-next";
+import type { Component } from "vue";
+import { computed, ref, watch } from "vue";
 
-type RowType = 'group' | 'project'
+const searchQuery = ref("");
+
+type RowType = "group" | "project";
 
 interface GroupRow {
-  name: string
-  indent: number
-  chevronIcon: Component
-  logoLetter: string
-  logoBg: string
-  visibility: 'public' | 'private'
-  description: string
-  type: RowType
-  subgroups?: number
-  projects?: number
-  members?: number
-  stars?: number
-  created: string
-  active: boolean
+	name: string;
+	indent: number;
+	chevronIcon: Component;
+	logoLetter: string;
+	logoBg: string;
+	visibility: "public" | "private";
+	description: string;
+	type: RowType;
+	subgroups?: number;
+	projects?: number;
+	members?: number;
+	stars?: number;
+	created: string;
+	active: boolean;
 }
 
-const groupRows: GroupRow[] = [
-  {
-    name: 'Platform',
-    indent: 0,
-    chevronIcon: ChevronDown,
-    logoLetter: 'P',
-    logoBg: '#10b98126',
-    visibility: 'public',
-    description: 'Infrastructure and core platform services',
-    type: 'group',
-    subgroups: 3,
-    projects: 8,
-    members: 12,
-    created: 'Created 2 weeks ago',
-    active: false
-  },
-  {
-    name: 'Core Services',
-    indent: 18,
-    chevronIcon: ChevronRight,
-    logoLetter: 'C',
-    logoBg: '#6366f126',
-    visibility: 'private',
-    description: 'Shared backend services',
-    type: 'group',
-    subgroups: 2,
-    projects: 5,
-    members: 7,
-    created: 'Created 1 month ago',
-    active: false
-  },
-  {
-    name: 'Data Models',
-    indent: 18,
-    chevronIcon: ChevronDown,
-    logoLetter: 'D',
-    logoBg: '#10b98126',
-    visibility: 'public',
-    description: 'Ontology and data model definitions',
-    type: 'group',
-    subgroups: 4,
-    projects: 10,
-    members: 15,
-    created: 'Created 3 weeks ago',
-    active: true
-  },
-  {
-    name: 'ProductOntology',
-    indent: 54,
-    chevronIcon: 'div' as unknown as Component,
-    logoLetter: 'P',
-    logoBg: '#d9770626',
-    visibility: 'public',
-    description: 'Core product ontology',
-    type: 'project',
-    stars: 3,
-    created: 'Created 1 week ago',
-    active: false
-  },
-  {
-    name: 'OrganizationOntology',
-    indent: 54,
-    chevronIcon: 'div' as unknown as Component,
-    logoLetter: 'O',
-    logoBg: '#05966926',
-    visibility: 'private',
-    description: 'Org structure model',
-    type: 'project',
-    stars: 2,
-    created: 'Created 5 days ago',
-    active: false
-  },
-  {
-    name: 'CustomerOntology',
-    indent: 54,
-    chevronIcon: 'div' as unknown as Component,
-    logoLetter: 'C',
-    logoBg: '#0891b226',
-    visibility: 'public',
-    description: 'Customer domain model',
-    type: 'project',
-    stars: 4,
-    created: 'Created 2 days ago',
-    active: false
-  },
-  {
-    name: 'API Integrations',
-    indent: 18,
-    chevronIcon: ChevronRight,
-    logoLetter: 'A',
-    logoBg: '#dc262626',
-    visibility: 'private',
-    description: 'External API gateway configs',
-    type: 'project',
-    stars: 5,
-    created: 'Created 2 months ago',
-    active: false
-  }
-]
+const { result, loading, error, refetch } = useQuery(
+	LIST_GROUPS_QUERY,
+	() => ({
+		q: searchQuery.value || undefined,
+	}),
+	{ fetchPolicy: "cache-and-network" },
+);
+
+const groupRows = computed<GroupRow[]>(() => {
+	const items = result.value?.groups?.items;
+	if (!items || items.length === 0) {
+		return [];
+	}
+	// Build flat hierarchy from nested API response
+	const rows: GroupRow[] = [];
+	function walk(group: Record<string, unknown>, indent: number): void {
+		rows.push({
+			name: String(group.name || ""),
+			indent,
+			chevronIcon: group.childGroups?.length ? ChevronDown : ChevronRight,
+			logoLetter: String(
+				group.name ? (group.name as string)[0] : "?",
+			).toUpperCase(),
+			logoBg: "#6366f126",
+			visibility: (group.visibility as "public" | "private") || "public",
+			description: String(group.description || ""),
+			type: "group",
+			subgroups: Number(group.childGroups?.length || 0),
+			projects: Number(group.projectCount || 0),
+			members: Number(group.memberCount || 0),
+			created: "",
+			active: false,
+		});
+		// Flatten child groups recursively
+		if (group.childGroups) {
+			for (const child of group.childGroups as Record<string, unknown>[]) {
+				walk(child, indent + 18);
+			}
+		}
+	}
+	for (const g of items as Record<string, unknown>[]) {
+		walk(g, 0);
+	}
+	return rows;
+});
+
+// ── Logging ─────────────────────────────────────────────────────────────────
+
+watch(groupRows, (val) => {
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "groups.list.loaded",
+			count: val.length,
+			ts: new Date().toISOString(),
+		}),
+	);
+});
+
+watch(error, (err) => {
+	if (err) {
+		console.error(
+			JSON.stringify({
+				level: "error",
+				msg: "groups.query.error",
+				error: String(err),
+				ts: new Date().toISOString(),
+			}),
+		);
+	}
+});
 </script>
 
 <style scoped>
@@ -211,12 +212,6 @@ const groupRows: GroupRow[] = [
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-
-.card {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  overflow: hidden;
 }
 
 .gp-top {
@@ -484,5 +479,50 @@ const groupRows: GroupRow[] = [
   flex-shrink: 0;
 }
 
+/* Skeleton loading */
+.gp-skeleton-row {
+  opacity: 0.6;
+}
 
+.skeleton {
+  background: var(--muted);
+  border-radius: 4px;
+}
+
+.skeleton--circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+
+.skeleton--text {
+  height: 14px;
+  flex: 0 0 200px;
+}
+
+/* Error state */
+.gp-error,
+.gp-empty {
+  padding: 32px;
+  text-align: center;
+  color: var(--muted-foreground);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+}
+
+.retry-btn {
+  margin-top: 12px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  padding: 0 12px;
+  cursor: pointer;
+}
 </style>

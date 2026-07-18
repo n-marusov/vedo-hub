@@ -1,4 +1,5 @@
 <!-- @ctx: Validation page strictly mirrored from design/frontend.pen frame valRep -->
+<!-- @m2.5 — Wired to RUN_VALIDATION_MUTATION via Apollo GraphQL -->
 <template>
   <div class="validation-page" role="main" aria-label="Validation Report content">
     <section class="validation-title-row">
@@ -11,51 +12,121 @@
     <section class="validation-context">
       <Folder :size="14" class="muted" />
       <span class="context-label">Validating ontology:</span>
-      <span class="context-badge context-badge--primary">ProductOntology</span>
+      <span class="context-badge context-badge--primary">{{ ontologyId || '—' }}</span>
       <GitBranch :size="14" class="muted" />
       <span class="context-badge">main</span>
       <Calendar :size="14" class="muted" />
-      <span class="context-time">Last validation: May 15, 2026 14:32:15</span>
+      <span class="context-time">Last validation: {{ lastValidatedAt }}</span>
     </section>
 
     <section class="validation-actions">
-      <button class="run-btn" type="button" @click="runValidation">
-        <Play :size="14" />
-        Run validation
+      <button
+        class="run-btn"
+        type="button"
+        :disabled="loading"
+        @click="runValidation"
+      >
+        <Loader v-if="loading" :size="14" class="spinning" />
+        <Play v-else :size="14" />
+        {{ loading ? 'Running...' : 'Run validation' }}
       </button>
     </section>
 
     <section class="validation-card">
-      <ValidationReport :summary="summary" :results="results" />
+      <ValidationReport v-if="validationResult" :summary="summary" :results="validationResult.violations" />
     </section>
   </div>
 </template>
 
 <script setup lang="ts">
-import ValidationReport from '@/components/organisms/ValidationReport.vue'
-import { Calendar, Folder, GitBranch, Play, Shield } from 'lucide-vue-next'
-import { ref } from 'vue'
+import { RUN_VALIDATION_MUTATION } from "@/apollo/queries";
+import ValidationReport from "@/components/organisms/ValidationReport.vue";
+import { useMutation } from "@vue/apollo-composable";
+import {
+	Calendar,
+	Folder,
+	GitBranch,
+	Loader,
+	Play,
+	Shield,
+} from "lucide-vue-next";
+import { computed, ref } from "vue";
+import { useRoute } from "vue-router";
 
-const summary = ref({ total_rules: 24, passed: 19, failed: 3, warnings: 2 })
-const results = ref([
-  {
-    rule_id: 'VAL-001',
-    rule_name: 'INN length check',
-    severity: 'error',
-    focus_node: 'ex:Person/Alice_Johnson',
-    message: "INN value '12345' does not match pattern ^\\d{12}$"
-  },
-  {
-    rule_id: 'VAL-014',
-    rule_name: 'Email format',
-    severity: 'warning',
-    focus_node: 'ex:Organization/Acme_Corp',
-    message: 'Missing contactEmail property'
-  }
-])
+const route = useRoute();
+const ontologyId = computed(
+	() =>
+		(route.params.ontologyId as string) ||
+		(route.query.ontologyId as string) ||
+		"",
+);
 
-function runValidation(): void {
-  summary.value = { total_rules: 24, passed: 20, failed: 2, warnings: 2 }
+// @m2.5 — Wire validation to RUN_VALIDATION_MUTATION
+const { mutate, loading } = useMutation(RUN_VALIDATION_MUTATION);
+
+const validationResult = ref<{
+	status: string;
+	violations: Array<Record<string, unknown>>;
+	validatedAt: string;
+} | null>(null);
+
+const summary = computed(() => {
+	if (!validationResult.value)
+		return { total_rules: 0, passed: 0, failed: 0, warnings: 0 };
+	const violations = validationResult.value.violations || [];
+	const errors = violations.filter(
+		(v: Record<string, unknown>) => v.severity === "error",
+	).length;
+	const warnings = violations.filter(
+		(v: Record<string, unknown>) => v.severity === "warning",
+	).length;
+	const total = violations.length;
+	return {
+		total_rules: total + errors + warnings + 1,
+		passed: Math.max(0, total + errors + warnings + 1 - errors - warnings),
+		failed: errors,
+		warnings,
+	};
+});
+
+const lastValidatedAt = computed(() => {
+	if (!validationResult.value?.validatedAt) return "Never";
+	return new Date(validationResult.value.validatedAt).toLocaleString("en-US", {
+		month: "short",
+		day: "numeric",
+		year: "numeric",
+		hour: "2-digit",
+		minute: "2-digit",
+		second: "2-digit",
+	});
+});
+
+async function runValidation(): Promise<void> {
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "validation.run_started",
+			ontologyId: ontologyId.value,
+			ts: new Date().toISOString(),
+		}),
+	);
+	try {
+		const res = await mutate({ ontologyId: ontologyId.value || "default" });
+		validationResult.value = res?.data?.runValidation || {
+			status: "ok",
+			violations: [],
+			validatedAt: new Date().toISOString(),
+		};
+	} catch (e) {
+		console.error(
+			JSON.stringify({
+				level: "error",
+				msg: "validation.run_failed",
+				error: String(e),
+				ts: new Date().toISOString(),
+			}),
+		);
+	}
 }
 </script>
 
@@ -137,6 +208,12 @@ function runValidation(): void {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 14px;
   font-weight: 500;
+  cursor: pointer;
+}
+
+.run-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .validation-card {
@@ -144,6 +221,15 @@ function runValidation(): void {
   border-radius: 12px;
   background: var(--card);
   overflow: hidden;
+}
+
+/* @m2.5 Spinner */
+.spinning {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .warning { color: var(--warning); }

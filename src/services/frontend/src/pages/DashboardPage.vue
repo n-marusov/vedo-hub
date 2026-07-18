@@ -1,23 +1,39 @@
- <template>
+<template>
   <div class="dash-page" role="main" aria-label="Dashboard content">
     <div class="dash-breadcrumbs">
-
       <span class="crumb">Workspace</span>
       <ChevronRight :size="12" class="crumb-sep" />
       <span class="crumb crumb--current">Home</span>
     </div>
 
+    <!-- @m2.5 Greeting — wired to useCurrentUser for real user name/role -->
     <section class="dash-greeting card">
-      <div class="dash-avatar"><User :size="24" /></div>
+      <div class="dash-avatar">
+        <span v-if="displayInitials !== '?'" class="avatar-initials">{{ displayInitials }}</span>
+        <User v-else :size="24" />
+      </div>
       <div class="dash-greeting-text">
-        <h1 class="dash-name">Nikolay Marusov</h1>
+        <h1 class="dash-name">{{ displayName }}</h1>
         <p class="dash-role">Knowledge Engineer</p>
       </div>
       <button class="status-btn" type="button"><Smile :size="14" />Set status</button>
     </section>
 
-    <section class="dash-widgets" aria-label="Collaboration widgets">
-      <article v-for="widget in widgets" :key="widget.title + widget.subtitle" class="widget card">
+    <!-- @m2.5 Widgets — wired to dashboard.widgets from GQL -->
+    <section v-if="loading" class="dash-widgets" aria-label="Loading">
+      <article v-for="n in 3" :key="n" class="widget card skeleton">
+        <div class="skeleton-line skeleton-line--title"></div>
+        <div class="skeleton-line skeleton-line--value"></div>
+      </article>
+    </section>
+    <section v-else-if="error" class="dash-widgets" aria-label="Widgets error">
+      <div class="error-state card">
+        <p>Failed to load dashboard data.</p>
+        <button class="retry-btn" type="button" @click="refetch()">Retry</button>
+      </div>
+    </section>
+    <section v-else class="dash-widgets" aria-label="Collaboration widgets">
+      <article v-for="widget in resolvedWidgets" :key="widget.title" class="widget card">
         <header class="widget-head">
           <p class="widget-title">{{ widget.title }}</p>
           <component :is="widget.icon" :size="20" :class="['widget-icon', widget.iconColor]" />
@@ -32,31 +48,41 @@
 
     <section class="dash-columns">
       <div class="dash-left">
+        <!-- @m2.5 Attention items — wired to dashboard.attentionItems from GQL -->
         <article class="card attention-card">
           <header class="attention-header">
             <h2>Items that need your attention</h2>
-            <button class="filter-btn" type="button">
-              <span>Everything</span>
+            <button class="filter-btn" type="button" @click="toggleActivityFilter">
+              <span>{{ activityFilter }}</span>
               <ChevronDown :size="10" />
             </button>
           </header>
-          <div v-for="item in attentionItems" :key="item.text" class="attention-item">
-            <span class="attention-dot" :style="{ background: item.color }"></span>
+          <div v-for="item in resolvedAttentionItems" :key="item.id" class="attention-item">
+            <span class="attention-dot" :style="{ background: severityColor(item.severity) }"></span>
             <span class="attention-text">{{ item.text }}</span>
             <span class="attention-time">{{ item.time }}</span>
           </div>
         </article>
 
+        <!-- @m2.5 Activity feed — wired to dashboard.activityFeed from GQL -->
         <article class="card activity-card">
           <header class="activity-header">
             <h2>Team Activity</h2>
             <div class="activity-toggle">
-              <button class="toggle-btn toggle-btn--active" type="button">All team</button>
-              <button class="toggle-btn" type="button">Mine</button>
+              <button
+                :class="['toggle-btn', { 'toggle-btn--active': activityFilter === 'All team' }]"
+                type="button"
+                @click="activityFilter = 'All team'"
+              >All team</button>
+              <button
+                :class="['toggle-btn', { 'toggle-btn--active': activityFilter === 'Mine' }]"
+                type="button"
+                @click="activityFilter = 'Mine'"
+              >Mine</button>
             </div>
           </header>
           <div class="sep"></div>
-          <template v-for="(group, gi) in activityGroups" :key="group.label">
+          <template v-for="(group, gi) in resolvedActivityGroups" :key="group.label">
             <p class="activity-group-title">{{ group.label }}</p>
             <div v-for="item in group.items" :key="item.id" class="activity-item">
               <div class="activity-icon" :style="{ background: item.bg }">
@@ -66,22 +92,31 @@
               <span v-if="item.user" class="activity-user">{{ item.user }}</span>
               <span class="activity-time">{{ item.time }}</span>
             </div>
-            <div v-if="gi < activityGroups.length - 1" class="sep"></div>
+            <div v-if="gi < resolvedActivityGroups.length - 1" class="sep"></div>
           </template>
         </article>
       </div>
 
+      <!-- @m2.5 Recent ontologies — wired to dashboard.recentOntologies from GQL, clickable -->
       <article class="card quick-card">
         <header class="section-header">
           <h2>Recent project</h2>
           <Settings :size="16" class="quick-settings" />
         </header>
         <div class="onto-list">
-          <div v-for="onto in ontologies" :key="onto.name" class="onto-item">
+          <div
+            v-for="onto in resolvedRecentOntologies"
+            :key="onto.id"
+            class="onto-item"
+            role="button"
+            tabindex="0"
+            @click="navigateToOntology(onto.id)"
+            @keydown.enter="navigateToOntology(onto.id)"
+          >
             <FileText :size="14" class="onto-icon" />
             <div class="onto-body">
               <span class="onto-name">{{ onto.name }}</span>
-              <span class="onto-meta">{{ onto.time }} &middot; {{ onto.path }}</span>
+              <span class="onto-meta">{{ onto.description }} &middot; {{ onto.visibility }}</span>
             </div>
             <ChevronRight :size="12" class="onto-chevron" />
           </div>
@@ -92,121 +127,204 @@
 </template>
 
 <script setup lang="ts">
+import { DASHBOARD_QUERY } from "@/apollo/queries";
+import { useCurrentUser } from "@/composables/useCurrentUser";
+import { useQuery } from "@vue/apollo-composable";
 import {
-  AlertCircle,
-  ChevronDown,
-  ChevronRight,
-  FileText,
-  GitMerge,
-  MessageSquare,
-  Settings,
-  Smile,
-  User,
-  UserCheck
-} from 'lucide-vue-next'
+	AlertCircle,
+	ChevronDown,
+	ChevronRight,
+	FileText,
+	GitMerge,
+	MessageSquare,
+	Settings,
+	Smile,
+	User,
+	UserCheck,
+} from "lucide-vue-next";
+import { computed, ref } from "vue";
+import { useRouter } from "vue-router";
 
-const widgets = [
-  {
-    title: 'Merge requests',
-    icon: GitMerge,
-    iconColor: 'icon-primary',
-    value: '2',
-    subtitle: 'Waiting for your review',
-    time: 'Just now'
-  },
-  {
-    title: 'Merge requests',
-    icon: UserCheck,
-    iconColor: 'icon-primary',
-    value: '1',
-    subtitle: 'Assigned to you',
-    time: 'Just now'
-  },
-  {
-    title: 'Active Comments',
-    icon: MessageSquare,
-    iconColor: 'icon-warning',
-    value: '3',
-    subtitle: 'Awaiting your reply',
-    time: '2 hours ago'
-  }
-]
+const router = useRouter();
+const { displayName, displayInitials } = useCurrentUser();
 
-const attentionItems = [
-  { text: 'Pipeline failed in sparql-gateway', time: '15 min ago', color: '#ef4444' },
-  { text: 'MR !42 has merge conflicts', time: '1 hour ago', color: '#f59e0b' },
-  { text: 'Deploy failed in billing-demo', time: '3 hours ago', color: '#ef4444' }
-]
+const activityFilter = ref("All team");
 
-const activityGroups = [
-  {
-    label: 'Today',
-    items: [
-      {
-        id: 'act-t1',
-        icon: GitMerge,
-        color: '#6366f1',
-        bg: '#6366f11a',
-        text: 'vedo-core — Opened MR: fix/shacl-validation',
-        user: '@alice',
-        time: '3h ago'
-      },
-      {
-        id: 'act-t2',
-        icon: MessageSquare,
-        color: '#f59e0b',
-        bg: '#f59e0b1a',
-        text: 'ontology-engine — Comment on MR !42',
-        user: '@bob',
-        time: '5h ago'
-      }
-    ]
-  },
-  {
-    label: 'Yesterday',
-    items: [
-      {
-        id: 'act-y1',
-        icon: GitMerge,
-        color: '#6366f1',
-        bg: '#6366f11a',
-        text: 'vedo-core — Merged MR: feat/rdf-optimization',
-        user: '@nikolay',
-        time: '1d ago'
-      },
-      {
-        id: 'act-y2',
-        icon: AlertCircle,
-        color: '#ef4444',
-        bg: '#ef44441a',
-        text: 'sparql-gateway — Pipeline failure',
-        user: '',
-        time: '1d ago'
-      }
-    ]
-  },
-  {
-    label: 'Earlier',
-    items: [
-      {
-        id: 'act-e1',
-        icon: MessageSquare,
-        color: '#f59e0b',
-        bg: '#f59e0b1a',
-        text: 'vedo-core — Comment on commit a3f2c1',
-        user: '@nikolay',
-        time: '3d ago'
-      }
-    ]
-  }
-]
+// @m2.5 — Wire dashboard to DASHBOARD_QUERY (GraphQL)
+const { result, loading, error, refetch } = useQuery(DASHBOARD_QUERY);
 
-const ontologies = [
-  { name: 'ProductOntology', path: 'ontologies/product/', time: '2h ago' },
-  { name: 'OrganizationOntology', path: 'ontologies/organization/', time: 'yesterday' },
-  { name: 'CustomerOntology', path: 'ontologies/customer/', time: '3d ago' },
-  { name: 'Billing Demo / Master', path: 'billing-demo/master/', time: '6d ago' }
-]
+// ── Resolvers: map GQL data to UI shapes ──
+
+interface WidgetItem {
+	title: string;
+	value: string;
+	subtitle: string;
+	time: string;
+	icon: typeof GitMerge;
+	iconColor: string;
+}
+
+function mapWidgetIcon(iconName: string): typeof GitMerge {
+	const icons: Record<string, typeof GitMerge> = {
+		"git-merge": GitMerge,
+		eye: GitMerge,
+		"list-todo": GitMerge,
+	};
+	return icons[iconName] || GitMerge;
+}
+
+const resolvedWidgets = computed<WidgetItem[]>(() => {
+	const widgets = result.value?.dashboard?.widgets;
+	if (!widgets) return [];
+	return widgets.map(
+		(w: { title: string; count: number; icon: string; route: string }) => ({
+			title: w.title,
+			value: String(w.count),
+			subtitle: w.route,
+			time: "",
+			icon: mapWidgetIcon(w.icon),
+			iconColor: w.icon === "eye" ? "icon-warning" : "icon-primary",
+		}),
+	);
+});
+
+interface AttentionItem {
+	id: string;
+	text: string;
+	severity: string;
+	time: string;
+}
+
+const resolvedAttentionItems = computed<AttentionItem[]>(() => {
+	const items = result.value?.dashboard?.attentionItems;
+	if (!items) return [];
+	return items.map(
+		(a: { id: string; text: string; severity: string; count: number }) => ({
+			id: a.id,
+			text: a.text,
+			severity: a.severity,
+			time: "",
+		}),
+	);
+});
+
+function severityColor(severity: string): string {
+	const colors: Record<string, string> = {
+		warning: "#f59e0b",
+		error: "#ef4444",
+		info: "#6366f1",
+	};
+	return colors[severity] || "#6b7280";
+}
+
+interface ActivityGroup {
+	label: string;
+	items: Array<{
+		id: string;
+		icon: typeof GitMerge;
+		color: string;
+		bg: string;
+		text: string;
+		user: string;
+		time: string;
+	}>;
+}
+
+function mapActivityIcon(type: string): typeof GitMerge {
+	const icons: Record<string, typeof GitMerge> = {
+		merge_request: GitMerge,
+		commit: GitMerge,
+		comment: MessageSquare,
+	};
+	return icons[type] || AlertCircle;
+}
+
+function mapActivityColor(type: string): string {
+	const colors: Record<string, string> = {
+		merge_request: "#6366f1",
+		commit: "#10b981",
+		comment: "#f59e0b",
+	};
+	return colors[type] || "#ef4444";
+}
+
+const resolvedActivityGroups = computed<ActivityGroup[]>(() => {
+	const feed = result.value?.dashboard?.activityFeed;
+	if (!feed) return [];
+	const items = feed.map(
+		(a: {
+			id: string;
+			text: string;
+			author: string;
+			timestamp: string;
+			type: string;
+		}) => ({
+			id: a.id,
+			icon: mapActivityIcon(a.type),
+			color: mapActivityColor(a.type),
+			bg: `${mapActivityColor(a.type)}1a`,
+			text: a.text,
+			user: a.author ? `@${a.author.toLowerCase()}` : "",
+			time: formatTimeAgo(a.timestamp),
+		}),
+	);
+	return [{ label: "Recent", items }];
+});
+
+interface RecentOntology {
+	id: string;
+	name: string;
+	description: string;
+	visibility: string;
+}
+
+const resolvedRecentOntologies = computed<RecentOntology[]>(() => {
+	const ontos = result.value?.dashboard?.recentOntologies;
+	if (!ontos) return [];
+	return ontos.map(
+		(o: {
+			id: string;
+			name: string;
+			description: string;
+			visibility: string;
+		}) => ({
+			id: o.id,
+			name: o.name,
+			description: o.description || "",
+			visibility: o.visibility || "",
+		}),
+	);
+});
+
+// @m2.5 — Navigate to ontology workspace via router
+function navigateToOntology(ontologyId: string): void {
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "dashboard.navigate_to_ontology",
+			ontologyId,
+			ts: new Date().toISOString(),
+		}),
+	);
+	router.push(`/ontology/${ontologyId}/workspace`);
+}
+
+function toggleActivityFilter(): void {
+	// Toggle between All team / Mine
+	activityFilter.value =
+		activityFilter.value === "All team" ? "Mine" : "All team";
+}
+
+function formatTimeAgo(timestamp: string): string {
+	if (!timestamp) return "";
+	const now = Date.now();
+	const then = new Date(timestamp).getTime();
+	const minutes = Math.floor((now - then) / 60000);
+	if (minutes < 60) return `${minutes}m ago`;
+	const hours = Math.floor(minutes / 60);
+	if (hours < 24) return `${hours}h ago`;
+	return `${Math.floor(hours / 24)}d ago`;
+}
 </script>
 
 <style scoped>
@@ -253,6 +371,13 @@ const ontologies = [
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.avatar-initials {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary);
 }
 
 .dash-greeting-text { flex: 1; }
@@ -333,6 +458,52 @@ const ontologies = [
   color: var(--muted-foreground);
   font-family: 'IBM Plex Mono', monospace;
   font-size: 12px;
+}
+
+/* @m2.5 Skeleton loading states */
+.skeleton {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-line {
+  height: 16px;
+  border-radius: 4px;
+  background: var(--muted);
+}
+
+.skeleton-line--title { width: 60%; }
+.skeleton-line--value { width: 40%; height: 32px; margin-top: 8px; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+/* @m2.5 Error state */
+.error-state {
+  grid-column: 1 / -1;
+  padding: 32px;
+  text-align: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px;
+  color: var(--muted-foreground);
+}
+
+.retry-btn {
+  margin-top: 12px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0 12px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  background: var(--card);
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.retry-btn:hover {
+  background: var(--muted);
 }
 
 .dash-columns {
@@ -531,6 +702,13 @@ const ontologies = [
   gap: 8px;
   padding: 8px 10px;
   border-radius: 6px;
+  cursor: pointer;
+  transition: background var(--transition-fast, 0.15s ease);
+}
+
+.onto-item:hover,
+.onto-item:focus {
+  background: var(--muted);
 }
 
 .quick-settings {

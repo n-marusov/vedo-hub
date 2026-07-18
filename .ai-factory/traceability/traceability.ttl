@@ -1170,7 +1170,7 @@ base:m2.5/mock-link a vdo:CodeArtifact ;
 # - CLI commands: 5 (100% traced to spec)
 # - Security boundaries: 6 (100% identified)
 # - Error codes: 17 (100% identified in Go CLI)
-# - Test suites: 14 (100% traced) [+3 M2.5 vitest: SPARQLPage, VersioningPage, OntologyWorkspaceSave]
+# - Test suites: 24 (100% traced) [+13 M2.5 vitest: SPARQLPage, VersioningPage, OntologyWorkspaceSave, ProjectsPage, GroupsPage, MembersPage, VersioningTabs, DashboardPage, MetricsPage, ValidationPage, DeploymentsPage, MergeRequestsPage, Navigation]
 # - Test contracts: 13 (100% identified)
 # - Deployment configs: 6 (100% traced)
 # - Observability configs: 4 (100% traced)
@@ -1179,3 +1179,77 @@ base:m2.5/mock-link a vdo:CodeArtifact ;
 # - Architecture decisions: 3 (traced)
 # - NFRs: 4 (traced to tests/observability)
 # - M2.5 Code artifacts: 4 (mock data, mock link, test utils, mock providers) — 100% traced
+
+# --- M2.5 GUI Wiring Phase 3 — Vitest Test Suites (Block Б) ---
+
+base:test/m2.5/projects-page a vdo:TestSuite ;
+    rdfs:label "M2.5 ProjectsPage Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for ProjectsPage: list, search, sort, project rows, loading/empty states"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/ProjectsPage.spec.ts" .
+
+base:test/m2.5/groups-page a vdo:TestSuite ;
+    rdfs:label "M2.5 GroupsPage Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for GroupsPage: hierarchy rendering, expand/collapse, search, loading state"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/GroupsPage.spec.ts" .
+
+base:test/m2.5/members-page a vdo:TestSuite ;
+    rdfs:label "M2.5 MembersPage Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for MembersPage: member list, roles, edit/remove actions, loading state"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/MembersPage.spec.ts" .
+
+base:test/m2.5/versioning-tabs a vdo:TestSuite ;
+    rdfs:label "M2.5 VersioningTabs Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for VersioningPage tabs: Tags, Repository Graph, Compare Revisions"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/VersioningTabs.spec.ts" .
+
+# --- M2.5 GUI Wiring Phase 4 — Vitest Test Suites (Block В) ---
+
+base:test/m2.5/dashboard-page a vdo:TestSuite ;
+    rdfs:label "M2.5 DashboardPage Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for DashboardPage: widgets, attention items, activity feed, recent ontologies from API"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/DashboardPage.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+base:test/m2.5/metrics-page a vdo:TestSuite ;
+    rdfs:label "M2.5 MetricsPage Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for MetricsPage: KPI counters, trend charts, loading skeleton from API"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/MetricsPage.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+base:test/m2.5/validation-page a vdo:TestSuite ;
+    rdfs:label "M2.5 ValidationPage Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for ValidationPage: run button, SHACL validation mutation, results display"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/ValidationPage.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+base:test/m2.5/deployments-page a vdo:TestSuite ;
+    rdfs:label "M2.5 DeploymentsPage Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for DeploymentsPage: deployment cards from API, show stopped toggle, breadcrumbs"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/DeploymentsPage.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+base:test/m2.5/merge-requests-page a vdo:TestSuite ;
+    rdfs:label "M2.5 MergeRequestsPage Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for MergeRequestsPage: MR sections, filter tabs, data from API"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/MergeRequestsPage.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+# --- M2.5 GUI Wiring Phase 5 — Vitest Test Suites (Block Г) ---
+
+base:test/m2.5/navigation a vdo:TestSuite ;
+    rdfs:label "M2.5 Navigation Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for App.vue shell: user avatar, sidebar, header actions, route highlighting"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/Navigation.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+# --- M2.5 GUI Wiring Code Artifacts ---
+
+base:m2.5/use-current-user a vdo:CodeArtifact ;
+    rdfs:label "M2.5 useCurrentUser Composable"@en ;
+    rdfs:comment "JWT-based user info decoding: name, email, avatarUrl, initials from Keycloak session"@en ;
+    vdo:filePath "src/services/frontend/src/composables/useCurrentUser.ts" .
+
+base:m2.5/vitest-setup a vdo:CodeArtifact ;
+    rdfs:label "M2.5 Vitest Global Setup"@en ;
+    rdfs:comment "Global vitest setup: auto-provides Apollo client with mock resolvers to all component tests"@en ;
+    vdo:filePath "src/services/frontend/vitest.setup.ts" .

@@ -39,7 +39,7 @@ import {
 import Comments from "@/components/organisms/Comments.vue";
 import { useMutation, useQuery } from "@vue/apollo-composable";
 import { ChevronRight } from "lucide-vue-next";
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
@@ -108,6 +108,32 @@ function formatRelativeTime(dateStr: string): string {
 	const days = Math.floor(hours / 24);
 	return `${days}d ago`;
 }
+
+// ── Logging ─────────────────────────────────────────────────────────────────
+
+watch(commentItems, (val) => {
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "comments.feed.loaded",
+			count: val.length,
+			ts: new Date().toISOString(),
+		}),
+	);
+});
+
+watch(error, (err) => {
+	if (err) {
+		console.error(
+			JSON.stringify({
+				level: "error",
+				msg: "comments.query.error",
+				error: String(err),
+				ts: new Date().toISOString(),
+			}),
+		);
+	}
+});
 </script>
 
 <style scoped>

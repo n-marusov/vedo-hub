@@ -150,7 +150,7 @@ const {
 );
 
 const {
-	result: _compareResult,
+	result: compareResult,
 	loading: compareLoading,
 	error: compareError,
 	refetch: refetchCompare,
@@ -230,21 +230,29 @@ const currentBranch = computed(() => {
 	return "main";
 });
 
-// Compare view uses static format for now (Task 3.5 extends with real data)
-const changes = [
-	{
-		path: "ontology/ProductOntology.ttl",
-		type: "modified" as const,
-		diff: '@@ Product rdfs:label "Product" @@',
-	},
-];
-const commitOptions = [
-	{
-		value: "15c3035",
-		label: "15c3035 - feat: add Product class and relations",
-	},
-	{ value: "4c6c1c2", label: "4c6c1c2 - fix: align validation constraints" },
-];
+// Compare view — computed from Apollo compareResult
+const changes = computed(() => {
+	const data = compareResult.value?.compareRevisions;
+	if (!data?.changes?.length) {
+		return [];
+	}
+	return data.changes.map((c: Record<string, unknown>) => ({
+		path: String(c.entityLabel || c.entityId || ""),
+		type: (c.changeType === "added"
+			? "added"
+			: c.changeType === "removed"
+				? "removed"
+				: "modified") as "added" | "removed" | "modified",
+		diff: `@@ ${c.field || ""}: ${String(c.oldValue ?? "")} → ${String(c.newValue ?? "")} @@`,
+	}));
+});
+
+const commitOptions = computed(() => {
+	const data = compareResult.value?.compareRevisions;
+	if (!data) return [];
+	// Derive commit options from comparison metadata if available
+	return [];
+});
 
 const graphNodes = computed(() => {
 	const data = graphResult.value?.graphNeighborhood;
@@ -302,6 +310,28 @@ watch(commits, (val) => {
 		JSON.stringify({
 			level: "debug",
 			msg: "versioning.commits.loaded",
+			count: val.length,
+			ts: new Date().toISOString(),
+		}),
+	);
+});
+
+watch(tags, (val) => {
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "versioning.tags.loaded",
+			count: val.length,
+			ts: new Date().toISOString(),
+		}),
+	);
+});
+
+watch(changes, (val) => {
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "versioning.compare.loaded",
 			count: val.length,
 			ts: new Date().toISOString(),
 		}),

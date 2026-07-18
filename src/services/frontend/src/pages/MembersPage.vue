@@ -6,47 +6,121 @@
         <Users :size="20" class="primary" />
         <h1 class="members-title">Members</h1>
       </div>
-      <span class="members-count">4</span>
+      <span class="members-count">{{ members.length }}</span>
     </section>
 
-    <section class="members-context">
-      <Folder :size="14" class="muted" />
-      <span class="context-label">Managing access for:</span>
-      <span class="context-badge context-badge--primary">ProductOntology</span>
-      <Shield :size="14" class="muted" />
-      <span class="context-note">Only owners can manage members</span>
-    </section>
+    <!-- Loading state -->
+    <div v-if="loading" class="members-loading">
+      <div class="skeleton skeleton--row" v-for="n in 3" :key="n"></div>
+    </div>
 
-    <section class="members-card">
-      <div class="table-head">
-        <span class="member-col">Member</span>
-        <span class="role-col">Role</span>
-        <span class="mail-col">Email</span>
-        <span class="actions-col">Actions</span>
-      </div>
-      <div class="sep"></div>
-      <div v-for="member in members" :key="member.name + member.mail" class="table-row">
-        <span class="member-col member-name">{{ member.name }}</span>
-        <span class="role-col"><span class="role-pill">{{ member.role }}</span></span>
-        <span class="mail-col muted">{{ member.mail }}</span>
-        <span class="actions-col row-actions">
-          <button class="icon-btn" type="button" aria-label="Edit member"><Pencil :size="14" /></button>
-          <button class="icon-btn danger" type="button" aria-label="Remove member"><Trash2 :size="14" /></button>
-        </span>
-      </div>
-    </section>
+    <!-- Error state -->
+    <div v-else-if="error" class="members-error" role="alert">
+      <span>Failed to load members</span>
+      <button class="retry-btn" type="button" @click="refetch">Retry</button>
+    </div>
+
+    <!-- Empty state -->
+    <div v-else-if="members.length === 0" class="members-empty">
+      <span>No members found.</span>
+    </div>
+
+    <!-- Data state -->
+    <template v-else>
+      <section class="members-context">
+        <Folder :size="14" class="muted" />
+        <span class="context-label">Managing access for:</span>
+        <span class="context-badge context-badge--primary">ProductOntology</span>
+        <Shield :size="14" class="muted" />
+        <span class="context-note">Only owners can manage members</span>
+      </section>
+
+      <section class="members-card">
+        <div class="table-head">
+          <span class="member-col">Member</span>
+          <span class="role-col">Role</span>
+          <span class="mail-col">Email</span>
+          <span class="actions-col">Actions</span>
+        </div>
+        <div class="sep"></div>
+        <div v-for="member in members" :key="member.name + member.mail" class="table-row">
+          <span class="member-col member-name">{{ member.name }}</span>
+          <span class="role-col"><span class="role-pill">{{ member.role }}</span></span>
+          <span class="mail-col muted">{{ member.mail }}</span>
+          <span class="actions-col row-actions">
+            <button class="icon-btn" type="button" aria-label="Edit member"><Pencil :size="14" /></button>
+            <button class="icon-btn danger" type="button" aria-label="Remove member"><Trash2 :size="14" /></button>
+          </span>
+        </div>
+      </section>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Folder, Pencil, Shield, Trash2, Users } from 'lucide-vue-next'
+import { LIST_MEMBERS_QUERY } from "@/apollo/queries";
+import { useQuery } from "@vue/apollo-composable";
+import { Folder, Pencil, Shield, Trash2, Users } from "lucide-vue-next";
+import { computed, watch } from "vue";
+import { useRoute } from "vue-router";
 
-const members = [
-  { name: 'Nikolay Marusov', role: 'Owner', mail: 'nikolay@vedo.local' },
-  { name: 'Alice Smith', role: 'Maintainer', mail: 'alice@vedo.local' },
-  { name: 'Bob Johnson', role: 'Editor', mail: 'bob@vedo.local' },
-  { name: 'Anna Petrova', role: 'Viewer', mail: 'anna@vedo.local' }
-]
+const route = useRoute();
+const ontologyId = computed(() => String(route.params.id || ""));
+
+interface MemberRow {
+	name: string;
+	role: string;
+	mail: string;
+}
+
+const { result, loading, error, refetch } = useQuery(
+	LIST_MEMBERS_QUERY,
+	() => ({
+		ontologyId: ontologyId.value,
+	}),
+	{
+		fetchPolicy: "cache-and-network",
+		enabled: computed(() => !!ontologyId.value),
+	},
+);
+
+const members = computed<MemberRow[]>(() => {
+	const items = result.value?.members;
+	if (!items || items.length === 0) {
+		return [];
+	}
+	return items.map((m: Record<string, unknown>) => ({
+		name: String(m.username || m.userId || ""),
+		role: String(m.role || "Viewer"),
+		mail: `${String(m.username || "").toLowerCase()}@vedo.local`,
+	}));
+});
+
+// ── Logging ─────────────────────────────────────────────────────────────────
+
+watch(members, (val) => {
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "members.list.loaded",
+			count: val.length,
+			ts: new Date().toISOString(),
+		}),
+	);
+});
+
+watch(error, (err) => {
+	if (err) {
+		console.error(
+			JSON.stringify({
+				level: "error",
+				msg: "members.query.error",
+				error: String(err),
+				ts: new Date().toISOString(),
+			}),
+		);
+	}
+});
 </script>
 
 <style scoped>
@@ -190,6 +264,49 @@ const members = [
 
 .primary { color: var(--primary); }
 .muted { color: var(--muted-foreground); }
+
+/* Skeleton loading */
+.members-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeleton {
+  background: var(--muted);
+  border-radius: 4px;
+}
+
+.skeleton--row {
+  height: 48px;
+  width: 100%;
+}
+
+/* Error state */
+.members-error,
+.members-empty {
+  padding: 32px;
+  text-align: center;
+  color: var(--muted-foreground);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+}
+
+.retry-btn {
+  margin-top: 12px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  padding: 0 12px;
+  cursor: pointer;
+}
 
 @media (max-width: 1024px) {
   .table-head { display: none; }

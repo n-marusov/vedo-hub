@@ -1,4 +1,3 @@
-Ь
 <template>
     <div class="projects-page" role="main" aria-label="Projects page">
         <section class="pp-top">
@@ -21,6 +20,7 @@
                 <input
                     class="pp-search-input"
                     type="text"
+                    v-model="searchQuery"
                     placeholder="Search projects"
                     aria-label="Search projects"
                 />
@@ -34,7 +34,31 @@
             </div>
         </section>
 
-        <section class="pp-list">
+        <!-- Loading state -->
+        <div v-if="loading" class="pp-list">
+            <article v-for="n in 3" :key="n" class="pp-row pp-skeleton-row">
+                <div class="pp-row-body">
+                    <div class="pp-row-body-top">
+                        <div class="skeleton skeleton--circle"></div>
+                        <div class="skeleton skeleton--text skeleton--name"></div>
+                    </div>
+                </div>
+            </article>
+        </div>
+
+        <!-- Error state -->
+        <div v-else-if="error" class="pp-error" role="alert">
+            <span>Failed to load projects</span>
+            <button class="retry-btn" type="button" @click="refetch">Retry</button>
+        </div>
+
+        <!-- Empty state -->
+        <div v-else-if="projects.length === 0" class="pp-empty">
+            <span>No projects found.</span>
+        </div>
+
+        <!-- Data state -->
+        <section v-else class="pp-list">
             <article v-for="p in projects" :key="p.name" class="pp-row">
                 <div class="pp-row-body">
                     <div class="pp-row-body-top">
@@ -96,6 +120,8 @@
 </template>
 
 <script setup lang="ts">
+import { LIST_PROJECTS_QUERY } from "@/apollo/queries";
+import { useQuery } from "@vue/apollo-composable";
 import {
 	BadgeCheck,
 	ChevronDown,
@@ -110,6 +136,9 @@ import {
 	Search,
 	Star,
 } from "lucide-vue-next";
+import { computed, ref, watch } from "vue";
+
+const searchQuery = ref("");
 
 interface ProjectRow {
 	name: string;
@@ -125,74 +154,64 @@ interface ProjectRow {
 	logoBg: string;
 }
 
-const projects: ProjectRow[] = [
-	{
-		name: "vedo-core",
-		visibility: "public",
-		description: "Core VEDO ontology platform",
-		tags: ["OWL", "RDF", "Python"],
-		stars: 12,
-		forks: 8,
-		mergeRequests: 3,
-		created: "Created 3 months ago",
-		verified: true,
-		logoLetter: "V",
+const { result, loading, error, refetch } = useQuery(
+	LIST_PROJECTS_QUERY,
+	() => ({
+		q: searchQuery.value || undefined,
+		sortBy: "name",
+		sortDir: "ASC",
+		page: 1,
+		perPage: 50,
+	}),
+	{ fetchPolicy: "cache-and-network" },
+);
+
+const projects = computed<ProjectRow[]>(() => {
+	const items = result.value?.projects?.items;
+	if (!items || items.length === 0) {
+		// Fallback to empty when no data from API
+		return [];
+	}
+	return items.map((p: Record<string, unknown>) => ({
+		name: String(p.name || ""),
+		visibility: (p.visibility as "public" | "private") || "public",
+		description: String(p.description || ""),
+		tags: (p.tags as string[]) || [],
+		stars: Number(p.stars || 0),
+		forks: Number(p.forks || 0),
+		mergeRequests: Number(p.mergeRequests || 0),
+		created: String(p.created || ""),
+		verified: Boolean(p.verified),
+		logoLetter: String(p.name ? p.name[0] : "?").toUpperCase(),
 		logoBg: "#6366f126",
-	},
-	{
-		name: "ontology-service",
-		visibility: "private",
-		description: "Rust-based ontology storage and query service",
-		tags: ["Rust", "Neo4j", "gRPC"],
-		stars: 18,
-		forks: 5,
-		mergeRequests: 1,
-		created: "Created 3 months ago",
-		verified: false,
-		logoLetter: "O",
-		logoBg: "#05966926",
-	},
-	{
-		name: "ProductOntology",
-		visibility: "public",
-		description:
-			"Product domain ontology covering classifications and properties",
-		tags: ["OWL", "SKOS"],
-		stars: 24,
-		forks: 12,
-		mergeRequests: 6,
-		created: "Created 2 months ago",
-		verified: true,
-		logoLetter: "P",
-		logoBg: "#d9770626",
-	},
-	{
-		name: "versioning-service",
-		visibility: "private",
-		description: "Git-like version control for ontology operations",
-		tags: ["Rust", "PostgreSQL"],
-		stars: 15,
-		forks: 6,
-		mergeRequests: 4,
-		created: "Created 1 month ago",
-		verified: false,
-		logoLetter: "V",
-		logoBg: "#dc262626",
-	},
-	{
-		name: "OrganizationOntology",
-		visibility: "public",
-		description: "Organizational structure ontology for departments and roles",
-		tags: ["OWL", "RDF"],
-		stars: 9,
-		forks: 2,
-		mergeRequests: 2,
-		created: "Created 3 weeks ago",
-		verified: false,
-		logoLetter: "O",
-		logoBg: "#0891b226",
-	},
-];
+	}));
+});
+
+// ── Logging ─────────────────────────────────────────────────────────────────
+
+watch(projects, (val) => {
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "projects.list.loaded",
+			count: val.length,
+			ts: new Date().toISOString(),
+		}),
+	);
+});
+
+watch(error, (err) => {
+	if (err) {
+		console.error(
+			JSON.stringify({
+				level: "error",
+				msg: "projects.query.error",
+				error: String(err),
+				ts: new Date().toISOString(),
+			}),
+		);
+	}
+});
 </script>
 
 <style scoped>
@@ -201,12 +220,6 @@ const projects: ProjectRow[] = [
     display: flex;
     flex-direction: column;
     gap: 16px;
-}
-
-.card {
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    overflow: hidden;
 }
 
 .pp-top {
@@ -483,5 +496,56 @@ const projects: ProjectRow[] = [
 .pp-row-menu {
     color: #6b7280;
     flex-shrink: 0;
+}
+
+/* Skeleton loading */
+.pp-skeleton-row {
+    opacity: 0.6;
+}
+
+.skeleton {
+    background: var(--muted);
+    border-radius: 4px;
+}
+
+.skeleton--circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+}
+
+.skeleton--text {
+    height: 14px;
+    flex: 0 0 200px;
+}
+
+.skeleton--name {
+    width: 200px;
+}
+
+/* Error state */
+.pp-error,
+.pp-empty {
+    padding: 32px;
+    text-align: center;
+    color: var(--muted-foreground);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--card);
+}
+
+.retry-btn {
+    margin-top: 12px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--foreground);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    padding: 0 12px;
+    cursor: pointer;
 }
 </style>

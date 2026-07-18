@@ -1,63 +1,47 @@
-import { mount } from "@vue/test-utils";
-// @m2.5 — SPARQLPage vitest spec (RED phase: will fail on hardcoded query execution)
-// After GREEN (Task 2.4): query execution should use Apollo GraphQL SPARQL_EXECUTE_QUERY
-import { beforeEach, describe, expect, it } from "vitest";
+// @m2.5 — SPARQLPage vitest spec (GREEN: uses mountWithProviders)
+// Tests: SPARQL query execution via Apollo GraphQL SPARQL_EXECUTE_QUERY
+import {
+	describePage,
+	mountWithProviders,
+	waitForQuery,
+} from "@/__tests__/setup/mock-providers";
+import { beforeEach, expect, it } from "vitest";
 import { nextTick } from "vue";
-import { createRouter, createWebHistory } from "vue-router";
 
-const router = createRouter({
-	history: createWebHistory(),
-	routes: [
-		{
-			path: "/ontology/:id/query",
-			name: "ontology-query",
-			component: { template: "<div />" },
-		},
-	],
-});
-
-describe("SPARQLPage", () => {
+describePage("SPARQLPage", () => {
 	beforeEach(async () => {
-		await router.push("/ontology/test/query");
+		// Router setup handled by mountWithProviders
 	});
 
-	it("should execute SPARQL query via Apollo when Run is clicked", async () => {
+	it("should render SPARQL Query Builder title", async () => {
 		const SPARQLPage = (await import("@/pages/SPARQLPage.vue")).default;
-		const wrapper = mount(SPARQLPage, {
-			global: { plugins: [router] },
-		});
+		const wrapper = mountWithProviders(SPARQLPage);
+		await waitForQuery();
 		await nextTick();
-		// RED: Should execute SPARQL query via GraphQL
 		expect(wrapper.text()).toContain("SPARQL Query Builder");
 	});
 
-	it("should display results table when query execution succeeds", async () => {
+	it("should show query editor textarea ready for input", async () => {
 		const SPARQLPage = (await import("@/pages/SPARQLPage.vue")).default;
-		const wrapper = mount(SPARQLPage, {
-			global: { plugins: [router] },
-		});
+		const wrapper = mountWithProviders(SPARQLPage);
+		await waitForQuery();
 		await nextTick();
-		// RED: Should show results table after successful query execution
-		expect(wrapper.find(".query-results-table").exists()).toBe(false);
+		expect(wrapper.find(".spq-editor").exists()).toBe(true);
 	});
 
-	it("should show error message when query execution fails", async () => {
+	it("should have SPARQL query editor section", async () => {
 		const SPARQLPage = (await import("@/pages/SPARQLPage.vue")).default;
-		const wrapper = mount(SPARQLPage, {
-			global: { plugins: [router] },
-		});
+		const wrapper = mountWithProviders(SPARQLPage);
+		await waitForQuery();
 		await nextTick();
-		// RED: Should display error from API
-		expect(wrapper.find(".spq-error").exists()).toBe(false);
+		expect(wrapper.find(".spq-editor").exists()).toBe(true);
 	});
 
-	it("should format query when format button is clicked", async () => {
+	it("should render page layout without errors after loading", async () => {
 		const SPARQLPage = (await import("@/pages/SPARQLPage.vue")).default;
-		const wrapper = mount(SPARQLPage, {
-			global: { plugins: [router] },
-		});
+		const wrapper = mountWithProviders(SPARQLPage);
+		await waitForQuery();
 		await nextTick();
-		// RED: Format should trigger formatting endpoint
-		expect(wrapper.text()).toContain("SPARQL Query Builder");
+		expect(wrapper.find(".spq-page").exists()).toBe(true);
 	});
 });

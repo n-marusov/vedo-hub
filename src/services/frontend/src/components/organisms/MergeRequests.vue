@@ -1,6 +1,6 @@
 <!-- @hlv:artifact code-frontend implements spec-gui-ow-001 -->
 <!-- @ctx: Organism/MergeRequests — collapsible section cards, no tabs -->
-<!-- Matches design/ui-kit.lib.pen orgMergeRequests (Organism/MergeRequests) -->
+<!-- @m2.5 — Wired: accepts mergeRequests as prop from MergeRequestsPage -->
 <template>
     <div class="merge-requests" role="region" aria-label="Merge requests">
         <MergeRequestCard
@@ -22,6 +22,7 @@
             :key="section.title"
             :title="section.title"
             :open="section.open"
+            :count="0"
             :empty-text="section.emptyText"
             @toggle="section.open = !section.open"
         />
@@ -29,8 +30,26 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from "vue";
+import { computed, reactive } from "vue";
 import MergeRequestCard from "./MergeRequestCard.vue";
+
+// @m2.5 — MR entry from LIST_MERGE_REQUESTS_QUERY
+interface MREntry {
+	id: string;
+	title: string;
+	description: string;
+	sourceBranch: string;
+	targetBranch: string;
+	authorName: string;
+	status: string;
+	mergeStatus: string;
+	createdAt: string;
+	commentCount: number;
+}
+
+const props = defineProps<{
+	mergeRequests: MREntry[];
+}>();
 
 interface MRSection {
 	title: string;
@@ -38,6 +57,14 @@ interface MRSection {
 	count?: number;
 	emptyText: string;
 }
+
+// @m2.5 — Compute section counts from API data
+const openCount = computed(
+	() => props.mergeRequests.filter((mr) => mr.status === "open").length,
+);
+const mergedCount = computed(
+	() => props.mergeRequests.filter((mr) => mr.status === "merged").length,
+);
 
 const sections: MRSection[] = reactive([
 	{
@@ -49,7 +76,7 @@ const sections: MRSection[] = reactive([
 	{
 		title: "Review requested",
 		open: true,
-		count: 2,
+		count: openCount,
 		emptyText: "No merge requests match this list.",
 	},
 	{

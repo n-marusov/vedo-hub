@@ -243,25 +243,25 @@ Block А uses queries that ALREADY EXIST (GET_COMMIT_HISTORY_QUERY, GET_BRANCHES
 
 **Error handling (all tasks):** Use `useErrorPresentation().addError()` for GraphQL errors.
 
-- [ ] **Task 3.1 (RED): Write vitest specs for Б1–Б4** *(depends on Task 1.3)*
+- [x] **Task 3.1 (RED): Write vitest specs for Б1–Б4** *(depends on Task 1.3)*
 
   **Files:** `ProjectsPage.spec.ts`, `GroupsPage.spec.ts`, `MembersPage.spec.ts`, `VersioningTabs.spec.ts`.
 
-- [ ] **Task 3.2 (GREEN Б1): Wire ProjectsPage** *(depends on Task 3.1)*
+- [x] **Task 3.2 (GREEN Б1): Wire ProjectsPage** *(depends on Task 3.1)*
 
   **Specs:** `specs/requirements/REQ-FUN.DATA.ontology-visibility-levels.md`.
   **Files:** `ProjectsPage.vue` (major rewrite).
 
-- [ ] **Task 3.3 (GREEN Б2): Wire GroupsPage** *(depends on Task 3.1)*
+- [x] **Task 3.3 (GREEN Б2): Wire GroupsPage** *(depends on Task 3.1)*
 
   **Files:** `GroupsPage.vue` (major rewrite).
 
-- [ ] **Task 3.4 (GREEN Б3): Wire MembersPage** *(depends on Task 3.1)*
+- [x] **Task 3.4 (GREEN Б3): Wire MembersPage** *(depends on Task 3.1)*
 
   **Specs:** `specs/use-cases/UC-admin.access.manage-membership-and-permissions.md`.
   **Files:** `MembersPage.vue`.
 
-- [ ] **Task 3.5 (GREEN Б4): Wire VersioningPage — Tags, Graph, Compare** *(depends on Task 3.1)*
+- [x] **Task 3.5 (GREEN Б4): Wire VersioningPage — Tags, Graph, Compare** *(depends on Task 3.1)*
 
   **Specs:** `specs/requirements/REQ-USR.UI.gui-implementation.md` § screens 12–14; `specs/c4/versioning-service-components.md`.
   **Files:** `VersioningPage.vue` (extend), `TagList.vue`, `RepositoryGraph.vue`, `DiffView.vue`.
@@ -278,29 +278,29 @@ Block В depends on mock Apollo link (Task 1.2).
 
 **Error handling (all tasks):** Use `useErrorPresentation().addError()`.
 
-- [ ] **Task 4.1 (RED): Write vitest specs for В1–В4** *(depends on Task 1.3)*
+- [x] **Task 4.1 (RED): Write vitest specs for В1–В4** *(depends on Task 1.3)*
 
   **Files:** `DashboardPage.spec.ts`, `MetricsPage.spec.ts`, `ValidationPage.spec.ts`, `DeploymentsPage.spec.ts`, `MergeRequestsPage.spec.ts`.
 
-- [ ] **Task 4.2 (GREEN В1): Wire DashboardPage** *(depends on Tasks 4.1, 1.2)*
+- [x] **Task 4.2 (GREEN В1): Wire DashboardPage** *(depends on Tasks 4.1, 1.2)*
 
   ⚠️ **DEPENDENCY FIX:** Now depends on Task 1.2 (mock link) — Dashboard uses `DASHBOARD_QUERY` served by mock Apollo link.
 
   **Specs:** `specs/requirements/REQ-USR.UI.gui-implementation.md` § screen 2; `specs/c4/commenting-service-components.md`.
   **Files:** `DashboardPage.vue` (major rewrite).
 
-- [ ] **Task 4.3 (GREEN В2): Wire MetricsPage** *(depends on Task 4.1)*
+- [x] **Task 4.3 (GREEN В2): Wire MetricsPage** *(depends on Task 4.1)*
 
   **Specs:** `specs/use-cases/UC-metrics.analytics.view-ontology-metrics.md`; `specs/c4/metrics-service-components.md`.
   **Files:** `MetricsPage.vue`.
 
-- [ ] **Task 4.4 (GREEN В3): Wire ValidationPage + SHACL mock backend** *(depends on Task 4.1)*
+- [x] **Task 4.4 (GREEN В3): Wire ValidationPage + SHACL mock backend** *(depends on Task 4.1)*
 
   **Specs:** `specs/use-cases/UC-editor.classes.validate-ontology-with-shacl.md`; `specs/requirements/REQ-USR.UI.validation-feedback.md`.
   Backend SHACL stub: `{ status: "ok", violations: [] }`.
   **Files:** `ValidationPage.vue`, `src/services/ontology-service/src/...` (mock endpoint).
 
-- [ ] **Task 4.5 (GREEN В4): Wire DeploymentsPage + MergeRequestsPage** *(depends on Task 4.1)*
+- [x] **Task 4.5 (GREEN В4): Wire DeploymentsPage + MergeRequestsPage** *(depends on Task 4.1)*
 
   **Specs:** `specs/use-cases/UC-io.publish.publish-ontology-snapshot.md`; `specs/adr/ADR-DES.PROCESS.merge-request-strategy.md`.
   **Files:** `DeploymentsPage.vue`, `Deployments.vue`, `MergeRequestsPage.vue`, `MergeRequests.vue`.
@@ -315,14 +315,14 @@ Block В depends on mock Apollo link (Task 1.2).
 
 **Governing spec:** `specs/adr/ADR-DES.UI.navigation-state-strategy.md` — Navigation State Store + URL/session persistence.
 
-- [ ] **Task 5.1 (RED): Write vitest spec for navigation + user display** *(depends on Task 1.3)*
+- [x] **Task 5.1 (RED): Write vitest spec for navigation + user display** *(depends on Task 1.3)*
 
   **File:** `Navigation.spec.ts`.
   Tests: user name from Keycloak, avatar/initials fallback, active route highlight in sidebar, dashboard row click → navigate to workspace, sidebar badge counts from API.
 
   > **BDD naming:** `'should <expected> when <condition>'`
 
-- [ ] **Task 5.2 (GREEN Г1): Wire App.vue — user avatar + name from Keycloak session** *(depends on Task 5.1)*
+- [x] **Task 5.2 (GREEN Г1): Wire App.vue — user avatar + name from Keycloak session** *(depends on Task 5.1)*
 
   ⚠️ **IMPROVED:** Target `App.vue` (line 39 — hardcoded `<User :size="16" />`), not orphan Header.vue.
 
@@ -336,13 +336,13 @@ Block В depends on mock Apollo link (Task 1.2).
   - `src/services/frontend/src/App.vue` (modify — avatar + name in header)
   - `src/services/frontend/src/pages/DashboardPage.vue` (modify — real user name/role in greeting)
 
-- [ ] **Task 5.3 (GREEN Г2): Wire Dashboard ontology links** *(depends on Task 5.1)*
+- [x] **Task 5.3 (GREEN Г2): Wire Dashboard ontology links** *(depends on Task 5.1)*
 
   **Specs:** `specs/requirements/REQ-USR.UI.graph-navigation.md`.
   Add `<router-link>` or `@click="router.push(...)"` on «Recent project» rows.
   **Files:** `DashboardPage.vue`.
 
-- [ ] **Task 5.4 (GREEN Г3): Wire App.vue sidebar badge counts** 🆕 *(depends on Task 5.1)*
+- [x] **Task 5.4 (GREEN Г3): Wire App.vue sidebar badge counts** 🆕 *(depends on Task 5.1)*
 
   ⚠️ **NEW — found by $aif-improve.** The sidebar in `App.vue` (lines 133–153) has hardcoded `badge: '0'` for Merge Requests, Commits, Comments, and Deployments. Replace with live counts from API.
 
@@ -359,7 +359,7 @@ Block В depends on mock Apollo link (Task 1.2).
   - `DEBUG [App.shell] nav counts loaded: mr=N, commits=N, comments=N, deployments=N`
   - `ERROR [App.shell] failed to load nav counts: <error>`
 
-- [ ] **Task 5.5 (GREEN Г4): Wire App.vue header action buttons** 🆕 *(depends on Task 5.1)*
+- [x] **Task 5.5 (GREEN Г4): Wire App.vue header action buttons** 🆕 *(depends on Task 5.1)*
 
   ⚠️ **NEW — found by $aif-improve.** The header in `App.vue` (lines 26–42) contains 5 interactive elements with NO `@click` handlers:
 
@@ -383,7 +383,7 @@ Block В depends on mock Apollo link (Task 1.2).
   - `DEBUG [App.shell] header action: create|mr|comments|help|search`
   - `DEBUG [App.shell] global search: q=<query>`
 
-- [ ] **Task 5.6 (GREEN Г5): Wire App.vue active route + sidebar collapsed state persistence** *(depends on Task 5.1)*
+- [x] **Task 5.6 (GREEN Г5): Wire App.vue active route + sidebar collapsed state persistence** *(depends on Task 5.1)*
 
   ⚠️ **IMPROVED — already partially implemented.** `App.vue` already has `isActive()` (line 155) and sidebar collapse persistence to localStorage (lines 171–181). This task verifies the existing implementation is correct and ensures ALL sidebar items have proper `matches` patterns for all M2.5 routes.
 
