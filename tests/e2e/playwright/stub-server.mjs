@@ -84,11 +84,13 @@ const MOCK_PROJECTS = {
   perPage: 50,
 };
 
-const MOCK_GROUPS_GQL = [
-  { id: 'grp-001', name: 'Engineering', description: 'Engineering team', parentGroupId: null, childGroups: [{ id: 'grp-002', name: 'Data Science' }], memberCount: 12, projectCount: 5 },
-  { id: 'grp-002', name: 'Data Science', description: 'Data science team', parentGroupId: 'grp-001', childGroups: [], memberCount: 8, projectCount: 3 },
-  { id: 'grp-003', name: 'Research', description: 'Research division', parentGroupId: null, childGroups: [], memberCount: 5, projectCount: 2 },
-];
+const MOCK_GROUPS_GQL = {
+  items: [
+    { id: 'grp-001', name: 'Engineering', description: 'Engineering team', parentGroupId: null, childGroups: [{ id: 'grp-002', name: 'Data Science' }], memberCount: 12, projectCount: 5 },
+    { id: 'grp-002', name: 'Data Science', description: 'Data science team', parentGroupId: 'grp-001', childGroups: [], memberCount: 8, projectCount: 3 },
+    { id: 'grp-003', name: 'Research', description: 'Research division', parentGroupId: null, childGroups: [], memberCount: 5, projectCount: 2 },
+  ],
+};
 
 const MOCK_MEMBERS_GQL = [
   { id: 'user-456', userId: 'user-456', username: 'owner_seed', avatarUrl: '', role: 'owner', addedAt: '2026-01-15T10:00:00Z' },
@@ -178,11 +180,11 @@ function sendJson(res, statusCode, data) {
 function checkAuth(req) {
   const authHeader = req.headers['authorization'];
 
+  // Explicitly empty auth → 401 (MUST check BEFORE !authHeader since '' is falsy)
+  if (authHeader === '') return 401;
+
   // No auth header set → allow (normal tests without specific auth requirement)
   if (!authHeader) return null;
-
-  // Explicitly empty auth → 401
-  if (authHeader === '') return 401;
 
   // Expired token → 401
   if (authHeader === 'Bearer expired.jwt.token') return 401;

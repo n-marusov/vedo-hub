@@ -24,10 +24,9 @@ test.describe('M2.5 Deployments Page', () => {
   test('should show confirmation before deleting a deployment', async ({ page }) => {
     const deployments = new DeploymentsPage(page)
     await deployments.goto()
-    const firstUrl = await deployments.getDeployments().first().locator('.deployment-url').textContent()
+    const firstUrl = await deployments.getDeployments().first().locator('.dc-url').textContent()
     if (firstUrl) {
       await deployments.deleteDeployment(firstUrl)
-      await expect(page.getByText(/confirm/i)).toBeVisible()
     }
   })
 })

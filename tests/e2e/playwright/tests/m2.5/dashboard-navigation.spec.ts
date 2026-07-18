@@ -9,7 +9,7 @@ test.describe('M2.5 Dashboard Navigation', () => {
     const dashboard = new DashboardPage(page)
     await dashboard.goto()
     const firstOntology = dashboard.getRecentOntologies().first()
-    const name = await firstOntology.locator('.ontology-name').textContent()
+    const name = await firstOntology.locator('.onto-name').textContent()
     if (name) {
       await dashboard.clickOntology(name)
       await expect(page).toHaveURL(/\/ontology\//)

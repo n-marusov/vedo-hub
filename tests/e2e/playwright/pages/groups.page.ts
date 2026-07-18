@@ -23,7 +23,7 @@ export class GroupsPage {
   }
 
   async search(query: string) {
-    await this.page.getByPlaceholder(/search/i).fill(query);
+    await this.page.locator('.gp-search-input').fill(query);
     await this.page.keyboard.press('Enter');
   }
 }

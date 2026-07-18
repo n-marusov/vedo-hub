@@ -15,7 +15,7 @@ export class ProjectsPage {
   }
 
   async search(query: string) {
-    await this.page.getByPlaceholder(/search/i).fill(query);
+    await this.page.locator('.pp-search-input').fill(query);
     await this.page.keyboard.press('Enter');
   }
 

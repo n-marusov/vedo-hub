@@ -15,12 +15,12 @@ test.describe('M2.5 Metrics Page', () => {
   test('should render trend chart when metrics data is available', async ({ page }) => {
     const metrics = new MetricsPage(page)
     await metrics.goto('ont-123')
-    await expect(page.locator('.trend-chart, .metrics-chart')).toBeVisible()
+    await expect(page.locator('.metrics-chart')).toBeVisible()
   })
 
   test('should show loading skeleton while data is being fetched', async ({ page }) => {
     const metrics = new MetricsPage(page)
     await metrics.goto('ont-123')
-    await expect(page.locator('.skeleton, .loading-skeleton')).toBeVisible({ timeout: 2000 })
+    await expect(page.locator('.kpi-card.skeleton')).toBeVisible({ timeout: 2000 })
   })
 })

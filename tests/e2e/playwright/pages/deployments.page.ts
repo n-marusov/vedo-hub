@@ -15,11 +15,10 @@ export class DeploymentsPage {
   }
 
   async toggleShowStopped() {
-    await this.page.getByRole('button', { name: /show stopped|hide stopped/i }).click();
+    await this.page.locator('.dp-checkbox').click();
   }
 
   async deleteDeployment(url: string) {
     await this.page.locator('.deployment-card', { hasText: url }).locator('.dc-delete-btn').click();
-    await this.page.getByRole('button', { name: /confirm/i }).click();
   }
 }

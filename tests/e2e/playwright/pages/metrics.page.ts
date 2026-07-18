@@ -8,7 +8,7 @@ export class MetricsPage {
 
   async goto(ontologyId?: string) {
     const id = ontologyId || 'test';
-    await this.page.goto(`/ontology/${id}/metrics`);
+    await this.page.goto(`/metrics?ontologyId=${id}`);
   }
 
   getKpiCounters() {

@@ -17,8 +17,8 @@ export class MembersPage {
 
   async editRole(member: string, role: string) {
     await this.page.locator('.table-row', { hasText: member }).getByRole('button', { name: /edit/i }).click();
-    // After clicking edit, select the role in the dialog/select that appears
-    await this.page.locator('.table-row', { hasText: member }).locator('.role-pill').click();
+    // After clicking edit, select the role in the select that appears
+    await this.page.locator('.table-row', { hasText: member }).locator('.role-select').selectOption(role);
   }
 
   async removeMember(member: string) {

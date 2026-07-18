@@ -15,22 +15,23 @@ test.describe('M2.5 Members Page', () => {
   test('should change member role when role select is changed', async ({ page }) => {
     const members = new MembersPage(page)
     await members.goto('ont-123')
-    await members.editRole('alice', 'editor')
+    await members.editRole('editor_seed', 'editor')
     await expect(page.getByText(/role updated/i)).toBeVisible()
   })
 
   test('should show confirmation dialog before removing a member', async ({ page }) => {
     const members = new MembersPage(page)
     await members.goto('ont-123')
-    await members.removeMember('bob')
+    await members.removeMember('viewer_seed')
     await expect(page.getByText(/confirm/i)).toBeVisible()
   })
 
   test('should prevent removing the last owner', async ({ page }) => {
     const members = new MembersPage(page)
     await members.goto('ont-123')
-    const lastOwner = page.locator('.table-row').filter({ hasText: 'owner' }).last()
-    await lastOwner.getByRole('button', { name: /remove/i }).click()
-    await expect(page.getByText(/cannot remove last owner/i)).toBeVisible()
+    const lastOwner = page.locator('.table-row').filter({ hasText: 'owner_seed' }).last()
+    const removeBtn = lastOwner.getByRole('button', { name: /remove/i })
+    await expect(removeBtn).toBeDisabled()
+    await expect(removeBtn).toHaveAttribute('title', /cannot remove last owner/i)
   })
 })

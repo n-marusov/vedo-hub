@@ -15,7 +15,7 @@ test.describe('M2.5 Groups Page', () => {
   test('should expand group to reveal children when expand is clicked', async ({ page }) => {
     const groups = new GroupsPage(page)
     await groups.goto()
-    await groups.expandGroup('Test')
+    await groups.expandGroup('Engineering')
     const children = page.locator('.group-child-row')
     await expect(children.first()).toBeVisible()
   })
@@ -23,8 +23,8 @@ test.describe('M2.5 Groups Page', () => {
   test('should collapse group and hide children when collapse is clicked', async ({ page }) => {
     const groups = new GroupsPage(page)
     await groups.goto()
-    await groups.expandGroup('Test')
-    await groups.collapseGroup('Test')
+    await groups.expandGroup('Engineering')
+    await groups.collapseGroup('Engineering')
     const children = page.locator('.group-child-row')
     await expect(children).toHaveCount(0)
   })
@@ -32,7 +32,7 @@ test.describe('M2.5 Groups Page', () => {
   test('should filter groups when search query is entered', async ({ page }) => {
     const groups = new GroupsPage(page)
     await groups.goto()
-    await groups.search('Test')
+    await groups.search('Engineering')
     const items = groups.getGroups()
     await expect(items.first()).toBeVisible()
   })
