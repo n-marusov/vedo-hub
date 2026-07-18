@@ -914,14 +914,116 @@ base:nfr/observability-otel vdo:satisfies base:obs/prometheus, base:obs/loki, ba
 # =============================================================================
 
 base:design/frontend a vdo:DesignArtifact ;
-    rdfs:label "Frontend Design"@en ;
-    rdfs:comment "Main frontend UI design in Pencil format"@en ;
-    vdo:filePath "design/frontend.pen" .
+    rdfs:label "Frontend Design — Pages"@en ;
+    rdfs:comment "Frontend UI page designs in Pencil format (design/pages/ directory)"@en ;
+    vdo:filePath "design/pages/" .
 
 base:design/ui-kit a vdo:DesignArtifact ;
     rdfs:label "UI Component Library"@en ;
-    rdfs:comment "UI kit component library in Pencil format"@en ;
+    rdfs:comment "UI kit component library in Pencil format — organisms, molecules, atoms, tokens"@en ;
     vdo:filePath "design/ui-kit.lib.pen" .
+
+# --- Design Pages ---
+
+base:design/page/login a vdo:DesignArtifact ;
+    rdfs:label "Login Page Design"@en ;
+    rdfs:comment "Login page — centered card, logo, OAuth provider buttons"@en ;
+    vdo:filePath "design/pages/login.pen" .
+
+base:design/page/dashboard a vdo:DesignArtifact ;
+    rdfs:label "Dashboard Page Design"@en ;
+    rdfs:comment "Dashboard page — greeting card, collaboration widgets, activity feed, recent ontologies"@en ;
+    vdo:filePath "design/pages/dashboard.pen" .
+
+base:design/page/ontology-workspace a vdo:DesignArtifact ;
+    rdfs:label "Ontology Workspace Page Design"@en ;
+    rdfs:comment "Ontology workspace — ClassTree split with GraphVisualization and PropertyPanel, AI import panel, toolbar"@en ;
+    vdo:filePath "design/pages/ontology-workspace.pen" .
+
+base:design/page/sparql-editor a vdo:DesignArtifact ;
+    rdfs:label "SPARQL Query Builder Page Design"@en ;
+    rdfs:comment "SPARQL editor page — query editor, run/format/export actions, results table"@en ;
+    vdo:filePath "design/pages/sparql-editor.pen" .
+
+base:design/page/metrics-dashboard a vdo:DesignArtifact ;
+    rdfs:label "Metrics Dashboard Page Design"@en ;
+    rdfs:comment "Metrics dashboard — KPI counters (classes, properties, individuals), trend charts"@en ;
+    vdo:filePath "design/pages/metrics-dashboard.pen" .
+
+base:design/page/public-ontology a vdo:DesignArtifact ;
+    rdfs:label "Public Ontology Page Design"@en ;
+    rdfs:comment "Public ontology read-only view — class tree, property panel, graph, read-only header"@en ;
+    vdo:filePath "design/pages/public-ontology.pen" .
+
+base:design/page/groups a vdo:DesignArtifact ;
+    rdfs:label "Groups Page Design"@en ;
+    rdfs:comment "Groups page — hierarchy, search, sort, new group action"@en ;
+    vdo:filePath "design/pages/groups.pen" .
+
+base:design/page/members a vdo:DesignArtifact ;
+    rdfs:label "Members Page Design"@en ;
+    rdfs:comment "Members panel — member list with roles, search, edit/remove actions"@en ;
+    vdo:filePath "design/pages/members.pen" .
+
+base:design/page/validation-report a vdo:DesignArtifact ;
+    rdfs:label "Validation Report Page Design"@en ;
+    rdfs:comment "Validation report — run validation button, SHACL violations list, severity filtering"@en ;
+    vdo:filePath "design/pages/validation-report.pen" .
+
+base:design/page/commits a vdo:DesignArtifact ;
+    rdfs:label "Commits Page Design"@en ;
+    rdfs:comment "Commits page — commit history list with branch filter, author filter, search"@en ;
+    vdo:filePath "design/pages/commits.pen" .
+
+base:design/page/recent-commits a vdo:DesignArtifact ;
+    rdfs:label "Recent Commits Page Design"@en ;
+    rdfs:comment "Recent commits page — latest commits across branches, compact view"@en ;
+    vdo:filePath "design/pages/recent-commits.pen" .
+
+base:design/page/branches a vdo:DesignArtifact ;
+    rdfs:label "Branches Page Design"@en ;
+    rdfs:comment "Branches page — branch list with active/default indicators, new branch action"@en ;
+    vdo:filePath "design/pages/branches.pen" .
+
+base:design/page/compare-revisions a vdo:DesignArtifact ;
+    rdfs:label "Compare Revisions Page Design"@en ;
+    rdfs:comment "Compare revisions page — side-by-side diff view with revision selectors"@en ;
+    vdo:filePath "design/pages/compare-revisions.pen" .
+
+base:design/page/tags a vdo:DesignArtifact ;
+    rdfs:label "Tags Page Design"@en ;
+    rdfs:comment "Tags page — tag list with commit references, new tag action"@en ;
+    vdo:filePath "design/pages/tags.pen" .
+
+base:design/page/repository-graph a vdo:DesignArtifact ;
+    rdfs:label "Repository Graph Page Design"@en ;
+    rdfs:comment "Repository graph page — interactive branch/commit DAG visualization"@en ;
+    vdo:filePath "design/pages/repository-graph.pen" .
+
+base:design/page/merge-requests a vdo:DesignArtifact ;
+    rdfs:label "Merge Requests Page Design"@en ;
+    rdfs:comment "Merge requests page — MR list with status tabs (open/merged/closed), project filter"@en ;
+    vdo:filePath "design/pages/merge-requests.pen" .
+
+base:design/page/projects a vdo:DesignArtifact ;
+    rdfs:label "Projects Page Design"@en ;
+    rdfs:comment "Projects page — project list with search, sort, new project action"@en ;
+    vdo:filePath "design/pages/projects.pen" .
+
+base:design/page/deployments a vdo:DesignArtifact ;
+    rdfs:label "Deployments Page Design"@en ;
+    rdfs:comment "Deployments page — deployment cards with status, toggle show/hide stopped"@en ;
+    vdo:filePath "design/pages/deployments.pen" .
+
+base:design/page/comments a vdo:DesignArtifact ;
+    rdfs:label "Comments Page Design"@en ;
+    rdfs:comment "Comments page — threaded comments feed, new comment input"@en ;
+    vdo:filePath "design/pages/comments.pen" .
+
+base:design/page/dialogs a vdo:DesignArtifact ;
+    rdfs:label "Dialogs Design"@en ;
+    rdfs:comment "Dialog designs — Create Class, Create Property, Create Individual, Annotation, Import, MFA Challenge, Publish Snapshot, Apply Import, Conflict Resolver"@en ;
+    vdo:filePath "design/pages/dialogs.pen" .
 
 # =============================================================================
 # INSTANCES — Documentation
@@ -967,7 +1069,7 @@ base:spec/cli-ticket-ops-001 vdo:affectedBy base:cli/close-ticket, base:cli/comm
 # Changing security boundary affects:
 base:security/auth-boundary vdo:affectedBy base:service/api-gateway, base:service/auth-service, base:service/frontend, base:cli/vedo-cli .
 
-# Changing frontend design affects:
+# Changing frontend design affects (see DESIGN → GUI TRACEABILITY LINKS at end of file for detailed page-level traces):
 base:design/frontend vdo:affectedBy base:service/frontend .
 
 # Changing deployment affects:
@@ -1253,3 +1355,164 @@ base:m2.5/vitest-setup a vdo:CodeArtifact ;
     rdfs:label "M2.5 Vitest Global Setup"@en ;
     rdfs:comment "Global vitest setup: auto-provides Apollo client with mock resolvers to all component tests"@en ;
     vdo:filePath "src/services/frontend/vitest.setup.ts" .
+
+# =============================================================================
+# INSTANCES — GUI Page Artifacts (design→GUI traceability)
+# =============================================================================
+
+base:gui/page/login a vdo:CodeArtifact ;
+    rdfs:label "Login Page"@en ;
+    rdfs:comment "Login page — centered card, logo, 5 OAuth provider buttons"@en ;
+    vdo:filePath "src/services/frontend/src/pages/LoginPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/dashboard a vdo:CodeArtifact ;
+    rdfs:label "Dashboard Page"@en ;
+    rdfs:comment "Dashboard page — greeting, collaboration widgets, activity feed, recent ontologies"@en ;
+    vdo:filePath "src/services/frontend/src/pages/DashboardPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/ontology-workspace a vdo:CodeArtifact ;
+    rdfs:label "Ontology Workspace Page"@en ;
+    rdfs:comment "Ontology workspace — ClassTree, GraphVisualization, PropertyPanel, AI import panel, toolbar"@en ;
+    vdo:filePath "src/services/frontend/src/pages/OntologyWorkspace.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/sparql a vdo:CodeArtifact ;
+    rdfs:label "SPARQL Query Builder Page"@en ;
+    rdfs:comment "SPARQL editor page — SPARQLQueryEditor organism, run/format/export, results table"@en ;
+    vdo:filePath "src/services/frontend/src/pages/SPARQLPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/metrics a vdo:CodeArtifact ;
+    rdfs:label "Metrics Dashboard Page"@en ;
+    rdfs:comment "Metrics dashboard — KPI counters, trend charts via MetricsDashboard organism"@en ;
+    vdo:filePath "src/services/frontend/src/pages/MetricsPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/public-ontology a vdo:CodeArtifact ;
+    rdfs:label "Public Ontology Page"@en ;
+    rdfs:comment "Public ontology read-only view — class tree, property panel, graph"@en ;
+    vdo:filePath "src/services/frontend/src/pages/PublicOntologyPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/groups a vdo:CodeArtifact ;
+    rdfs:label "Groups Page"@en ;
+    rdfs:comment "Groups page — hierarchy, search, sort, new group action"@en ;
+    vdo:filePath "src/services/frontend/src/pages/GroupsPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/members a vdo:CodeArtifact ;
+    rdfs:label "Members Page"@en ;
+    rdfs:comment "Members panel page — member list with roles, search, edit/remove actions"@en ;
+    vdo:filePath "src/services/frontend/src/pages/MembersPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/validation a vdo:CodeArtifact ;
+    rdfs:label "Validation Report Page"@en ;
+    rdfs:comment "Validation report page — run validation button, SHACL violations list"@en ;
+    vdo:filePath "src/services/frontend/src/pages/ValidationPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/commits a vdo:CodeArtifact ;
+    rdfs:label "Commits Page"@en ;
+    rdfs:comment "Commits page — stub placeholder (full implementation pending)"@en ;
+    vdo:filePath "src/services/frontend/src/pages/CommitsPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/recent-commits a vdo:CodeArtifact ;
+    rdfs:label "Recent Commits Page"@en ;
+    rdfs:comment "Recent commits page — RecentCommits organism, breadcrumbs"@en ;
+    vdo:filePath "src/services/frontend/src/pages/RecentCommitsPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/versioning a vdo:CodeArtifact ;
+    rdfs:label "Versioning Page"@en ;
+    rdfs:comment "Unified versioning page — tabbed views for commits, branches, compare, tags, repository graph"@en ;
+    vdo:filePath "src/services/frontend/src/pages/VersioningPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/merge-requests a vdo:CodeArtifact ;
+    rdfs:label "Merge Requests Page"@en ;
+    rdfs:comment "Merge requests page — MR list with status tabs, project filter, MergeRequests organism"@en ;
+    vdo:filePath "src/services/frontend/src/pages/MergeRequestsPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/projects a vdo:CodeArtifact ;
+    rdfs:label "Projects Page"@en ;
+    rdfs:comment "Projects page — project list with search, sort, new project action"@en ;
+    vdo:filePath "src/services/frontend/src/pages/ProjectsPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/deployments a vdo:CodeArtifact ;
+    rdfs:label "Deployments Page"@en ;
+    rdfs:comment "Deployments page — deployment cards with status, toggle stopped"@en ;
+    vdo:filePath "src/services/frontend/src/pages/DeploymentsPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/comments a vdo:CodeArtifact ;
+    rdfs:label "Comments Page"@en ;
+    rdfs:comment "Comments page — Comments organism, new comment input"@en ;
+    vdo:filePath "src/services/frontend/src/pages/CommentsPage.vue" ;
+    vdo:language "Vue" .
+
+# --- GUI Dialog Components ---
+
+base:gui/component/document-uploader a vdo:CodeArtifact ;
+    rdfs:label "Document Uploader Component"@en ;
+    rdfs:comment "Import dialog — document file upload for AI-assisted ontology extraction"@en ;
+    vdo:filePath "src/services/frontend/src/components/ontology/DocumentUploader.vue" ;
+    vdo:language "Vue" .
+
+base:gui/component/batch-uploader a vdo:CodeArtifact ;
+    rdfs:label "Batch Uploader Component"@en ;
+    rdfs:comment "Import dialog — batch document upload for AI-assisted ontology extraction"@en ;
+    vdo:filePath "src/services/frontend/src/components/ontology/BatchUploader.vue" ;
+    vdo:language "Vue" .
+
+base:gui/component/apply-progress-modal a vdo:CodeArtifact ;
+    rdfs:label "Apply Progress Modal"@en ;
+    rdfs:comment "Apply Import dialog — progress modal with 4 states: idle, processing, success, error"@en ;
+    vdo:filePath "src/services/frontend/src/components/ontology/ApplyProgressModal.vue" ;
+    vdo:language "Vue" .
+
+base:gui/component/sequence-preview a vdo:CodeArtifact ;
+    rdfs:label "Sequence Preview Component"@en ;
+    rdfs:comment "Apply Import dialog — preview of extracted ontology changes before apply"@en ;
+    vdo:filePath "src/services/frontend/src/components/ontology/SequencePreview.vue" ;
+    vdo:language "Vue" .
+
+base:gui/component/conflict-resolver a vdo:CodeArtifact ;
+    rdfs:label "Conflict Resolver Component"@en ;
+    rdfs:comment "Conflict Resolver dialog — resolve merge/rebase conflicts in ontology changes"@en ;
+    vdo:filePath "src/services/frontend/src/components/ontology/ConflictResolver.vue" ;
+    vdo:language "Vue" .
+
+# =============================================================================
+# DESIGN → GUI TRACEABILITY LINKS
+# =============================================================================
+# Each GUI page/component implements its corresponding design artifact.
+
+base:gui/page/login vdo:implements base:design/page/login .
+base:gui/page/dashboard vdo:implements base:design/page/dashboard .
+base:gui/page/ontology-workspace vdo:implements base:design/page/ontology-workspace .
+base:gui/page/sparql vdo:implements base:design/page/sparql-editor .
+base:gui/page/metrics vdo:implements base:design/page/metrics-dashboard .
+base:gui/page/public-ontology vdo:implements base:design/page/public-ontology .
+base:gui/page/groups vdo:implements base:design/page/groups .
+base:gui/page/members vdo:implements base:design/page/members .
+base:gui/page/validation vdo:implements base:design/page/validation-report .
+base:gui/page/commits vdo:implements base:design/page/commits .
+base:gui/page/recent-commits vdo:implements base:design/page/recent-commits .
+base:gui/page/versioning vdo:implements base:design/page/branches, base:design/page/compare-revisions, base:design/page/tags, base:design/page/repository-graph .
+base:gui/page/merge-requests vdo:implements base:design/page/merge-requests .
+base:gui/page/projects vdo:implements base:design/page/projects .
+base:gui/page/deployments vdo:implements base:design/page/deployments .
+base:gui/page/comments vdo:implements base:design/page/comments .
+
+# Dialog traceability: design/dialogs.pen → GUI dialog components
+base:gui/component/document-uploader vdo:implements base:design/page/dialogs .
+base:gui/component/batch-uploader vdo:implements base:design/page/dialogs .
+base:gui/component/apply-progress-modal vdo:implements base:design/page/dialogs .
+base:gui/component/sequence-preview vdo:implements base:design/page/dialogs .
+base:gui/component/conflict-resolver vdo:implements base:design/page/dialogs .
