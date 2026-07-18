@@ -10,7 +10,7 @@ export class MergeRequestsPage {
     await this.page.goto('/dashboard/merge_requests');
   }
 
-  async getSections() {
+  getSections() {
     return this.page.locator('.merge-request-section');
   }
 

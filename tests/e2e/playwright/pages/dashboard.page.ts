@@ -10,19 +10,19 @@ export class DashboardPage {
     await this.page.goto('/dashboard/home');
   }
 
-  async getWidgets() {
+  getWidgets() {
     return this.page.locator('.dashboard-widget');
   }
 
-  async getAttentionItems() {
+  getAttentionItems() {
     return this.page.locator('.attention-item');
   }
 
-  async getActivityFeed() {
+  getActivityFeed() {
     return this.page.locator('.activity-feed');
   }
 
-  async getRecentOntologies() {
+  getRecentOntologies() {
     return this.page.locator('.recent-ontology-row');
   }
 

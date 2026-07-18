@@ -10,7 +10,7 @@ export class GroupsPage {
     await this.page.goto('/dashboard/groups');
   }
 
-  async getGroups() {
+  getGroups() {
     return this.page.locator('.group-row');
   }
 

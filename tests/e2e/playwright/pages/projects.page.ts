@@ -10,7 +10,7 @@ export class ProjectsPage {
     await this.page.goto('/dashboard/projects');
   }
 
-  async getProjects() {
+  getProjects() {
     return this.page.locator('.project-row');
   }
 

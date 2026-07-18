@@ -65,108 +65,261 @@
 </template>
 
 <script setup lang="ts">
-import BranchList from '@/components/organisms/BranchList.vue'
-import CommitHistory from '@/components/organisms/CommitHistory.vue'
-import DiffView from '@/components/organisms/DiffView.vue'
-import RepositoryGraph from '@/components/organisms/RepositoryGraph.vue'
-import TagList from '@/components/organisms/TagList.vue'
-import { GitBranch, Search, User } from 'lucide-vue-next'
-import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import {
+	COMPARE_REVISIONS_QUERY,
+	GET_BRANCHES_QUERY,
+	GET_COMMIT_HISTORY_QUERY,
+	GET_TAGS_QUERY,
+	GRAPH_NEIGHBORHOOD_QUERY,
+} from "@/apollo/queries";
+import BranchList from "@/components/organisms/BranchList.vue";
+import CommitHistory from "@/components/organisms/CommitHistory.vue";
+import DiffView from "@/components/organisms/DiffView.vue";
+import RepositoryGraph from "@/components/organisms/RepositoryGraph.vue";
+import TagList from "@/components/organisms/TagList.vue";
+import { useQuery } from "@vue/apollo-composable";
+import { GitBranch, Search, User } from "lucide-vue-next";
+import { computed, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
-const view = computed(() => String(route.params.view || 'commits'))
+const view = computed(() => String(route.params.view || "commits"));
+const ontologyId = computed(() => String(route.params.id));
 
 const tabs = [
-  { id: 'commits', label: 'Commits' },
-  { id: 'branches', label: 'Branches' },
-  { id: 'compare', label: 'Compare Revisions' },
-  { id: 'tags', label: 'Tags' },
-  { id: 'graph', label: 'Repository Graph' },
-  { id: 'merge_requests', label: 'Merge Requests' }
-]
+	{ id: "commits", label: "Commits" },
+	{ id: "branches", label: "Branches" },
+	{ id: "compare", label: "Compare Revisions" },
+	{ id: "tags", label: "Tags" },
+	{ id: "graph", label: "Repository Graph" },
+	{ id: "merge_requests", label: "Merge Requests" },
+];
 
 const titles: Record<string, string> = {
-  commits: 'Commit History',
-  branches: 'Branches',
-  compare: 'Compare Revisions',
-  tags: 'Tags',
-  graph: 'Repository Graph',
-  merge_requests: 'Merge Requests'
+	commits: "Commit History",
+	branches: "Branches",
+	compare: "Compare Revisions",
+	tags: "Tags",
+	graph: "Repository Graph",
+	merge_requests: "Merge Requests",
+};
+
+// ── Apollo Queries ──────────────────────────────────────────────────────────────────
+
+const {
+	result: commitResult,
+	loading: commitsLoading,
+	error: commitsError,
+	refetch: refetchCommits,
+} = useQuery(
+	GET_COMMIT_HISTORY_QUERY,
+	() => ({
+		ontologyId: ontologyId.value,
+		page: 1,
+		perPage: 50,
+	}),
+	{ fetchPolicy: "cache-and-network" },
+);
+
+const {
+	result: branchesResult,
+	loading: branchesLoading,
+	error: branchesError,
+	refetch: refetchBranches,
+} = useQuery(
+	GET_BRANCHES_QUERY,
+	() => ({
+		ontologyId: ontologyId.value,
+	}),
+	{ fetchPolicy: "cache-and-network" },
+);
+
+const {
+	result: tagsResult,
+	loading: tagsLoading,
+	error: tagsError,
+	refetch: refetchTags,
+} = useQuery(
+	GET_TAGS_QUERY,
+	() => ({
+		ontologyId: ontologyId.value,
+	}),
+	{ fetchPolicy: "cache-and-network" },
+);
+
+const {
+	result: _compareResult,
+	loading: compareLoading,
+	error: compareError,
+	refetch: refetchCompare,
+} = useQuery(
+	COMPARE_REVISIONS_QUERY,
+	() => ({
+		ontologyId: ontologyId.value,
+		fromRevision: "",
+		toRevision: "",
+	}),
+	{
+		fetchPolicy: "cache-and-network",
+		enabled: computed(() => view.value === "compare"),
+	},
+);
+
+const {
+	result: graphResult,
+	loading: graphLoading,
+	error: graphError,
+	refetch: refetchGraph,
+} = useQuery(
+	GRAPH_NEIGHBORHOOD_QUERY,
+	() => ({
+		ontologyId: ontologyId.value,
+		classId: "",
+		depth: 2,
+	}),
+	{
+		fetchPolicy: "cache-and-network",
+		enabled: computed(() => view.value === "graph"),
+	},
+);
+
+// ── Computed Data ───────────────────────────────────────────────────────────────────
+
+const commits = computed(() => {
+	const items = commitResult.value?.commits?.items;
+	if (!items) return [];
+	return items.map((c: Record<string, unknown>) => ({
+		author: c.authorName,
+		message: c.message,
+		sha: c.id,
+		date: c.createdAt,
+		branch: c.branchId,
+	}));
+});
+
+const branches = computed(() => {
+	const items = branchesResult.value?.branches?.items;
+	if (!items) return [];
+	return items.map((b: Record<string, unknown>) => ({
+		name: b.name,
+		status: b.isProtected ? "active" : "default",
+		lastCommit: b.headCommitId,
+	}));
+});
+
+const tags = computed(() => {
+	const items = tagsResult.value?.tags;
+	if (!items) return [];
+	return items.map((t: Record<string, unknown>) => ({
+		name: t.name,
+		commit: t.commitId,
+		description: t.message,
+		updated: t.createdAt,
+	}));
+});
+
+const currentBranch = computed(() => {
+	if (branchesResult.value?.branches?.items?.length) {
+		const active = branchesResult.value.branches.items.find(
+			(b: Record<string, unknown>) => b.isProtected,
+		);
+		return (active?.name as string) || "main";
+	}
+	return "main";
+});
+
+// Compare view uses static format for now (Task 3.5 extends with real data)
+const changes = [
+	{
+		path: "ontology/ProductOntology.ttl",
+		type: "modified" as const,
+		diff: '@@ Product rdfs:label "Product" @@',
+	},
+];
+const commitOptions = [
+	{
+		value: "15c3035",
+		label: "15c3035 - feat: add Product class and relations",
+	},
+	{ value: "4c6c1c2", label: "4c6c1c2 - fix: align validation constraints" },
+];
+
+const graphNodes = computed(() => {
+	const data = graphResult.value?.graphNeighborhood;
+	if (!data?.nodes) return [];
+	return data.nodes.map((n: Record<string, unknown>, i: number) => ({
+		sha: n.id,
+		message: n.label,
+		type: "commit" as const,
+		x: 120 + i * 80,
+		y: 100 + i * 40,
+	}));
+});
+
+// ── Combined Loading / Error ────────────────────────────────────────────────────────
+
+const loading = computed(() => {
+	if (view.value === "commits") return commitsLoading.value;
+	if (view.value === "branches") return branchesLoading.value;
+	if (view.value === "tags") return tagsLoading.value;
+	if (view.value === "compare") return compareLoading.value;
+	if (view.value === "graph") return graphLoading.value;
+	return false;
+});
+
+const error = computed(() => {
+	if (view.value === "commits") return commitsError.value;
+	if (view.value === "branches") return branchesError.value;
+	if (view.value === "tags") return tagsError.value;
+	if (view.value === "compare") return compareError.value;
+	if (view.value === "graph") return graphError.value;
+	return null;
+});
+
+function refetchAll(): void {
+	refetchCommits();
+	refetchBranches();
+	refetchTags();
+	refetchCompare();
+	refetchGraph();
 }
 
-const commits = [
-  {
-    author: 'Nikolay Marusov',
-    message: 'feat: add Product class and relations',
-    sha: '15c3035cf9e3a2a',
-    date: '2026-05-24T10:30:00Z',
-    branch: 'main'
-  },
-  {
-    author: 'Anna Petrova',
-    message: 'fix: align validation constraints',
-    sha: '4c6c1c25d231b1d',
-    date: '2026-05-23T12:10:00Z',
-    branch: 'develop'
-  }
-]
-
-const branches = [
-  { name: 'main', status: 'active', lastCommit: '15c3035' },
-  { name: 'develop', status: 'active', lastCommit: '4c6c1c2' },
-  { name: 'feature/new-property', status: 'stale', lastCommit: 'bd0ab22' }
-]
-
-const changes = [
-  {
-    path: 'ontology/ProductOntology.ttl',
-    type: 'modified' as const,
-    diff: '@@ Product rdfs:label "Product" @@'
-  }
-]
-const commitOptions = [
-  { value: '15c3035', label: '15c3035 - feat: add Product class and relations' },
-  { value: '4c6c1c2', label: '4c6c1c2 - fix: align validation constraints' }
-]
-
-const tags = [
-  {
-    name: 'v1.2.0',
-    commit: '15c3035',
-    description: 'May release',
-    updated: '2026-05-24T10:30:00Z'
-  },
-  {
-    name: 'v1.1.0',
-    commit: '4c6c1c2',
-    description: 'Validation fixes',
-    updated: '2026-05-12T09:00:00Z'
-  }
-]
-
-const graphNodes = [
-  {
-    sha: '15c3035',
-    message: 'feat: add Product class and relations',
-    type: 'commit' as const,
-    x: 120,
-    y: 100
-  },
-  {
-    sha: '4c6c1c2',
-    message: 'fix: align validation constraints',
-    type: 'commit' as const,
-    x: 240,
-    y: 180
-  }
-]
+// ── Navigation ───────────────────────────────────────────────────────────────────────
 
 function go(next: string): void {
-  router.replace({ name: 'ontology-versioning', params: { id: route.params.id, view: next } })
+	router.replace({
+		name: "ontology-versioning",
+		params: { id: route.params.id, view: next },
+	});
 }
+
+// ── Logging ──────────────────────────────────────────────────────────────────────────
+
+watch(commits, (val) => {
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "versioning.commits.loaded",
+			count: val.length,
+			ts: new Date().toISOString(),
+		}),
+	);
+});
+
+watch(error, (err) => {
+	if (err) {
+		console.error(
+			JSON.stringify({
+				level: "error",
+				msg: "versioning.query.error",
+				error: String(err),
+				ts: new Date().toISOString(),
+			}),
+		);
+	}
+});
 </script>
 
 <style scoped>

@@ -2,7 +2,7 @@
 // Re-exports from test-utils for plan-specified import path
 
 import { type VueWrapper, mount } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
+import { describe } from "vitest";
 import type { ComponentPublicInstance } from "vue";
 import { createRouter, createWebHistory } from "vue-router";
 

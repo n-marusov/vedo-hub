@@ -216,19 +216,19 @@ Block А uses queries that ALREADY EXIST (GET_COMMIT_HISTORY_QUERY, GET_BRANCHES
 
   **Files:** `VersioningPage.spec.ts`, `OntologyWorkspaceSave.spec.ts`, `SPARQLPage.spec.ts`.
 
-- [ ] **Task 2.2 (GREEN A1): Wire VersioningPage — Commits and Branches** *(depends on Task 2.1)*
+- [x] **Task 2.2 (GREEN A1): Wire VersioningPage — Commits and Branches** *(depends on Task 2.1)*
 
   **Specs:** `specs/requirements/REQ-USR.UI.gui-implementation.md` § screens 10–11; `specs/adr/ADR-DES.UI.version-context-visibility-strategy.md`; `specs/requirements/REQ-FUN.DATA.versioning.md`.
   **Files:** `VersioningPage.vue`, `CommitHistory.vue`, `BranchList.vue`.
 
-- [ ] **Task 2.3 (GREEN A2): Wire OntologyWorkspace Save button** *(depends on Task 2.1)*
+- [x] **Task 2.3 (GREEN A2): Wire OntologyWorkspace Save button** *(depends on Task 2.1)*
 
   ⚠️ **IMPROVED:** Use existing `useDraftState().saveDraft()` — the composable at `src/services/frontend/src/composables/useDraftState.ts` ALREADY implements the full save flow: `apolloClient.mutate(UPDATE_DRAFT_MUTATION)` → clear `changes` → return `true/false`.
 
   **Specs:** `specs/adr/ADR-DES.UI.data-loss-prevention-strategy.md` § Draft Store + UI state machine; `specs/requirements/REQ-NFR.UI.data-loss-prevention.md`.
   **Files:** `OntologyWorkspace.vue` — add `@click="saveDraft"` where `saveDraft = useDraftState().saveDraft`. Save button enabled only when `useDraftState().hasUnsavedChanges`. Add loading/error/success states.
 
-- [ ] **Task 2.4 (GREEN A3): Wire SPARQLPage query execution** *(depends on Task 2.1)*
+- [x] **Task 2.4 (GREEN A3): Wire SPARQLPage query execution** *(depends on Task 2.1)*
 
   **Specs:** `specs/adr/ADR-DES.API.graphql-sparql-split-strategy.md` § SPARQL; `specs/use-cases/UC-browse.search.execute-sparql-query-through-gui.md`.
   **Files:** `SPARQLPage.vue`, `SPARQLQueryEditor.vue`.

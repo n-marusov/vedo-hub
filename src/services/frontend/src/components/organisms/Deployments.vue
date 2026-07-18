@@ -33,70 +33,70 @@ import { computed, ref } from "vue";
 import DeploymentCard from "./DeploymentCard.vue";
 
 interface DeploymentEntry {
-    status: string;
-    url: string;
-    classes: string;
-    individuals: string;
-    created: string;
-    updated: string;
-    expiry: string;
-    stopped?: boolean;
+	status: string;
+	url: string;
+	classes: string;
+	individuals: string;
+	created: string;
+	updated: string;
+	expiry: string;
+	stopped?: boolean;
 }
 
 const showStopped = ref(true);
 
 const deployments = ref<DeploymentEntry[]>([
-    {
-        status: "Active",
-        url: "https://philosophy-aa4ded.gitlab.io",
-        classes: "12 classes",
-        individuals: "58 individuals",
-        created: "Created 5 months ago",
-        updated: "Last updated 5 months ago",
-        expiry: "Never expires",
-    },
-    {
-        status: "Active",
-        url: "https://vedo-core-qa.gitlab.io",
-        classes: "35 classes",
-        individuals: "142 individuals",
-        created: "Created 2 days ago",
-        updated: "Last updated 2 days ago",
-        expiry: "Expires in 28 days",
-    },
-    {
-        status: "Active",
-        url: "https://ontology-staging.gitlab.io",
-        classes: "8 classes",
-        individuals: "23 individuals",
-        created: "Created 1 week ago",
-        updated: "Last updated 6 days ago",
-        expiry: "Expires in 21 days",
-    },
-    {
-        status: "Active",
-        url: "https://shacl-validator.gitlab.io",
-        classes: "42 classes",
-        individuals: "197 individuals",
-        created: "Created 3 weeks ago",
-        updated: "Last updated 3 weeks ago",
-        expiry: "Expires in 7 days",
-    },
-    {
-        status: "Stopped",
-        url: "https://legacy-ontology.gitlab.io",
-        classes: "18 classes",
-        individuals: "76 individuals",
-        created: "Created 1 year ago",
-        updated: "Last updated 8 months ago",
-        expiry: "Expired",
-        stopped: true,
-    },
+	{
+		status: "Active",
+		url: "https://philosophy-aa4ded.gitlab.io",
+		classes: "12 classes",
+		individuals: "58 individuals",
+		created: "Created 5 months ago",
+		updated: "Last updated 5 months ago",
+		expiry: "Never expires",
+	},
+	{
+		status: "Active",
+		url: "https://vedo-core-qa.gitlab.io",
+		classes: "35 classes",
+		individuals: "142 individuals",
+		created: "Created 2 days ago",
+		updated: "Last updated 2 days ago",
+		expiry: "Expires in 28 days",
+	},
+	{
+		status: "Active",
+		url: "https://ontology-staging.gitlab.io",
+		classes: "8 classes",
+		individuals: "23 individuals",
+		created: "Created 1 week ago",
+		updated: "Last updated 6 days ago",
+		expiry: "Expires in 21 days",
+	},
+	{
+		status: "Active",
+		url: "https://shacl-validator.gitlab.io",
+		classes: "42 classes",
+		individuals: "197 individuals",
+		created: "Created 3 weeks ago",
+		updated: "Last updated 3 weeks ago",
+		expiry: "Expires in 7 days",
+	},
+	{
+		status: "Stopped",
+		url: "https://legacy-ontology.gitlab.io",
+		classes: "18 classes",
+		individuals: "76 individuals",
+		created: "Created 1 year ago",
+		updated: "Last updated 8 months ago",
+		expiry: "Expired",
+		stopped: true,
+	},
 ]);
 
 const filteredDeployments = computed(() => {
-    if (showStopped.value) return deployments.value;
-    return deployments.value.filter((d) => !d.stopped);
+	if (showStopped.value) return deployments.value;
+	return deployments.value.filter((d) => !d.stopped);
 });
 </script>
 

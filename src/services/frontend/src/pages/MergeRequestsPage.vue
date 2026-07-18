@@ -25,15 +25,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
 import MergeRequests from "@/components/organisms/MergeRequests.vue";
 import Tab from "@/components/ui-kit/Tab.vue";
 import { ChevronDown, ChevronRight } from "lucide-vue-next";
+import { ref } from "vue";
 
 const tabs = [
-    { value: "active", label: "Active" },
-    { value: "merged", label: "Merged" },
-    { value: "all", label: "Search" },
+	{ value: "active", label: "Active" },
+	{ value: "merged", label: "Merged" },
+	{ value: "all", label: "Search" },
 ];
 
 const activeTab = ref("active");

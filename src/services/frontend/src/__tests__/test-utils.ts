@@ -2,7 +2,7 @@
 // Provides mock router, mount helpers, and query wait patterns
 
 import { type VueWrapper, mount } from "@vue/test-utils";
-import { describe, expect, it, vi } from "vitest";
+import { describe } from "vitest";
 import type { ComponentPublicInstance } from "vue";
 import { createRouter, createWebHistory } from "vue-router";
 

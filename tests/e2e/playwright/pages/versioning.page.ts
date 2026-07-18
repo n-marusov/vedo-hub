@@ -16,19 +16,19 @@ export class VersioningPage {
     await this.page.getByRole('tab', { name: new RegExp(tab, 'i') }).click();
   }
 
-  async getCommits() {
+  getCommits() {
     return this.page.locator('.commit-item');
   }
 
-  async getBranches() {
+  getBranches() {
     return this.page.locator('.branch-item');
   }
 
-  async getTags() {
+  getTags() {
     return this.page.locator('.tag-item');
   }
 
-  async getGraphNodes() {
+  getGraphNodes() {
     return this.page.locator('.versioning-graph-node, .repository-graph-node');
   }
 }

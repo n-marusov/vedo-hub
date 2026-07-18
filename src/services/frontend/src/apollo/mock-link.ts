@@ -8,6 +8,7 @@ import {
 	MOCK_DEPLOYMENTS_DATA,
 	MOCK_MERGE_REQUESTS_DATA,
 	MOCK_METRICS_DATA,
+	MOCK_SPARQL_RESULTS,
 	delay,
 } from "./mock-data";
 
@@ -17,6 +18,7 @@ const mockResolvers: Record<string, () => unknown> = {
 	OntologyMetrics: () => MOCK_METRICS_DATA,
 	ListDeployments: () => MOCK_DEPLOYMENTS_DATA,
 	ListMergeRequests: () => MOCK_MERGE_REQUESTS_DATA,
+	SparqlExecute: () => MOCK_SPARQL_RESULTS,
 	RunValidation: () => ({
 		runValidation: {
 			status: "ok",

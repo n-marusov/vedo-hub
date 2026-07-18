@@ -10,7 +10,7 @@ export class DeploymentsPage {
     await this.page.goto('/dashboard/deployments');
   }
 
-  async getDeployments() {
+  getDeployments() {
     return this.page.locator('.deployment-card');
   }
 

@@ -15,11 +15,11 @@ export class ValidationPage {
     await this.page.getByRole('button', { name: /run|validate/i }).click();
   }
 
-  async getSummary() {
+  getSummary() {
     return this.page.locator('.validation-summary');
   }
 
-  async getResults() {
+  getResults() {
     return this.page.locator('.validation-results');
   }
 }

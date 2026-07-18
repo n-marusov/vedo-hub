@@ -11,7 +11,7 @@ export class MembersPage {
     await this.page.goto(path);
   }
 
-  async getMembers() {
+  getMembers() {
     return this.page.locator('.member-row');
   }
 

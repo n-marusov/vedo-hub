@@ -11,7 +11,7 @@ export class MetricsPage {
     await this.page.goto(`/ontology/${id}/metrics`);
   }
 
-  async getKpiCounters() {
+  getKpiCounters() {
     return this.page.locator('.kpi-counter');
   }
 }

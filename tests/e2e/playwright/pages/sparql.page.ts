@@ -20,7 +20,7 @@ export class SparqlPage {
     await this.page.getByRole('button', { name: /run|execute/i }).click();
   }
 
-  async getResults() {
+  getResults() {
     return this.page.locator('.query-results-table');
   }
 

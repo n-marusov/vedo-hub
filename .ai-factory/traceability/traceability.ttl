@@ -1113,6 +1113,49 @@ base:test/m2-llm-integration a vdo:TestSuite ;
     rdfs:comment "Go integration tests for LLM provider interfaces: real HTTP calls, streaming, timeout handling, token counting. Build tag: integration. Enable with LLM_INTEGRATION_TESTS=1"@en ;
     vdo:filePath "src/services/shared/llm/integration_test.go" .
 
+# --- M2.5 GUI Wiring Phase 2 — Vitest Test Suites ---
+
+base:test/m2.5/sparql-page a vdo:TestSuite ;
+    rdfs:label "M2.5 SPARQLPage Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for SPARQLPage: query execution via Apollo GraphQL SPARQL_EXECUTE_QUERY, results display, error handling, format button"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/SPARQLPage.spec.ts" .
+
+base:test/m2.5/versioning-page a vdo:TestSuite ;
+    rdfs:label "M2.5 VersioningPage Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for VersioningPage: commit history from API, branch listing, tab switching, loading state"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/VersioningPage.spec.ts" .
+
+base:test/m2.5/workspace-save a vdo:TestSuite ;
+    rdfs:label "M2.5 OntologyWorkspace Save Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for OntologyWorkspace Save button: save via useDraftState, disabled when no changes, loading/error states"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/OntologyWorkspaceSave.spec.ts" .
+
+# --- M2.5 Test Utilities ---
+
+base:m2.5/test-utils a vdo:CodeArtifact ;
+    rdfs:label "M2.5 Vitest Test Utilities"@en ;
+    rdfs:comment "Vitest test utilities: createMockRouter, mountWithProviders, waitForQuery, describePage helpers"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/test-utils.ts" .
+
+base:m2.5/mock-providers a vdo:CodeArtifact ;
+    rdfs:label "M2.5 Vitest Mock Providers"@en ;
+    rdfs:comment "Vitest mock providers for component tests: createMockRouter, mountWithProviders, waitForQuery, describePage"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/setup/mock-providers.ts" .
+
+# --- M2.5 Apollo Mock Infrastructure ---
+
+base:m2.5/mock-data a vdo:CodeArtifact ;
+    rdfs:label "M2.5 Apollo Mock Data"@en ;
+    rdfs:comment "Apollo mock data for M2.5 pages: dashboard, metrics, deployments, merge requests, SPARQL results"@en ;
+    vdo:filePath "src/services/frontend/src/apollo/mock-data.ts" ;
+    vdo:implements base:spec/gui-ow-001 .
+
+base:m2.5/mock-link a vdo:CodeArtifact ;
+    rdfs:label "M2.5 Apollo Mock Link"@en ;
+    rdfs:comment "Apollo MockApolloLink intercepting M2.5 queries with realistic data and 200ms artificial delay"@en ;
+    vdo:filePath "src/services/frontend/src/apollo/mock-link.ts" ;
+    vdo:implements base:spec/gui-ow-001 .
+
 # --- Update coverage summary metrics ---
 # GraphQL artifacts: 5 (100% traced)
 
@@ -1127,7 +1170,7 @@ base:test/m2-llm-integration a vdo:TestSuite ;
 # - CLI commands: 5 (100% traced to spec)
 # - Security boundaries: 6 (100% identified)
 # - Error codes: 17 (100% identified in Go CLI)
-# - Test suites: 11 (100% traced)
+# - Test suites: 14 (100% traced) [+3 M2.5 vitest: SPARQLPage, VersioningPage, OntologyWorkspaceSave]
 # - Test contracts: 13 (100% identified)
 # - Deployment configs: 6 (100% traced)
 # - Observability configs: 4 (100% traced)
@@ -1135,3 +1178,4 @@ base:test/m2-llm-integration a vdo:TestSuite ;
 # - Design artifacts: 2 (traced)
 # - Architecture decisions: 3 (traced)
 # - NFRs: 4 (traced to tests/observability)
+# - M2.5 Code artifacts: 4 (mock data, mock link, test utils, mock providers) — 100% traced

@@ -33,54 +33,54 @@ import { reactive } from "vue";
 import MergeRequestCard from "./MergeRequestCard.vue";
 
 interface MRSection {
-    title: string;
-    open: boolean;
-    count?: number;
-    emptyText: string;
+	title: string;
+	open: boolean;
+	count?: number;
+	emptyText: string;
 }
 
 const sections: MRSection[] = reactive([
-    {
-        title: "Returned to you",
-        open: true,
-        count: 0,
-        emptyText: "No merge requests match this list.",
-    },
-    {
-        title: "Review requested",
-        open: true,
-        count: 2,
-        emptyText: "No merge requests match this list.",
-    },
-    {
-        title: "Your merge requests",
-        open: true,
-        count: 0,
-        emptyText: "No merge requests match this list.",
-    },
+	{
+		title: "Returned to you",
+		open: true,
+		count: 0,
+		emptyText: "No merge requests match this list.",
+	},
+	{
+		title: "Review requested",
+		open: true,
+		count: 2,
+		emptyText: "No merge requests match this list.",
+	},
+	{
+		title: "Your merge requests",
+		open: true,
+		count: 0,
+		emptyText: "No merge requests match this list.",
+	},
 ]);
 
 const secondarySections: MRSection[] = reactive([
-    {
-        title: "Waiting for author or assignee",
-        open: true,
-        emptyText: "No merge requests match this list.",
-    },
-    {
-        title: "Waiting for approvals",
-        open: true,
-        emptyText: "No merge requests match this list.",
-    },
-    {
-        title: "Approved by you",
-        open: true,
-        emptyText: "No merge requests match this list.",
-    },
-    {
-        title: "Approved by others",
-        open: true,
-        emptyText: "No merge requests match this list.",
-    },
+	{
+		title: "Waiting for author or assignee",
+		open: true,
+		emptyText: "No merge requests match this list.",
+	},
+	{
+		title: "Waiting for approvals",
+		open: true,
+		emptyText: "No merge requests match this list.",
+	},
+	{
+		title: "Approved by you",
+		open: true,
+		emptyText: "No merge requests match this list.",
+	},
+	{
+		title: "Approved by others",
+		open: true,
+		emptyText: "No merge requests match this list.",
+	},
 ]);
 </script>
 

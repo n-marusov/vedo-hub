@@ -97,102 +97,101 @@
 
 <script setup lang="ts">
 import {
-    BadgeCheck,
-    ChevronDown,
-    ChevronRight,
-    Folder,
-    GitFork,
-    GitMerge,
-    Globe,
-    Lock,
-    MoreVertical,
-    Plus,
-    Search,
-    Star,
+	BadgeCheck,
+	ChevronDown,
+	ChevronRight,
+	Folder,
+	GitFork,
+	GitMerge,
+	Globe,
+	Lock,
+	MoreVertical,
+	Plus,
+	Search,
+	Star,
 } from "lucide-vue-next";
 
 interface ProjectRow {
-    name: string;
-    visibility: "public" | "private";
-    description: string;
-    tags: string[];
-    stars: number;
-    forks: number;
-    mergeRequests: number;
-    created: string;
-    verified: boolean;
-    logoLetter: string;
-    logoBg: string;
+	name: string;
+	visibility: "public" | "private";
+	description: string;
+	tags: string[];
+	stars: number;
+	forks: number;
+	mergeRequests: number;
+	created: string;
+	verified: boolean;
+	logoLetter: string;
+	logoBg: string;
 }
 
 const projects: ProjectRow[] = [
-    {
-        name: "vedo-core",
-        visibility: "public",
-        description: "Core VEDO ontology platform",
-        tags: ["OWL", "RDF", "Python"],
-        stars: 12,
-        forks: 8,
-        mergeRequests: 3,
-        created: "Created 3 months ago",
-        verified: true,
-        logoLetter: "V",
-        logoBg: "#6366f126",
-    },
-    {
-        name: "ontology-service",
-        visibility: "private",
-        description: "Rust-based ontology storage and query service",
-        tags: ["Rust", "Neo4j", "gRPC"],
-        stars: 18,
-        forks: 5,
-        mergeRequests: 1,
-        created: "Created 3 months ago",
-        verified: false,
-        logoLetter: "O",
-        logoBg: "#05966926",
-    },
-    {
-        name: "ProductOntology",
-        visibility: "public",
-        description:
-            "Product domain ontology covering classifications and properties",
-        tags: ["OWL", "SKOS"],
-        stars: 24,
-        forks: 12,
-        mergeRequests: 6,
-        created: "Created 2 months ago",
-        verified: true,
-        logoLetter: "P",
-        logoBg: "#d9770626",
-    },
-    {
-        name: "versioning-service",
-        visibility: "private",
-        description: "Git-like version control for ontology operations",
-        tags: ["Rust", "PostgreSQL"],
-        stars: 15,
-        forks: 6,
-        mergeRequests: 4,
-        created: "Created 1 month ago",
-        verified: false,
-        logoLetter: "V",
-        logoBg: "#dc262626",
-    },
-    {
-        name: "OrganizationOntology",
-        visibility: "public",
-        description:
-            "Organizational structure ontology for departments and roles",
-        tags: ["OWL", "RDF"],
-        stars: 9,
-        forks: 2,
-        mergeRequests: 2,
-        created: "Created 3 weeks ago",
-        verified: false,
-        logoLetter: "O",
-        logoBg: "#0891b226",
-    },
+	{
+		name: "vedo-core",
+		visibility: "public",
+		description: "Core VEDO ontology platform",
+		tags: ["OWL", "RDF", "Python"],
+		stars: 12,
+		forks: 8,
+		mergeRequests: 3,
+		created: "Created 3 months ago",
+		verified: true,
+		logoLetter: "V",
+		logoBg: "#6366f126",
+	},
+	{
+		name: "ontology-service",
+		visibility: "private",
+		description: "Rust-based ontology storage and query service",
+		tags: ["Rust", "Neo4j", "gRPC"],
+		stars: 18,
+		forks: 5,
+		mergeRequests: 1,
+		created: "Created 3 months ago",
+		verified: false,
+		logoLetter: "O",
+		logoBg: "#05966926",
+	},
+	{
+		name: "ProductOntology",
+		visibility: "public",
+		description:
+			"Product domain ontology covering classifications and properties",
+		tags: ["OWL", "SKOS"],
+		stars: 24,
+		forks: 12,
+		mergeRequests: 6,
+		created: "Created 2 months ago",
+		verified: true,
+		logoLetter: "P",
+		logoBg: "#d9770626",
+	},
+	{
+		name: "versioning-service",
+		visibility: "private",
+		description: "Git-like version control for ontology operations",
+		tags: ["Rust", "PostgreSQL"],
+		stars: 15,
+		forks: 6,
+		mergeRequests: 4,
+		created: "Created 1 month ago",
+		verified: false,
+		logoLetter: "V",
+		logoBg: "#dc262626",
+	},
+	{
+		name: "OrganizationOntology",
+		visibility: "public",
+		description: "Organizational structure ontology for departments and roles",
+		tags: ["OWL", "RDF"],
+		stars: 9,
+		forks: 2,
+		mergeRequests: 2,
+		created: "Created 3 weeks ago",
+		verified: false,
+		logoLetter: "O",
+		logoBg: "#0891b226",
+	},
 ];
 </script>
 
