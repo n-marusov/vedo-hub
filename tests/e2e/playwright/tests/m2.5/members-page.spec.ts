@@ -15,14 +15,15 @@ test.describe('M2.5 Members Page', () => {
   test('should change member role when role select is changed', async ({ page }) => {
     const members = new MembersPage(page)
     await members.goto('ont-123')
-    await members.editRole('editor_seed', 'editor')
+    await members.editRole('editor_seed', 'Editor')
     await expect(page.getByText(/role updated/i)).toBeVisible()
   })
 
   test('should show confirmation dialog before removing a member', async ({ page }) => {
     const members = new MembersPage(page)
     await members.goto('ont-123')
-    await members.removeMember('viewer_seed')
+    // Click remove button to open the confirmation dialog
+    await page.locator('.table-row', { hasText: 'viewer_seed' }).getByRole('button', { name: /remove/i }).click()
     await expect(page.getByText(/confirm/i)).toBeVisible()
   })
 

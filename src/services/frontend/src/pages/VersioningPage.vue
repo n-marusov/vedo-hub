@@ -450,6 +450,20 @@ watch(error, (err) => {
 
 .muted { color: var(--muted-foreground); }
 
+/* @m2.5 Skeleton loading */
+.version-loading {
+  padding: 16px;
+}
+.version-loading .skeleton {
+  height: 48px;
+  border-radius: 6px;
+  background: var(--muted);
+  margin-bottom: 12px;
+}
+.version-loading .skeleton:last-child {
+  margin-bottom: 0;
+}
+
 @media (max-width: 1000px) {
   .filter-row {
     flex-wrap: wrap;

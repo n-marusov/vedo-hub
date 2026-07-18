@@ -132,6 +132,24 @@ async function onRunQuery(q?: string): Promise<void> {
 		});
 
 		const data = response.data?.sparqlQuery;
+
+		// Handle GraphQL errors (errorPolicy: 'all' does not reject on errors)
+		if (response.errors && response.errors.length > 0) {
+			const gqlError = response.errors[0]?.message || "Unknown GraphQL error";
+			error.value = gqlError;
+			addError("SPARQL_EXECUTION_ERROR", gqlError);
+			console.error(
+				JSON.stringify({
+					level: "error",
+					msg: "sparql.query.graphql_error",
+					ontologyId: ontologyId.value,
+					error: gqlError,
+					ts: new Date().toISOString(),
+				}),
+			);
+			return;
+		}
+
 		if (data) {
 			results.value = {
 				columns: data.columns || [],

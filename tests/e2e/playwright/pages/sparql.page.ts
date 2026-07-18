@@ -21,7 +21,7 @@ export class SparqlPage {
   }
 
   getResults() {
-    return this.page.locator('.query-results-table, .sparql-editor__table');
+    return this.page.locator('.query-results-table, .sparql-editor__table').first()
   }
 
   async formatQuery() {

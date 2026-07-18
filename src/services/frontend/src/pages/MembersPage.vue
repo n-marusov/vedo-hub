@@ -186,7 +186,7 @@ const removeDialogOpen = ref(false);
 const removingMemberName = ref("");
 
 function isLastOwner(name: string): boolean {
-	const owners = members.value.filter((m) => m.role === "Owner");
+	const owners = members.value.filter((m) => m.role.toLowerCase() === "owner");
 	return owners.length <= 1 && owners.some((m) => m.name === name);
 }
 

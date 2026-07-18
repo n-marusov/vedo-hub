@@ -171,6 +171,11 @@ function parseBody(req) {
   });
 }
 
+// Delay helper — provides realistic latency for loading-state tests
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function sendJson(res, statusCode, data) {
   res.writeHead(statusCode, { 'Content-Type': 'application/json' });
   res.end(JSON.stringify(data));
@@ -200,7 +205,8 @@ function checkAuth(req) {
 }
 
 async function handleRequest(req, res) {
-  const url = new URL(req.url, `http://localhost:${PORT}`);
+  try {
+    const url = new URL(req.url, `http://localhost:${PORT}`);
   const path = url.pathname;
   const method = req.method;
 
@@ -309,6 +315,75 @@ async function handleRequest(req, res) {
       return sendJson(res, 200, { data: { dashboard: MOCK_DASHBOARD } });
     }
 
+    // ── Artificial delays for loading-state tests ──────────────────────────────
+    // These delays ensure loading indicators render long enough for Playwright
+    // assertions like toBeVisible({ timeout: 2000 }) to capture them.
+
+    if (query.includes('OntologyMetrics') || query.includes('{ ontologyMetrics(')) {
+      await delay(400);
+      return sendJson(res, 200, { data: { ontologyMetrics: MOCK_METRICS_GQL } });
+    }
+
+    if (query.includes('SparqlExecute') || query.includes('{ sparqlQuery(')) {
+      await delay(300);
+      return sendJson(res, 200, { data: { sparqlQuery: MOCK_SPARQL_RESULTS } });
+    }
+
+    if (query.includes('RunValidation') || query.includes('{ runValidation(')) {
+      await delay(300);
+      return sendJson(res, 200, { data: { runValidation: MOCK_VALIDATION } });
+    }
+
+    if (query.includes('GetCommitHistory') || query.includes('{ commits(')) {
+      await delay(200);
+      return sendJson(res, 200, { data: { commits: MOCK_COMMITS } });
+    }
+
+    if (query.includes('GetBranches') || query.includes('{ branches(')) {
+      await delay(200);
+      return sendJson(res, 200, { data: { branches: MOCK_BRANCHES } });
+    }
+
+    if (query.includes('GetTags') || query.includes('{ tags(')) {
+      await delay(200);
+      return sendJson(res, 200, { data: { tags: MOCK_TAGS_GQL } });
+    }
+
+    if (query.includes('CompareRevisions') || query.includes('{ compareRevisions(')) {
+      await delay(200);
+      return sendJson(res, 200, {
+        data: {
+          compareRevisions: {
+            additions: 5,
+            deletions: 3,
+            changes: [
+              { entityId: 'cls-001', entityType: 'class', entityLabel: 'Person', changeType: 'added', field: 'label', oldValue: null, newValue: 'Person' },
+              { entityId: 'cls-002', entityType: 'class', entityLabel: 'Student', changeType: 'added', field: 'label', oldValue: null, newValue: 'Student' },
+            ],
+          },
+        },
+      });
+    }
+
+    if (query.includes('GraphNeighborhood') || query.includes('{ graphNeighborhood(')) {
+      await delay(200);
+      return sendJson(res, 200, {
+        data: {
+          graphNeighborhood: {
+            nodes: [
+              { id: 'node-1', label: 'Person' },
+              { id: 'node-2', label: 'Student' },
+              { id: 'node-3', label: 'Professor' },
+            ],
+            edges: [
+              { sourceId: 'node-1', targetId: 'node-2' },
+              { sourceId: 'node-1', targetId: 'node-3' },
+            ],
+          },
+        },
+      });
+    }
+
     // LIST_PROJECTS_QUERY: query ListProjects
     if (query.includes('ListProjects') || query.includes('{ projects(')) {
       return sendJson(res, 200, { data: { projects: MOCK_PROJECTS } });
@@ -334,70 +409,7 @@ async function handleRequest(req, res) {
       return sendJson(res, 200, { data: { mergeRequests: MOCK_MERGE_REQUESTS_GQL } });
     }
 
-    // ONTOLOGY_METRICS_QUERY: query OntologyMetrics
-    if (query.includes('OntologyMetrics') || query.includes('{ ontologyMetrics(')) {
-      return sendJson(res, 200, { data: { ontologyMetrics: MOCK_METRICS_GQL } });
-    }
 
-    // SPARQL_EXECUTE_QUERY: query SparqlExecute
-    if (query.includes('SparqlExecute') || query.includes('{ sparqlQuery(')) {
-      return sendJson(res, 200, { data: { sparqlQuery: MOCK_SPARQL_RESULTS } });
-    }
-
-    // RUN_VALIDATION_MUTATION: mutation RunValidation
-    if (query.includes('RunValidation') || query.includes('{ runValidation(')) {
-      return sendJson(res, 200, { data: { runValidation: MOCK_VALIDATION } });
-    }
-
-    // GET_COMMIT_HISTORY_QUERY: query GetCommitHistory
-    if (query.includes('GetCommitHistory') || query.includes('{ commits(')) {
-      return sendJson(res, 200, { data: { commits: MOCK_COMMITS } });
-    }
-
-    // GET_BRANCHES_QUERY: query GetBranches
-    if (query.includes('GetBranches') || query.includes('{ branches(')) {
-      return sendJson(res, 200, { data: { branches: MOCK_BRANCHES } });
-    }
-
-    // GET_TAGS_QUERY: query GetTags
-    if (query.includes('GetTags') || query.includes('{ tags(')) {
-      return sendJson(res, 200, { data: { tags: MOCK_TAGS_GQL } });
-    }
-
-    // COMPARE_REVISIONS_QUERY: query CompareRevisions
-    if (query.includes('CompareRevisions') || query.includes('{ compareRevisions(')) {
-      return sendJson(res, 200, {
-        data: {
-          compareRevisions: {
-            additions: 5,
-            deletions: 3,
-            changes: [
-              { entityId: 'cls-001', entityType: 'class', entityLabel: 'Person', changeType: 'added', field: 'label', oldValue: null, newValue: 'Person' },
-              { entityId: 'cls-002', entityType: 'class', entityLabel: 'Student', changeType: 'added', field: 'label', oldValue: null, newValue: 'Student' },
-            ],
-          },
-        },
-      });
-    }
-
-    // GraphNeighborhood: already handled above (in query check)
-    if (query.includes('GraphNeighborhood') || query.includes('{ graphNeighborhood(')) {
-      return sendJson(res, 200, {
-        data: {
-          graphNeighborhood: {
-            nodes: [
-              { id: 'node-1', label: 'Person' },
-              { id: 'node-2', label: 'Student' },
-              { id: 'node-3', label: 'Professor' },
-            ],
-            edges: [
-              { sourceId: 'node-1', targetId: 'node-2' },
-              { sourceId: 'node-1', targetId: 'node-3' },
-            ],
-          },
-        },
-      });
-    }
 
     // UpdateDraft mutation
     if (query.includes('UpdateDraft') || query.includes('{ updateDraft(')) {
@@ -411,7 +423,11 @@ async function handleRequest(req, res) {
   }
 
   // 404 for unmatched routes
-  sendJson(res, 404, { error: 'NOT_FOUND', message: `Route not found: ${method} ${path}` });
+    sendJson(res, 404, { error: 'NOT_FOUND', message: `Route not found: ${method} ${path}` });
+  } catch (e) {
+    console.error(`[stub] UNHANDLED ERROR: ${e.message}`, e.stack);
+    try { sendJson(res, 500, { error: 'INTERNAL', message: e.message }); } catch (_) {}
+  }
 }
 
 const server = http.createServer(handleRequest);

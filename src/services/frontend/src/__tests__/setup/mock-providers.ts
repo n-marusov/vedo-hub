@@ -34,9 +34,15 @@ export function setMockOperationResult(
 	operationName: string,
 	data: Record<string, unknown> | null,
 	error?: Error,
+	graphQLErrors?: Array<{ message: string }>,
 ): void {
 	if (error) {
 		overrideResults.set(operationName, () => ({ error }));
+	} else if (graphQLErrors) {
+		overrideResults.set(operationName, () => ({
+			data: data || {},
+			graphQLErrors,
+		}));
 	} else if (data) {
 		overrideResults.set(operationName, () => ({ data }));
 	} else {
@@ -128,6 +134,12 @@ class VitestMockLink extends ApolloLink {
 					const result = override();
 					if (result.error) {
 						observer.error(result.error);
+					} else if (result.graphQLErrors) {
+						observer.next({
+							data: result.data as Record<string, unknown>,
+							errors: result.graphQLErrors,
+						});
+						observer.complete();
 					} else if (result.data) {
 						observer.next({ data: result.data });
 						observer.complete();

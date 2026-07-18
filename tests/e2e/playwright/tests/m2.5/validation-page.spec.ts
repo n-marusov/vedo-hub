@@ -26,7 +26,7 @@ test.describe('M2.5 Validation Page', () => {
     const validation = new ValidationPage(page)
     await validation.goto('ont-123')
     await validation.runValidation()
-    await expect(page.getByText(/valid|ok|passed|no violations/i)).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/all rules passed|^ok$/i)).toBeVisible({ timeout: 5000 })
   })
 
   test('should update validation timestamp after successful run', async ({ page }) => {

@@ -20,6 +20,6 @@ export class ValidationPage {
   }
 
   getResults() {
-    return this.page.locator('.validation-report__table, .validation-report__empty');
+    return this.page.locator('.validation-report__table, .validation-report__empty').first()
   }
 }

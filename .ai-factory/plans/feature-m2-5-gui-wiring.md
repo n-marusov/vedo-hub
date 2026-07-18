@@ -4,6 +4,7 @@ Branch: feature/m2-5-gui-wiring
 Created: 2026-07-18
 Improved: 2026-07-18 — $aif-improve pass 1 (3 missing tasks, 3 task improvements, 2 dependency fixes, 1 out-of-scope)
 Improved: 2026-07-18 — $aif-improve pass 2 (7 missing sub-tasks for E2E test fixes, 4 task improvements, 1 dependency fix, 1 out-of-scope)
+Improved: 2026-07-18 — $aif-improve pass 6 (3 missing tasks for real-backend docker-compose.test.yml verification, 3 task improvements, 1 dependency fix, 1 out-of-scope)
 
 ## Settings
 - Testing: yes — **TDD (tests first)**: E2E contracts → vitest RED → implementation GREEN → E2E GREEN
@@ -121,7 +122,7 @@ This plan implements the following specifications. Each task references its gove
 - **Commit 4** (after Phase 3 — Block Б GREEN): `feat: wire Projects, Groups, Members, and Versioning tabs — vitest green`
 - **Commit 5** (after Phase 4 — Block В GREEN): `feat: wire Dashboard, Metrics, Validation, Deployments, MR — vitest green`
 - **Commit 6** (after Phase 5 — Block Г GREEN): `feat: wire App.vue layout — user, sidebar, navigation — vitest green`
-- **Commit 7** (after Phase 6 — E2E GREEN): `test: E2E tests pass — all M2.5 pages verified end-to-end`
+- **Commit 7** (after Phase 6 — E2E GREEN): `test: E2E tests pass — all M2.5 pages verified end-to-end (stub + real backend via docker-compose.test.yml)`
 - **Commit 8** (after Phase 7): `docs: M2.5 documentation and traceability update`
 
 ## Tasks
@@ -429,7 +430,7 @@ Block В depends on mock Apollo link (Task 1.2).
 
 **Governing spec:** `specs/requirements/REQ-FUN.PROCESS.e2e-testing.md`; `specs/user-stories/E2E-editor.workflow.full-cycle.md`.
 
-**Overall status: 71/71 passing.** All 7 E2E fix categories (6.1a–6.1g) have been implemented. Component fixes applied: GroupsPage expand/collapse, MembersPage edit/remove/last-owner, ProjectsPage sort/row-nav, CommitHistory+RepositoryGraph selectors, VersioningPage ARIA roles, loading-state CSS normalization, SPARQL export button.
+**Overall status: Stub-mode tests — 71/71 passing.** All 7 E2E fix categories (6.1a–6.1g) have been implemented. Component fixes applied: GroupsPage expand/collapse, MembersPage edit/remove/last-owner, ProjectsPage sort/row-nav, CommitHistory+RepositoryGraph selectors, VersioningPage ARIA roles, loading-state CSS normalization, SPARQL export button. **Real-backend verification (docker-compose.test.yml) → Tasks 6.4–6.6 pending.**
 
 **Infrastructure fixes applied (✅ done):**
 - Created stub API server at `tests/e2e/playwright/stub-server.mjs`
@@ -573,7 +574,7 @@ npx playwright test --config=playwright.m2.5.config.ts --project=chromium
 
 - [x] **Task 6.2: Run API Gateway integration tests — fix until GREEN**
 
-  **Status: ALL 23 tests PASSING.** All REST, GraphQL, and auth/error handling tests in `api-gateway-full.spec.ts` pass against the stub server.
+  **Status: ALL 23 tests PASSING against stub server.** All REST, GraphQL, and auth/error handling tests in `api-gateway-full.spec.ts` pass against the stub server. Real-backend verification with `docker-compose.test.yml` → Task 6.5 (new).
 
   Run command:
   ```bash
@@ -583,7 +584,7 @@ npx playwright test --config=playwright.m2.5.config.ts --project=chromium
 
 - [x] **Task 6.3: Run full E2E suite (regression check)**
 
-  **Status: Vitest regression PASS (121 tests, 18 files).** Full Playwright E2E regression requires Docker stack (see compose-smoke.sh). Proxy and mock infrastructure changes don't affect production builds.
+  **Status: Vitest regression PASS (121 tests, 18 files).** Full Playwright E2E regression against real backend → Tasks 6.4–6.6 (new) using `deploy/docker-compose.test.yml` (5-service minimal test stack). Proxy and mock infrastructure changes don't affect production builds.
 
   ```bash
   # Vite proxy only affects dev server — production nginx is unchanged
@@ -593,13 +594,79 @@ npx playwright test --config=playwright.m2.5.config.ts --project=chromium
   # cd tests/e2e/playwright && npx playwright test --project=chromium
   ```
 
+- [ ] **Task 6.4: Create real-backend Playwright config with docker-compose.test.yml** *(no deps — independent)*
+
+  **Governing spec:** `specs/requirements/REQ-FUN.PROCESS.e2e-testing.md`.
+
+  The stub server (`stub-server.mjs` on port 3001) is sufficient for fast dev iteration but does NOT exercise real backend services. Create a dedicated Playwright config that brings up the minimal test stack from `deploy/docker-compose.test.yml` (Neo4j, PostgreSQL, ontology-service, versioning-service, api-gateway) and routes frontend API calls to the real api-gateway-test at `localhost:8081`.
+
+  **Implementation:**
+  - Create `tests/e2e/playwright/playwright.m2.5.real.config.ts`:
+    - `testDir: './tests/m2.5'`, `timeout: 30_000`, `retries: 0`
+    - `webServer`: start `docker compose -f deploy/docker-compose.test.yml up -d` (wait for all 5 services healthy), then start Vite dev server with `VITE_API_TARGET=http://localhost:8081`
+    - `use.baseURL: 'http://localhost:3000'`, `trace: 'retain-on-failure'`
+    - `projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }]`
+    - Teardown: `docker compose -f deploy/docker-compose.test.yml down` on exit
+  - Modify `src/services/frontend/vite.config.ts`: read proxy target from `VITE_API_TARGET` env var (default `http://localhost:3001` for stub mode)
+
+  **Files:**
+  - `tests/e2e/playwright/playwright.m2.5.real.config.ts` (create)
+  - `src/services/frontend/vite.config.ts` (modify — env-var-driven proxy target)
+
+  **Logging:** `INFO [TestEnv] docker-compose.test.yml services healthy: neo4j, postgres, ontology, versioning, gateway`
+
+- [ ] **Task 6.5: Run API Gateway integration tests against real backend** *(depends on Task 6.4)*
+
+  **Governing spec:** `specs/requirements/REQ-FUN.PROCESS.e2e-testing.md`; `specs/user-stories/E2E-api.integration.rest.md`.
+
+  `api-gateway-full.spec.ts` (23 tests: REST CRUD, GraphQL, auth/error handling) currently passes against stub server. Run it against the real `api-gateway-test` service from `docker-compose.test.yml` which proxies to real `ontology-service-test` and `versioning-service-test`.
+
+  **Run command:**
+  ```bash
+  cd tests/e2e/playwright
+  npx playwright test tests/m2.5/api-gateway-full.spec.ts --config=playwright.m2.5.real.config.ts --project=chromium
+  ```
+
+  **Expected failures to fix:**
+  - Real response formats may differ from stub (e.g., pagination envelope, error body shape, timestamp format)
+  - Real auth requires valid JWT — test must inject auth token matching `api-gateway-test` config
+  - Real services may have different latency profiles (adjust timeout assertions)
+
+  **Acceptance:** All 23 tests GREEN against real backend.
+
+  **Logging:** `DEBUG [ApiGw.Real] method=<GET|POST|PUT|DELETE> path=<path> status=<code> latency=<ms>`
+
+- [ ] **Task 6.6: Run M2.5 page-wiring E2E tests against real backend** *(depends on Task 6.4)*
+
+  **Governing spec:** `specs/requirements/REQ-USR.UI.gui-implementation.md`; `specs/user-stories/E2E-editor.workflow.full-cycle.md`.
+
+  Run all M2.5 page-level E2E tests (11 spec files, excluding `api-gateway-full.spec.ts`) against real backend services. The frontend Vite dev server proxies `/api/v1` → real api-gateway-test (port 8081) → real ontology-service + versioning-service.
+
+  **Run command:**
+  ```bash
+  cd tests/e2e/playwright
+  npx playwright test tests/m2.5/ --config=playwright.m2.5.real.config.ts --project=chromium --ignore='**/api-gateway-full*'
+  ```
+
+  **Expected failures to fix:**
+  - Real GraphQL responses may have different field names/nullability than stub mocks
+  - Real Neo4j returns empty datasets (no seed data) — empty-state selectors must handle this
+  - Real mutation responses (save draft, run validation) may differ from stub format
+  - Loading/error/data state transitions may have different timing profiles
+
+  **Seed data:** If tests require pre-existing data, add seed script or use setup hooks to create test ontologies via REST API before test run.
+
+  **Acceptance:** Page render cycle (loading → data/empty → error with retry) passes for all 11 pages against real backend.
+
+  **Logging:** `DEBUG [E2E.Real] page=<name> state=<loading|data|error|empty> duration=<ms>`
+
 <!-- ===================================================================================== -->
 <!-- Commit checkpoint: Phase 6 → "test: E2E tests pass — all M2.5 pages verified end-to-end" -->
 <!-- ===================================================================================== -->
 
 ### Phase 7: Documentation & Quality Gate
 
-- [x] **Task 7.1: Acceptance criteria — Test Quality Gate** *(depends on Tasks 6.1a–6.1g)*
+- [x] **Task 7.1: Acceptance criteria — Test Quality Gate** *(depends on Tasks 6.1a–6.1g, 6.4, 6.5, 6.6)*
 
   **Specs:** `specs/requirements/REQ-FUN.PROCESS.e2e-testing.md`; `specs/requirements/REQ-CON.STACK.frontend-stack.md`.
 
@@ -739,8 +806,8 @@ npx playwright test --config=playwright.m2.5.config.ts --project=chromium
 - [x] Every page has three states: loading (skeleton), error (retry), data (render) — validates `specs/adr/ADR-DES.UI.error-feedback-strategy.md`
 - [x] Empty states show contextual CTAs
 - [x] All vitest tests pass: `cd src/services/frontend && pnpm test`
-- [ ] All Playwright E2E tests pass (3 browsers): `npx playwright test` *(requires Docker stack)*
-- [ ] All API Gateway integration tests pass: `npx playwright test tests/m2.5/api-gateway-full.spec.ts` *(requires stub server + Docker)*
+- [ ] All Playwright E2E tests pass against real backend: `docker compose -f deploy/docker-compose.test.yml up -d && npx playwright test tests/m2.5/ --config=playwright.m2.5.real.config.ts`
+- [ ] All API Gateway integration tests pass against real backend: `docker compose -f deploy/docker-compose.test.yml up -d && npx playwright test tests/m2.5/api-gateway-full.spec.ts --config=playwright.m2.5.real.config.ts`
 - [x] Test Quality Score (TQS) ≥ silver (8.0) for new vitest files
 - [x] No B1–B7 anti-patterns in new tests
 - [x] TypeScript compiles, lint passes
@@ -754,7 +821,27 @@ npx playwright test --config=playwright.m2.5.config.ts --project=chromium
 
 ## $aif-improve Changelog (2026-07-18)
 
-### Pass 5 — Test Quality Improvements (2026-07-18)
+### Pass 6 - Real-Backend Test Verification via docker-compose.test.yml (2026-07-18)
+
+**Trigger:** User request - acceptance criteria lines 742-743 had vague "requires Docker stack" notes without concrete tasks to bring up `deploy/docker-compose.test.yml` and run API/E2E tests against real backend services.
+
+#### [new] Missing Tasks Added
+- **Task 6.4:** Create `playwright.m2.5.real.config.ts` - starts `docker compose -f deploy/docker-compose.test.yml up -d`, waits for 5 services healthy, runs Vite with `VITE_API_TARGET=http://localhost:8081` (real api-gateway-test). Adds env-var-driven proxy target to `vite.config.ts`.
+- **Task 6.5:** Run `api-gateway-full.spec.ts` (23 tests) against real backend - REST CRUD, GraphQL, auth/error handling against real api-gateway-test, ontology-service-test, versioning-service-test. Fix response format/timing mismatches.
+- **Task 6.6:** Run M2.5 page-wiring E2E tests (11 spec files) against real backend - page render cycle (loading/data/empty/error+retry) verified against real services. Handle empty Neo4j datasets, real mutation responses, timing differences.
+
+#### [bookmark] Task Improvements
+- **Project-level acceptance criteria (lines 742-743):** Replaced vague `(requires Docker stack)` with concrete commands: `docker compose -f deploy/docker-compose.test.yml up -d && npx playwright test ... --config=playwright.m2.5.real.config.ts`.
+- **Task 6.2:** Clarified that "PASSING" status is against stub server; real-backend verification -> Task 6.5.
+- **Task 6.3:** Replaced `compose-smoke.sh` (28-service overkill) reference with targeted `docker-compose.test.yml` (5-service minimal stack).
+
+#### [link] Dependency Fixes
+- **Task 7.1 should depend on Tasks 6.4, 6.5, 6.6.** Reason: Quality Gate checks "All E2E tests pass" and "All API integration tests pass" - these criteria cannot be satisfied without real-backend verification via `docker-compose.test.yml`.
+
+#### [bulb] Out of Scope - for later (surfaced for visibility)
+- **3-browser E2E (firefox, webkit) against real backend:** `playwright.config.ts` targets 3 browsers and full 28-service compose (~10 min per run). M2.5 verification uses chromium only; firefox/webkit regression belongs in CI pipeline (M6+).
+
+### Pass 5 - Test Quality Improvements (2026-07-18)
 
 **Trigger:** [test-quality-report.md](file:///D:/Projects/vedo-hub/.ai-factory/test-quality-report.md) — TQS 8.3 (silver), RCS 0.1 (poor), 205 orphan P0 requirements.
 
