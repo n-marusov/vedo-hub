@@ -3,7 +3,9 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-COMPOSE_FILE="$ROOT_DIR/docker-compose.yaml"
+
+# Change to the project root so Docker Compose picks up .env
+cd "$ROOT_DIR/.."
 
 services=(
   "frontend:3000"
@@ -22,7 +24,7 @@ services=(
   "ticket-notifier:8091"
 )
 
-docker compose -f "$COMPOSE_FILE" up -d --build
+docker compose -f deploy/docker-compose.yml up -d --build
 
 deadline=$((SECONDS + 30))
 for target in "${services[@]}"; do

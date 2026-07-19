@@ -1,103 +1,26 @@
 name: vedo-core-test
 
-# Test profile for API Gateway integration tests.
-# Runs minimal upstream services needed for gateway tests.
+# =============================================================================
+# Full-stack test environment for E2E (Playwright) and integration tests.
+# =============================================================================
+# Extends docker-compose.yml with a dev JWT public key so the API Gateway
+# accepts RS256 tokens signed with tests/e2e/playwright/test-jwt-key.pem
+# instead of requiring a running Keycloak for token verification.
+#
+# Usage:
+#   docker compose -f docker-compose.test.yml up -d
+#   pnpm exec playwright test
+#
+# The gateway logs a warning when JWT_DEV_PUBLIC_KEY_PEM is active.
+# NEVER deploy this file to production.
+# =============================================================================
 
-x-healthcheck-defaults: &healthcheck-defaults
-  interval: 10s
-  timeout: 5s
-  retries: 3
+include:
+  - docker-compose.yml
 
 services:
-  # Test Neo4j instance for ontology-service integration tests
-  neo4j-test:
-    image: neo4j:5-community
-    container_name: vedo-neo4j-test
-    ports:
-      - "7688:7687" # non-default to avoid conflict with dev instance
+  api-gateway:
     environment:
-      NEO4J_AUTH: neo4j/password
-      NEO4J_dbms_memory_pagecache_size: 256M
-      NEO4J_dbms_memory_heap_max__size: 512M
-    healthcheck:
-      test: ["CMD-SHELL", "cypher-shell -u neo4j -p password 'RETURN 1' || exit 1"]
-      <<: *healthcheck-defaults
-
-  # Test PostgreSQL instance for versioning-service integration tests
-  postgres-test:
-    image: postgres:16-alpine
-    container_name: vedo-postgres-test
-    ports:
-      - "5433:5432" # non-default to avoid conflict with dev instance
-    environment:
-      POSTGRES_USER: vedo
-      POSTGRES_PASSWORD: vedo
-      POSTGRES_DB: vedo_versioning_test
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U vedo -d vedo_versioning_test"]
-      <<: *healthcheck-defaults
-
-  # Ontology service (test build)
-  ontology-service-test:
-    build:
-      context: ..
-      dockerfile: src/docker/Dockerfile.rust
-      args:
-        SERVICE_DIR: src/services
-        BINARY_NAME: ontology-service
-    container_name: vedo-ontology-test
-    ports:
-      - "8082:8082"
-    environment:
-      SERVICE_PORT: "8082"
-      NEO4J_URI: bolt://neo4j-test:7687
-      NEO4J_USER: neo4j
-      NEO4J_PASSWORD: password
-      LOG_LEVEL: debug
-    depends_on:
-      neo4j-test:
-        condition: service_healthy
-
-  # Versioning service (test build)
-  versioning-service-test:
-    build:
-      context: ..
-      dockerfile: src/docker/Dockerfile.rust
-      args:
-        SERVICE_DIR: src/services
-        BINARY_NAME: versioning-service
-    container_name: vedo-versioning-test
-    ports:
-      - "8083:8083"
-    environment:
-      SERVICE_PORT: "8083"
-      DATABASE_URL: postgres://vedo:vedo@postgres-test:5432/vedo_versioning_test
-      LOG_LEVEL: debug
-    depends_on:
-      postgres-test:
-        condition: service_healthy
-
-  # API Gateway (test build)
-  api-gateway-test:
-    build:
-      context: ..
-      dockerfile: src/docker/Dockerfile.go
-      args:
-        SERVICE_DIR: src/services
-        BINARY_NAME: api-gateway
-    container_name: vedo-gateway-test
-    ports:
-      - "8081:8080" # non-default to avoid conflict with dev
-    environment:
-      SERVICE_PORT: "8080"
-      ONTOLOGY_SERVICE_URL: http://ontology-service-test:8082
-      VERSIONING_SERVICE_URL: http://versioning-service-test:8083
-      LOG_LEVEL: debug
-      # Auth is enabled in test mode via JWT_DEV_PUBLIC_KEY_PEM (a dev-only
-      # escape hatch that injects the public key PEM as an env var). This is
-      # simpler than mounting a file or spinning up Keycloak.
-      # The matching private key is in tests/e2e/playwright/test-jwt-key.pem
-      # and is used by the Playwright tests to sign valid JWTs.
       JWT_DEV_PUBLIC_KEY_PEM: |
         -----BEGIN PUBLIC KEY-----
         MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7KRKYjWhkiD9Zk+yYAzz
@@ -108,8 +31,3 @@ services:
         jahrd7wBIAyAbSbhgO3ggYfjuhubE+qO1bPMtvwLIId5ib0HBjQhdOwjW5PX3URw
         cQIDAQAB
         -----END PUBLIC KEY-----
-    depends_on:
-      ontology-service-test:
-        condition: service_started
-      versioning-service-test:
-        condition: service_started
