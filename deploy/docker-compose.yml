@@ -62,6 +62,7 @@ services:
       - ENABLE_SWAGGER_UI=${ENABLE_SWAGGER_UI:-true}
       - UPSTREAM_TIMEOUT=${UPSTREAM_TIMEOUT:-30}
       - QUERY_MAX_LIMIT=${QUERY_MAX_LIMIT:-1000}
+      - REDIS_URL=${REDIS_URL:-redis://redis:${REDIS_CONTAINER_PORT:-6379}}
     depends_on:
       ontology-service:
         condition: service_healthy
@@ -78,6 +79,8 @@ services:
       ai-orchestration-service:
         condition: service_healthy
       keycloak:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - vedo-network
@@ -166,8 +169,11 @@ services:
       - GRPC_TLS_ENABLED=${GRPC_TLS_ENABLED:-false}
       - GRPC_TLS_CERT_FILE=${GRPC_TLS_CERT_FILE:-}
       - GRPC_TLS_KEY_FILE=${GRPC_TLS_KEY_FILE:-}
+      - AUTH_SERVICE_DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@postgres:${POSTGRES_CONTAINER_PORT:-5432}/vedo_org?sslmode=disable
     depends_on:
       keycloak:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
     networks:
       - vedo-network
@@ -470,6 +476,7 @@ services:
       - POSTGRES_DB=${POSTGRES_DB:-vedo_versioning}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d
     networks:
       - vedo-network
     healthcheck:

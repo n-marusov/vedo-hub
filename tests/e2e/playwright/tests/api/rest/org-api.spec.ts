@@ -1,0 +1,198 @@
+// Validates: REQ-NFR.SECURITY.organization-access-model
+// Organizational model REST API tests — runs against real API gateway
+import { test, expect } from '@playwright/test';
+import { OWNER_JWT, VIEWER_JWT, EDITOR_JWT } from '../../jwt-tokens';
+
+test.describe('Org REST API', () => {
+  const API = '/api/v1';
+  let createdGroupId: string;
+  let createdProjectId: string;
+
+  // ==============================================================
+  // Group CRUD
+  // ==============================================================
+  test.describe('Group CRUD', () => {
+    test('should create group when Owner sends POST', async ({ page }) => {
+      const res = await page.request.post(`${API}/groups`, {
+        data: { name: 'TestGroup', description: 'E2E test group' },
+        headers: { Authorization: `Bearer ${OWNER_JWT}` },
+      });
+      expect(res.status()).toBe(201);
+      const body = await res.json();
+      expect(body.id).toBeDefined();
+      expect(body.name).toBe('TestGroup');
+      createdGroupId = body.id;
+    });
+
+    test('should list all groups when GET called', async ({ page }) => {
+      const res = await page.request.get(`${API}/groups`, {
+        headers: { Authorization: `Bearer ${OWNER_JWT}` },
+      });
+      expect(res.status()).toBe(200);
+      const body = await res.json();
+      expect(Array.isArray(body.data ?? body.groups ?? body)).toBe(true);
+    });
+
+    test('should return single group with children when GET by id', async ({ page }) => {
+      if (!createdGroupId) test.skip('no group created');
+      const res = await page.request.get(`${API}/groups/${createdGroupId}`, {
+        headers: { Authorization: `Bearer ${OWNER_JWT}` },
+      });
+      expect(res.status()).toBe(200);
+      const body = await res.json();
+      expect(body.id).toBe(createdGroupId);
+    });
+
+    test('should update group name when PUT called', async ({ page }) => {
+      if (!createdGroupId) test.skip('no group created');
+      const res = await page.request.put(`${API}/groups/${createdGroupId}`, {
+        data: { name: 'UpdatedGroup', description: 'Updated description' },
+        headers: { Authorization: `Bearer ${OWNER_JWT}` },
+      });
+      expect(res.status()).toBe(200);
+      const body = await res.json();
+      expect(body.name).toBe('UpdatedGroup');
+    });
+
+    test('should delete empty group when DELETE called', async ({ page }) => {
+      if (!createdGroupId) test.skip('no group created');
+      const res = await page.request.delete(`${API}/groups/${createdGroupId}`, {
+        headers: { Authorization: `Bearer ${OWNER_JWT}` },
+      });
+      expect(res.status()).toBe(204);
+    });
+
+    test('should return direct children when GET subgroups', async ({ page }) => {
+      // Create a parent group first
+      const parentRes = await page.request.post(`${API}/groups`, {
+        data: { name: 'ParentGroup' },
+        headers: { Authorization: `Bearer ${OWNER_JWT}` },
+      });
+      expect(parentRes.status()).toBe(201);
+      const parent = await parentRes.json();
+      const parentId = parent.id;
+
+      // Create a child group
+      await page.request.post(`${API}/groups`, {
+        data: { name: 'ChildGroup', parent_id: parentId },
+        headers: { Authorization: `Bearer ${OWNER_JWT}` },
+      });
+
+      // List subgroups
+      const res = await page.request.get(`${API}/groups/${parentId}/subgroups`, {
+        headers: { Authorization: `Bearer ${OWNER_JWT}` },
+      });
+      expect(res.status()).toBe(200);
+      const body = await res.json();
+      const items = body.data ?? body.subgroups ?? body;
+      expect(Array.isArray(items)).toBe(true);
+    });
+  });
+
+  // ==============================================================
+  // Project CRUD
+  // ==============================================================
+  test.describe('Project CRUD', () => {
+    test('should create project under group when Owner sends POST', async ({ page }) => {
+      const res = await page.request.post(`${API}/projects`, {
+        data: { name: 'TestProject', description: 'E2E test project' },
+        headers: { Authorization: `Bearer ${OWNER_JWT}` },
+      });
+      expect(res.status()).toBe(201);
+      const body = await res.json();
+      expect(body.id).toBeDefined();
+      expect(body.name).toBe('TestProject');
+      createdProjectId = body.id;
+    });
+
+    test('should list projects with pagination when GET called', async ({ page }) => {
+      const res = await page.request.get(`${API}/projects?page=1&perPage=10`, {
+        headers: { Authorization: `Bearer ${OWNER_JWT}` },
+      });
+      expect(res.status()).toBe(200);
+      const body = await res.json();
+      const items = body.data ?? body.projects ?? body;
+      expect(Array.isArray(items)).toBe(true);
+    });
+
+    test('should return project metadata when GET by id', async ({ page }) => {
+      if (!createdProjectId) test.skip('no project created');
+      const res = await page.request.get(`${API}/projects/${createdProjectId}`, {
+        headers: { Authorization: `Bearer ${OWNER_JWT}` },
+      });
+      expect(res.status()).toBe(200);
+      const body = await res.json();
+      expect(body.id).toBe(createdProjectId);
+    });
+
+    test('should update project when PUT called', async ({ page }) => {
+      if (!createdProjectId) test.skip('no project created');
+      const res = await page.request.put(`${API}/projects/${createdProjectId}`, {
+        data: { name: 'UpdatedProject', description: 'Updated desc' },
+        headers: { Authorization: `Bearer ${OWNER_JWT}` },
+      });
+      expect(res.status()).toBe(200);
+    });
+
+    test('should delete project when DELETE called', async ({ page }) => {
+      if (!createdProjectId) test.skip('no project created');
+      const res = await page.request.delete(`${API}/projects/${createdProjectId}`, {
+        headers: { Authorization: `Bearer ${OWNER_JWT}` },
+      });
+      expect(res.status()).toBe(204);
+    });
+  });
+
+  // ==============================================================
+  // Member CRUD
+  // ==============================================================
+  test.describe('Member CRUD', () => {
+    test('should list members with roles when GET called', async ({ page }) => {
+      const res = await page.request.get(`${API}/ontologies/test-ont/members`, {
+        headers: { Authorization: `Bearer ${OWNER_JWT}` },
+      });
+      expect(res.status()).toBe(200);
+    });
+
+    test('should add member when Owner sends POST', async ({ page }) => {
+      const res = await page.request.post(`${API}/ontologies/test-ont/members`, {
+        data: { user_id: 'test-user', role: 'Editor' },
+        headers: { Authorization: `Bearer ${OWNER_JWT}` },
+      });
+      expect(res.status()).toBe(201);
+    });
+
+    test('should update member role when Owner sends PUT', async ({ page }) => {
+      const res = await page.request.put(`${API}/ontologies/test-ont/members/test-user`, {
+        data: { role: 'Viewer' },
+        headers: { Authorization: `Bearer ${OWNER_JWT}` },
+      });
+      expect(res.status()).toBe(200);
+    });
+
+    test('should remove member when Owner sends DELETE', async ({ page }) => {
+      const res = await page.request.delete(`${API}/ontologies/test-ont/members/test-user`, {
+        headers: { Authorization: `Bearer ${OWNER_JWT}` },
+      });
+      expect(res.status()).toBe(204);
+    });
+  });
+
+  // ==============================================================
+  // Authentication gates
+  // ==============================================================
+  test.describe('Authentication gates', () => {
+    test('should reject request when no Authorization header', async ({ page }) => {
+      const res = await page.request.get(`${API}/groups`);
+      expect(res.status()).toBe(401);
+    });
+
+    test('should reject write when Viewer JWT used', async ({ page }) => {
+      const res = await page.request.post(`${API}/groups`, {
+        data: { name: 'ShouldFail' },
+        headers: { Authorization: `Bearer ${VIEWER_JWT}` },
+      });
+      expect(res.status()).toBe(403);
+    });
+  });
+});

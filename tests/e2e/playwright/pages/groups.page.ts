@@ -26,4 +26,20 @@ export class GroupsPage {
     await this.page.locator('.gp-search-input').fill(query);
     await this.page.keyboard.press('Enter');
   }
+
+  getVisibilityIcons() {
+    return this.page.locator('.gp-visibility-icon');
+  }
+
+  getChildGroups() {
+    return this.page.locator('.group-child-row');
+  }
+
+  getGroupCount(): Promise<number> {
+    return this.page.locator('.gp-row').count();
+  }
+
+  async clickNewGroup() {
+    await this.page.getByRole('button', { name: /new group/i }).click();
+  }
 }

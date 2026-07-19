@@ -1,4 +1,4 @@
-//! Class (TBox) CRUD operations against Neo4j.
+//! Class (`TBox`) CRUD operations against Neo4j.
 //!
 //! Provides the domain model (`OwlClass`), a repository layer for Neo4j
 //! Cypher queries, and axum HTTP handlers for the REST API.
@@ -1371,6 +1371,7 @@ pub async fn get_neighborhood_handler(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::clients::auth_client::AuthClient;
     use axum::{http::StatusCode, response::IntoResponse};
 
     // ── Serialization Tests ─────────────────────────────────────────────────
@@ -1485,7 +1486,10 @@ mod tests {
 
     #[test]
     fn test_repo_from_state_none_returns_error() {
-        let state = AppState { neo4j: None };
+        let state = AppState {
+            neo4j: None,
+            auth_client: AuthClient::new(None),
+        };
         let result = repo_from_state(&state);
         assert!(result.is_err());
         assert!(result.is_err());

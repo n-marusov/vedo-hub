@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"vedo-core/src/services/api-gateway/handlers"
+	"vedo-core/src/services/api-gateway/middleware"
 	"vedo-core/src/services/api-gateway/models"
 	"vedo-core/src/services/api-gateway/proxy"
 )
@@ -58,12 +59,55 @@ func RegisterRoutes(r *gin.Engine, grpcPool *proxy.GrpcClientPool) {
 	authGrpc := proxy.NewAuthServiceClient(grpcPool, proxy.GrpcAddrAuth)
 	aiOrchGrpc := proxy.NewAIOrchestrationServiceClient(grpcPool, proxy.GrpcAddrAIOrch)
 
-	// Suppress unused variable warnings for future-use clients
 	_ = versioningGrpc
 	_ = authGrpc
 
 	// API v1 routes — auth middleware applied at engine level (see main.go)
 	api := r.Group("/api/v1")
+
+	// Org management routes — groups, projects, members, visibility, policies.
+	orgClient := proxy.NewOrgServiceClient(grpcPool, proxy.GrpcAddrAuth)
+	orgHandler := handlers.NewOrgHandler(orgClient)
+
+	// Idempotency middleware for org write endpoints (REQ-FUN.API.write-idempotency).
+	// Uses in-memory store by default; Redis backend when REDIS_URL is set.
+	idemStore := middleware.NewMemIdempotencyStore()
+	idemMiddleware := middleware.Idempotency(&middleware.IdempotencyConfig{
+		Store:         idemStore,
+		CriticalPaths: []string{"/api/v1/ontologies/"}, // membership paths require Idempotency-Key
+	})
+
+	api.GET("/groups", orgHandler.HandleListGroups)
+	api.GET("/groups/:id", orgHandler.HandleGetGroup)
+	api.GET("/groups/:id/subgroups", orgHandler.HandleListChildGroups)
+	api.GET("/groups/:id/members", orgHandler.HandleListMembers)
+
+	api.GET("/projects", orgHandler.HandleListProjects)
+	api.GET("/projects/:id", orgHandler.HandleGetProject)
+
+	api.GET("/ontologies/:id/members", orgHandler.HandleListMembers)
+	api.GET("/ontologies/:id/visibility", orgHandler.HandleGetVisibility)
+	api.GET("/ontologies/:id/policies", orgHandler.HandleListPolicies)
+
+	// Org write endpoints with idempotency middleware
+	orgWrite := api.Group("")
+	orgWrite.Use(idemMiddleware)
+
+	orgWrite.POST("/groups", orgHandler.HandleCreateGroup)
+	orgWrite.PUT("/groups/:id", orgHandler.HandleUpdateGroup)
+	orgWrite.DELETE("/groups/:id", orgHandler.HandleDeleteGroup)
+
+	orgWrite.POST("/projects", orgHandler.HandleCreateProject)
+	orgWrite.PUT("/projects/:id", orgHandler.HandleUpdateProject)
+	orgWrite.DELETE("/projects/:id", orgHandler.HandleDeleteProject)
+
+	orgWrite.POST("/ontologies/:id/members", orgHandler.HandleAddMember)
+	orgWrite.PUT("/ontologies/:id/members/:userId", orgHandler.HandleUpdateMemberRole)
+	orgWrite.DELETE("/ontologies/:id/members/:userId", orgHandler.HandleRemoveMember)
+
+	orgWrite.PUT("/ontologies/:id/visibility", orgHandler.HandleSetVisibility)
+	orgWrite.POST("/ontologies/:id/policies", orgHandler.HandleCreatePolicy)
+	orgWrite.DELETE("/ontologies/:id/policies/:policyId", orgHandler.HandleDeletePolicy)
 
 	// Ontology REST read handlers — use gRPC.
 	ontologyHandler := handlers.NewOntologyHandler(ontologyProxy, ontologyGrpc)

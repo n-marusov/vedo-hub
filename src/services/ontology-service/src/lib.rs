@@ -4,6 +4,7 @@
 //! and shared state into a single axum `Router`.
 
 pub mod classes;
+pub mod clients;
 pub mod error;
 pub mod graphql;
 pub mod handlers;
@@ -15,6 +16,7 @@ pub mod services;
 
 use std::sync::Arc;
 
+use crate::clients::auth_client::AuthClient;
 use axum::{
     extract::State,
     routing::{get, post},
@@ -31,6 +33,7 @@ pub const DEFAULT_PORT: &str = "8082";
 #[derive(Clone)]
 pub struct AppState {
     pub neo4j: Option<neo4j::Neo4jPool>,
+    pub auth_client: AuthClient,
 }
 
 #[derive(Serialize)]
@@ -253,7 +256,10 @@ mod tests {
     use tower::ServiceExt;
 
     fn test_state() -> Arc<AppState> {
-        Arc::new(AppState { neo4j: None })
+        Arc::new(AppState {
+            neo4j: None,
+            auth_client: AuthClient::new(None),
+        })
     }
 
     #[tokio::test]

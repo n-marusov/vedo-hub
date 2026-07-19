@@ -57,12 +57,14 @@ type OrgStore interface {
 	GetUserMemberships(userID string) ([]OrgMembership, error)
 	GetEffectiveMemberships(userID, scope string) ([]OrgMembership, error)
 	UpsertPolicy(p AttributePolicy) error
+	DeletePolicy(scope string, policyID string) error
 	GetPolicies(scope string) ([]AttributePolicy, error)
 	GetAllPolicies() ([]AttributePolicy, error)
 	SetVisibility(scope string, v Visibility) error
 	GetVisibility(scope string) (Visibility, error)
 	GetScope(id string) (*ScopeNode, error)
 	UpsertScope(s ScopeNode) error
+	DeleteScope(id string) error
 	ListChildScopes(parentID string) ([]ScopeNode, error)
 	ListAllScopes() ([]ScopeNode, error)
 	InvalidateCache(scope string)

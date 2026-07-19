@@ -1197,6 +1197,7 @@ pub struct DeletePropertyParams {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::clients::auth_client::AuthClient;
     use axum::{http::StatusCode, response::IntoResponse};
 
     // ── Model / Serialization Tests ─────────────────────────────────────────
@@ -1502,7 +1503,10 @@ mod tests {
 
     #[test]
     fn test_repo_from_state_none_returns_error() {
-        let state = AppState { neo4j: None };
+        let state = AppState {
+            neo4j: None,
+            auth_client: AuthClient::new(None),
+        };
         let result = repo_from_state(&state);
         assert!(result.is_err());
     }

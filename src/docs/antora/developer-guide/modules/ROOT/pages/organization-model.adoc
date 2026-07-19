@@ -1,0 +1,99 @@
+= Organizational Model
+:author: VEDO Core Team
+:revnumber: 0.2.0
+:description: Multi-team organization model with group hierarchy, project catalog, role-based membership, and visibility levels.
+
+== Overview
+
+The organizational model provides GitLab-like group hierarchy and project catalog for multi-tenant ontology management. It replaces the Apollo GraphQL test fixtures with a real backend backed by PostgreSQL.
+
+Architecture: `auth-service` owns org data (PostgreSQL), exposes gRPC API. `api-gateway` proxies REST/GraphQL to auth-service gRPC.
+
+== Key Concepts
+
+* Group: hierarchical scope node (type=group) with parent-child relationships
+* Project (Ontology): scope node (type=ontology) under a group
+* Membership: role assignment (user_id + scope + role)
+* Visibility: Private | Internal | Public per scope
+* Inheritance: memberships propagate from parent to child (max-role-wins)
+* Max Role Wins: highest role across inherited and direct memberships
+
+== Role Hierarchy
+
+[cols="1,2"]
+|===
+| Role | Priority
+| Viewer | 1
+| Editor | 2
+| Maintainer | 3
+| SupportEngineer | 4
+| SRE | 5
+| SecurityLead | 6
+| ProductOwner | 7
+| Owner | 8
+|===
+
+Only Owners can manage memberships, change visibility, and manage policies.
+
+== PostgreSQL Schema
+
+The `vedo_org` database contains four tables:
+
+* `scopes` — group/ontology hierarchy nodes with visibility + tenant isolation
+* `memberships` — role assignments with UNIQUE(scope, user_id)
+* `attribute_policies` — ABAC policy definitions (JSONB pattern)
+* `audit_events` — authorization audit trail
+
+Migrations: `src/services/auth-service/migrations/` (001-005)
+
+== Environment Variables
+
+[cols="1,2"]
+|===
+| Variable | Description
+| `AUTH_SERVICE_DATABASE_URL` | PostgreSQL connection string for org data
+| `REDIS_URL` | Redis connection for idempotency cache
+|===
+
+== REST API Endpoints
+
+All endpoints require `Authorization: Bearer <JWT>` header.
+
+=== Groups
+
+* `GET /api/v1/groups` — list all groups
+* `POST /api/v1/groups` — create group (Owner)
+* `GET /api/v1/groups/:id` — get group details
+* `PUT /api/v1/groups/:id` — update group (Owner)
+* `DELETE /api/v1/groups/:id` — delete group (Owner, must be empty)
+* `GET /api/v1/groups/:id/subgroups` — list child groups
+* `GET /api/v1/groups/:id/members` — list group members
+
+=== Projects
+
+* `GET /api/v1/projects` — list projects (paginated, searchable)
+* `POST /api/v1/projects` — create project (Owner)
+* `GET /api/v1/projects/:id` — get project details
+* `PUT /api/v1/projects/:id` — update project (Owner)
+* `DELETE /api/v1/projects/:id` — delete project (Owner)
+
+=== Members
+
+* `GET /api/v1/ontologies/:id/members` — list ontology members
+* `POST /api/v1/ontologies/:id/members` — add member (Owner)
+* `PUT /api/v1/ontologies/:id/members/:userId` — update role (Owner)
+* `DELETE /api/v1/ontologies/:id/members/:userId` — remove member (Owner)
+
+=== Visibility
+
+* `PUT /api/v1/ontologies/:id/visibility` — set visibility (Owner)
+* `GET /api/v1/ontologies/:id/visibility` — get visibility
+
+== Idempotency
+
+All write endpoints support `Idempotency-Key` header (REQ-FUN.API.write-idempotency).
+
+* Same key + same body: returns cached response
+* Same key + different body: 409 IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_PAYLOAD
+* Missing key on membership endpoints: 400 INVALID_IDEMPOTENCY_KEY
+* TTL: 24 hours (Redis or in-memory storage)

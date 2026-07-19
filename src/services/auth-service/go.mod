@@ -4,8 +4,10 @@ go 1.22
 
 require (
 	github.com/gin-gonic/gin v1.9.1
+	github.com/lib/pq v1.12.3
 	github.com/prometheus/client_golang v1.19.1
 	google.golang.org/grpc v1.64.0
+	vedo-core/src/services/shared/proto v0.0.0-00010101000000-000000000000
 )
 
 require (

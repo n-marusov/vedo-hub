@@ -1157,11 +1157,15 @@ pub struct DeleteIndividualParams {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::clients::auth_client::AuthClient;
     use crate::AppState;
     use axum::{http::StatusCode, response::IntoResponse};
 
     fn test_app_state() -> Arc<AppState> {
-        Arc::new(AppState { neo4j: None })
+        Arc::new(AppState {
+            neo4j: None,
+            auth_client: AuthClient::new(None),
+        })
     }
 
     // ── Domain Model Serialization ──────────────────────────────────────────

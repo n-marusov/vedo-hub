@@ -1807,3 +1807,74 @@ base:gui/component/create-individual-dialog vdo:implements base:design/page/dial
 base:gui/component/annotation-dialog vdo:implements base:design/page/dialogs .
 base:gui/component/mfa-challenge-dialog vdo:implements base:design/page/dialogs .
 base:gui/component/publish-snapshot-dialog vdo:implements base:design/page/dialogs .
+
+# =============================================================================
+# M2.1 — Multi-Team Organization Model Traceability
+# =============================================================================
+
+base:nfr/org-access-model a vdo:NonFunctionalRequirement ;
+    rdfs:label "Organization Access Model"@en ;
+    rdfs:comment "Multi-team organization model with group hierarchy, project catalog, role-based membership, and visibility levels"@en ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.organization-access-model.md" .
+
+base:adr/gitlab-like-org a vdo:ArchitectureDecisionRecord ;
+    rdfs:label "GitLab-like Organization Model ADR"@en ;
+    rdfs:comment "Architecture decision to implement GitLab-like organizational model for VEDO Core"@en ;
+    vdo:filePath "specs/adr/ADR-DES.SECURITY.gitlab-like-organization-model.md" .
+
+# Code → ADR traceability
+base:src/auth-org-impl a vdo:CodeArtifact ;
+    rdfs:label "Org Authorization Service Implementation"@en ;
+    vdo:filePath "src/services/auth-service/org/org.go" ;
+    vdo:implements base:adr/gitlab-like-org .
+
+# Test suites
+base:test/org-groups-wired a vdo:TestSuite ;
+    rdfs:label "Groups Page Wired E2E Tests"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/groups-page-wired.spec.ts" ;
+    vdo:validates base:nfr/org-access-model .
+
+base:test/org-projects-wired a vdo:TestSuite ;
+    rdfs:label "Projects Page Wired E2E Tests"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/projects-page-wired.spec.ts" ;
+    vdo:validates base:nfr/org-access-model .
+
+base:test/org-members-wired a vdo:TestSuite ;
+    rdfs:label "Members Page Wired E2E Tests"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/members-page-wired.spec.ts" ;
+    vdo:validates base:nfr/org-access-model .
+
+base:test/org-rest-api a vdo:TestSuite ;
+    rdfs:label "Org REST API Tests"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/api/rest/org-api.spec.ts" ;
+    vdo:validates base:nfr/org-access-model .
+
+base:test/org-lifecycle a vdo:TestSuite ;
+    rdfs:label "Org Lifecycle User-Story Tests"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/org-lifecycle.spec.ts" ;
+    vdo:validates base:nfr/org-access-model .
+
+base:test/org-security-access a vdo:TestSuite ;
+    rdfs:label "Org Access Control Security Tests"@en ;
+    vdo:filePath "tests/security/org_access_control_test.go" ;
+    vdo:validates base:nfr/org-access-model, base:nfr/security-bola-bfla .
+
+base:test/org-grpc-contract a vdo:TestSuite ;
+    rdfs:label "Org gRPC Contract Tests"@en ;
+    vdo:filePath "src/services/auth-service/org/org_grpc_test.go" ;
+    vdo:validates base:nfr/org-access-model .
+
+base:test/org-postgres-schema a vdo:TestSuite ;
+    rdfs:label "Org PostgreSQL Schema Contract Tests"@en ;
+    vdo:filePath "src/services/auth-service/org/postgres_store_test.go" ;
+    vdo:validates base:nfr/org-access-model .
+
+base:test/org-proto-validation a vdo:TestSuite ;
+    rdfs:label "Org Proto Validation Tests"@en ;
+    vdo:filePath "src/services/auth-service/org/org_proto_validation_test.go" ;
+    vdo:validates base:nfr/org-access-model .
+
+base:test/org-graphql-resolvers a vdo:TestSuite ;
+    rdfs:label "Org GraphQL Resolver Tests"@en ;
+    vdo:filePath "src/services/ontology-service/tests/org_resolvers_test.rs" ;
+    vdo:validates base:nfr/org-access-model .

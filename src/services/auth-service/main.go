@@ -18,6 +18,10 @@ import (
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
+
+	grpcserver "vedo-core/src/services/auth-service/internal/grpc"
+	"vedo-core/src/services/auth-service/org"
+	authv1 "vedo-core/src/services/shared/proto/auth/v1"
 )
 
 const serviceName = "auth-service"
@@ -54,7 +58,7 @@ func grpcServerOptions() []grpc.ServerOption {
 
 	creds := credentials.NewTLS(&tls.Config{
 		Certificates: []tls.Certificate{cert},
-		ClientAuth:   tls.NoClientCert, // Phase 1: server-side TLS only
+		ClientAuth:   tls.NoClientCert,
 	})
 
 	slog.Info("grpc.tls.server_enabled", "cert", certFile)
@@ -78,9 +82,48 @@ func main() {
 	})
 	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
-	// ---- gRPC Server (auth service) ----
+	// ---- Initialize Org Store and Service ----
+	databaseURL := os.Getenv("AUTH_SERVICE_DATABASE_URL")
+	if databaseURL == "" {
+		databaseURL = os.Getenv("DATABASE_URL")
+	}
+
+	var orgStore org.OrgStore
+	var usePostgres bool
+
+	if databaseURL != "" {
+		pgStore, err := org.NewPostgresOrgStore(context.Background(), databaseURL)
+		if err != nil {
+			slog.Warn("postgres.org_store_init_failed", "error", err, "fallback", "memstore")
+			orgStore = org.NewMemStore()
+			usePostgres = false
+		} else {
+			orgStore = pgStore
+			usePostgres = true
+			defer pgStore.Close()
+		}
+	} else {
+		slog.Info("store.using_memstore", "reason", "AUTH_SERVICE_DATABASE_URL not set")
+		orgStore = org.NewMemStore()
+	}
+
+	orgService := org.NewOrgService(orgStore)
+	orgGrpcServer := grpcserver.NewOrgGrpcServer(orgService)
+
+	slog.Info("org.service.initialized",
+		"store_type", map[bool]string{true: "postgres", false: "memory"}[usePostgres],
+		"cache_ttl", "300s",
+	)
+
+	// ---- gRPC Server ----
 	grpcOpts := grpcServerOptions()
 	grpcSrv := grpc.NewServer(grpcOpts...)
+
+	// Register AuthService (legacy)
+	authv1.RegisterAuthServiceServer(grpcSrv, &grpcserver.AuthGrpcServer{})
+
+	// Register OrgService
+	authv1.RegisterOrgServiceServer(grpcSrv, orgGrpcServer)
 
 	// Health check service for gRPC
 	healthSrv := health.NewServer()
@@ -119,8 +162,12 @@ func main() {
 		}
 	}()
 
-	slog.Info("auth-service running", "http_port", httpPort, "grpc_port", grpcPort,
-		"note", "gRPC AuthService RPCs not yet registered; run 'make proto-generate' to enable")
+	slog.Info("auth-service running",
+		"http_port", httpPort,
+		"grpc_port", grpcPort,
+		"org_rpcs_registered", true,
+		"grpc_services", []string{"AuthService", "OrgService", "Health", "Reflection"},
+	)
 
 	// Graceful shutdown
 	quit := make(chan os.Signal, 1)
@@ -135,8 +182,3 @@ func main() {
 	_ = httpSrv.Shutdown(ctx)
 	slog.Info("server stopped", "service", serviceName)
 }
-
-// NOTE: After running `make proto-generate`, register the AuthServiceServer:
-//
-//	import authv1 "vedo-core/src/services/shared/proto/auth/v1"
-//	authv1.RegisterAuthServiceServer(grpcSrv, &grpcServer.AuthGrpcServer{})

@@ -9,10 +9,12 @@
 //! the existing REST endpoints and proxied through the API Gateway. They
 //! can be mirrored to GraphQL mutations later without breaking the schema.
 
+use std::sync::Arc;
+
 use async_graphql::{Context, InputObject, Object, Result};
 use chrono::Utc;
 
-use super::types::GqlDraftUpdateResult;
+use super::types::{GqlDraftUpdateResult, GqlMember};
 
 /// Input for the `updateDraft` mutation.
 ///
@@ -59,5 +61,59 @@ impl MutationRoot {
             success: true,
             timestamp,
         })
+    }
+
+    // ── Organization model mutations ─────────────────────────────────
+
+    /// Updates a member's role in an ontology scope.
+    async fn update_member_role(
+        &self,
+        ctx: &Context<'_>,
+        ontology_id: String,
+        user_id: String,
+        role: String,
+    ) -> Result<GqlMember> {
+        use crate::AppState;
+        let state = ctx
+            .data::<Arc<AppState>>()
+            .map_err(|e| async_graphql::Error::new(format!("Failed to access app state: {e:?}")))?;
+
+        let scope = format!("ontology/{}", ontology_id);
+        let member = state
+            .auth_client
+            .update_member_role(&scope, &user_id, &role)
+            .await
+            .map_err(|e| async_graphql::Error::new(format!("Failed to update member role: {e}")))?;
+
+        Ok(GqlMember {
+            user_id: member.user_id,
+            scope: member.scope,
+            role: member.role,
+            username: None,
+            avatar_url: None,
+            added_at: None,
+        })
+    }
+
+    /// Removes a member from an ontology scope.
+    async fn remove_member(
+        &self,
+        ctx: &Context<'_>,
+        ontology_id: String,
+        user_id: String,
+    ) -> Result<bool> {
+        use crate::AppState;
+        let state = ctx
+            .data::<Arc<AppState>>()
+            .map_err(|e| async_graphql::Error::new(format!("Failed to access app state: {e:?}")))?;
+
+        let scope = format!("ontology/{}", ontology_id);
+        state
+            .auth_client
+            .remove_member(&scope, &user_id)
+            .await
+            .map_err(|e| async_graphql::Error::new(format!("Failed to remove member: {e}")))?;
+
+        Ok(true)
     }
 }

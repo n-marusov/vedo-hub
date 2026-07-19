@@ -3,7 +3,10 @@ package org
 // @ctx: contracts ORG-ACCESS-001 — In-memory implementation of OrgStore
 // @hlv store_in_postgres
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+)
 
 // @hlv:sec [AUTH_BOUNDARY] — Store holds all authorization data; must maintain invariants.
 
@@ -195,6 +198,42 @@ func (m *MemStore) ListAllScopes() ([]ScopeNode, error) {
 }
 
 func (m *MemStore) InvalidateCache(scope string) {}
+
+// DeleteScope removes a scope and associated data.
+func (m *MemStore) DeleteScope(id string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	delete(m.scopes, id)
+	delete(m.visibility, id)
+	delete(m.memberships, id)
+	delete(m.policies, id)
+	// Clean up user index entries for this scope
+	for uid, mems := range m.userIndex {
+		filtered := mems[:0]
+		for _, mem := range mems {
+			if mem.Scope != id {
+				filtered = append(filtered, mem)
+			}
+		}
+		m.userIndex[uid] = filtered
+	}
+	return nil
+}
+
+// DeletePolicy removes a policy from a scope by matching pattern + right.
+func (m *MemStore) DeletePolicy(scope string, policyID string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	pols := m.policies[scope]
+	for i, p := range pols {
+		// Use pattern + right as policy identity
+		if fmt.Sprintf("%v:%s", p.Pattern, p.Right) == policyID {
+			m.policies[scope] = append(pols[:i], pols[i+1:]...)
+			return nil
+		}
+	}
+	return nil
+}
 
 func eqPatterns(a, b map[string]string) bool {
 	if len(a) != len(b) {

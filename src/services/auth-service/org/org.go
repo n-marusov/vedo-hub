@@ -31,6 +31,16 @@ func NewOrgService(store OrgStore) *OrgService {
 	}
 }
 
+// Store returns the underlying OrgStore for gRPC handlers needing direct store access.
+func (s *OrgService) Store() OrgStore {
+	return s.store
+}
+
+// Cache returns the cache store for invalidation.
+func (s *OrgService) Cache() *CacheStore {
+	return s.cache
+}
+
 // GetEffectiveRole resolves the highest role a user has for a scope, considering inheritance.
 // @hlv max_role_wins
 func (s *OrgService) GetEffectiveRole(userID, scope string) (string, error) {

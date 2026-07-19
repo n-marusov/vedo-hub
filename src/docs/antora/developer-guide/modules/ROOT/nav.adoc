@@ -3,3 +3,4 @@
 * xref:architecture.adoc[Architecture]
 * xref:configuration.adoc[Configuration]
 * xref:testing.adoc[Testing]
+* xref:organization-model.adoc[Organizational Model]

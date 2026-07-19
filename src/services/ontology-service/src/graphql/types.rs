@@ -319,3 +319,42 @@ pub struct GqlDraftUpdateResult {
     pub success: bool,
     pub timestamp: String,
 }
+
+// ── Organization model types (Group / Project / Member) ─────────────────
+
+/// A group in the organization hierarchy.
+#[derive(SimpleObject)]
+#[graphql(name = "Group")]
+pub struct GqlGroup {
+    pub id: String,
+    pub name: Option<String>,
+    pub description: Option<String>,
+    pub parent_group_id: Option<String>,
+    pub visibility: Option<String>,
+    pub member_count: Option<i32>,
+    pub project_count: Option<i32>,
+}
+
+/// A project (ontology) in the organization.
+#[derive(SimpleObject)]
+#[graphql(name = "Project")]
+pub struct GqlProject {
+    pub id: String,
+    pub name: Option<String>,
+    pub description: Option<String>,
+    pub visibility: Option<String>,
+    pub member_count: Option<i32>,
+    pub updated_at: Option<String>,
+}
+
+/// A member with role assignment.
+#[derive(SimpleObject)]
+#[graphql(name = "Member")]
+pub struct GqlMember {
+    pub user_id: String,
+    pub scope: String,
+    pub role: String,
+    pub username: Option<String>,
+    pub avatar_url: Option<String>,
+    pub added_at: Option<String>,
+}

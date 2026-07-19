@@ -1,7 +1,10 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use ontology_service::{build_app, init_neo4j_pool, AppState, DEFAULT_PORT, SERVICE_NAME};
+use ontology_service::{
+    build_app, clients::auth_client::AuthClient, init_neo4j_pool, AppState, DEFAULT_PORT,
+    SERVICE_NAME,
+};
 use tonic::transport::server::ServerTlsConfig;
 use tonic::transport::Server;
 use vedo_shared::protos::ontology::v1::ontology_service_server::OntologyServiceServer;
@@ -17,7 +20,11 @@ async fn main() {
 
     // Initialize Neo4j connection pool
     let neo4j_pool = init_neo4j_pool().await;
-    let state = Arc::new(AppState { neo4j: neo4j_pool });
+    let auth_client = AuthClient::new(None);
+    let state = Arc::new(AppState {
+        neo4j: neo4j_pool,
+        auth_client,
+    });
 
     // Clone state for gRPC server
     let grpc_state = state.clone();

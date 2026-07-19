@@ -29,4 +29,12 @@ export class ProjectsPage {
   async clickProject(name: string) {
     await this.page.locator('.pp-row', { hasText: name }).click();
   }
+
+  getProjectCount(): Promise<number> {
+    return this.page.locator('.pp-row').count();
+  }
+
+  getVisibilityIcons() {
+    return this.page.locator('.pp-visibility-icon');
+  }
 }

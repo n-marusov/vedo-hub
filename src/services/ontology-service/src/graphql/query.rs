@@ -561,9 +561,89 @@ impl QueryRoot {
             total: branch_page.total as i64,
         })
     }
+
+    // ── Organization model resolvers (groups / projects / members) -----
+
+    /// Returns all groups from the auth-service.
+    async fn groups(&self, ctx: &Context<'_>, _q: Option<String>) -> Result<Vec<GqlGroup>> {
+        use crate::AppState;
+        let state = ctx
+            .data::<Arc<AppState>>()
+            .map_err(|e| async_graphql::Error::new(format!("Failed to access app state: {e:?}")))?;
+        let groups = state.auth_client.list_groups().await.map_err(map_error)?;
+        Ok(groups
+            .into_iter()
+            .map(|g| GqlGroup {
+                id: g.id,
+                name: g.name,
+                description: g.description,
+                parent_group_id: g.parent_id,
+                visibility: g.visibility,
+                member_count: None,
+                project_count: None,
+            })
+            .collect())
+    }
+
+    /// Returns all projects from the auth-service.
+    async fn projects(
+        &self,
+        ctx: &Context<'_>,
+        _q: Option<String>,
+        _sort_by: Option<String>,
+        _sort_dir: Option<String>,
+        page: Option<i32>,
+        per_page: Option<i32>,
+    ) -> Result<Vec<GqlProject>> {
+        use crate::AppState;
+        let state = ctx
+            .data::<Arc<AppState>>()
+            .map_err(|e| async_graphql::Error::new(format!("Failed to access app state: {e:?}")))?;
+        let projects = state
+            .auth_client
+            .list_projects(page, per_page)
+            .await
+            .map_err(map_error)?;
+        Ok(projects
+            .into_iter()
+            .map(|p| GqlProject {
+                id: p.id,
+                name: p.name,
+                description: p.description,
+                visibility: p.visibility,
+                member_count: None,
+                updated_at: None,
+            })
+            .collect())
+    }
+
+    /// Returns members for a given ontology scope.
+    async fn members(&self, ctx: &Context<'_>, ontology_id: String) -> Result<Vec<GqlMember>> {
+        use crate::AppState;
+        let state = ctx
+            .data::<Arc<AppState>>()
+            .map_err(|e| async_graphql::Error::new(format!("Failed to access app state: {e:?}")))?;
+        let scope = format!("ontology/{}", ontology_id);
+        let members = state
+            .auth_client
+            .list_members(&scope)
+            .await
+            .map_err(map_error)?;
+        Ok(members
+            .into_iter()
+            .map(|m| GqlMember {
+                user_id: m.user_id,
+                scope: m.scope,
+                role: m.role,
+                username: None,
+                avatar_url: None,
+                added_at: None,
+            })
+            .collect())
+    }
 }
 
-// ── versioning mapping helpers ────────────────────────────────────────────────
+// ── versioning mapping helpers ────────────────────────────────
 
 pub(super) fn branch_into_gql(b: super::versioning_client::RemoteBranch) -> GqlBranch {
     GqlBranch {

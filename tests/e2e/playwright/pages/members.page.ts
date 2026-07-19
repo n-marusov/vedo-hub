@@ -25,4 +25,20 @@ export class MembersPage {
     await this.page.locator('.table-row', { hasText: member }).getByRole('button', { name: /remove/i }).click();
     await this.page.getByRole('button', { name: /confirm/i }).click();
   }
+
+  getMemberCount(): Promise<number> {
+    return this.page.locator('.table-row').count();
+  }
+
+  async addMember(username: string, role: string) {
+    await this.page.getByRole('button', { name: /add member/i }).click();
+    await this.page.locator('.add-member-username').fill(username);
+    await this.page.locator('.add-member-role').selectOption(role);
+    await this.page.getByRole('button', { name: /save|add/i }).click();
+  }
+
+  async getMemberRole(username: string): Promise<string | null> {
+    const roleEl = this.page.locator('.table-row', { hasText: username }).locator('.role-badge');
+    return roleEl.textContent();
+  }
 }
