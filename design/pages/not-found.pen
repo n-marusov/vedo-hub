@@ -1,0 +1,136 @@
+{
+  "version": "2.13",
+  "imports": {
+    "B": "../ui-kit.lib.pen"
+  },
+  "children": [
+    {
+      "type": "frame",
+      "id": "nfP",
+      "x": 0,
+      "y": 0,
+      "name": "Not Found (404) Page",
+      "width": 1920,
+      "height": 1080,
+      "fill": "$B:background",
+      "layout": "vertical",
+      "justifyContent": "center",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "text",
+          "id": "nfC",
+          "x": 0,
+          "y": -10,
+          "name": "_notFoundComment",
+          "enabled": false,
+          "fill": "$B:muted-foreground",
+          "content": "404 Not Found page — catch-all route for VEDO Core. Center layout, no header/sidebar.",
+          "fontFamily": "IBM Plex Mono",
+          "fontSize": 10,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "nfCard",
+          "width": 560,
+          "fill": "$B:card",
+          "cornerRadius": 16,
+          "stroke": "$B:border",
+          "strokeWidth": 1,
+          "strokeAlignment": "inner",
+          "layout": "vertical",
+          "gap": 16,
+          "padding": 48,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "nfCode",
+              "fill": "$B:primary",
+              "content": "404",
+              "textAlign": "center",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 48,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "nfTitle",
+              "fill": "$B:foreground",
+              "content": "Page not found",
+              "textAlign": "center",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 20,
+              "fontWeight": "600"
+            },
+            {
+              "type": "text",
+              "id": "nfDesc",
+              "fill": "$B:muted-foreground",
+              "content": "The page you are looking for does not exist or has been moved.",
+              "textAlign": "center",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "nfSep",
+              "width": "fill_container",
+              "height": 1,
+              "fill": "$B:border"
+            },
+            {
+              "type": "frame",
+              "id": "nfCta",
+              "width": 240,
+              "height": 44,
+              "cornerRadius": 8,
+              "fill": "$B:primary",
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "nfCtaLabel",
+                  "fill": "$B:primary-foreground",
+                  "content": "Back to Dashboard",
+                  "textAlign": "center",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "nfIllus",
+              "width": 320,
+              "height": 160,
+              "cornerRadius": 8,
+              "fill": "$B:background",
+              "stroke": "$B:border",
+              "strokeWidth": 1,
+              "strokeDashes": "6 4",
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "nfIllusPlaceholder",
+                  "fill": "$B:muted-foreground",
+                  "content": "Illustration placeholder",
+                  "textAlign": "center",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

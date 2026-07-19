@@ -21,6 +21,8 @@ coverage/
 
 # Environment
 .env
+.env.*
+!.env.example
 .env.local
 .env.*.local
 
@@ -37,3 +39,4 @@ nul
 # Python build artifacts
 *.egg-info/
 .venv/
+**/test-results/

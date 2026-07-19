@@ -136,6 +136,18 @@ func main() {
 	// Register API route groups with proxy handlers
 	RegisterRoutes(r, grpcPool)
 
+	// Log Swagger UI configuration status (dev-only feature per
+	// ADR-DES.API.swagger-ui-dev-only-strategy).
+	{
+		swaggerEnabled := os.Getenv("ENABLE_SWAGGER_UI") == "true" ||
+			os.Getenv("ENABLE_SWAGGER_UI") == "1"
+		slog.Info("swagger.ui.configured",
+			"enabled", swaggerEnabled,
+			"docs_url", "/api/v1/docs",
+			"openapi_url", "/api/v1/openapi.json",
+		)
+	}
+
 	// Start server with timeouts
 	port := getPort()
 	srv := &http.Server{

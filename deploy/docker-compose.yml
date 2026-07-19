@@ -6,57 +6,62 @@ x-healthcheck-defaults: &healthcheck-defaults
   retries: 3
 
 include:
-  - path: ./docker-compose.docs.yaml
+  - docker-compose.docs.yaml
 
 services:
-  # Frontend
+  # ── Frontend — Vue 3 SPA ────────────────────────────────
   frontend:
     build:
-      context: ../src/services/frontend
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: src/docker/Dockerfile.typescript
       args:
-        # Browser-facing Keycloak — compose publishes 8180:8080 on the host.
-        # Realm `vedo-core` declares client `vedo-core-frontend` (not `vedo-spa`).
-        - VITE_KEYCLOAK_REALM=vedo-core
-        - VITE_KEYCLOAK_CLIENT_ID=vedo-core-frontend
-        - VITE_KEYCLOAK_URL=http://localhost:8180
+        SERVICE_DIR: src/services/frontend
+        VITE_KEYCLOAK_REALM: ${VITE_KEYCLOAK_REALM:-vedo-core}
+        VITE_KEYCLOAK_CLIENT_ID: ${VITE_KEYCLOAK_CLIENT_ID:-vedo-core-frontend}
+        VITE_KEYCLOAK_URL: ${VITE_KEYCLOAK_URL:-http://localhost:${KC_HOSTNAME_PORT:-8180}}
     ports:
-      - "3000:3000"
+      - "${FRONTEND_PORT:-3000}:${FRONTEND_CONTAINER_PORT:-3000}"
     environment:
-      - VITE_API_URL=http://localhost:8080
-      - VITE_WS_URL=ws://localhost:8080
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:${API_GATEWAY_PORT:-8080}}
+      - VITE_WS_URL=${VITE_WS_URL:-ws://localhost:${API_GATEWAY_PORT:-8080}}
+      - VITE_KEYCLOAK_URL=${VITE_KEYCLOAK_URL:-http://localhost:${KC_HOSTNAME_PORT:-8180}}
     depends_on:
       api-gateway:
         condition: service_healthy
     networks:
       - vedo-network
-    # nginx:alpine has busybox wget but no node — use wget, hit /health (served from public/health.json)
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/health"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:${FRONTEND_CONTAINER_PORT:-3000}/health"]
 
-  # API Gateway
+  # ── API Gateway — Go (REST/GraphQL → gRPC) ─────────────
   api-gateway:
     build:
-      context: ../src/services
-      dockerfile: api-gateway/Dockerfile
+      context: ..
+      dockerfile: src/docker/Dockerfile.go
+      args:
+        SERVICE_DIR: src/services
+        BINARY_NAME: api-gateway
     ports:
-      - "8080:8080"
+      - "${API_GATEWAY_PORT:-8080}:${API_GATEWAY_CONTAINER_PORT:-8080}"
     environment:
-      - HOST=0.0.0.0
-      - SERVICE_PORT=8080
-      - ONTOLOGY_SERVICE_URL=http://ontology-service:8082
-      - VERSIONING_SERVICE_URL=http://versioning-service:8083
-      - AUTH_SERVICE_URL=http://auth-service:8081
-      - GRPC_ONTOLOGY_ADDR=ontology-service:9001
-      - GRPC_VERSIONING_ADDR=versioning-service:9002
-      - GRPC_AUTH_ADDR=auth-service:9003
-      - GRPC_COMMENTING_ADDR=commenting-service:9004
-      - GRPC_PUBLISHER_ADDR=publisher-service:9005
-      - GRPC_PUBLIC_BROWSE_ADDR=public-browse-api:9011
+      - HOST=${API_GATEWAY_HOST:-0.0.0.0}
+      - SERVICE_PORT=${API_GATEWAY_CONTAINER_PORT:-8080}
+      - ONTOLOGY_SERVICE_URL=${ONTOLOGY_SERVICE_URL:-http://ontology-service:${ONTOLOGY_SERVICE_REST_PORT:-8082}}
+      - VERSIONING_SERVICE_URL=${VERSIONING_SERVICE_URL:-http://versioning-service:${VERSIONING_SERVICE_REST_PORT:-8083}}
+      - AUTH_SERVICE_URL=${AUTH_SERVICE_URL:-http://auth-service:${AUTH_SERVICE_REST_PORT:-8081}}
+      - GRPC_ONTOLOGY_ADDR=${GRPC_ONTOLOGY_ADDR:-ontology-service:${ONTOLOGY_SERVICE_GRPC_PORT:-9001}}
+      - GRPC_VERSIONING_ADDR=${GRPC_VERSIONING_ADDR:-versioning-service:${VERSIONING_SERVICE_CONTAINER_GRPC_PORT:-9002}}
+      - GRPC_AUTH_ADDR=${GRPC_AUTH_ADDR:-auth-service:${AUTH_SERVICE_CONTAINER_GRPC_PORT:-9003}}
+      - GRPC_COMMENTING_ADDR=${GRPC_COMMENTING_ADDR:-commenting-service:${COMMENTING_SERVICE_CONTAINER_GRPC_PORT:-9004}}
+      - GRPC_PUBLISHER_ADDR=${GRPC_PUBLISHER_ADDR:-publisher-service:${PUBLISHER_SERVICE_CONTAINER_GRPC_PORT:-9005}}
+      - GRPC_PUBLIC_BROWSE_ADDR=${GRPC_PUBLIC_BROWSE_ADDR:-public-browse-api:${PUBLIC_BROWSE_CONTAINER_GRPC_PORT:-9011}}
       - GRPC_TLS_ENABLED=${GRPC_TLS_ENABLED:-false}
       - GRPC_CA_CERT_FILE=${GRPC_CA_CERT_FILE:-}
-      - KEYCLOAK_JWKS_URL=http://keycloak:8080/realms/vedo-core/protocol/openid-connect/certs
+      - KEYCLOAK_JWKS_URL=${KEYCLOAK_JWKS_URL:-http://keycloak:8080/realms/vedo-core/protocol/openid-connect/certs}
+      - ENABLE_SWAGGER_UI=${ENABLE_SWAGGER_UI:-true}
+      - UPSTREAM_TIMEOUT=${UPSTREAM_TIMEOUT:-30}
+      - QUERY_MAX_LIMIT=${QUERY_MAX_LIMIT:-1000}
     depends_on:
       ontology-service:
         condition: service_healthy
@@ -78,22 +83,25 @@ services:
       - vedo-network
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8080/health"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:${API_GATEWAY_CONTAINER_PORT:-8080}/health"]
 
-  # Rust Services
+  # ── Ontology Service — Rust (Neo4j) ────────────────────
   ontology-service:
     build:
-      context: ../src/services
-      dockerfile: ontology-service/Dockerfile
+      context: ..
+      dockerfile: src/docker/Dockerfile.rust
+      args:
+        SERVICE_DIR: src/services
+        BINARY_NAME: ontology-service
     expose:
-      - "8082"
+      - "${ONTOLOGY_SERVICE_REST_PORT:-8082}"
     environment:
-      - HOST=0.0.0.0
-      - SERVICE_PORT=8082
-      - GRPC_PORT=9001
-      - NEO4J_URI=bolt://neo4j:7687
-      - NEO4J_USER=neo4j
-      - NEO4J_PASSWORD=password
+      - HOST=${ONTOLOGY_SERVICE_HOST:-0.0.0.0}
+      - SERVICE_PORT=${ONTOLOGY_SERVICE_REST_PORT:-8082}
+      - GRPC_PORT=${ONTOLOGY_SERVICE_GRPC_PORT:-9001}
+      - NEO4J_URI=${NEO4J_URI:-bolt://neo4j:${NEO4J_BOLT_CONTAINER_PORT:-7687}}
+      - NEO4J_USER=${NEO4J_USER:-neo4j}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-password}
       - GRPC_TLS_ENABLED=${GRPC_TLS_ENABLED:-false}
       - GRPC_TLS_CERT_FILE=${GRPC_TLS_CERT_FILE:-}
       - GRPC_TLS_KEY_FILE=${GRPC_TLS_KEY_FILE:-}
@@ -102,24 +110,27 @@ services:
         condition: service_healthy
     networks:
       - vedo-network
-    # debian:bookworm-slim runtime has no wget/curl — use bash /dev/tcp
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/9001; printf \"\" >&3; echo \"gRPC health via grpc_health_probe recommended\"'"]
+      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/${ONTOLOGY_SERVICE_GRPC_PORT:-9001}; printf \"\" >&3; echo \"gRPC health via grpc_health_probe recommended\"'"]
 
+  # ── Versioning Service — Rust (PostgreSQL) ─────────────
   versioning-service:
     build:
-      context: ../src/services
-      dockerfile: versioning-service/Dockerfile
+      context: ..
+      dockerfile: src/docker/Dockerfile.rust
+      args:
+        SERVICE_DIR: src/services
+        BINARY_NAME: versioning-service
     ports:
-      - "9002:9002"
+      - "${VERSIONING_SERVICE_GRPC_PORT:-9002}:${VERSIONING_SERVICE_CONTAINER_GRPC_PORT:-9002}"
     expose:
-      - "8083"
+      - "${VERSIONING_SERVICE_REST_PORT:-8083}"
     environment:
-      - HOST=0.0.0.0
-      - SERVICE_PORT=8083
-      - GRPC_PORT=9002
-      - DATABASE_URL=postgres://postgres:password@postgres:5432/vedo_versioning
+      - HOST=${VERSIONING_SERVICE_HOST:-0.0.0.0}
+      - SERVICE_PORT=${VERSIONING_SERVICE_REST_PORT:-8083}
+      - GRPC_PORT=${VERSIONING_SERVICE_CONTAINER_GRPC_PORT:-9002}
+      - DATABASE_URL=${DATABASE_URL:-postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-password}@postgres:${POSTGRES_CONTAINER_PORT:-5432}/vedo_versioning}
       - GRPC_TLS_ENABLED=${GRPC_TLS_ENABLED:-false}
       - GRPC_TLS_CERT_FILE=${GRPC_TLS_CERT_FILE:-}
       - GRPC_TLS_KEY_FILE=${GRPC_TLS_KEY_FILE:-}
@@ -128,29 +139,30 @@ services:
         condition: service_healthy
     networks:
       - vedo-network
-    # debian:bookworm-slim runtime has no wget/curl — use bash /dev/tcp
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/9002'"]
+      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/${VERSIONING_SERVICE_CONTAINER_GRPC_PORT:-9002}'"]
 
+  # ── Auth Service — Go (Keycloak) ───────────────────────
   auth-service:
     build:
-      context: ../src/services
-      dockerfile: auth-service/Dockerfile
+      context: ..
+      dockerfile: src/docker/Dockerfile.go
+      args:
+        SERVICE_DIR: src/services
+        BINARY_NAME: auth-service
     ports:
-      - "9003:9003"
+      - "${AUTH_SERVICE_GRPC_PORT:-9003}:${AUTH_SERVICE_CONTAINER_GRPC_PORT:-9003}"
     expose:
-      - "8081"
+      - "${AUTH_SERVICE_REST_PORT:-8081}"
     environment:
-      - HOST=0.0.0.0
-      - SERVICE_PORT=8081
-      - GRPC_PORT=9003
-      # Keycloak OIDC for JWT introspection (RFC 7662). The `vedo-core-api`
-      # confidential client and its secret live in deploy/keycloak/vedo-core-realm.json.
-      - KEYCLOAK_URL=http://keycloak:8080
-      - KEYCLOAK_REALM=vedo-core
-      - KEYCLOAK_CLIENT_ID=vedo-core-api
-      - KEYCLOAK_CLIENT_SECRET=vedo-core-api-secret
+      - HOST=${AUTH_SERVICE_HOST:-0.0.0.0}
+      - SERVICE_PORT=${AUTH_SERVICE_REST_PORT:-8081}
+      - GRPC_PORT=${AUTH_SERVICE_CONTAINER_GRPC_PORT:-9003}
+      - KEYCLOAK_URL=${KEYCLOAK_URL:-http://keycloak:8080}
+      - KEYCLOAK_REALM=${KEYCLOAK_REALM:-vedo-core}
+      - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID:-vedo-core-api}
+      - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET:-vedo-core-api-secret}
       - GRPC_TLS_ENABLED=${GRPC_TLS_ENABLED:-false}
       - GRPC_TLS_CERT_FILE=${GRPC_TLS_CERT_FILE:-}
       - GRPC_TLS_KEY_FILE=${GRPC_TLS_KEY_FILE:-}
@@ -161,19 +173,22 @@ services:
       - vedo-network
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8081/health"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:${AUTH_SERVICE_REST_PORT:-8081}/health"]
 
-  # Python Services
+  # ── Metrics Service — Python ───────────────────────────
   metrics-service:
     build:
-      context: ../src/services/metrics-service
+      context: ..
+      dockerfile: src/docker/Dockerfile.python
+      args:
+        SERVICE_DIR: src/services/metrics-service
     ports:
-      - "8084:8084"
+      - "${METRICS_SERVICE_REST_PORT:-8084}:${METRICS_SERVICE_CONTAINER_REST_PORT:-8084}"
     environment:
-      - HOST=0.0.0.0
-      - SERVICE_PORT=8084
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
-      - REDIS_URL=redis://redis:6379
+      - HOST=${METRICS_SERVICE_HOST:-0.0.0.0}
+      - SERVICE_PORT=${METRICS_SERVICE_CONTAINER_REST_PORT:-8084}
+      - RABBITMQ_URL=${RABBITMQ_URL:-amqp://${RABBITMQ_DEFAULT_USER:-guest}:${RABBITMQ_DEFAULT_PASS:-guest}@rabbitmq:${RABBITMQ_CONTAINER_AMQP_PORT:-5672}/}
+      - REDIS_URL=${REDIS_URL:-redis://redis:${REDIS_CONTAINER_PORT:-6379}}
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -181,61 +196,66 @@ services:
         condition: service_healthy
     networks:
       - vedo-network
-    # python:3.12-slim runtime has no wget/curl — use bash /dev/tcp
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/8084; printf \"GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3; grep -q \"200 OK\" <&3'"]
+      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/${METRICS_SERVICE_CONTAINER_REST_PORT:-8084}; printf \"GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3; grep -q \"200 OK\" <&3'"]
 
-  # Publishing — Vue 3 viewer for published ontologies
+  # ── Publishing UI — Vue 3 viewer ──────────────────────
   publish-browse-ui:
     build:
-      context: ../src/services/publish-browse-ui
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: src/docker/Dockerfile.typescript
+      args:
+        SERVICE_DIR: src/services/publish-browse-ui
     ports:
-      - "3002:3002"
+      - "${PUBLISH_BROWSE_UI_PORT:-3002}:${PUBLISH_BROWSE_UI_CONTAINER_PORT:-3002}"
     networks:
       - vedo-network
-    # nginx:alpine — busybox wget, hit /health (served from public/health.json)
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3002/health"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:${PUBLISH_BROWSE_UI_CONTAINER_PORT:-3002}/health"]
 
-  # Publishing — Rust publisher service
+  # ── Publisher Service — Rust ───────────────────────────
   publisher-service:
     build:
-      context: ../src/services
-      dockerfile: publisher-service/Dockerfile
+      context: ..
+      dockerfile: src/docker/Dockerfile.rust
+      args:
+        SERVICE_DIR: src/services
+        BINARY_NAME: publisher-service
     ports:
-      - "9005:9005"
+      - "${PUBLISHER_SERVICE_GRPC_PORT:-9005}:${PUBLISHER_SERVICE_CONTAINER_GRPC_PORT:-9005}"
     expose:
-      - "8086"
+      - "${PUBLISHER_SERVICE_REST_PORT:-8086}"
     environment:
-      - HOST=0.0.0.0
-      - SERVICE_PORT=8086
-      - GRPC_PORT=9005
+      - HOST=${PUBLISHER_SERVICE_HOST:-0.0.0.0}
+      - SERVICE_PORT=${PUBLISHER_SERVICE_REST_PORT:-8086}
+      - GRPC_PORT=${PUBLISHER_SERVICE_CONTAINER_GRPC_PORT:-9005}
       - GRPC_TLS_ENABLED=${GRPC_TLS_ENABLED:-false}
       - GRPC_TLS_CERT_FILE=${GRPC_TLS_CERT_FILE:-}
       - GRPC_TLS_KEY_FILE=${GRPC_TLS_KEY_FILE:-}
     networks:
       - vedo-network
-    # debian:bookworm-slim runtime has no wget/curl — use bash /dev/tcp
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/9005'"]
+      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/${PUBLISHER_SERVICE_CONTAINER_GRPC_PORT:-9005}'"]
 
-  # Public browse — Rust public read-only API
+  # ── Public Browse API — Rust read-only ─────────────────
   public-browse-api:
     build:
-      context: ../src/services
-      dockerfile: public-browse-api/Dockerfile
+      context: ..
+      dockerfile: src/docker/Dockerfile.rust
+      args:
+        SERVICE_DIR: src/services
+        BINARY_NAME: public-browse-api
     ports:
-      - "9011:9011"
+      - "${PUBLIC_BROWSE_GRPC_PORT:-9011}:${PUBLIC_BROWSE_CONTAINER_GRPC_PORT:-9011}"
     expose:
-      - "8087"
+      - "${PUBLIC_BROWSE_REST_PORT:-8087}"
     environment:
-      - HOST=0.0.0.0
-      - SERVICE_PORT=8087
-      - GRPC_PORT=9011
+      - HOST=${PUBLIC_BROWSE_HOST:-0.0.0.0}
+      - SERVICE_PORT=${PUBLIC_BROWSE_REST_PORT:-8087}
+      - GRPC_PORT=${PUBLIC_BROWSE_CONTAINER_GRPC_PORT:-9011}
       - GRPC_TLS_ENABLED=${GRPC_TLS_ENABLED:-false}
       - GRPC_TLS_CERT_FILE=${GRPC_TLS_CERT_FILE:-}
       - GRPC_TLS_KEY_FILE=${GRPC_TLS_KEY_FILE:-}
@@ -244,116 +264,124 @@ services:
         condition: service_healthy
     networks:
       - vedo-network
-    # debian:bookworm-slim runtime has no wget/curl — use bash /dev/tcp
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/9011'"]
+      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/${PUBLIC_BROWSE_CONTAINER_GRPC_PORT:-9011}'"]
 
-  # Commenting — Go service
+  # ── Commenting Service — Go ────────────────────────────
   commenting-service:
     build:
-      context: ../src/services
-      dockerfile: commenting-service/Dockerfile
+      context: ..
+      dockerfile: src/docker/Dockerfile.go
+      args:
+        SERVICE_DIR: src/services
+        BINARY_NAME: commenting-service
     ports:
-      - "9004:9004"
+      - "${COMMENTING_SERVICE_GRPC_PORT:-9004}:${COMMENTING_SERVICE_CONTAINER_GRPC_PORT:-9004}"
     expose:
-      - "8085"
+      - "${COMMENTING_SERVICE_REST_PORT:-8085}"
     environment:
-      - HOST=0.0.0.0
-      - SERVICE_PORT=8085
-      - GRPC_PORT=9004
+      - HOST=${COMMENTING_SERVICE_HOST:-0.0.0.0}
+      - SERVICE_PORT=${COMMENTING_SERVICE_REST_PORT:-8085}
+      - GRPC_PORT=${COMMENTING_SERVICE_CONTAINER_GRPC_PORT:-9004}
       - GRPC_TLS_ENABLED=${GRPC_TLS_ENABLED:-false}
       - GRPC_TLS_CERT_FILE=${GRPC_TLS_CERT_FILE:-}
       - GRPC_TLS_KEY_FILE=${GRPC_TLS_KEY_FILE:-}
     networks:
       - vedo-network
-    # alpine runtime has busybox wget
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8085/health"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:${COMMENTING_SERVICE_REST_PORT:-8085}/health"]
 
-  # Ticket domain — Go (Gin) API
+  # ── Ticket API — Go ────────────────────────────────────
   ticket-api:
     build:
-      context: ../src/services
-      dockerfile: ticket-api/Dockerfile
+      context: ..
+      dockerfile: src/docker/Dockerfile.go
+      args:
+        SERVICE_DIR: src/services
+        BINARY_NAME: ticket-api
     ports:
-      - "9010:9010"
-      - "8088:8088"
+      - "${TICKET_API_GRPC_PORT:-9010}:${TICKET_API_CONTAINER_GRPC_PORT:-9010}"
+      - "${TICKET_API_REST_PORT:-8088}:${TICKET_API_CONTAINER_REST_PORT:-8088}"
     environment:
-      - HOST=0.0.0.0
-      - STUB_PORT=8088
-      - SERVICE_PORT=8088
-      - GRPC_PORT=9010
-      - APP_ENV=development
-      - APP_VERSION=0.2.0
+      - HOST=${TICKET_API_HOST:-0.0.0.0}
+      - STUB_PORT=${TICKET_API_CONTAINER_REST_PORT:-8088}
+      - SERVICE_PORT=${TICKET_API_CONTAINER_REST_PORT:-8088}
+      - GRPC_PORT=${TICKET_API_CONTAINER_GRPC_PORT:-9010}
+      - APP_ENV=${APP_ENV:-development}
+      - APP_VERSION=${APP_VERSION:-0.2.0}
       - GRPC_TLS_ENABLED=${GRPC_TLS_ENABLED:-false}
       - GRPC_TLS_CERT_FILE=${GRPC_TLS_CERT_FILE:-}
       - GRPC_TLS_KEY_FILE=${GRPC_TLS_KEY_FILE:-}
     networks:
       - vedo-network
-    # Gin service reads STUB_PORT (not SERVICE_PORT) — alpine wget
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8088/health"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:${TICKET_API_CONTAINER_REST_PORT:-8088}/health"]
 
-  # Ticket classifier — Python (reads SERVICE_PORT)
+  # ── Ticket Classifier — Python ─────────────────────────
   ticket-classifier:
     build:
-      context: ../src/services/ticket-classifier
+      context: ..
+      dockerfile: src/docker/Dockerfile.python
+      args:
+        SERVICE_DIR: src/services/ticket-classifier
     ports:
-      - "8089:8089"
+      - "${TICKET_CLASSIFIER_PORT:-8089}:${TICKET_CLASSIFIER_CONTAINER_PORT:-8089}"
     environment:
-      - HOST=0.0.0.0
-      - SERVICE_PORT=8089
+      - HOST=${TICKET_CLASSIFIER_HOST:-0.0.0.0}
+      - SERVICE_PORT=${TICKET_CLASSIFIER_CONTAINER_PORT:-8089}
     networks:
       - vedo-network
-    # python:3.12-slim runtime has no wget/curl — use bash /dev/tcp
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/8089; printf \"GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3; grep -q \"200 OK\" <&3'"]
+      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/${TICKET_CLASSIFIER_CONTAINER_PORT:-8089}; printf \"GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3; grep -q \"200 OK\" <&3'"]
 
-  # Ticket telemetry listener — Go (Gin), reads STUB_PORT + CLASSIFIER_URL.
-  # Dockerfile copies ticket-api/ via go.mod replace -> build context = src/services/.
+  # ── Ticket Telemetry Listener — Go ─────────────────────
   ticket-telemetry-listener:
     build:
-      context: ../src/services
-      dockerfile: ticket-telemetry-listener/Dockerfile
+      context: ..
+      dockerfile: src/docker/Dockerfile.go
+      args:
+        SERVICE_DIR: src/services
+        BINARY_NAME: ticket-telemetry-listener
     ports:
-      - "8090:8090"
+      - "${TICKET_TELEMETRY_STUB_PORT:-8090}:${TICKET_TELEMETRY_CONTAINER_STUB_PORT:-8090}"
     environment:
-      - STUB_PORT=8090
-      - CLASSIFIER_URL=http://ticket-classifier:8089
+      - STUB_PORT=${TICKET_TELEMETRY_CONTAINER_STUB_PORT:-8090}
+      - CLASSIFIER_URL=${CLASSIFIER_URL:-http://ticket-classifier:${TICKET_CLASSIFIER_CONTAINER_PORT:-8089}}
     depends_on:
       ticket-classifier:
         condition: service_healthy
     networks:
       - vedo-network
-    # alpine runtime has busybox wget
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8090/health"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:${TICKET_TELEMETRY_CONTAINER_STUB_PORT:-8090}/health"]
 
-  # Document Extractor — Python service for AI-assisted ontology extraction
+  # ── Document Extractor — Python ────────────────────────
   document-extractor:
     build:
-      context: ../src/services/document-extractor
+      context: ..
+      dockerfile: src/docker/Dockerfile.python
+      args:
+        SERVICE_DIR: src/services/document-extractor
     ports:
-      - "9013:9013"
+      - "${DOCUMENT_EXTRACTOR_GRPC_PORT:-9013}:${DOCUMENT_EXTRACTOR_CONTAINER_GRPC_PORT:-9013}"
     expose:
-      - "8092"   # HTTP health
-      - "9013"   # gRPC internal
+      - "${DOCUMENT_EXTRACTOR_HTTP_PORT:-8092}"
     environment:
-      - HOST=0.0.0.0
-      - SERVICE_PORT=8092
-      - ONTOLOGY_SERVICE_URL=ontology-service:9001
+      - HOST=${DOCUMENT_EXTRACTOR_HOST:-0.0.0.0}
+      - SERVICE_PORT=${DOCUMENT_EXTRACTOR_HTTP_PORT:-8092}
+      - ONTOLOGY_SERVICE_GRPC_URL=${ONTOLOGY_SERVICE_GRPC_URL:-ontology-service:${ONTOLOGY_SERVICE_GRPC_PORT:-9001}}
       - LLM_PROVIDER=${LLM_PROVIDER:-}
       - LLM_API_KEY=${LLM_API_KEY:-}
       - LLM_MODEL=${LLM_MODEL:-}
       - LLM_BASE_URL=${LLM_BASE_URL:-}
-      - LLM_PROVIDERS_OLLAMA_BASE_URL=${LLM_PROVIDERS_OLLAMA_BASE_URL:-http://localhost:11434/v1}
+      - LLM_PROVIDERS_OLLAMA_BASE_URL=${LLM_PROVIDERS_OLLAMA_BASE_URL:-http://localhost:${OLLAMA_PORT:-11434}/v1}
       - LLM_PROVIDERS_OLLAMA_MODEL=${LLM_PROVIDERS_OLLAMA_MODEL:-llama3}
-      - MAX_FILE_SIZE_MB=20
+      - MAX_FILE_SIZE_MB=${MAX_FILE_SIZE_MB:-20}
     depends_on:
       ontology-service:
         condition: service_healthy
@@ -361,24 +389,27 @@ services:
       - vedo-network
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/8092; printf \"GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3; grep -q \"200 OK\" <&3'"]
+      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/${DOCUMENT_EXTRACTOR_HTTP_PORT:-8092}; printf \"GET /health HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3; grep -q \"200 OK\" <&3'"]
 
-  # AI Orchestration Service — Go gRPC service for LLM-powered features
+  # ── AI Orchestration Service — Go gRPC ─────────────────
   ai-orchestration-service:
     build:
-      context: ../src/services
-      dockerfile: ai-orchestration-service/Dockerfile
+      context: ..
+      dockerfile: src/docker/Dockerfile.go
+      args:
+        SERVICE_DIR: src/services
+        BINARY_NAME: ai-orchestration-service
     expose:
-      - "8093"   # HTTP health
-      - "9014"   # gRPC internal
+      - "${AI_ORCH_HEALTH_PORT:-8093}"
+      - "${AI_ORCH_GRPC_PORT:-9014}"
     environment:
       - HOST=0.0.0.0
-      - GRPC_PORT=9014
-      - HEALTH_PORT=8093
+      - GRPC_PORT=${AI_ORCH_GRPC_PORT:-9014}
+      - HEALTH_PORT=${AI_ORCH_HEALTH_PORT:-8093}
       - LLM_PROVIDER=${LLM_PROVIDER:-}
       - LLM_API_KEY=${LLM_API_KEY:-}
       - LLM_MODEL=${LLM_MODEL:-}
-      - REDIS_URL=redis:6379
+      - REDIS_URL=${REDIS_URL:-redis://redis:${REDIS_CONTAINER_PORT:-6379}}
     depends_on:
       redis:
         condition: service_healthy
@@ -386,60 +417,69 @@ services:
       - vedo-network
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8093/health"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:${AI_ORCH_HEALTH_PORT:-8093}/health"]
 
-  # Ticket notifier — Go (Gin), reads STUB_PORT
+  # ── Ticket Notifier — Go ───────────────────────────────
   ticket-notifier:
     build:
-      context: ../src/services/ticket-notifier
+      context: ..
+      dockerfile: src/docker/Dockerfile.go
+      args:
+        SERVICE_DIR: src/services
+        BINARY_NAME: ticket-notifier
     ports:
-      - "8091:8091"
+      - "${TICKET_NOTIFIER_STUB_PORT:-8091}:${TICKET_NOTIFIER_CONTAINER_STUB_PORT:-8091}"
     environment:
-      - STUB_PORT=8091
+      - STUB_PORT=${TICKET_NOTIFIER_CONTAINER_STUB_PORT:-8091}
     networks:
       - vedo-network
-    # alpine runtime has busybox wget
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8091/health"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:${TICKET_NOTIFIER_CONTAINER_STUB_PORT:-8091}/health"]
 
-  # Data Stores
+  # ═══════════════════════════════════════════════════════
+  # ── Data Stores ──────────────────────────────────────
+  # ═══════════════════════════════════════════════════════
+
   neo4j:
     image: neo4j:5.15-community
+    hostname: neo4j
+    extra_hosts:
+      - "neo4j:127.0.0.1"
     ports:
-      - "7474:7474"
-      - "7687:7687"
+      - "${NEO4J_HTTP_PORT:-7474}:${NEO4J_HTTP_CONTAINER_PORT:-7474}"
+      - "${NEO4J_BOLT_PORT:-7687}:${NEO4J_BOLT_CONTAINER_PORT:-7687}"
     environment:
-      - NEO4J_AUTH=neo4j/password
+      - NEO4J_AUTH=${NEO4J_AUTH:-neo4j/password}
     volumes:
       - neo4j_data:/data
     networks:
       - vedo-network
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "cypher-shell -u neo4j -p password 'RETURN 1' || exit 1"]
+      test: ["CMD-SHELL", "cypher-shell -u ${NEO4J_USER:-neo4j} -p ${NEO4J_PASSWORD:-password} 'RETURN 1' || exit 1"]
       retries: 5
 
   postgres:
     image: postgres:16-alpine
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:${POSTGRES_CONTAINER_PORT:-5432}"
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=vedo_versioning
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+      - POSTGRES_DB=${POSTGRES_DB:-vedo_versioning}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - vedo-network
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
 
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:${REDIS_CONTAINER_PORT:-6379}"
     volumes:
       - redis_data:/data
     networks:
@@ -451,11 +491,11 @@ services:
   rabbitmq:
     image: rabbitmq:3.12-management-alpine
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "${RABBITMQ_AMQP_PORT:-5672}:${RABBITMQ_CONTAINER_AMQP_PORT:-5672}"
+      - "${RABBITMQ_MGMT_PORT:-15672}:${RABBITMQ_CONTAINER_MGMT_PORT:-15672}"
     environment:
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER:-guest}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS:-guest}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
@@ -464,18 +504,17 @@ services:
       <<: *healthcheck-defaults
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
 
-  # Object storage (S3-compatible) for published ontology artifacts
   minio:
     image: minio/minio:RELEASE.2024-06-13T22-53-53Z
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "${MINIO_API_PORT:-9000}:${MINIO_API_CONTAINER_PORT:-9000}"
+      - "${MINIO_CONSOLE_PORT:-9001}:${MINIO_CONSOLE_CONTAINER_PORT:-9001}"
     environment:
-      - MINIO_ROOT_USER=minioadmin
-      - MINIO_ROOT_PASSWORD=minioadmin
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER:-minioadmin}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-minioadmin}
     volumes:
       - minio_data:/data
-    command: server /data --console-address ":9001"
+    command: server /data --console-address ":${MINIO_CONSOLE_CONTAINER_PORT:-9001}"
     networks:
       - vedo-network
     healthcheck:
@@ -483,7 +522,7 @@ services:
       test: ["CMD", "mc", "ready", "local"]
       start_period: 10s
 
-  # Vedu CLI build step (compile-only — not a daemon)
+  # ── Vedo CLI build step (compile-only) ─────────────────
   vedo-cli-build:
     profiles: ["local", "ci"]
     image: golang:1.21-alpine
@@ -499,25 +538,19 @@ services:
       test: ["CMD-SHELL", "exit 0"]
       start_period: 0s
 
-  # Keycloak for Auth
+  # ── Keycloak ───────────────────────────────────────────
   keycloak:
     image: quay.io/keycloak/keycloak:23.0
     ports:
-      - "8180:8080"
+      - "${KC_HOSTNAME_PORT:-8180}:${KC_CONTAINER_PORT:-8080}"
     environment:
-      - KEYCLOAK_ADMIN=admin
-      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN:-admin}
+      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD:-admin}
       - KC_HEALTH_ENABLED=true
-      # Canonical hostname so every token carries the browser-facing issuer.
-      # Otherwise tokens minted via http://127.0.0.1:8180 carry a different
-      # issuer than backchannel introspect requests reach (http://keycloak:8080),
-      # and Keycloak marks them inactive during RFC 7662 introspection.
-      - KC_HOSTNAME=localhost
-      - KC_HOSTNAME_PORT=8180
-      - KC_HTTP_ENABLED=true
+      - KC_HOSTNAME=${KC_HOSTNAME:-localhost}
+      - KC_HOSTNAME_PORT=${KC_HOSTNAME_PORT:-8180}
+      - KC_HTTP_ENABLED=${KC_HTTP_ENABLED:-true}
     volumes:
-      # Persist H2 DB + realm state across restarts so `down/up` does not wipe
-      # sessions or re-import the realm from scratch every time.
       - keycloak_data:/opt/keycloak/data
       - ./keycloak/vedo-core-realm.json:/opt/keycloak/data/import/vedo-core-realm.json:ro
     command: start-dev --import-realm
@@ -525,7 +558,7 @@ services:
       - vedo-network
     healthcheck:
       <<: *healthcheck-defaults
-      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/8080; printf \"GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3; grep -q \"200 OK\" <&3'"]
+      test: ["CMD-SHELL", "/bin/bash -ec 'exec 3<>/dev/tcp/127.0.0.1/${KC_CONTAINER_PORT:-8080}; printf \"GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3; grep -q \"200 OK\" <&3'"]
       interval: 15s
       retries: 10
       start_period: 60s

@@ -1,98 +1,121 @@
 // Apollo Client setup — single GraphQL client for all frontend data operations
 
-import { ApolloClient, InMemoryCache, createHttpLink, from } from '@apollo/client/core'
-import { setContext } from '@apollo/client/link/context'
-import { onError } from '@apollo/client/link/error'
-import { RetryLink } from '@apollo/client/link/retry'
+import {
+	ApolloClient,
+	InMemoryCache,
+	createHttpLink,
+	from,
+} from "@apollo/client/core";
+import { setContext } from "@apollo/client/link/context";
+import { onError } from "@apollo/client/link/error";
+import { RetryLink } from "@apollo/client/link/retry";
+import { MockApolloLink, isMockApiEnabled } from "./mock-link";
 
 // structured logging for Apollo operations (observability constraint)
 const log = {
-  info: (_msg: string, _ctx: Record<string, unknown>) => {},
-  error: (msg: string, ctx: Record<string, unknown>) => {
-    console.error(JSON.stringify({ level: 'error', msg, ...ctx, ts: new Date().toISOString() }))
-  }
-}
+	info: (_msg: string, _ctx: Record<string, unknown>) => {},
+	error: (msg: string, ctx: Record<string, unknown>) => {
+		console.error(
+			JSON.stringify({
+				level: "error",
+				msg,
+				...ctx,
+				ts: new Date().toISOString(),
+			}),
+		);
+	},
+};
 
 const httpLink = createHttpLink({
-  uri: import.meta.env.VITE_GRAPHQL_ENDPOINT || '/api/v1/graphql'
-})
+	uri: import.meta.env.VITE_GRAPHQL_ENDPOINT || "/api/v1/graphql",
+});
 
 const authLink = setContext((_, { headers }) => {
-  const token = localStorage.getItem('vedo-jwt-token')
-  return {
-    headers: {
-      ...headers,
-      authorization: token ? `Bearer ${token}` : ''
-    }
-  }
-})
+	const token = localStorage.getItem("vedo-jwt-token");
+	return {
+		headers: {
+			...headers,
+			authorization: token ? `Bearer ${token}` : "",
+		},
+	};
+});
 
 const retryLink = new RetryLink({
-  delay: {
-    initial: 300,
-    max: 3000,
-    jitter: true
-  },
-  attempts: {
-    max: 3,
-    	retryIf: (error, operation) => {
-    		// Skip retries for mutation operations — they are not idempotent
-    		if (operation.query.definitions.some(
-    			def => def.kind === 'OperationDefinition' && def.operation === 'mutation'
-    		)) {
-    			return false
-    		}
-    		return !!error
-    	}
-  }
-})
+	delay: {
+		initial: 300,
+		max: 3000,
+		jitter: true,
+	},
+	attempts: {
+		max: 3,
+		retryIf: (error, operation) => {
+			// Skip retries for mutation operations — they are not idempotent
+			if (
+				operation.query.definitions.some(
+					(def) =>
+						def.kind === "OperationDefinition" && def.operation === "mutation",
+				)
+			) {
+				return false;
+			}
+			return !!error;
+		},
+	},
+});
 
 const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
-  if (graphQLErrors) {
-    for (const err of graphQLErrors) {
-      log.error('apollo.graphql_error', {
-        message: err.message,
-        locations: err.locations,
-        path: err.path,
-        operation: operation.operationName
-      })
-    }
-  }
-  if (networkError) {
-    log.error('apollo.network_error', {
-      message: networkError.message,
-      operation: operation.operationName
-    })
-  }
-})
+	if (graphQLErrors) {
+		for (const err of graphQLErrors) {
+			log.error("apollo.graphql_error", {
+				message: err.message,
+				locations: err.locations,
+				path: err.path,
+				operation: operation.operationName,
+			});
+		}
+	}
+	if (networkError) {
+		log.error("apollo.network_error", {
+			message: networkError.message,
+			operation: operation.operationName,
+		});
+	}
+});
+
+// When VITE_USE_MOCK_API=true, insert MockApolloLink before retryLink
+const mockLink = isMockApiEnabled() ? new MockApolloLink() : null;
+
+const links = mockLink
+	? [mockLink, retryLink, errorLink, authLink, httpLink]
+	: [retryLink, errorLink, authLink, httpLink];
 
 export const apolloClient = new ApolloClient({
-  link: from([retryLink, errorLink, authLink, httpLink]),
-  cache: new InMemoryCache({
-    typePolicies: {
-      Query: {
-        fields: {
-          ontology: {
-            merge(_existing, incoming) {
-              return incoming
-            }
-          }
-        }
-      }
-    }
-  }),
-  defaultOptions: {
-    watchQuery: {
-      fetchPolicy: 'cache-and-network',
-      errorPolicy: 'all'
-    },
-    query: {
-      fetchPolicy: 'cache-first',
-      errorPolicy: 'all'
-    }
-  }
-})
+	link: from(links),
+	cache: new InMemoryCache({
+		typePolicies: {
+			Query: {
+				fields: {
+					ontology: {
+						merge(_existing, incoming) {
+							return incoming;
+						},
+					},
+				},
+			},
+		},
+	}),
+	defaultOptions: {
+		watchQuery: {
+			fetchPolicy: "cache-and-network",
+			errorPolicy: "all",
+		},
+		query: {
+			fetchPolicy: "cache-first",
+			errorPolicy: "all",
+		},
+	},
+});
 
-log.info('apollo.client.initialized', {
-  endpoint: import.meta.env.VITE_GRAPHQL_ENDPOINT || '/api/v1/graphql'
-})
+log.info("apollo.client.initialized", {
+	endpoint: import.meta.env.VITE_GRAPHQL_ENDPOINT || "/api/v1/graphql",
+});

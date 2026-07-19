@@ -59,13 +59,21 @@
 </template>
 
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
-import { ChevronDown, Folder, Globe, Search } from 'lucide-vue-next'
-import { usePublicOntology } from '@/composables/usePublicOntology'
+import { usePublicOntology } from "@/composables/usePublicOntology";
+import { ChevronDown, Folder, Globe, Search } from "lucide-vue-next";
+import { useRoute } from "vue-router";
 
-const route = useRoute()
-const slug = (route.params.id as string) || 'default'
-const { metadata, classTree, properties, loading, error, selectedClassId, selectClass } = usePublicOntology(slug)
+const route = useRoute();
+const slug = (route.params.id as string) || "default";
+const {
+	metadata,
+	classTree,
+	properties,
+	loading,
+	error,
+	selectedClassId,
+	selectClass,
+} = usePublicOntology(slug);
 </script>
 
 <style scoped>

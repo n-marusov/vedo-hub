@@ -3,7 +3,7 @@
 // These queries match the async-graphql schema exposed by ontology-service
 // at /api/v1/graphql via the API Gateway proxy.
 
-import { gql } from '@apollo/client/core'
+import { gql } from "@apollo/client/core";
 
 // ── Fragments ───────────────────────────────────────────────────────────────────────
 
@@ -14,7 +14,7 @@ export const CLASS_SUMMARY_FRAGMENT = gql`
     comment
     parents
   }
-`
+`;
 
 export const CLASS_FRAGMENT = gql`
   fragment ClassFields on Class {
@@ -24,7 +24,7 @@ export const CLASS_FRAGMENT = gql`
     parents
     children
   }
-`
+`;
 
 export const PROPERTY_FRAGMENT = gql`
   fragment PropertyFields on Property {
@@ -46,7 +46,7 @@ export const PROPERTY_FRAGMENT = gql`
       value
     }
   }
-`
+`;
 
 export const INDIVIDUAL_FRAGMENT = gql`
   fragment IndividualFields on Individual {
@@ -70,7 +70,7 @@ export const INDIVIDUAL_FRAGMENT = gql`
       edgeId
     }
   }
-`
+`;
 
 // ── Queries ─────────────────────────────────────────────────────────────────────────
 
@@ -85,7 +85,7 @@ export const ONTOLOGY_QUERY = gql`
       dirty
     }
   }
-`
+`;
 
 /// Version context — used by the toolbar to show current branch/commit
 export const VERSION_CONTEXT_QUERY = gql`
@@ -96,7 +96,7 @@ export const VERSION_CONTEXT_QUERY = gql`
       dirty
     }
   }
-`
+`;
 
 /// Single class with full details
 export const GET_CLASS_QUERY = gql`
@@ -106,7 +106,7 @@ export const GET_CLASS_QUERY = gql`
     }
   }
   ${CLASS_FRAGMENT}
-`
+`;
 
 /// Paginated class list with search
 export const LIST_CLASSES_QUERY = gql`
@@ -121,7 +121,7 @@ export const LIST_CLASSES_QUERY = gql`
     }
   }
   ${CLASS_SUMMARY_FRAGMENT}
-`
+`;
 
 /// Class hierarchy tree (root classes)
 export const CLASS_TREE_QUERY = gql`
@@ -139,7 +139,7 @@ export const CLASS_TREE_QUERY = gql`
       }
     }
   }
-`
+`;
 
 /// Class ancestors (breadcrumb path)
 export const CLASS_ANCESTORS_QUERY = gql`
@@ -149,7 +149,7 @@ export const CLASS_ANCESTORS_QUERY = gql`
       label
     }
   }
-`
+`;
 
 /// Class descendants tree
 export const CLASS_DESCENDANTS_QUERY = gql`
@@ -163,7 +163,7 @@ export const CLASS_DESCENDANTS_QUERY = gql`
       }
     }
   }
-`
+`;
 
 /// Graph neighborhood for a class
 export const GRAPH_NEIGHBORHOOD_QUERY = gql`
@@ -181,7 +181,7 @@ export const GRAPH_NEIGHBORHOOD_QUERY = gql`
       }
     }
   }
-`
+`;
 
 /// Autocomplete class search
 export const AUTOCOMPLETE_CLASSES_QUERY = gql`
@@ -191,7 +191,7 @@ export const AUTOCOMPLETE_CLASSES_QUERY = gql`
     }
   }
   ${CLASS_SUMMARY_FRAGMENT}
-`
+`;
 
 /// Single property with full details
 export const GET_PROPERTY_QUERY = gql`
@@ -201,7 +201,7 @@ export const GET_PROPERTY_QUERY = gql`
     }
   }
   ${PROPERTY_FRAGMENT}
-`
+`;
 
 /// Paginated property list with type filter
 export const LIST_PROPERTIES_QUERY = gql`
@@ -219,7 +219,7 @@ export const LIST_PROPERTIES_QUERY = gql`
       perPage
     }
   }
-`
+`;
 
 /// Single individual with full detail (property values)
 export const GET_INDIVIDUAL_QUERY = gql`
@@ -229,7 +229,7 @@ export const GET_INDIVIDUAL_QUERY = gql`
     }
   }
   ${INDIVIDUAL_FRAGMENT}
-`
+`;
 
 /// Paginated individual list filtered by class
 export const LIST_INDIVIDUALS_QUERY = gql`
@@ -247,7 +247,7 @@ export const LIST_INDIVIDUALS_QUERY = gql`
       perPage
     }
   }
-`
+`;
 
 // ── Mutations ───────────────────────────────────────────────────────────────────────
 
@@ -259,7 +259,7 @@ export const UPDATE_DRAFT_MUTATION = gql`
       timestamp
     }
   }
-`
+`;
 
 // ── Versioning Queries (Commit / Branch) ──────────────────────────────────────────────
 
@@ -275,7 +275,7 @@ export const COMMIT_SUMMARY_FRAGMENT = gql`
     totalChanges
     createdAt
   }
-`
+`;
 
 /// Paginated commit history for a branch.
 /// Backed by the ontology-service GraphQL resolver which proxies the
@@ -302,7 +302,7 @@ export const GET_COMMIT_HISTORY_QUERY = gql`
     }
   }
   ${COMMIT_SUMMARY_FRAGMENT}
-`
+`;
 
 /// Branch summary fields.
 export const BRANCH_FRAGMENT = gql`
@@ -318,7 +318,7 @@ export const BRANCH_FRAGMENT = gql`
     aheadCount
     behindCount
   }
-`
+`;
 
 /// List branches for an ontology with optional reference branch for ahead/behind.
 export const GET_BRANCHES_QUERY = gql`
@@ -337,7 +337,7 @@ export const GET_BRANCHES_QUERY = gql`
     }
   }
   ${BRANCH_FRAGMENT}
-`
+`;
 
 /// Single branch by ID (within an ontology).
 export const GET_BRANCH_QUERY = gql`
@@ -347,7 +347,7 @@ export const GET_BRANCH_QUERY = gql`
     }
   }
   ${BRANCH_FRAGMENT}
-`
+`;
 
 /// Navigation state query
 export const NAVIGATION_STATE_QUERY = gql`
@@ -358,7 +358,7 @@ export const NAVIGATION_STATE_QUERY = gql`
       theme
     }
   }
-`
+`;
 
 // ── Comment Query ────────────────────────────────────────────────────────────
 
@@ -375,7 +375,7 @@ export const COMMENT_FRAGMENT = gql`
     createdAt
     updatedAt
   }
-`
+`;
 
 /// Fetch comments for an entity (class/property/individual).
 export const GET_ENTITY_COMMENTS_QUERY = gql`
@@ -385,7 +385,7 @@ export const GET_ENTITY_COMMENTS_QUERY = gql`
     }
   }
   ${COMMENT_FRAGMENT}
-`
+`;
 
 /// Fetch project-wide comment feed.
 export const GET_COMMENT_FEED_QUERY = gql`
@@ -400,14 +400,219 @@ export const GET_COMMENT_FEED_QUERY = gql`
     }
   }
   ${COMMENT_FRAGMENT}
-`
+`;
 
-/// Create a new comment.
+/// Create a new comment on an entity.
 export const CREATE_COMMENT_MUTATION = gql`
-  mutation CreateComment($ontologyId: ID!, $entityId: ID!, $text: String!, $parentCommentId: ID) {
-    createComment(ontologyId: $ontologyId, entityId: $entityId, text: $text, parentCommentId: $parentCommentId) {
+  mutation CreateComment($ontologyId: ID!, $entityId: ID!, $text: String!) {
+    createComment(ontologyId: $ontologyId, entityId: $entityId, text: $text) {
       ...CommentFields
     }
   }
   ${COMMENT_FRAGMENT}
-`
+`;
+
+// ── M2.5 Queries & Mutations ──────────────────────────────────────────────────────
+// @m2.5 — Added for GUI wiring implementation
+
+/// Execute a SPARQL query against the ontology.
+export const SPARQL_EXECUTE_QUERY = gql`
+  query SparqlExecute($ontologyId: ID!, $query: String!, $limit: Int, $offset: Int) {
+    sparqlQuery(ontologyId: $ontologyId, query: $query, limit: $limit, offset: $offset)
+      columns
+      rows
+      total
+      executionTimeMs
+  }
+`;
+
+/// List projects with search, sort, pagination.
+export const LIST_PROJECTS_QUERY = gql`
+  query ListProjects($q: String, $sortBy: String, $sortDir: SortDirection, $page: Int, $perPage: Int) {
+    projects(q: $q, sortBy: $sortBy, sortDir: $sortDir, page: $page, perPage: $perPage)
+      items
+        id
+        name
+        description
+        visibility
+        ontologyCount
+        memberCount
+        updatedAt
+      total
+      page
+      perPage
+  }
+`;
+
+/// List groups with hierarchy and search.
+export const LIST_GROUPS_QUERY = gql`
+  query ListGroups($q: String) {
+    groups(q: $q)
+      id
+      name
+      description
+      parentGroupId
+      childGroups
+        id
+        name
+      memberCount
+      projectCount
+  }
+`;
+
+/// List members of an ontology with roles.
+export const LIST_MEMBERS_QUERY = gql`
+  query ListMembers($ontologyId: ID!) {
+    members(ontologyId: $ontologyId)
+      id
+      userId
+      username
+      avatarUrl
+      role
+      addedAt
+  }
+`;
+
+/// Update a member's role.
+export const UPDATE_MEMBER_ROLE_MUTATION = gql`
+  mutation UpdateMemberRole($ontologyId: ID!, $userId: ID!, $role: String!) {
+    updateMemberRole(ontologyId: $ontologyId, userId: $userId, role: $role)
+      success
+      member
+        id
+        userId
+        role
+  }
+`;
+
+/// Remove a member from an ontology.
+export const REMOVE_MEMBER_MUTATION = gql`
+  mutation RemoveMember($ontologyId: ID!, $userId: ID!) {
+    removeMember(ontologyId: $ontologyId, userId: $userId)
+      success
+  }
+`;
+
+/// Get tags for a versioning context.
+export const GET_TAGS_QUERY = gql`
+  query GetTags($ontologyId: ID!) {
+    tags(ontologyId: $ontologyId)
+      id
+      name
+      commitId
+      message
+      authorName
+      createdAt
+  }
+`;
+
+/// Compare two revisions and return diff data.
+export const COMPARE_REVISIONS_QUERY = gql`
+  query CompareRevisions($ontologyId: ID!, $fromRevision: ID!, $toRevision: ID!) {
+    compareRevisions(ontologyId: $ontologyId, fromRevision: $fromRevision, toRevision: $toRevision)
+      additions
+      deletions
+      changes
+        entityId
+        entityType
+        entityLabel
+        changeType
+        field
+        oldValue
+        newValue
+  }
+`;
+
+/// Dashboard aggregate query — widgets, recent ontologies, activity feed.
+export const DASHBOARD_QUERY = gql`
+  query DashboardAggregate {
+    dashboard
+      widgets
+        title
+        count
+        icon
+        route
+      recentOntologies
+        id
+        name
+        description
+        visibility
+        updatedAt
+      activityFeed
+        id
+        text
+        author
+        timestamp
+        type
+      attentionItems
+        id
+        text
+        severity
+        count
+  }
+`;
+
+/// Ontology metrics — KPI counters and trends.
+export const ONTOLOGY_METRICS_QUERY = gql`
+  query OntologyMetrics($ontologyId: ID!) {
+    ontologyMetrics(ontologyId: $ontologyId)
+      counters
+        classCount
+        propertyCount
+        individualCount
+        axiomCount
+        commentCount
+        mergeRequestCount
+      trends
+        date
+        classCount
+        propertyCount
+        individualCount
+  }
+`;
+
+/// Run SHACL validation (currently returns OK stub).
+export const RUN_VALIDATION_MUTATION = gql`
+  mutation RunValidation($ontologyId: ID!) {
+    runValidation(ontologyId: $ontologyId)
+      status
+      violations
+        path
+        message
+        severity
+        node
+      validatedAt
+  }
+`;
+
+/// List deployments.
+export const LIST_DEPLOYMENTS_QUERY = gql`
+  query ListDeployments($includeStopped: Boolean) {
+    deployments(includeStopped: $includeStopped)
+      id
+      url
+      status
+      version
+      ontologyId
+      ontologyName
+      deployedAt
+      deployedBy
+  }
+`;
+
+/// List merge requests with sections and tabs.
+export const LIST_MERGE_REQUESTS_QUERY = gql`
+  query ListMergeRequests($status: String) {
+    mergeRequests(status: $status)
+      id
+      title
+      description
+      sourceBranch
+      targetBranch
+      authorName
+      status
+      mergeStatus
+      createdAt
+      commentCount
+  }
+`;

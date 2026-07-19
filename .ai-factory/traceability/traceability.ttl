@@ -914,14 +914,131 @@ base:nfr/observability-otel vdo:satisfies base:obs/prometheus, base:obs/loki, ba
 # =============================================================================
 
 base:design/frontend a vdo:DesignArtifact ;
-    rdfs:label "Frontend Design"@en ;
-    rdfs:comment "Main frontend UI design in Pencil format"@en ;
-    vdo:filePath "design/frontend.pen" .
+    rdfs:label "Frontend Design — Pages"@en ;
+    rdfs:comment "Frontend UI page designs in Pencil format (design/pages/ directory)"@en ;
+    vdo:filePath "design/pages/" .
 
 base:design/ui-kit a vdo:DesignArtifact ;
     rdfs:label "UI Component Library"@en ;
-    rdfs:comment "UI kit component library in Pencil format"@en ;
+    rdfs:comment "UI kit component library in Pencil format — organisms, molecules, atoms, tokens"@en ;
     vdo:filePath "design/ui-kit.lib.pen" .
+
+# --- Design Pages ---
+
+base:design/page/login a vdo:DesignArtifact ;
+    rdfs:label "Login Page Design"@en ;
+    rdfs:comment "Login page — centered card, logo, OAuth provider buttons"@en ;
+    vdo:filePath "design/pages/login.pen" .
+
+base:design/page/dashboard a vdo:DesignArtifact ;
+    rdfs:label "Dashboard Page Design"@en ;
+    rdfs:comment "Dashboard page — greeting card, collaboration widgets, activity feed, recent ontologies"@en ;
+    vdo:filePath "design/pages/dashboard.pen" .
+
+base:design/page/ontology-workspace a vdo:DesignArtifact ;
+    rdfs:label "Ontology Workspace Page Design"@en ;
+    rdfs:comment "Ontology workspace — ClassTree split with GraphVisualization and PropertyPanel, AI import panel, toolbar"@en ;
+    vdo:filePath "design/pages/ontology-workspace.pen" .
+
+base:design/page/sparql-editor a vdo:DesignArtifact ;
+    rdfs:label "SPARQL Query Builder Page Design"@en ;
+    rdfs:comment "SPARQL editor page — query editor, run/format/export actions, results table"@en ;
+    vdo:filePath "design/pages/sparql-editor.pen" .
+
+base:design/page/metrics-dashboard a vdo:DesignArtifact ;
+    rdfs:label "Metrics Dashboard Page Design"@en ;
+    rdfs:comment "Metrics dashboard — KPI counters (classes, properties, individuals), trend charts"@en ;
+    vdo:filePath "design/pages/metrics-dashboard.pen" .
+
+base:design/page/public-ontology a vdo:DesignArtifact ;
+    rdfs:label "Public Ontology Page Design"@en ;
+    rdfs:comment "Public ontology read-only view — class tree, property panel, graph, read-only header"@en ;
+    vdo:filePath "design/pages/public-ontology.pen" .
+
+base:design/page/groups a vdo:DesignArtifact ;
+    rdfs:label "Groups Page Design"@en ;
+    rdfs:comment "Groups page — hierarchy, search, sort, new group action"@en ;
+    vdo:filePath "design/pages/groups.pen" .
+
+base:design/page/members a vdo:DesignArtifact ;
+    rdfs:label "Members Page Design"@en ;
+    rdfs:comment "Members panel — member list with roles, search, edit/remove actions"@en ;
+    vdo:filePath "design/pages/members.pen" .
+
+base:design/page/validation-report a vdo:DesignArtifact ;
+    rdfs:label "Validation Report Page Design"@en ;
+    rdfs:comment "Validation report — run validation button, SHACL violations list, severity filtering"@en ;
+    vdo:filePath "design/pages/validation-report.pen" .
+
+base:design/page/commits a vdo:DesignArtifact ;
+    rdfs:label "Commits Page Design"@en ;
+    rdfs:comment "Commits page — commit history list with branch filter, author filter, search"@en ;
+    vdo:filePath "design/pages/commits.pen" .
+
+base:design/page/recent-commits a vdo:DesignArtifact ;
+    rdfs:label "Recent Commits Page Design"@en ;
+    rdfs:comment "Recent commits page — latest commits across branches, compact view"@en ;
+    vdo:filePath "design/pages/recent-commits.pen" .
+
+base:design/page/branches a vdo:DesignArtifact ;
+    rdfs:label "Branches Page Design"@en ;
+    rdfs:comment "Branches page — branch list with active/default indicators, new branch action"@en ;
+    vdo:filePath "design/pages/branches.pen" .
+
+base:design/page/compare-revisions a vdo:DesignArtifact ;
+    rdfs:label "Compare Revisions Page Design"@en ;
+    rdfs:comment "Compare revisions page — side-by-side diff view with revision selectors"@en ;
+    vdo:filePath "design/pages/compare-revisions.pen" .
+
+base:design/page/tags a vdo:DesignArtifact ;
+    rdfs:label "Tags Page Design"@en ;
+    rdfs:comment "Tags page — tag list with commit references, new tag action"@en ;
+    vdo:filePath "design/pages/tags.pen" .
+
+base:design/page/repository-graph a vdo:DesignArtifact ;
+    rdfs:label "Repository Graph Page Design"@en ;
+    rdfs:comment "Repository graph page — interactive branch/commit DAG visualization"@en ;
+    vdo:filePath "design/pages/repository-graph.pen" .
+
+base:design/page/merge-requests a vdo:DesignArtifact ;
+    rdfs:label "Merge Requests Page Design"@en ;
+    rdfs:comment "Merge requests page — MR list with status tabs (open/merged/closed), project filter"@en ;
+    vdo:filePath "design/pages/merge-requests.pen" .
+
+base:design/page/projects a vdo:DesignArtifact ;
+    rdfs:label "Projects Page Design"@en ;
+    rdfs:comment "Projects page — project list with search, sort, new project action"@en ;
+    vdo:filePath "design/pages/projects.pen" .
+
+base:design/page/deployments a vdo:DesignArtifact ;
+    rdfs:label "Deployments Page Design"@en ;
+    rdfs:comment "Deployments page — deployment cards with status, toggle show/hide stopped"@en ;
+    vdo:filePath "design/pages/deployments.pen" .
+
+base:design/page/comments a vdo:DesignArtifact ;
+    rdfs:label "Comments Page Design"@en ;
+    rdfs:comment "Comments page — threaded comments feed, new comment input"@en ;
+    vdo:filePath "design/pages/comments.pen" .
+
+base:design/page/dialogs a vdo:DesignArtifact ;
+    rdfs:label "Dialogs Design"@en ;
+    rdfs:comment "Dialog designs — Create Class, Create Property, Create Individual, Annotation, Import, MFA Challenge, Publish Snapshot, Apply Import, Conflict Resolver"@en ;
+    vdo:filePath "design/pages/dialogs.pen" .
+
+base:design/page/shacl-rule-builder a vdo:DesignArtifact ;
+    rdfs:label "SHACL Rule Builder Page Design"@en ;
+    rdfs:comment "SHACL Rule Builder page — rule tree with target/severity/constraint fields and Run Validation button"@en ;
+    vdo:filePath "design/pages/shacl-rule-builder.pen" .
+
+base:design/page/auth-callback a vdo:DesignArtifact ;
+    rdfs:label "Auth Callback Page Design"@en ;
+    rdfs:comment "Auth callback page — OAuth redirect handler, centered card, loading/success/error states"@en ;
+    vdo:filePath "design/pages/auth-callback.pen" .
+
+base:design/page/not-found a vdo:DesignArtifact ;
+    rdfs:label "Not Found (404) Page Design"@en ;
+    rdfs:comment "404 page — centered layout, large 404 text, subtitle, description, CTA button to dashboard"@en ;
+    vdo:filePath "design/pages/not-found.pen" .
 
 # =============================================================================
 # INSTANCES — Documentation
@@ -967,7 +1084,7 @@ base:spec/cli-ticket-ops-001 vdo:affectedBy base:cli/close-ticket, base:cli/comm
 # Changing security boundary affects:
 base:security/auth-boundary vdo:affectedBy base:service/api-gateway, base:service/auth-service, base:service/frontend, base:cli/vedo-cli .
 
-# Changing frontend design affects:
+# Changing frontend design affects (see DESIGN → GUI TRACEABILITY LINKS at end of file for detailed page-level traces):
 base:design/frontend vdo:affectedBy base:service/frontend .
 
 # Changing deployment affects:
@@ -1004,12 +1121,40 @@ base:graphql/apollo-client a vdo:CodeArtifact ;
     vdo:filePath "src/services/frontend/src/apollo/client.ts" ;
     vdo:implements base:spec/gui-ow-001 .
 
+base:test/m2-5-real-playwright-config a vdo:DeploymentConfig ;
+    rdfs:label "M2.5 Real Backend Playwright Config"@en ;
+    rdfs:comment "Playwright webServer configuration that starts the Docker test stack and Vite frontend against the real API Gateway"@en ;
+    vdo:filePath "tests/e2e/playwright/playwright.m2.5.real.config.ts" ;
+    vdo:validates base:spec/gui-ow-001 ;
+    vdo:affectedBy base:deploy/docker-compose-test, base:service/frontend, base:service/api-gateway .
+
+base:deploy/docker-compose-test a vdo:DeploymentConfig ;
+    rdfs:label "Docker Compose Test Stack"@en ;
+    rdfs:comment "Real-backend test stack for API Gateway, ontology-service, versioning-service, Neo4j, PostgreSQL, and supporting dependencies"@en ;
+    vdo:filePath "deploy/docker-compose.test.yml" ;
+    vdo:deploys base:service/api-gateway, base:service/ontology-service, base:service/versioning-service .
+
+base:test/m2-5-gui-fixtures a vdo:TestFixture ;
+    rdfs:label "GUI E2E Fixtures"@en ;
+    rdfs:comment "Playwright fixtures that inject owner JWT auth and deterministic GUI GraphQL data for dashboard-level M2.5 page wiring tests"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/graphql-fixtures.ts" ;
+    vdo:validates base:spec/gui-ow-001 ;
+    vdo:affectedBy base:graphql/frontend-queries, base:service/frontend .
+
+base:test/m2-5-api-gateway-real a vdo:TestSuite ;
+    rdfs:label "API Gateway Real Backend Integration Tests"@en ;
+    rdfs:comment "Playwright API integration tests that verify real API Gateway routing, auth, GraphQL, SPARQL guard, health, readiness, and OpenAPI behavior against docker-compose.test.yml"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/api/rest/api-gateway-full.spec.ts" ;
+    vdo:validates base:service/api-gateway ;
+    vdo:validates base:service/ontology-service ;
+    vdo:validates base:service/versioning-service .
+
 # --- M2 Document Extraction E2E Test Suites ---
 
 base:test/m2-document-extraction a vdo:TestSuite ;
-    rdfs:label "M2 Document Extraction E2E Tests"@en ;
+    rdfs:label "Document Extraction E2E Tests"@en ;
     rdfs:comment "Playwright E2E tests for M2 document extraction flows covering markdown, text, PDF, DOCX, structured data, batch upload, and preview-apply workflow"@en ;
-    vdo:filePath "tests/e2e/playwright/tests/m2/" ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/" ;
     vdo:validates base:user/US-io.document.extract-md-txt ;
     vdo:validates base:user/US-io.document.extract-pdf-docx ;
     vdo:validates base:user/US-io.document.extract-structured ;
@@ -1017,44 +1162,44 @@ base:test/m2-document-extraction a vdo:TestSuite ;
     vdo:validates base:user/US-io.document.preview-sequence .
 
 base:m2-document-extraction-md-txt a vdo:TestSuite ;
-    rdfs:label "M2 Document Extraction — Markdown and Text"@en ;
+    rdfs:label "Document Extraction — Markdown and Text"@en ;
     rdfs:comment "Playwright E2E tests: upload specification.md → verify 8 classes, 5 properties; edit label → apply; plain text extraction"@en ;
-    vdo:filePath "tests/e2e/playwright/tests/m2/document-extraction-md-txt.spec.ts" ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/document-extraction-md-txt.spec.ts" ;
     vdo:validates base:user/US-io.document.extract-md-txt .
 
 base:m2-document-extraction-pdf-docx a vdo:TestSuite ;
-    rdfs:label "M2 Document Extraction — PDF and DOCX"@en ;
+    rdfs:label "Document Extraction — PDF and DOCX"@en ;
     rdfs:comment "Playwright E2E tests: upload PDF/DOCX → verify extraction; password-protected PDF rejection; scanned PDF detection; large document progress"@en ;
-    vdo:filePath "tests/e2e/playwright/tests/m2/document-extraction-pdf-docx.spec.ts" ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/document-extraction-pdf-docx.spec.ts" ;
     vdo:validates base:user/US-io.document.extract-pdf-docx .
 
 base:m2-document-extraction-structured a vdo:TestSuite ;
-    rdfs:label "M2 Document Extraction — Structured Data"@en ;
+    rdfs:label "Document Extraction — Structured Data"@en ;
     rdfs:comment "Playwright E2E tests: upload XLSX with column mapping; JSON nested objects → hierarchy; XML tags/attributes; CSV delimiter detection"@en ;
-    vdo:filePath "tests/e2e/playwright/tests/m2/document-extraction-structured.spec.ts" ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/document-extraction-structured.spec.ts" ;
     vdo:validates base:user/US-io.document.extract-structured .
 
 base:m2-document-batch-extract a vdo:TestSuite ;
-    rdfs:label "M2 Document Extraction — Batch Upload"@en ;
+    rdfs:label "Document Extraction — Batch Upload"@en ;
     rdfs:comment "Playwright E2E tests: upload 3 files → combined preview with source attribution; deduplication; conflict resolution; partial failure handling"@en ;
-    vdo:filePath "tests/e2e/playwright/tests/m2/document-batch-extract.spec.ts" ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/document-batch-extract.spec.ts" ;
     vdo:validates base:user/US-io.document.batch-extract .
 
 base:m2-document-preview-sequence a vdo:TestSuite ;
-    rdfs:label "M2 Document Extraction — Preview and Apply"@en ;
+    rdfs:label "Document Extraction — Preview and Apply"@en ;
     rdfs:comment "Playwright E2E tests: toggle step inclusion; inline label editing; duplicate detection warning; apply progress → success/commit link; error/retry"@en ;
-    vdo:filePath "tests/e2e/playwright/tests/m2/document-preview-sequence.spec.ts" ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/document-preview-sequence.spec.ts" ;
     vdo:validates base:user/US-io.document.preview-sequence .
 
 base:m2-document-fixtures a vdo:TestSuite ;
-    rdfs:label "M2 Document Extraction Test Fixtures"@en ;
-    rdfs:comment "Test fixture documents for M2 E2E tests: specification.md, requirements.txt, technical-spec.pdf, documentation.docx, data.json, schema.xml, entities.csv, classes.xlsx, empty.txt, large-file.txt"@en ;
-    vdo:filePath "tests/e2e/playwright/fixtures/m2/" .
+    rdfs:label "Document Extraction Test Fixtures"@en ;
+    rdfs:comment "Test fixture documents for E2E tests: specification.md, requirements.txt, technical-spec.pdf, documentation.docx, data.json, schema.xml, entities.csv, classes.xlsx, empty.txt, large-file.txt"@en ;
+    vdo:filePath "tests/e2e/playwright/fixtures/" .
 
-base:page/m2-document-upload a vdo:CodeArtifact ;
-    rdfs:label "M2 Document Upload Page Object"@en ;
-    rdfs:comment "Playwright Page Object Model for M2 document extraction and AI ontology creation UI"@en ;
-    vdo:filePath "tests/e2e/playwright/pages/m2-document-upload.page.ts" ;
+base:page/document-upload a vdo:CodeArtifact ;
+    rdfs:label "Document Upload Page Object"@en ;
+    rdfs:comment "Playwright Page Object Model for document extraction and AI ontology creation UI"@en ;
+    vdo:filePath "tests/e2e/playwright/pages/document-upload.page.ts" ;
     vdo:implements base:user/US-io.document.extract-md-txt ;
     vdo:implements base:user/US-io.document.batch-extract ;
     vdo:implements base:user/US-io.document.preview-sequence ;
@@ -1067,9 +1212,9 @@ base:page/m2-document-upload a vdo:CodeArtifact ;
 # --- M2 NL→OWL and AI Assistance E2E Test Suites ---
 
 base:test/m2-nl-owl-ai a vdo:TestSuite ;
-    rdfs:label "M2 NL→OWL and AI Assistance E2E Tests"@en ;
+    rdfs:label "NL→OWL and AI Assistance E2E Tests"@en ;
     rdfs:comment "Playwright E2E tests for M2 NL→OWL generation, AI-assisted class/property completion, iterative refinement, and ontology templates"@en ;
-    vdo:filePath "tests/e2e/playwright/tests/m2/" ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/" ;
     vdo:validates base:user/US-io.ontology.create-nl-to-owl ;
     vdo:validates base:user/US-io.ontology.ai-completion ;
     vdo:validates base:user/US-io.ontology.ai-property-suggestions ;
@@ -1077,33 +1222,33 @@ base:test/m2-nl-owl-ai a vdo:TestSuite ;
     vdo:validates base:user/US-io.ontology.templates .
 
 base:m2-nl-to-owl-generation a vdo:TestSuite ;
-    rdfs:label "M2 NL→OWL Generation"@en ;
+    rdfs:label "NL→OWL Generation"@en ;
     rdfs:comment "Playwright E2E tests: enter NL text → view generated sequence; edit steps → apply; ambiguous NL → disambiguation prompt"@en ;
-    vdo:filePath "tests/e2e/playwright/tests/m2/nl-to-owl-generation.spec.ts" ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/nl-to-owl-generation.spec.ts" ;
     vdo:validates base:user/US-io.ontology.create-nl-to-owl .
 
 base:m2-ai-completion a vdo:TestSuite ;
-    rdfs:label "M2 AI-Assisted Class Completion"@en ;
+    rdfs:label "AI-Assisted Class Completion"@en ;
     rdfs:comment "Playwright E2E tests: request AI subclass suggestions → ranked list; accept → entity creation; reject all → no changes"@en ;
-    vdo:filePath "tests/e2e/playwright/tests/m2/ai-completion.spec.ts" ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/ai-completion.spec.ts" ;
     vdo:validates base:user/US-io.ontology.ai-completion .
 
 base:m2-ai-property-suggestions a vdo:TestSuite ;
-    rdfs:label "M2 AI-Assisted Property Suggestions"@en ;
+    rdfs:label "AI-Assisted Property Suggestions"@en ;
     rdfs:comment "Playwright E2E tests: request property suggestions → domain/range hints; accept → property created; datatype vs object distinction"@en ;
-    vdo:filePath "tests/e2e/playwright/tests/m2/ai-property-suggestions.spec.ts" ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/ai-property-suggestions.spec.ts" ;
     vdo:validates base:user/US-io.ontology.ai-property-suggestions .
 
 base:m2-iterative-refinement a vdo:TestSuite ;
-    rdfs:label "M2 Iterative Refinement"@en ;
+    rdfs:label "Iterative Refinement"@en ;
     rdfs:comment "Playwright E2E tests: generate initial → refine with feedback → verify refined sequence; multiple rounds accumulate changes; apply final version"@en ;
-    vdo:filePath "tests/e2e/playwright/tests/m2/iterative-refinement.spec.ts" ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/iterative-refinement.spec.ts" ;
     vdo:validates base:user/US-io.ontology.iterative-refinement .
 
 base:m2-ontology-templates a vdo:TestSuite ;
-    rdfs:label "M2 Ontology Domain Templates"@en ;
+    rdfs:label "Ontology Domain Templates"@en ;
     rdfs:comment "Playwright E2E tests: list templates → verify Person/Organization present; select → preview expected classes/properties; apply → entities created"@en ;
-    vdo:filePath "tests/e2e/playwright/tests/m2/ontology-templates.spec.ts" ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/ontology-templates.spec.ts" ;
     vdo:validates base:user/US-io.ontology.templates .
 
 # --- M2 LLM Integration Test Suite ---
@@ -1112,6 +1257,49 @@ base:test/m2-llm-integration a vdo:TestSuite ;
     rdfs:label "M2 LLM Integration Tests"@en ;
     rdfs:comment "Go integration tests for LLM provider interfaces: real HTTP calls, streaming, timeout handling, token counting. Build tag: integration. Enable with LLM_INTEGRATION_TESTS=1"@en ;
     vdo:filePath "src/services/shared/llm/integration_test.go" .
+
+# --- M2.5 GUI Wiring Phase 2 — Vitest Test Suites ---
+
+base:test/m2.5/sparql-page a vdo:TestSuite ;
+    rdfs:label "M2.5 SPARQLPage Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for SPARQLPage: query execution via Apollo GraphQL SPARQL_EXECUTE_QUERY, results display, error handling, format button"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/SPARQLPage.spec.ts" .
+
+base:test/m2.5/versioning-page a vdo:TestSuite ;
+    rdfs:label "M2.5 VersioningPage Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for VersioningPage: commit history from API, branch listing, tab switching, loading state"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/VersioningPage.spec.ts" .
+
+base:test/m2.5/workspace-save a vdo:TestSuite ;
+    rdfs:label "M2.5 OntologyWorkspace Save Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for OntologyWorkspace Save button: save via useDraftState, disabled when no changes, loading/error states"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/OntologyWorkspaceSave.spec.ts" .
+
+# --- M2.5 Test Utilities ---
+
+base:m2.5/test-utils a vdo:CodeArtifact ;
+    rdfs:label "M2.5 Vitest Test Utilities"@en ;
+    rdfs:comment "Vitest test utilities: createMockRouter, mountWithProviders, waitForQuery, describePage helpers"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/test-utils.ts" .
+
+base:m2.5/mock-providers a vdo:CodeArtifact ;
+    rdfs:label "M2.5 Vitest Mock Providers"@en ;
+    rdfs:comment "Vitest mock providers for component tests: createMockRouter, mountWithProviders, waitForQuery, describePage"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/setup/mock-providers.ts" .
+
+# --- M2.5 Apollo Mock Infrastructure ---
+
+base:m2.5/mock-data a vdo:CodeArtifact ;
+    rdfs:label "M2.5 Apollo Mock Data"@en ;
+    rdfs:comment "Apollo mock data for M2.5 pages: dashboard, metrics, deployments, merge requests, SPARQL results"@en ;
+    vdo:filePath "src/services/frontend/src/apollo/mock-data.ts" ;
+    vdo:implements base:spec/gui-ow-001 .
+
+base:m2.5/mock-link a vdo:CodeArtifact ;
+    rdfs:label "M2.5 Apollo Mock Link"@en ;
+    rdfs:comment "Apollo MockApolloLink intercepting M2.5 queries with realistic data and 200ms artificial delay"@en ;
+    vdo:filePath "src/services/frontend/src/apollo/mock-link.ts" ;
+    vdo:implements base:spec/gui-ow-001 .
 
 # --- Update coverage summary metrics ---
 # GraphQL artifacts: 5 (100% traced)
@@ -1127,7 +1315,7 @@ base:test/m2-llm-integration a vdo:TestSuite ;
 # - CLI commands: 5 (100% traced to spec)
 # - Security boundaries: 6 (100% identified)
 # - Error codes: 17 (100% identified in Go CLI)
-# - Test suites: 11 (100% traced)
+# - Test suites: 24 (100% traced) [+13 M2.5 vitest: SPARQLPage, VersioningPage, OntologyWorkspaceSave, ProjectsPage, GroupsPage, MembersPage, VersioningTabs, DashboardPage, MetricsPage, ValidationPage, DeploymentsPage, MergeRequestsPage, Navigation]
 # - Test contracts: 13 (100% identified)
 # - Deployment configs: 6 (100% traced)
 # - Observability configs: 4 (100% traced)
@@ -1135,3 +1323,487 @@ base:test/m2-llm-integration a vdo:TestSuite ;
 # - Design artifacts: 2 (traced)
 # - Architecture decisions: 3 (traced)
 # - NFRs: 4 (traced to tests/observability)
+# - M2.5 Code artifacts: 4 (mock data, mock link, test utils, mock providers) — 100% traced
+
+# --- M2.5 GUI Wiring Phase 3 — Vitest Test Suites (Block Б) ---
+
+base:test/m2.5/projects-page a vdo:TestSuite ;
+    rdfs:label "M2.5 ProjectsPage Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for ProjectsPage: list, search, sort, project rows, loading/empty states"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/ProjectsPage.spec.ts" .
+
+base:test/m2.5/groups-page a vdo:TestSuite ;
+    rdfs:label "M2.5 GroupsPage Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for GroupsPage: hierarchy rendering, expand/collapse, search, loading state"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/GroupsPage.spec.ts" .
+
+base:test/m2.5/members-page a vdo:TestSuite ;
+    rdfs:label "M2.5 MembersPage Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for MembersPage: member list, roles, edit/remove actions, loading state"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/MembersPage.spec.ts" .
+
+base:test/m2.5/versioning-tabs a vdo:TestSuite ;
+    rdfs:label "M2.5 VersioningTabs Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for VersioningPage tabs: Tags, Repository Graph, Compare Revisions"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/VersioningTabs.spec.ts" .
+
+# --- M2.5 GUI Wiring Phase 4 — Vitest Test Suites (Block В) ---
+
+base:test/m2.5/dashboard-page a vdo:TestSuite ;
+    rdfs:label "M2.5 DashboardPage Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for DashboardPage: widgets, attention items, activity feed, recent ontologies from API"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/DashboardPage.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+base:test/m2.5/metrics-page a vdo:TestSuite ;
+    rdfs:label "M2.5 MetricsPage Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for MetricsPage: KPI counters, trend charts, loading skeleton from API"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/MetricsPage.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+base:test/m2.5/validation-page a vdo:TestSuite ;
+    rdfs:label "M2.5 ValidationPage Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for ValidationPage: run button, SHACL validation mutation, results display"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/ValidationPage.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+base:test/m2.5/deployments-page a vdo:TestSuite ;
+    rdfs:label "M2.5 DeploymentsPage Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for DeploymentsPage: deployment cards from API, show stopped toggle, breadcrumbs"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/DeploymentsPage.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+base:test/m2.5/merge-requests-page a vdo:TestSuite ;
+    rdfs:label "M2.5 MergeRequestsPage Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for MergeRequestsPage: MR sections, filter tabs, data from API"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/MergeRequestsPage.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+# --- M2.5 GUI Wiring Phase 5 — Vitest Test Suites (Block Г) ---
+
+base:test/m2.5/navigation a vdo:TestSuite ;
+    rdfs:label "M2.5 Navigation Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for App.vue shell: user avatar, sidebar, header actions, route highlighting"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/Navigation.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+# --- M2.5 GUI Wiring E2E Test Suites ---
+
+base:test/m2.5/dashboard-wiring-e2e a vdo:TestSuite ;
+    rdfs:label "Dashboard Wiring E2E Tests"@en ;
+    rdfs:comment "Playwright E2E tests for dashboard: widgets, attention items, activity feed, recent ontologies from API, error states with retry"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/dashboard-wiring.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+base:test/m2.5/dashboard-navigation-e2e a vdo:TestSuite ;
+    rdfs:label "Dashboard Navigation E2E Tests"@en ;
+    rdfs:comment "Playwright E2E tests for navigation: click recent project to workspace, user name in header, active route highlight, persistence across reload"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/dashboard-navigation.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+base:test/m2.5/projects-page-e2e a vdo:TestSuite ;
+    rdfs:label "ProjectsPage E2E Tests"@en ;
+    rdfs:comment "Playwright E2E tests for Projects page: list, search, sort, click to navigate, empty state"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/projects-page.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+base:test/m2.5/groups-page-e2e a vdo:TestSuite ;
+    rdfs:label "GroupsPage E2E Tests"@en ;
+    rdfs:comment "Playwright E2E tests for Groups page: hierarchy, expand/collapse, lazy loading, search"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/groups-page.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+base:test/m2.5/members-page-e2e a vdo:TestSuite ;
+    rdfs:label "MembersPage E2E Tests"@en ;
+    rdfs:comment "Playwright E2E tests for Members page: list with roles, inline edit, remove with confirmation, last-owner protection"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/members-page.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+base:test/m2.5/sparql-gui-e2e a vdo:TestSuite ;
+    rdfs:label "SPARQL GUI E2E Tests"@en ;
+    rdfs:comment "Playwright E2E tests for SPARQL GUI: enter query, run, results table, loading, error, export"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/sparql-gui.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+base:test/m2.5/versioning-tabs-e2e a vdo:TestSuite ;
+    rdfs:label "Versioning Tabs E2E Tests"@en ;
+    rdfs:comment "Playwright E2E tests for Versioning tabs: commits, branches, tags, graph nodes, compare diff"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/versioning-tabs.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+base:test/m2.5/metrics-page-e2e a vdo:TestSuite ;
+    rdfs:label "MetricsPage E2E Tests"@en ;
+    rdfs:comment "Playwright E2E tests for Metrics page: KPI counters from API, trend chart, loading skeleton"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/metrics-page.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+base:test/m2.5/validation-page-e2e a vdo:TestSuite ;
+    rdfs:label "ValidationPage E2E Tests"@en ;
+    rdfs:comment "Playwright E2E tests for Validation page: run button to spinner to results, SHACL OK stub, timestamp update"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/validation-page.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+base:test/m2.5/deployments-page-e2e a vdo:TestSuite ;
+    rdfs:label "DeploymentsPage E2E Tests"@en ;
+    rdfs:comment "Playwright E2E tests for Deployments page: cards from API, show/hide stopped, delete"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/deployments-page.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+base:test/m2.5/merge-requests-page-e2e a vdo:TestSuite ;
+    rdfs:label "MergeRequestsPage E2E Tests"@en ;
+    rdfs:comment "Playwright E2E tests for Merge Requests page: sections, toggle, filter tabs"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/merge-requests-page.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+base:test/m2.5/api-gateway-full a vdo:TestSuite ;
+    rdfs:label "API Gateway Integration Tests"@en ;
+    rdfs:comment "Playwright API Gateway integration tests: 20+ REST/GraphQL endpoints, auth/error handling (401, 403, 400, 404, 429)"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/api/rest/api-gateway-full.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+# --- M2.5 E2E Page Object Models ---
+
+base:test/m2.5/pom-dashboard a vdo:TestSuite ;
+    rdfs:label "M2.5 Dashboard POM"@en ;
+    rdfs:comment "Playwright Page Object Model for Dashboard page"@en ;
+    vdo:filePath "tests/e2e/playwright/pages/dashboard.page.ts" .
+
+base:test/m2.5/pom-projects a vdo:TestSuite ;
+    rdfs:label "M2.5 Projects POM"@en ;
+    rdfs:comment "Playwright Page Object Model for Projects page"@en ;
+    vdo:filePath "tests/e2e/playwright/pages/projects.page.ts" .
+
+base:test/m2.5/pom-groups a vdo:TestSuite ;
+    rdfs:label "M2.5 Groups POM"@en ;
+    rdfs:comment "Playwright Page Object Model for Groups page"@en ;
+    vdo:filePath "tests/e2e/playwright/pages/groups.page.ts" .
+
+base:test/m2.5/pom-members a vdo:TestSuite ;
+    rdfs:label "M2.5 Members POM"@en ;
+    rdfs:comment "Playwright Page Object Model for Members page"@en ;
+    vdo:filePath "tests/e2e/playwright/pages/members.page.ts" .
+
+base:test/m2.5/pom-sparql a vdo:TestSuite ;
+    rdfs:label "M2.5 SPARQL POM"@en ;
+    rdfs:comment "Playwright Page Object Model for SPARQL page"@en ;
+    vdo:filePath "tests/e2e/playwright/pages/sparql.page.ts" .
+
+base:test/m2.5/pom-versioning a vdo:TestSuite ;
+    rdfs:label "M2.5 Versioning POM"@en ;
+    rdfs:comment "Playwright Page Object Model for Versioning page"@en ;
+    vdo:filePath "tests/e2e/playwright/pages/versioning.page.ts" .
+
+base:test/m2.5/pom-metrics a vdo:TestSuite ;
+    rdfs:label "M2.5 Metrics POM"@en ;
+    rdfs:comment "Playwright Page Object Model for Metrics page"@en ;
+    vdo:filePath "tests/e2e/playwright/pages/metrics.page.ts" .
+
+base:test/m2.5/pom-validation a vdo:TestSuite ;
+    rdfs:label "M2.5 Validation POM"@en ;
+    rdfs:comment "Playwright Page Object Model for Validation page"@en ;
+    vdo:filePath "tests/e2e/playwright/pages/validation.page.ts" .
+
+base:test/m2.5/pom-deployments a vdo:TestSuite ;
+    rdfs:label "M2.5 Deployments POM"@en ;
+    rdfs:comment "Playwright Page Object Model for Deployments page"@en ;
+    vdo:filePath "tests/e2e/playwright/pages/deployments.page.ts" .
+
+base:test/m2.5/pom-merge-requests a vdo:TestSuite ;
+    rdfs:label "M2.5 Merge Requests POM"@en ;
+    rdfs:comment "Playwright Page Object Model for Merge Requests page"@en ;
+    vdo:filePath "tests/e2e/playwright/pages/merge-requests.page.ts" .
+
+base:test/m2.5/mock-auth-fixtures a vdo:TestSuite ;
+    rdfs:label "E2E Mock Auth Fixtures"@en ;
+    rdfs:comment "E2E test fixtures for mock auth injection"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/graphql-fixtures.ts" .
+
+base:test/m2.5/stub-server a vdo:TestSuite ;
+    rdfs:label "M2.5 E2E Stub API Server"@en ;
+    rdfs:comment "Stub API server for M2.5 E2E tests — serves mock REST/GraphQL responses"@en ;
+    vdo:filePath "tests/e2e/playwright/stub-server.mjs" .
+
+base:test/m2.5/playwright-config a vdo:TestSuite ;
+    rdfs:label "M2.5 Playwright E2E Config"@en ;
+    rdfs:comment "Lightweight Playwright config for M2.5 E2E test suite"@en ;
+    vdo:filePath "tests/e2e/playwright/playwright.m2.5.config.ts" .
+
+# --- M2.5 Phase 8 Dialog Test Suites ---
+
+base:test/m2.5/create-class-dialog a vdo:TestSuite ;
+    rdfs:label "M2.5 CreateClassDialog Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for CreateClassDialog: render, validate empty name, submit, cancel"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/CreateClassDialog.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+base:test/m2.5/create-property-dialog a vdo:TestSuite ;
+    rdfs:label "M2.5 CreatePropertyDialog Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for CreatePropertyDialog: render, tabs, validate, submit"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/CreatePropertyDialog.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+base:test/m2.5/create-individual-dialog a vdo:TestSuite ;
+    rdfs:label "M2.5 CreateIndividualDialog Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for CreateIndividualDialog: render, validate, add property rows, submit"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/CreateIndividualDialog.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+base:test/m2.5/annotation-dialog a vdo:TestSuite ;
+    rdfs:label "M2.5 AnnotationDialog Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for AnnotationDialog: render, property selector, save"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/AnnotationDialog.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+base:test/m2.5/mfa-challenge-dialog a vdo:TestSuite ;
+    rdfs:label "M2.5 MfaChallengeDialog Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for MfaChallengeDialog: render, disable/enable Verify, verify flow, resend link"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/MfaChallengeDialog.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+base:test/m2.5/publish-snapshot-dialog a vdo:TestSuite ;
+    rdfs:label "M2.5 PublishSnapshotDialog Vitest Spec"@en ;
+    rdfs:comment "Vitest component tests for PublishSnapshotDialog: render, fields, disable/enable Publish, URL preview, publish flow"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/PublishSnapshotDialog.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+# --- M2.5 GUI Wiring Code Artifacts ---
+
+base:m2.5/use-current-user a vdo:CodeArtifact ;
+    rdfs:label "M2.5 useCurrentUser Composable"@en ;
+    rdfs:comment "JWT-based user info decoding: name, email, avatarUrl, initials from Keycloak session"@en ;
+    vdo:filePath "src/services/frontend/src/composables/useCurrentUser.ts" .
+
+base:m2.5/vitest-setup a vdo:CodeArtifact ;
+    rdfs:label "M2.5 Vitest Global Setup"@en ;
+    rdfs:comment "Global vitest setup: auto-provides Apollo client with mock resolvers to all component tests"@en ;
+    vdo:filePath "src/services/frontend/vitest.setup.ts" .
+
+# =============================================================================
+# INSTANCES — GUI Page Artifacts (design→GUI traceability)
+# =============================================================================
+
+base:gui/page/login a vdo:CodeArtifact ;
+    rdfs:label "Login Page"@en ;
+    rdfs:comment "Login page — centered card, logo, 5 OAuth provider buttons"@en ;
+    vdo:filePath "src/services/frontend/src/pages/LoginPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/dashboard a vdo:CodeArtifact ;
+    rdfs:label "Dashboard Page"@en ;
+    rdfs:comment "Dashboard page — greeting, collaboration widgets, activity feed, recent ontologies"@en ;
+    vdo:filePath "src/services/frontend/src/pages/DashboardPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/ontology-workspace a vdo:CodeArtifact ;
+    rdfs:label "Ontology Workspace Page"@en ;
+    rdfs:comment "Ontology workspace — ClassTree, GraphVisualization, PropertyPanel, AI import panel, toolbar"@en ;
+    vdo:filePath "src/services/frontend/src/pages/OntologyWorkspace.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/sparql a vdo:CodeArtifact ;
+    rdfs:label "SPARQL Query Builder Page"@en ;
+    rdfs:comment "SPARQL editor page — SPARQLQueryEditor organism, run/format/export, results table"@en ;
+    vdo:filePath "src/services/frontend/src/pages/SPARQLPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/metrics a vdo:CodeArtifact ;
+    rdfs:label "Metrics Dashboard Page"@en ;
+    rdfs:comment "Metrics dashboard — KPI counters, trend charts via MetricsDashboard organism"@en ;
+    vdo:filePath "src/services/frontend/src/pages/MetricsPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/public-ontology a vdo:CodeArtifact ;
+    rdfs:label "Public Ontology Page"@en ;
+    rdfs:comment "Public ontology read-only view — class tree, property panel, graph"@en ;
+    vdo:filePath "src/services/frontend/src/pages/PublicOntologyPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/groups a vdo:CodeArtifact ;
+    rdfs:label "Groups Page"@en ;
+    rdfs:comment "Groups page — hierarchy, search, sort, new group action"@en ;
+    vdo:filePath "src/services/frontend/src/pages/GroupsPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/members a vdo:CodeArtifact ;
+    rdfs:label "Members Page"@en ;
+    rdfs:comment "Members panel page — member list with roles, search, edit/remove actions"@en ;
+    vdo:filePath "src/services/frontend/src/pages/MembersPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/validation a vdo:CodeArtifact ;
+    rdfs:label "Validation Report Page"@en ;
+    rdfs:comment "Validation report page — run validation button, SHACL violations list"@en ;
+    vdo:filePath "src/services/frontend/src/pages/ValidationPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/commits a vdo:CodeArtifact ;
+    rdfs:label "Commits Page"@en ;
+    rdfs:comment "Commits page — stub placeholder (full implementation pending)"@en ;
+    vdo:filePath "src/services/frontend/src/pages/CommitsPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/recent-commits a vdo:CodeArtifact ;
+    rdfs:label "Recent Commits Page"@en ;
+    rdfs:comment "Recent commits page — RecentCommits organism, breadcrumbs"@en ;
+    vdo:filePath "src/services/frontend/src/pages/RecentCommitsPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/versioning a vdo:CodeArtifact ;
+    rdfs:label "Versioning Page"@en ;
+    rdfs:comment "Unified versioning page — tabbed views for commits, branches, compare, tags, repository graph"@en ;
+    vdo:filePath "src/services/frontend/src/pages/VersioningPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/merge-requests a vdo:CodeArtifact ;
+    rdfs:label "Merge Requests Page"@en ;
+    rdfs:comment "Merge requests page — MR list with status tabs, project filter, MergeRequests organism"@en ;
+    vdo:filePath "src/services/frontend/src/pages/MergeRequestsPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/projects a vdo:CodeArtifact ;
+    rdfs:label "Projects Page"@en ;
+    rdfs:comment "Projects page — project list with search, sort, new project action"@en ;
+    vdo:filePath "src/services/frontend/src/pages/ProjectsPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/deployments a vdo:CodeArtifact ;
+    rdfs:label "Deployments Page"@en ;
+    rdfs:comment "Deployments page — deployment cards with status, toggle stopped"@en ;
+    vdo:filePath "src/services/frontend/src/pages/DeploymentsPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/comments a vdo:CodeArtifact ;
+    rdfs:label "Comments Page"@en ;
+    rdfs:comment "Comments page — Comments organism, new comment input"@en ;
+    vdo:filePath "src/services/frontend/src/pages/CommentsPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/auth-callback a vdo:CodeArtifact ;
+    rdfs:label "Auth Callback Page"@en ;
+    rdfs:comment "Auth callback page — OAuth redirect handler with loading/success/error states"@en ;
+    vdo:filePath "src/services/frontend/src/pages/AuthCallbackPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/not-found a vdo:CodeArtifact ;
+    rdfs:label "Not Found (404) Page"@en ;
+    rdfs:comment "404 page — catch-all route with back-to-dashboard prompt"@en ;
+    vdo:filePath "src/services/frontend/src/pages/NotFoundPage.vue" ;
+    vdo:language "Vue" .
+
+base:gui/page/shacl a vdo:CodeArtifact ;
+    rdfs:label "SHACL Rule Builder Page"@en ;
+    rdfs:comment "SHACL Rule Builder page — SHACLRuleBuilder organism, Run Validation wired to mutation, loading/error/empty states"@en ;
+    vdo:filePath "src/services/frontend/src/pages/ShaclPage.vue" ;
+    vdo:language "Vue" .
+
+# --- GUI Dialog Components ---
+
+base:gui/component/document-uploader a vdo:CodeArtifact ;
+    rdfs:label "Document Uploader Component"@en ;
+    rdfs:comment "Import dialog — document file upload for AI-assisted ontology extraction"@en ;
+    vdo:filePath "src/services/frontend/src/components/ontology/DocumentUploader.vue" ;
+    vdo:language "Vue" .
+
+base:gui/component/batch-uploader a vdo:CodeArtifact ;
+    rdfs:label "Batch Uploader Component"@en ;
+    rdfs:comment "Import dialog — batch document upload for AI-assisted ontology extraction"@en ;
+    vdo:filePath "src/services/frontend/src/components/ontology/BatchUploader.vue" ;
+    vdo:language "Vue" .
+
+base:gui/component/apply-progress-modal a vdo:CodeArtifact ;
+    rdfs:label "Apply Progress Modal"@en ;
+    rdfs:comment "Apply Import dialog — progress modal with 4 states: idle, processing, success, error"@en ;
+    vdo:filePath "src/services/frontend/src/components/ontology/ApplyProgressModal.vue" ;
+    vdo:language "Vue" .
+
+base:gui/component/sequence-preview a vdo:CodeArtifact ;
+    rdfs:label "Sequence Preview Component"@en ;
+    rdfs:comment "Apply Import dialog — preview of extracted ontology changes before apply"@en ;
+    vdo:filePath "src/services/frontend/src/components/ontology/SequencePreview.vue" ;
+    vdo:language "Vue" .
+
+base:gui/component/conflict-resolver a vdo:CodeArtifact ;
+    rdfs:label "Conflict Resolver Component"@en ;
+    rdfs:comment "Conflict Resolver dialog — resolve merge/rebase conflicts in ontology changes"@en ;
+    vdo:filePath "src/services/frontend/src/components/ontology/ConflictResolver.vue" ;
+    vdo:language "Vue" .
+
+# --- M2.5 Phase 8 Dialog Components ---
+
+base:gui/component/create-class-dialog a vdo:CodeArtifact ;
+    rdfs:label "Create Class Dialog"@en ;
+    rdfs:comment "Create Class dialog — class name, parent class, description, annotations repeater, create/cancel actions"@en ;
+    vdo:filePath "src/services/frontend/src/components/ontology/CreateClassDialog.vue" ;
+    vdo:language "Vue" .
+
+base:gui/component/create-property-dialog a vdo:CodeArtifact ;
+    rdfs:label "Create Property Dialog"@en ;
+    rdfs:comment "Create Property dialog — config (name, type, domain, range) and preview (Turtle snippet) tabs, create/cancel"@en ;
+    vdo:filePath "src/services/frontend/src/components/ontology/CreatePropertyDialog.vue" ;
+    vdo:language "Vue" .
+
+base:gui/component/create-individual-dialog a vdo:CodeArtifact ;
+    rdfs:label "Create Individual Dialog"@en ;
+    rdfs:comment "Create Individual dialog — individual name, class selector, dynamic property-value grid, create/cancel"@en ;
+    vdo:filePath "src/services/frontend/src/components/ontology/CreateIndividualDialog.vue" ;
+    vdo:language "Vue" .
+
+base:gui/component/annotation-dialog a vdo:CodeArtifact ;
+    rdfs:label "Annotation Dialog"@en ;
+    rdfs:comment "Annotation dialog — annotation property selector, value input, optional language, save/cancel"@en ;
+    vdo:filePath "src/services/frontend/src/components/ontology/AnnotationDialog.vue" ;
+    vdo:language "Vue" .
+
+base:gui/component/mfa-challenge-dialog a vdo:CodeArtifact ;
+    rdfs:label "MFA Challenge Dialog"@en ;
+    rdfs:comment "Two-Factor Authentication dialog — 6-digit code input, verify/cancel, resend with 30s cooldown"@en ;
+    vdo:filePath "src/services/frontend/src/components/auth/MfaChallengeDialog.vue" ;
+    vdo:language "Vue" .
+
+base:gui/component/publish-snapshot-dialog a vdo:CodeArtifact ;
+    rdfs:label "Publish Snapshot Dialog"@en ;
+    rdfs:comment "Publish Snapshot dialog — version/tag name, visibility, description, URL preview with copy, publish/cancel"@en ;
+    vdo:filePath "src/services/frontend/src/components/ontology/PublishSnapshotDialog.vue" ;
+    vdo:language "Vue" .
+
+# =============================================================================
+# DESIGN → GUI TRACEABILITY LINKS
+# =============================================================================
+# Each GUI page/component implements its corresponding design artifact.
+
+base:gui/page/login vdo:implements base:design/page/login .
+base:gui/page/dashboard vdo:implements base:design/page/dashboard .
+base:gui/page/ontology-workspace vdo:implements base:design/page/ontology-workspace .
+base:gui/page/sparql vdo:implements base:design/page/sparql-editor .
+base:gui/page/metrics vdo:implements base:design/page/metrics-dashboard .
+base:gui/page/public-ontology vdo:implements base:design/page/public-ontology .
+base:gui/page/groups vdo:implements base:design/page/groups .
+base:gui/page/members vdo:implements base:design/page/members .
+base:gui/page/validation vdo:implements base:design/page/validation-report .
+base:gui/page/commits vdo:implements base:design/page/commits .
+base:gui/page/recent-commits vdo:implements base:design/page/recent-commits .
+base:gui/page/versioning vdo:implements base:design/page/branches, base:design/page/compare-revisions, base:design/page/tags, base:design/page/repository-graph .
+base:gui/page/merge-requests vdo:implements base:design/page/merge-requests .
+base:gui/page/projects vdo:implements base:design/page/projects .
+base:gui/page/deployments vdo:implements base:design/page/deployments .
+base:gui/page/comments vdo:implements base:design/page/comments .
+
+# Dialog traceability: design/dialogs.pen → GUI dialog components
+base:gui/component/document-uploader vdo:implements base:design/page/dialogs .
+base:gui/component/batch-uploader vdo:implements base:design/page/dialogs .
+base:gui/component/apply-progress-modal vdo:implements base:design/page/dialogs .
+base:gui/component/sequence-preview vdo:implements base:design/page/dialogs .
+base:gui/component/conflict-resolver vdo:implements base:design/page/dialogs .
+
+base:gui/page/shacl vdo:implements base:design/page/shacl-rule-builder .
+
+base:gui/page/auth-callback vdo:implements base:design/page/auth-callback .
+base:gui/page/not-found vdo:implements base:design/page/not-found .
+
+# M2.5 Phase 8 dialog traceability: design/dialogs.pen → GUI dialog components
+base:gui/component/create-class-dialog vdo:implements base:design/page/dialogs .
+base:gui/component/create-property-dialog vdo:implements base:design/page/dialogs .
+base:gui/component/create-individual-dialog vdo:implements base:design/page/dialogs .
+base:gui/component/annotation-dialog vdo:implements base:design/page/dialogs .
+base:gui/component/mfa-challenge-dialog vdo:implements base:design/page/dialogs .
+base:gui/component/publish-snapshot-dialog vdo:implements base:design/page/dialogs .

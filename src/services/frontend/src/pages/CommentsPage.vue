@@ -32,68 +32,108 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useQuery, useMutation } from '@vue/apollo-composable'
-import { useRoute } from 'vue-router'
+import {
+	CREATE_COMMENT_MUTATION,
+	GET_COMMENT_FEED_QUERY,
+} from "@/apollo/queries";
 import Comments from "@/components/organisms/Comments.vue";
+import { useMutation, useQuery } from "@vue/apollo-composable";
 import { ChevronRight } from "lucide-vue-next";
-import { GET_COMMENT_FEED_QUERY, CREATE_COMMENT_MUTATION } from '@/apollo/queries'
+import { computed, ref, watch } from "vue";
+import { useRoute } from "vue-router";
 
-const route = useRoute()
-const ontologyId = (route.params.ontologyId as string) || 'default'
+const route = useRoute();
+const ontologyId = (route.params.ontologyId as string) || "default";
 
 const { result, loading, error, refetch } = useQuery(GET_COMMENT_FEED_QUERY, {
-    ontologyId,
-    page: 0,
-    perPage: 50,
-})
+	ontologyId,
+	page: 0,
+	perPage: 50,
+});
 
 const commentItems = computed(() => {
-    if (!result.value?.commentFeed?.items) return []
-    return result.value.commentFeed.items.map((c: any) => ({
-        author: c.authorName ?? c.author,
-        handle: `@${c.author}`,
-        timestamp: formatRelativeTime(c.createdAt),
-        action: `commented on entity ${c.entityId}`,
-        text: c.text,
-    }))
-})
+	if (!result.value?.commentFeed?.items) return [];
+	return result.value.commentFeed.items.map(
+		(c: {
+			authorName?: string;
+			author?: string;
+			text?: string;
+			entityId?: string;
+			entityType?: string;
+			createdAt?: string;
+			updatedAt?: string;
+			parentCommentId?: string;
+		}) => ({
+			author: c.authorName ?? c.author,
+			handle: `@${c.author}`,
+			timestamp: formatRelativeTime(c.createdAt ?? ""),
+			action: `commented on entity ${c.entityId}`,
+			text: c.text,
+		}),
+	);
+});
 
-const mutationError = ref<string | null>(null)
-const newCommentText = ref('')
+const mutationError = ref<string | null>(null);
+const newCommentText = ref("");
 
 function submitComment() {
-    if (!newCommentText.value.trim()) return
-    const { mutate } = useMutation(CREATE_COMMENT_MUTATION, {
-        variables: {
-            ontologyId,
-            entityId: ontologyId, // Project-level comment
-            text: newCommentText.value.trim(),
-        },
-    })
-    mutate()
-        .then(() => {
-            newCommentText.value = ''
-            refetch()
-        })
-        .catch((err: unknown) => {
-            const message = err instanceof Error ? err.message : 'Unknown error'
-            mutationError.value = message
-        })
+	if (!newCommentText.value.trim()) return;
+	const { mutate } = useMutation(CREATE_COMMENT_MUTATION, {
+		variables: {
+			ontologyId,
+			entityId: ontologyId, // Project-level comment
+			text: newCommentText.value.trim(),
+		},
+	});
+	mutate()
+		.then(() => {
+			newCommentText.value = "";
+			refetch();
+		})
+		.catch((err: unknown) => {
+			const message = err instanceof Error ? err.message : "Unknown error";
+			mutationError.value = message;
+		});
 }
 
 function formatRelativeTime(dateStr: string): string {
-    const now = Date.now()
-    const then = new Date(dateStr).getTime()
-    const diffMs = now - then
-    const minutes = Math.floor(diffMs / 60000)
-    if (minutes < 1) return 'just now'
-    if (minutes < 60) return `${minutes}m ago`
-    const hours = Math.floor(minutes / 60)
-    if (hours < 24) return `${hours}h ago`
-    const days = Math.floor(hours / 24)
-    return `${days}d ago`
+	const now = Date.now();
+	const then = new Date(dateStr).getTime();
+	const diffMs = now - then;
+	const minutes = Math.floor(diffMs / 60000);
+	if (minutes < 1) return "just now";
+	if (minutes < 60) return `${minutes}m ago`;
+	const hours = Math.floor(minutes / 60);
+	if (hours < 24) return `${hours}h ago`;
+	const days = Math.floor(hours / 24);
+	return `${days}d ago`;
 }
+
+// ── Logging ─────────────────────────────────────────────────────────────────
+
+watch(commentItems, (val) => {
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "comments.feed.loaded",
+			count: val.length,
+			ts: new Date().toISOString(),
+		}),
+	);
+});
+
+watch(error, (err) => {
+	if (err) {
+		console.error(
+			JSON.stringify({
+				level: "error",
+				msg: "comments.query.error",
+				error: String(err),
+				ts: new Date().toISOString(),
+			}),
+		);
+	}
+});
 </script>
 
 <style scoped>

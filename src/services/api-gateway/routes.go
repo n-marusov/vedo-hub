@@ -1,7 +1,8 @@
 package main
 
 import (
-	_ "embed"
+	"embed"
+	"io/fs"
 	"log/slog"
 	"net/http"
 	"os"
@@ -16,6 +17,21 @@ import (
 
 //go:embed docs/openapi.json
 var openAPISpec []byte
+
+//go:embed swagger/*
+var swaggerEmbedFS embed.FS
+
+// swaggerFS is the pre-computed http.FileSystem rooted at swagger/.
+// Initialised in init() via fs.Sub. Nil pointer = panic (programmer error).
+var swaggerFS http.FileSystem
+
+func init() {
+	sub, err := fs.Sub(swaggerEmbedFS, "swagger")
+	if err != nil {
+		panic("swagger embed init: " + err.Error())
+	}
+	swaggerFS = http.FS(sub)
+}
 
 // RegisterRoutes defines all API route groups and wires them to the proxy handlers.
 // The proxies are configured via environment variables pointing to upstream services.
@@ -135,11 +151,11 @@ func RegisterRoutes(r *gin.Engine, grpcPool *proxy.GrpcClientPool) {
 		c.Data(http.StatusOK, "application/json", openAPISpec)
 	})
 
-	// Docs error route — placeholder for future UI
-	api.GET("/docs", func(c *gin.Context) {
-		slog.Info("docs.redirect", "trace_id", c.GetHeader("X-Trace-Id"))
-		c.Redirect(http.StatusFound, "/openapi.json")
-	})
+	// Docs routes — Swagger UI (dev-only, controlled by ENABLE_SWAGGER_UI).
+	// Per ADR-DES.API.swagger-ui-dev-only-strategy: enabled only in dev;
+	// staging and production return 404.
+	api.GET("/docs", docHandler)
+	api.GET("/docs/*filepath", swaggerStaticHandler)
 
 	// NoRoute handler — uniform 404 for unknown /api/v1 routes.
 	r.NoRoute(func(c *gin.Context) {
@@ -172,6 +188,54 @@ func getEnv(key, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+// isSwaggerUIEnabled checks ENABLE_SWAGGER_UI env var (default: false).
+// Swagger UI is a dev-only feature per ADR-DES.API.swagger-ui-dev-only-strategy.
+func isSwaggerUIEnabled() bool {
+	v := os.Getenv("ENABLE_SWAGGER_UI")
+	return v == "true" || v == "1"
+}
+
+// docHandler serves the Swagger UI index page when ENABLE_SWAGGER_UI=true,
+// otherwise returns 404 with a descriptive error message.
+func docHandler(c *gin.Context) {
+	if !isSwaggerUIEnabled() {
+		slog.Warn("swagger.ui.disabled",
+			"trace_id", c.GetHeader("X-Trace-Id"),
+			"hint", "set ENABLE_SWAGGER_UI=true to enable Swagger UI in dev",
+		)
+		c.JSON(http.StatusNotFound, models.ErrorResponse{
+			Error: models.ErrorDetail{
+				Code:    "SWAGGER-UI-DISABLED",
+				Message: "Swagger UI is not available in this environment.",
+			},
+		})
+		return
+	}
+	slog.Info("swagger.ui.served", "path", "/api/v1/docs", "trace_id", c.GetHeader("X-Trace-Id"))
+	c.FileFromFS("index.html", swaggerFS)
+}
+
+// swaggerStaticHandler serves embedded Swagger UI static assets (CSS/JS)
+// when ENABLE_SWAGGER_UI=true. The Gin catch-all param :filepath
+// captures the path after /docs, e.g. "/swagger-ui.css".
+func swaggerStaticHandler(c *gin.Context) {
+	if !isSwaggerUIEnabled() {
+		c.JSON(http.StatusNotFound, models.ErrorResponse{
+			Error: models.ErrorDetail{
+				Code:    "SWAGGER-UI-DISABLED",
+				Message: "Swagger UI is not available in this environment.",
+			},
+		})
+		return
+	}
+	file := c.Param("filepath")
+	// Gin's catch-all param includes a leading "/" — strip it.
+	if len(file) > 0 && file[0] == '/' {
+		file = file[1:]
+	}
+	c.FileFromFS(file, swaggerFS)
 }
 
 // withOntologyHeader wraps an http.Handler and injects X-Ontology-Id from

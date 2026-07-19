@@ -1,6 +1,6 @@
 <!-- @hlv:artifact code-frontend implements spec-gui-ow-001 -->
 <!-- @ctx: Organism/MergeRequests — collapsible section cards, no tabs -->
-<!-- Matches design/ui-kit.lib.pen orgMergeRequests (Organism/MergeRequests) -->
+<!-- @m2.5 — Wired: accepts mergeRequests as prop from MergeRequestsPage -->
 <template>
     <div class="merge-requests" role="region" aria-label="Merge requests">
         <MergeRequestCard
@@ -22,6 +22,7 @@
             :key="section.title"
             :title="section.title"
             :open="section.open"
+            :count="0"
             :empty-text="section.emptyText"
             @toggle="section.open = !section.open"
         />
@@ -29,58 +30,81 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from "vue";
+import { computed, reactive } from "vue";
 import MergeRequestCard from "./MergeRequestCard.vue";
 
-interface MRSection {
-    title: string;
-    open: boolean;
-    count?: number;
-    emptyText: string;
+// @m2.5 — MR entry from LIST_MERGE_REQUESTS_QUERY
+interface MREntry {
+	id: string;
+	title: string;
+	description: string;
+	sourceBranch: string;
+	targetBranch: string;
+	authorName: string;
+	status: string;
+	mergeStatus: string;
+	createdAt: string;
+	commentCount: number;
 }
 
+const props = defineProps<{
+	mergeRequests: MREntry[];
+}>();
+
+interface MRSection {
+	title: string;
+	open: boolean;
+	count?: number;
+	emptyText: string;
+}
+
+// @m2.5 — Compute section counts from API data
+const openCount = computed(
+	() => props.mergeRequests.filter((mr) => mr.status === "open").length,
+);
+
 const sections: MRSection[] = reactive([
-    {
-        title: "Returned to you",
-        open: true,
-        count: 0,
-        emptyText: "No merge requests match this list.",
-    },
-    {
-        title: "Review requested",
-        open: true,
-        count: 2,
-        emptyText: "No merge requests match this list.",
-    },
-    {
-        title: "Your merge requests",
-        open: true,
-        count: 0,
-        emptyText: "No merge requests match this list.",
-    },
+	{
+		title: "Returned to you",
+		open: true,
+		count: 0,
+		emptyText: "No merge requests match this list.",
+	},
+	{
+		title: "Review requested",
+		open: true,
+		count: openCount,
+		emptyText: "No merge requests match this list.",
+	},
+	{
+		title: "Your merge requests",
+		open: true,
+		count: 0,
+		emptyText: "No merge requests match this list.",
+	},
 ]);
 
 const secondarySections: MRSection[] = reactive([
-    {
-        title: "Waiting for author or assignee",
-        open: true,
-        emptyText: "No merge requests match this list.",
-    },
-    {
-        title: "Waiting for approvals",
-        open: true,
-        emptyText: "No merge requests match this list.",
-    },
-    {
-        title: "Approved by you",
-        open: true,
-        emptyText: "No merge requests match this list.",
-    },
-    {
-        title: "Approved by others",
-        open: true,
-        emptyText: "No merge requests match this list.",
-    },
+	{
+		title: "Waiting for author or assignee",
+		open: true,
+		emptyText: "No merge requests match this list.",
+	},
+	{
+		title: "Waiting for approvals",
+		open: true,
+		emptyText: "No merge requests match this list.",
+	},
+	{
+		title: "Approved by you",
+		open: true,
+		emptyText: "No merge requests match this list.",
+	},
+	{
+		title: "Approved by others",
+		open: true,
+		emptyText: "No merge requests match this list.",
+	},
 ]);
 </script>
 

@@ -17,8 +17,9 @@ export default defineConfig({
     { name: 'webkit', use: { ...devices['Desktop Safari'] } }
   ],
   webServer: {
-    command: 'bash ../../../../src/scripts/compose-smoke.sh',
+    command: 'bash ../../../src/scripts/compose-smoke.sh',
     url: 'http://localhost:3000/health',
-    reuseExistingServer: true
+    reuseExistingServer: true,
+    timeout: 600_000
   }
 });

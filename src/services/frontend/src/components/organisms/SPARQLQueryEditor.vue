@@ -6,6 +6,7 @@
         ▶ Run
       </PrimaryButton>
       <GhostButton @click="query && $emit('format', query)">Format</GhostButton>
+      <GhostButton :disabled="!results" @click="query && $emit('export', query)">Export</GhostButton>
       <Select v-model="format" :options="formatOptions" label="Result format" />
     </div>
     <textarea
@@ -40,28 +41,33 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import GhostButton from '../ui-kit/GhostButton.vue'
-import PrimaryButton from '../ui-kit/PrimaryButton.vue'
-import Select from '../ui-kit/Select.vue'
+import { ref } from "vue";
+import GhostButton from "../ui-kit/GhostButton.vue";
+import PrimaryButton from "../ui-kit/PrimaryButton.vue";
+import Select from "../ui-kit/Select.vue";
 
 defineProps<{
-  query?: string
-  results?: {
-    head: { vars: string[] }
-    results: { bindings: Record<string, { value: string }>[] }
-    total_results: number
-    execution_time_ms: number
-  }
-}>()
-defineEmits<{ 'update:query': [v: string]; run: [q: string]; format: [q: string] }>()
+	query?: string;
+	results?: {
+		head: { vars: string[] };
+		results: { bindings: Record<string, { value: string }>[] };
+		total_results: number;
+		execution_time_ms: number;
+	};
+}>();
+defineEmits<{
+	"update:query": [v: string];
+	run: [q: string];
+	format: [q: string];
+	export: [q: string];
+}>();
 
-const format = ref('table')
+const format = ref("table");
 const formatOptions = [
-  { value: 'table', label: 'Table' },
-  { value: 'json', label: 'JSON' },
-  { value: 'csv', label: 'CSV' }
-]
+	{ value: "table", label: "Table" },
+	{ value: "json", label: "JSON" },
+	{ value: "csv", label: "CSV" },
+];
 </script>
 
 <style scoped>

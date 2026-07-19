@@ -500,7 +500,7 @@ impl ExportService {
                         } else {
                             writeln!(
                                 out,
-                                r#"    <{ns_prefix}{pred_local}>{escaped}</{ns_prefix}{pred_local}>"#
+                                r"    <{ns_prefix}{pred_local}>{escaped}</{ns_prefix}{pred_local}>"
                             )
                             .unwrap();
                         }
@@ -794,12 +794,12 @@ impl ExportService {
     // ── Database Queries ───────────────────────────────────────────────────
 
     async fn fetch_classes(&self, ontology_id: &str) -> Result<Vec<ClassRow>, ExportError> {
-        let query = "\
-            MATCH (c:Class {ontology_id: $ontology_id})\
-            OPTIONAL MATCH (c)-[:CHILD_OF]->(p:Class)\
-            RETURN c.id AS id, c.label AS label, c.comment AS comment, \
-                   collect(DISTINCT p.id) AS parents\
-            ORDER BY c.label\
+        let query = r"
+            MATCH (c:Class {ontology_id: $ontology_id})
+            OPTIONAL MATCH (c)-[:CHILD_OF]->(p:Class)
+            RETURN c.id AS id, c.label AS label, c.comment AS comment,
+                   collect(DISTINCT p.id) AS parents
+            ORDER BY c.label
         ";
 
         let q = neo4rs::Query::new(query.to_string()).param("ontology_id", ontology_id);
@@ -831,19 +831,19 @@ impl ExportService {
     }
 
     async fn fetch_properties(&self, ontology_id: &str) -> Result<Vec<PropertyRow>, ExportError> {
-        let query = "\
-            MATCH (p:Property {ontology_id: $ontology_id})\
-            OPTIONAL MATCH (p)-[:DOMAIN]->(d:Class)\
-            OPTIONAL MATCH (p)-[:RANGE]->(r:Class)\
-            RETURN p.id AS id, p.label AS label, p.comment AS comment, \
-                   p.is_datatype AS is_datatype, p.xsd_type AS xsd_type, \
-                   p.functional AS functional, p.inverse_functional AS inverse_functional, \
-                   p.transitive AS transitive, p.symmetric AS symmetric, \
-                   p.min_cardinality AS min_cardinality, \
-                   p.max_cardinality AS max_cardinality, \
-                   collect(DISTINCT d.id) AS domain_ids, \
-                   collect(DISTINCT r.id) AS range_ids\
-            ORDER BY p.label\
+        let query = r"
+            MATCH (p:Property {ontology_id: $ontology_id})
+            OPTIONAL MATCH (p)-[:DOMAIN]->(d:Class)
+            OPTIONAL MATCH (p)-[:RANGE]->(r:Class)
+            RETURN p.id AS id, p.label AS label, p.comment AS comment,
+                   p.is_datatype AS is_datatype, p.xsd_type AS xsd_type,
+                   p.functional AS functional, p.inverse_functional AS inverse_functional,
+                   p.transitive AS transitive, p.symmetric AS symmetric,
+                   p.min_cardinality AS min_cardinality,
+                   p.max_cardinality AS max_cardinality,
+                   collect(DISTINCT d.id) AS domain_ids,
+                   collect(DISTINCT r.id) AS range_ids
+            ORDER BY p.label
         ";
 
         let q = neo4rs::Query::new(query.to_string()).param("ontology_id", ontology_id);
@@ -898,12 +898,12 @@ impl ExportService {
         &self,
         ontology_id: &str,
     ) -> Result<Vec<IndividualRow>, ExportError> {
-        let query = "\
-            MATCH (i:Individual {ontology_id: $ontology_id})\
-            OPTIONAL MATCH (i)-[:INSTANCE_OF]->(c:Class)\
-            RETURN i.id AS id, i.label AS label, i.comment AS comment, \
-                   coalesce(c.id, '') AS class_id\
-            ORDER BY i.label\
+        let query = r"
+            MATCH (i:Individual {ontology_id: $ontology_id})
+            OPTIONAL MATCH (i)-[:INSTANCE_OF]->(c:Class)
+            RETURN i.id AS id, i.label AS label, i.comment AS comment,
+                   coalesce(c.id, '') AS class_id
+            ORDER BY i.label
         ";
 
         let q = neo4rs::Query::new(query.to_string()).param("ontology_id", ontology_id);
@@ -938,11 +938,11 @@ impl ExportService {
         &self,
         ontology_id: &str,
     ) -> Result<Vec<LiteralValueRow>, ExportError> {
-        let query = "\
-            MATCH (i:Individual {ontology_id: $ontology_id})\
-                  -[:HAS_VALUE]->(lv:LiteralValue)\
-            RETURN i.id AS individual_id, lv.property_id AS property_id, \
-                   lv.value AS value, lv.xsd_type AS xsd_type\
+        let query = r"
+            MATCH (i:Individual {ontology_id: $ontology_id})
+                  -[:HAS_VALUE]->(lv:LiteralValue)
+            RETURN i.id AS individual_id, lv.property_id AS property_id,
+                   lv.value AS value, lv.xsd_type AS xsd_type
         ";
 
         let q = neo4rs::Query::new(query.to_string()).param("ontology_id", ontology_id);
@@ -975,11 +975,11 @@ impl ExportService {
         &self,
         ontology_id: &str,
     ) -> Result<Vec<ReferenceValueRow>, ExportError> {
-        let query = "\
-            MATCH (source:Individual {ontology_id: $ontology_id})\
-                  -[r:HAS_REF]->(target:Individual)\
-            RETURN source.id AS source_id, r.property_id AS property_id, \
-                   target.id AS target_id\
+        let query = r"
+            MATCH (source:Individual {ontology_id: $ontology_id})
+                  -[r:HAS_REF]->(target:Individual)
+            RETURN source.id AS source_id, r.property_id AS property_id,
+                   target.id AS target_id
         ";
 
         let q = neo4rs::Query::new(query.to_string()).param("ontology_id", ontology_id);

@@ -7,6 +7,10 @@
     "test:ci": "playwright test --reporter=html,json"
   },
   "devDependencies": {
-    "@playwright/test": "^1.53.0"
+    "@playwright/test": "^1.53.0",
+    "axe-core": "^4.12.1"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^9.0.3"
   }
 }

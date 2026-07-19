@@ -1,15 +1,37 @@
+# Version control
 .git/
 .gitattributes
 .gitignore
 .hg/
 .svn/
+
+# Node.js
 node_modules/
-src/services/ontology-service/target/
-src/services/versioning-service/target/
-src/services/frontend/node_modules/
-src/services/frontend/dist/
-src/services/metrics-service/.venv/
-src/services/metrics-service/.pytest_cache/
-src/services/metrics-service/.ruff_cache/
+**/node_modules/
+**/dist/
+
+# Rust
+**/target/
+src/services/shared/target/
+src/services/publisher-service/target/
+src/services/public-browse-api/target/
+
+# Python
+**/.venv/
+**/__pycache__/
+**/.pytest_cache/
+**/.ruff_cache/
+**/.mypy_cache/
+
+# Go
+vendor/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
 *.log
+
+# Project-specific
 *.md
