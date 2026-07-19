@@ -11,8 +11,12 @@
 #   BINARY_NAME      — service directory name under SERVICE_DIR, e.g. "api-gateway"
 #   SERVICE_DIR      — workspace root containing service dirs + shared/ (default: src/services)
 
-ARG GO_BASE_IMAGE=golang:1.22-alpine
+ARG GO_BASE_IMAGE=golang:1.24-alpine
 ARG GO_RUNTIME_IMAGE=alpine:3.19
+
+# @ctx: Shared multi-stage Go builder for all Go services
+# Go 1.24 is required by api-gateway; backward-compatible with 1.22 modules.
+# Services with SQL migrations: copy them via builder RUN + runtime COPY.
 
 # ── Builder Stage ──────────────────────────────────────────────────────────────
 FROM ${GO_BASE_IMAGE} AS builder
@@ -44,6 +48,9 @@ COPY ${SERVICE_DIR}/${BINARY_NAME}/ ./
 # Sync go.mod/go.sum for the build environment, then compile a static binary
 RUN go mod tidy && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /out/service .
 
+# Copy migrations directory if it exists (for services with SQL migrations like auth-service)
+RUN if [ -d migrations ]; then cp -r migrations /out/migrations; else mkdir -p /out/migrations; fi
+
 
 # ── Runtime Stage ──────────────────────────────────────────────────────────────
 FROM ${GO_RUNTIME_IMAGE} AS runtime
@@ -56,6 +63,9 @@ WORKDIR /app
 RUN apk add --no-cache ca-certificates
 
 COPY --from=builder /out/service /app/service
+
+# Copy migrations directory if present (optional — some services have SQL migrations)
+COPY --from=builder /out/migrations /app/migrations/
 
 EXPOSE 8080
 
