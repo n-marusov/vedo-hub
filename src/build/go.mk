@@ -27,7 +27,18 @@ test-go:
 		cd $(ROOT)/$$dir && go test ./... 2>&1 || { echo "TEST_FAILED: go test failed in $$dir"; exit 1; }; \
 	done
 
+.PHONY: vendor-go
+vendor-go: ## Populate vendor directories for all Go services (enables offline Docker builds)
+	@if [ -z "$(GO_DIRS)" ]; then echo "No Go services found"; exit 0; fi
+	@echo "[Go] populating vendor directories..."
+	@for dir in $(GO_DIRS); do \
+		echo "[Go] vendoring $$(basename $$dir)"; \
+		cd $(ROOT)/$$dir && go mod vendor 2>&1 || echo "WARN: go mod vendor failed in $$dir"; \
+	done
+	@echo "[Go] vendor directories populated"
+
 .PHONY: clean-go
 clean-go:
 	@if [ -z "$(GO_DIRS)" ]; then exit 0; fi
 	@for dir in $(GO_DIRS); do cd $(ROOT)/$$dir && go clean; done
+	@echo "[Go] to remove vendor directories, run: rm -rf $$(find $(ROOT) -type d -name vendor | grep -v node_modules)"

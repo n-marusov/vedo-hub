@@ -1,0 +1,144 @@
+{
+  "run_id": "acceptance-criteria-verification-20260719-181743",
+  "task_alias": "acceptance-criteria-verification",
+  "status": "running",
+  "iteration": 1,
+  "max_iterations": 4,
+  "phase": "A",
+  "current_step": "PLAN",
+  "task": {
+    "prompt": "Verify all M3 acceptance criteria pass. The acceptance criteria cover API contracts, unit tests, security, role vocabulary, hierarchy depth, project movement, audit, traceability, docs, and E2E tests. Many require Docker infrastructure; verify what's possible in the current environment.",
+    "ideal_result": "All acceptance criteria that CAN be verified without Docker infrastructure pass. Gaps that need Docker are documented."
+  },
+  "criteria": {
+    "name": "m3-acceptance-criteria-v1",
+    "version": 1,
+    "phase": {
+      "A": { "threshold": 0.8, "active_levels": ["A"] },
+      "B": { "threshold": 0.9, "active_levels": ["A", "B"] }
+    },
+    "rules": [
+      {
+        "id": "UNIT-TESTS-PASS",
+        "description": "All in-memory unit tests in auth-service/org pass: `go test ./src/services/auth-service/org/...`",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "go test ./src/services/auth-service/org/"
+      },
+      {
+        "id": "GRPC-CONTRACT-TESTS",
+        "description": "gRPC contract tests pass: TestOrg* tests in org_grpc_test.go, hierarchy tests, role vocab tests",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "go test -run 'TestOrg|TestMvp|TestLegacy|TestHierarchy|TestMove|TestScopeDepth|TestCreateScope' ./src/services/auth-service/org/"
+      },
+      {
+        "id": "MVP-ROLE-VOCABULARY",
+        "description": "MVP role vocabulary aligned: Guest, Reporter, Developer, Maintainer, Owner accepted. Legacy Viewer/Editor preserved for backward compat.",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "verify_role_vocabulary_tests_pass"
+      },
+      {
+        "id": "HIERARCHY-DEPTH",
+        "description": "Group hierarchy depth enforced at 5 levels. Creating or moving beyond 5 returns HIERARCHY_DEPTH_EXCEEDED error.",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "verify_hierarchy_tests"
+      },
+      {
+        "id": "MOVE-SCOPE",
+        "description": "Project movement supported: MoveScope updates parent, invalidates caches, emits audit event.",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "verify_move_scope"
+      },
+      {
+        "id": "AUDIT-COVERAGE",
+        "description": "Audit events emitted for scope create/move and membership/role changes with actor, target, action, trace_id.",
+        "severity": "warn",
+        "weight": 1,
+        "phase": "A",
+        "check": "verify_audit_logging"
+      },
+      {
+        "id": "CROSS-TENANT-CYCLE",
+        "description": "Cross-tenant access denied (FORBIDDEN_CROSS_TENANT_ACCESS). Circular hierarchy rejected (CYCLE_DETECTED).",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "verify_security_gates"
+      },
+      {
+        "id": "LAST-OWNER-PROTECTION",
+        "description": "Last-owner removal blocked with 403. Only Owner manages members.",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "verify_last_owner"
+      },
+      {
+        "id": "VISIBILITY",
+        "description": "Visibility enforced: Private→non-members blocked, Internal→anonymous blocked (401), Public→all allowed.",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "verify_visibility_gates"
+      },
+      {
+        "id": "ROLE-INHERITANCE",
+        "description": "Parent group roles propagate to child scopes (max-role-wins).",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "verify_role_inheritance"
+      },
+      {
+        "id": "IDEMPOTENCY-KEY",
+        "description": "Idempotency-Key enforced on write endpoints (Task 16 implemented in Phase 4).",
+        "severity": "warn",
+        "weight": 1,
+        "phase": "A",
+        "check": "verify_idempotency"
+      },
+      {
+        "id": "BUILD-LINT",
+        "description": "Go code builds and passes go vet. Changed files pass formatting.",
+        "severity": "warn",
+        "weight": 1,
+        "phase": "A",
+        "check": "go vet ./src/services/auth-service/..."
+      },
+      {
+        "id": "TRACEABILITY",
+        "description": "traceability.ttl updated with all new TestSuite entries.",
+        "severity": "warn",
+        "weight": 1,
+        "phase": "B",
+        "check": "verify_traceability"
+      },
+      {
+        "id": "DOCS",
+        "description": "Documentation checkpoint completed (Antora sites updated, OpenAPI spec updated).",
+        "severity": "warn",
+        "weight": 1,
+        "phase": "B",
+        "check": "verify_documentation"
+      }
+    ]
+  },
+  "plan": [],
+  "prepared_checks": null,
+  "evaluation": null,
+  "critique": null,
+  "stop": { "passed": false, "reason": "" },
+  "last_score": 0,
+  "stagnation_count": 0,
+  "created_at": "2026-07-19T18:17:43Z",
+  "updated_at": "2026-07-19T18:17:43Z"
+}

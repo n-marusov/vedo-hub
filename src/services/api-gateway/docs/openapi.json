@@ -3,7 +3,7 @@
   "info": {
     "title": "VEDO Core REST API",
     "description": "REST API for ontology management — classes, properties, individuals, versioning, and queries.\n\nBase URL: `/api/v1`\n\nAll endpoints require authentication via Bearer JWT token in the `Authorization` header.\n\n## Error format\n\nAll errors return:\n```json\n{\n  \"error\": {\n    \"code\": \"GATEWAY-ERROR-CODE\",\n    \"message\": \"Human-readable error description\"\n  }\n}\n```\n\n## Pagination\n\nList endpoints accept `page` and `per_page` query parameters and return:\n```json\n{\n  \"data\": [...],\n  \"meta\": {\n    \"page\": 1,\n    \"per_page\": 20,\n    \"total\": 42,\n    \"total_pages\": 3\n  }\n}\n```",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "contact": {
       "name": "VEDO Core Team",
       "url": "https://vedo.dev"
@@ -450,6 +450,922 @@
           }
         }
       }
+    },
+    "/groups": {
+      "get": {
+        "summary": "List groups",
+        "description": "Returns a paginated list of groups. Supports text search.",
+        "operationId": "listGroups",
+        "tags": ["Organization"],
+        "parameters": [
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/PerPage" },
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Full-text search query against group labels",
+            "schema": { "type": "string" },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of groups",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/GroupSummary" }
+                    },
+                    "meta": { "$ref": "#/components/schemas/PaginationMeta" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create group",
+        "description": "Creates a new group within the organization hierarchy.",
+        "operationId": "createGroup",
+        "tags": ["Organization"],
+        "parameters": [
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateGroupRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Group created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/GroupDetail" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/400Response" },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      }
+    },
+    "/groups/{id}": {
+      "get": {
+        "summary": "Get group details",
+        "description": "Returns full group details including children and member count.",
+        "operationId": "getGroup",
+        "tags": ["Organization"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Group ID",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Group details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/GroupDetail" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" }
+        }
+      },
+      "put": {
+        "summary": "Update group",
+        "description": "Updates an existing group's label, description, or parent.",
+        "operationId": "updateGroup",
+        "tags": ["Organization"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Group ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateGroupRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Group updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/GroupDetail" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/400Response" },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      },
+      "delete": {
+        "summary": "Delete group",
+        "description": "Deletes a group. Fails if the group still contains projects or subgroups.",
+        "operationId": "deleteGroup",
+        "tags": ["Organization"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Group ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "204": {
+            "description": "Group deleted"
+          },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      }
+    },
+    "/groups/{id}/subgroups": {
+      "get": {
+        "summary": "List subgroups",
+        "description": "Returns a paginated list of direct child groups.",
+        "operationId": "listSubgroups",
+        "tags": ["Organization"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Group ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/PerPage" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of subgroups",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/GroupSummary" }
+                    },
+                    "meta": { "$ref": "#/components/schemas/PaginationMeta" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" }
+        }
+      }
+    },
+    "/groups/{id}/members": {
+      "get": {
+        "summary": "List members",
+        "description": "Returns a paginated list of members in a group.",
+        "operationId": "listGroupMembers",
+        "tags": ["Organization"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Group ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/PerPage" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of group members",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/MemberSummary" }
+                    },
+                    "meta": { "$ref": "#/components/schemas/PaginationMeta" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" }
+        }
+      },
+      "post": {
+        "summary": "Add member",
+        "description": "Adds a user as a member of a group with the specified role.",
+        "operationId": "addGroupMember",
+        "tags": ["Organization"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Group ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AddMemberRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Member added",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/MemberSummary" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/400Response" },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      }
+    },
+    "/projects": {
+      "get": {
+        "summary": "List projects",
+        "description": "Returns a paginated list of projects the authenticated user has access to.",
+        "operationId": "listProjects",
+        "tags": ["Organization"],
+        "parameters": [
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/PerPage" },
+          {
+            "name": "group_id",
+            "in": "query",
+            "description": "Filter by parent group ID",
+            "schema": { "type": "string" },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of projects",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/ProjectSummary" }
+                    },
+                    "meta": { "$ref": "#/components/schemas/PaginationMeta" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create project",
+        "description": "Creates a new project within a group.",
+        "operationId": "createProject",
+        "tags": ["Organization"],
+        "parameters": [
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateProjectRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Project created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/ProjectDetail" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/400Response" },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      }
+    },
+    "/projects/{id}": {
+      "get": {
+        "summary": "Get project details",
+        "description": "Returns full project details.",
+        "operationId": "getProject",
+        "tags": ["Organization"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Project ID",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/ProjectDetail" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" }
+        }
+      },
+      "put": {
+        "summary": "Update project",
+        "description": "Updates an existing project's label or description.",
+        "operationId": "updateProject",
+        "tags": ["Organization"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Project ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateProjectRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Project updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/ProjectDetail" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/400Response" },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      },
+      "delete": {
+        "summary": "Delete project",
+        "description": "Deletes a project and all associated ontologies.",
+        "operationId": "deleteProject",
+        "tags": ["Organization"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Project ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "204": {
+            "description": "Project deleted"
+          },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      }
+    },
+    "/projects/{id}/move": {
+      "put": {
+        "summary": "Move project",
+        "description": "Moves a project to a different group.",
+        "operationId": "moveProject",
+        "tags": ["Organization"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Project ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "target_group_id": {
+                    "type": "string",
+                    "description": "Target group ID to move the project to"
+                  }
+                },
+                "required": ["target_group_id"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Project moved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/ProjectDetail" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/400Response" },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "422": { "$ref": "#/components/responses/422Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      }
+    },
+    "/ontologies/{id}/members": {
+      "get": {
+        "summary": "List ontology members",
+        "description": "Returns a paginated list of members with access to an ontology.",
+        "operationId": "listOntologyMembers",
+        "tags": ["Organization"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Ontology ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/PerPage" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of ontology members",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/MemberSummary" }
+                    },
+                    "meta": { "$ref": "#/components/schemas/PaginationMeta" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" }
+        }
+      },
+      "post": {
+        "summary": "Add ontology member",
+        "description": "Adds a user as a member of an ontology with the specified role.",
+        "operationId": "addOntologyMember",
+        "tags": ["Organization"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Ontology ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AddMemberRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Member added",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/MemberSummary" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/400Response" },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      }
+    },
+    "/ontologies/{id}/members/{userId}": {
+      "put": {
+        "summary": "Update member role",
+        "description": "Updates the role of an ontology member. Cannot remove the last Owner.",
+        "operationId": "updateOntologyMemberRole",
+        "tags": ["Organization"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Ontology ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "User ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateMemberRoleRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Member role updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/MemberSummary" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/400Response" },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "422": { "$ref": "#/components/responses/422Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      },
+      "delete": {
+        "summary": "Remove ontology member",
+        "description": "Removes a member from an ontology. Cannot remove the last Owner.",
+        "operationId": "removeOntologyMember",
+        "tags": ["Organization"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Ontology ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "User ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "204": {
+            "description": "Member removed"
+          },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "422": { "$ref": "#/components/responses/422Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      }
+    },
+    "/ontologies/{id}/visibility": {
+      "get": {
+        "summary": "Get visibility level",
+        "description": "Returns the current visibility level of an ontology.",
+        "operationId": "getOntologyVisibility",
+        "tags": ["Organization"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Ontology ID",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Visibility level",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/VisibilityLevel" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" }
+        }
+      },
+      "put": {
+        "summary": "Set visibility level",
+        "description": "Sets the visibility level of an ontology.",
+        "operationId": "setOntologyVisibility",
+        "tags": ["Organization"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Ontology ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SetVisibilityRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Visibility level updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/VisibilityLevel" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/400Response" },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      }
+    },
+    "/ontologies/{id}/policies": {
+      "get": {
+        "summary": "List policies",
+        "description": "Returns a list of access policies for an ontology.",
+        "operationId": "listPolicies",
+        "tags": ["Organization"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Ontology ID",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of policies",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/PolicySummary" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" }
+        }
+      },
+      "post": {
+        "summary": "Create policy",
+        "description": "Creates a new access policy for an ontology.",
+        "operationId": "createPolicy",
+        "tags": ["Organization"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Ontology ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreatePolicyRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Policy created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/PolicySummary" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/400Response" },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      }
+    },
+    "/ontologies/{id}/policies/{policyId}": {
+      "delete": {
+        "summary": "Delete policy",
+        "description": "Deletes an access policy from an ontology.",
+        "operationId": "deletePolicy",
+        "tags": ["Organization"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Ontology ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "policyId",
+            "in": "path",
+            "description": "Policy ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "204": {
+            "description": "Policy deleted"
+          },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      }
     }
   },
   "components": {
@@ -476,6 +1392,74 @@
           "default": 20
         },
         "required": false
+      },
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "description": "Idempotency key for write operations",
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "required": false
+      }
+    },
+    "responses": {
+      "400Response": {
+        "description": "Invalid input",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" }
+          }
+        }
+      },
+      "401Response": {
+        "description": "Unauthorized — missing or invalid JWT",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" }
+          }
+        }
+      },
+      "403Response": {
+        "description": "Forbidden — insufficient permissions",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" }
+          }
+        }
+      },
+      "404Response": {
+        "description": "Not found",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" }
+          }
+        }
+      },
+      "409Response": {
+        "description": "Conflict — e.g., duplicate group name",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" }
+          }
+        }
+      },
+      "422Response": {
+        "description": "Unprocessable — e.g., last-owner removal",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" }
+          }
+        }
+      },
+      "429RateLimit": {
+        "description": "Rate limit exceeded",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" }
+          }
+        }
       }
     },
     "schemas": {
@@ -570,6 +1554,166 @@
           "class_name": { "type": "string" },
           "property_count": { "type": "integer" }
         }
+      },
+      "GroupSummary": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "description": { "type": "string" },
+          "parent_id": { "type": "string" },
+          "child_count": { "type": "integer" },
+          "member_count": { "type": "integer" }
+        }
+      },
+      "GroupDetail": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "description": { "type": "string" },
+          "parent_id": { "type": "string" },
+          "path": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Ancestor group labels from root to this group"
+          },
+          "children": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/GroupSummary" }
+          },
+          "member_count": { "type": "integer" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ProjectSummary": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "description": { "type": "string" },
+          "group_id": { "type": "string" },
+          "group_name": { "type": "string" },
+          "ontology_count": { "type": "integer" }
+        }
+      },
+      "ProjectDetail": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "description": { "type": "string" },
+          "group_id": { "type": "string" },
+          "group_name": { "type": "string" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "MemberSummary": {
+        "type": "object",
+        "properties": {
+          "user_id": { "type": "string" },
+          "role": { "$ref": "#/components/schemas/RoleEnum" },
+          "scope": {
+            "type": "string",
+            "description": "Scope of the membership: group or ontology"
+          },
+          "added_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "RoleEnum": {
+        "type": "string",
+        "enum": ["Guest", "Reporter", "Developer", "Maintainer", "Owner"],
+        "description": "Permission hierarchy: Guest (read-only) < Reporter (read + comment) < Developer (read/write) < Maintainer (manage members) < Owner (full control)"
+      },
+      "VisibilityLevel": {
+        "type": "string",
+        "enum": ["private", "internal", "public"],
+        "description": "private: only explicit members; internal: all org members; public: anyone"
+      },
+      "PolicySummary": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "effect": {
+            "type": "string",
+            "enum": ["allow", "deny"]
+          },
+          "actions": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "List of actions this policy applies to (e.g., view, edit, delete, manage)"
+          },
+          "subjects": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "List of subject IDs this policy applies to (users or groups)"
+          }
+        }
+      },
+      "CreateGroupRequest": {
+        "type": "object",
+        "properties": {
+          "label": { "type": "string", "description": "Group display name" },
+          "description": { "type": "string", "description": "Optional group description" },
+          "parent_id": { "type": "string", "description": "Optional parent group ID for nested groups" }
+        },
+        "required": ["label"]
+      },
+      "CreateProjectRequest": {
+        "type": "object",
+        "properties": {
+          "label": { "type": "string", "description": "Project display name" },
+          "description": { "type": "string", "description": "Optional project description" },
+          "group_id": { "type": "string", "description": "Parent group ID" }
+        },
+        "required": ["label", "group_id"]
+      },
+      "AddMemberRequest": {
+        "type": "object",
+        "properties": {
+          "user_id": { "type": "string", "description": "User ID to add" },
+          "role": { "$ref": "#/components/schemas/RoleEnum" }
+        },
+        "required": ["user_id", "role"]
+      },
+      "UpdateMemberRoleRequest": {
+        "type": "object",
+        "properties": {
+          "role": { "$ref": "#/components/schemas/RoleEnum" }
+        },
+        "required": ["role"]
+      },
+      "SetVisibilityRequest": {
+        "type": "object",
+        "properties": {
+          "visibility": { "$ref": "#/components/schemas/VisibilityLevel" }
+        },
+        "required": ["visibility"]
+      },
+      "CreatePolicyRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "description": "Policy name" },
+          "effect": {
+            "type": "string",
+            "enum": ["allow", "deny"],
+            "description": "Whether this policy allows or denies the specified actions"
+          },
+          "actions": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Actions this policy applies to (e.g., view, edit, delete, manage)"
+          },
+          "subjects": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Subject IDs this policy applies to (users or groups)"
+          }
+        },
+        "required": ["name", "effect", "actions", "subjects"]
       }
     },
     "securitySchemes": {

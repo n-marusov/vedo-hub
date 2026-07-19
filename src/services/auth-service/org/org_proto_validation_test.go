@@ -3,6 +3,7 @@ package org
 // Proto definition validation tests.
 // Validates that org.proto message fields and scope parsing work correctly.
 // These tests validate the proto contracts at rest (before code generation).
+// Validates: REQ-NFR.SECURITY.organization-access-model
 
 import (
 	"testing"

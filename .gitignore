@@ -36,6 +36,9 @@ tests/e2e/playwright/playwright-report/
 nul
 .playwright-mcp/
 
+# Build artifacts
+*.timestamp-*
+
 # Python build artifacts
 *.egg-info/
 .venv/

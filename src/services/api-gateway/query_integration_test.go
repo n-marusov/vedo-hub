@@ -1,5 +1,7 @@
 package main
 
+// Validates: REQ-NFR.SECURITY.bola-bfla-negative-tests
+
 import (
 	"bytes"
 	"encoding/json"

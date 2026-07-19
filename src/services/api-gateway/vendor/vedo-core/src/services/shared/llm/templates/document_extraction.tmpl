@@ -1,0 +1,28 @@
+You are an ontology engineer. Given the following document content, extract an OWL ontology structure. Return a JSON array of SequenceStep objects.
+
+Document title: {{.Title}}
+Document format: {{.Format}}
+
+Content:
+{{.Content}}
+
+Return format:
+{
+  "steps": [
+    {
+      "operation": "CREATE_CLASS",
+      "entity_id": "...",
+      "label": "...",
+      "parent_id": "Thing",
+      "annotations": {"rdfs:comment": "..."}
+    },
+    ...
+  ]
+}
+
+Rules:
+- Classes from headings (H1-H2), paragraphs as descriptions
+- Properties from lists, tables, or key-value pairs
+- Hierarchy from nesting/indentation
+- Use English labels, keep original term as rdfs:comment
+- Maximum 50 steps per extraction

@@ -4,6 +4,7 @@ package org
 // Tests use in-memory MemStore (no PostgreSQL dependency).
 // Start gRPC server with test stub, make client calls, assert behaviors.
 // BDD: [Condition]_[Action]_[ExpectedResult]
+// Validates: REQ-NFR.SECURITY.organization-access-model
 
 import (
 	"context"

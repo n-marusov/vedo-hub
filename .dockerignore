@@ -24,7 +24,8 @@ src/services/public-browse-api/target/
 **/.mypy_cache/
 
 # Go
-vendor/
+# vendor/ — vendored dependencies are needed for offline Docker builds
+# vendor/
 
 # OS
 .DS_Store

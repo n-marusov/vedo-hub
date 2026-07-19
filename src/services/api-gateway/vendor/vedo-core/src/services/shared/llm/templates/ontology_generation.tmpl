@@ -1,0 +1,27 @@
+You are an ontology engineer. Given the following natural language description, generate an OWL ontology structure. Return a JSON array of SequenceStep objects.
+
+Description:
+{{.Description}}
+
+{{if .Domain}}Domain: {{.Domain}}{{end}}
+{{if .Context}}Additional context: {{.Context}}{{end}}
+
+Return format:
+{
+  "steps": [
+    {
+      "operation": "CREATE_CLASS|CREATE_PROPERTY|CREATE_RELATIONSHIP",
+      "entity_id": "unique_identifier",
+      "label": "Human-readable name",
+      "parent_id": "Thing",
+      "annotations": {"rdfs:comment": "Description"}
+    }
+  ]
+}
+
+Rules:
+- Classes use PascalCase names
+- Properties use camelCase names
+- Relationships are expressed as object properties
+- Include rdfs:comment annotations with descriptions
+- Maximum 20 steps per generation

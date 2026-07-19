@@ -3,6 +3,7 @@ package org
 // MVP hierarchy depth and project movement tests.
 // Verifies MVP group nesting limit (5 levels) and project move semantics.
 // BDD: [Condition]_[Action]_[ExpectedResult]
+// Validates: REQ-NFR.SECURITY.organization-access-model
 
 import (
 	"testing"

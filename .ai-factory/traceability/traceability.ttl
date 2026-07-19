@@ -1893,3 +1893,67 @@ base:test/org-terminology-consistency a vdo:TestSuite ;
     rdfs:label "Org Terminology Consistency Test"@en ;
     vdo:filePath "tests/scripts/terminology_integrity_test.sh" ;
     vdo:validates base:nfr/org-access-model .
+
+# --- Org Model Unit Tests (auth-service) ---
+
+base:test/org-unit a vdo:TestSuite ;
+    rdfs:label "Org Service Unit Tests"@en ;
+    rdfs:comment "Core OrgService unit tests covering CRUD, authorization, membership, scope management"@en ;
+    vdo:filePath "src/services/auth-service/org/org_test.go" ;
+    vdo:validates base:nfr/org-access-model .
+
+base:test/org-remove-member a vdo:TestSuite ;
+    rdfs:label "Org RemoveMember Tests"@en ;
+    rdfs:comment "Last-owner protection and member removal authorization tests"@en ;
+    vdo:filePath "src/services/auth-service/org/org_remove_member_test.go" ;
+    vdo:validates base:nfr/org-access-model .
+
+base:test/auth-handler a vdo:TestSuite ;
+    rdfs:label "Auth Service Handler Tests"@en ;
+    rdfs:comment "Unit tests for auth service token, refresh, session, rate-limit handlers"@en ;
+    vdo:filePath "src/services/auth-service/auth_service_test.go" ;
+    vdo:validates base:nfr/org-access-model .
+
+base:test/auth-keycloak-introspect a vdo:TestSuite ;
+    rdfs:label "Auth Keycloak Introspect Tests"@en ;
+    rdfs:comment "Unit tests for Keycloak token introspection"@en ;
+    vdo:filePath "src/services/auth-service/keycloak_introspect_test.go" ;
+    vdo:validates base:nfr/org-access-model .
+
+base:test/org-proto-generate a vdo:TestSuite ;
+    rdfs:label "Org Proto Generate Contract Test"@en ;
+    rdfs:comment "Code-generation contract test validating that generated Go stubs compile and expose expected types"@en ;
+    vdo:filePath "src/services/auth-service/org_proto_generate_test.go" ;
+    vdo:validates base:nfr/org-access-model .
+
+# --- API Gateway Integration Tests ---
+
+base:test/gateway-auth-integration a vdo:TestSuite ;
+    rdfs:label "API Gateway Auth Integration Tests"@en ;
+    rdfs:comment "Integration tests for API Gateway authentication and authorization routing"@en ;
+    vdo:filePath "src/services/api-gateway/auth_integration_test.go" ;
+    vdo:validates base:nfr/security-bola-bfla .
+
+base:test/gateway-proxy-integration a vdo:TestSuite ;
+    rdfs:label "API Gateway Proxy Integration Tests"@en ;
+    rdfs:comment "Integration tests for API Gateway proxy routing to backend services"@en ;
+    vdo:filePath "src/services/api-gateway/proxy_integration_test.go" ;
+    vdo:validates base:nfr/security-bola-bfla .
+
+base:test/gateway-rate-limit a vdo:TestSuite ;
+    rdfs:label "API Gateway Rate Limit Tests"@en ;
+    rdfs:comment "Integration tests for rate limiting middleware"@en ;
+    vdo:filePath "src/services/api-gateway/rate_limit_integration_test.go" ;
+    vdo:validates base:nfr/security-bola-bfla .
+
+base:test/gateway-main a vdo:TestSuite ;
+    rdfs:label "API Gateway Main Tests"@en ;
+    rdfs:comment "Unit tests for API Gateway main entry point, health checks, and JWT auth"@en ;
+    vdo:filePath "src/services/api-gateway/main_test.go" ;
+    vdo:validates base:nfr/security-bola-bfla .
+
+base:test/gateway-query-integration a vdo:TestSuite ;
+    rdfs:label "API Gateway Query Integration Tests"@en ;
+    rdfs:comment "Integration tests for SPARQL/CYPHER query endpoints"@en ;
+    vdo:filePath "src/services/api-gateway/query_integration_test.go" ;
+    vdo:validates base:nfr/security-bola-bfla .

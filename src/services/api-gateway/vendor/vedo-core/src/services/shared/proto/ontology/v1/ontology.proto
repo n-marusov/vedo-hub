@@ -1,0 +1,457 @@
+// Ontology Service gRPC contract.
+// Covers Class, Property, Individual CRUD; SPARQL; GraphQL; ApplySequence.
+syntax = "proto3";
+
+package vedo.ontology.v1;
+
+option go_package = "vedo-core/src/services/shared/proto/ontology/v1;ontologyv1";
+option java_multiple_files = true;
+option java_package = "com.vedo.ontology.v1";
+
+import "common/v1/common.proto";
+
+// =============================================================================
+// Class Operations
+// =============================================================================
+
+message Class {
+  string id = 1;           // Full IRI
+  string label = 2;        // rdfs:label
+  string description = 3;  // rdfs:comment
+  string parent_id = 4;    // rdfs:subClassOf IRI (empty for owl:Thing)
+  repeated string annotations = 5; // key=value annotation pairs
+  int32 child_count = 6;
+  string ontology_id = 7;
+  string created_at = 8;   // ISO 8601
+  string updated_at = 9;   // ISO 8601
+}
+
+message CreateClassRequest {
+  string ontology_id = 1;
+  string label = 2;
+  string description = 3;
+  string parent_id = 4;
+  repeated string annotations = 5;
+}
+
+message CreateClassResponse {
+  Class class = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
+message GetClassRequest {
+  string ontology_id = 1;
+  string class_id = 2;
+}
+
+message GetClassResponse {
+  Class class = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
+message ListClassesRequest {
+  string ontology_id = 1;
+  vedo.common.v1.PaginationRequest pagination = 2;
+  string search = 3; // optional text search
+}
+
+message ListClassesResponse {
+  repeated Class classes = 1;
+  vedo.common.v1.PaginationResponse pagination = 2;
+  vedo.common.v1.ErrorDetail error = 3;
+}
+
+message UpdateClassRequest {
+  string ontology_id = 1;
+  string class_id = 2;
+  string label = 3;
+  string description = 4;
+  string parent_id = 5;
+  repeated string annotations = 6;
+}
+
+message UpdateClassResponse {
+  Class class = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
+message DeleteClassRequest {
+  string ontology_id = 1;
+  string class_id = 2;
+}
+
+message DeleteClassResponse {
+  bool success = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
+// =============================================================================
+// Property Operations
+// =============================================================================
+
+message Property {
+  string id = 1;              // Full IRI
+  string label = 2;
+  string description = 3;
+  enum PropertyType {
+    PROPERTY_TYPE_UNSPECIFIED = 0;
+    PROPERTY_TYPE_OBJECT = 1;
+    PROPERTY_TYPE_DATATYPE = 2;
+    PROPERTY_TYPE_ANNOTATION = 3;
+  }
+  PropertyType type = 4;
+  string domain_id = 5;
+  string range_id = 6;
+  repeated string characteristics = 7; // e.g., "functional", "transitive", "symmetric"
+  string ontology_id = 8;
+  string created_at = 9;
+  string updated_at = 10;
+}
+
+message CreatePropertyRequest {
+  string ontology_id = 1;
+  string label = 2;
+  string description = 3;
+  Property.PropertyType type = 4;
+  string domain_id = 5;
+  string range_id = 6;
+  repeated string characteristics = 7;
+}
+
+message CreatePropertyResponse {
+  Property property = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
+message GetPropertyRequest {
+  string ontology_id = 1;
+  string property_id = 2;
+}
+
+message GetPropertyResponse {
+  Property property = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
+message ListPropertiesRequest {
+  string ontology_id = 1;
+  vedo.common.v1.PaginationRequest pagination = 2;
+  Property.PropertyType filter_type = 3; // optional type filter
+}
+
+message ListPropertiesResponse {
+  repeated Property properties = 1;
+  vedo.common.v1.PaginationResponse pagination = 2;
+  vedo.common.v1.ErrorDetail error = 3;
+}
+
+message UpdatePropertyRequest {
+  string ontology_id = 1;
+  string property_id = 2;
+  string label = 3;
+  string description = 4;
+  string domain_id = 5;
+  string range_id = 6;
+  repeated string characteristics = 7;
+}
+
+message UpdatePropertyResponse {
+  Property property = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
+message DeletePropertyRequest {
+  string ontology_id = 1;
+  string property_id = 2;
+}
+
+message DeletePropertyResponse {
+  bool success = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
+// =============================================================================
+// Individual (ABox) Operations
+// =============================================================================
+
+message Individual {
+  string id = 1;
+  string label = 2;
+  string description = 3;
+  string type_id = 4; // rdf:type IRI
+  map<string, string> property_values = 5; // property IRI -> value
+  string ontology_id = 6;
+  string created_at = 7;
+  string updated_at = 8;
+}
+
+message CreateIndividualRequest {
+  string ontology_id = 1;
+  string label = 2;
+  string description = 3;
+  string type_id = 4;
+  map<string, string> property_values = 5;
+}
+
+message CreateIndividualResponse {
+  Individual individual = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
+message GetIndividualRequest {
+  string ontology_id = 1;
+  string individual_id = 2;
+}
+
+message GetIndividualResponse {
+  Individual individual = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
+message ListIndividualsRequest {
+  string ontology_id = 1;
+  vedo.common.v1.PaginationRequest pagination = 2;
+  string type_filter = 3; // optional class IRI filter
+}
+
+message ListIndividualsResponse {
+  repeated Individual individuals = 1;
+  vedo.common.v1.PaginationResponse pagination = 2;
+  vedo.common.v1.ErrorDetail error = 3;
+}
+
+message UpdateIndividualRequest {
+  string ontology_id = 1;
+  string individual_id = 2;
+  string label = 3;
+  string description = 4;
+  string type_id = 5;
+  map<string, string> property_values = 6;
+}
+
+message UpdateIndividualResponse {
+  Individual individual = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
+message DeleteIndividualRequest {
+  string ontology_id = 1;
+  string individual_id = 2;
+}
+
+message DeleteIndividualResponse {
+  bool success = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
+// =============================================================================
+// ApplySequence — Atomic batch operations (used by Document Extractor)
+// =============================================================================
+
+message ApplySequenceRequest {
+  string ontology_id = 1;
+  string branch_id = 2;
+  repeated SequenceStep steps = 3;
+  string commit_message = 4;
+  bytes source_file = 5;       // optional — original file as artifact
+  string source_filename = 6;  // optional — filename for the artifact
+}
+
+message SequenceStep {
+  enum Operation {
+    OPERATION_UNSPECIFIED = 0;
+    OPERATION_CREATE_CLASS = 1;
+    OPERATION_CREATE_OBJECT_PROPERTY = 2;
+    OPERATION_CREATE_DATATYPE_PROPERTY = 3;
+    OPERATION_CREATE_INDIVIDUAL = 4;
+    OPERATION_ADD_ANNOTATION = 5;
+    OPERATION_SET_PARENT = 6;
+    OPERATION_SET_DOMAIN = 7;
+    OPERATION_SET_RANGE = 8;
+  }
+  Operation operation = 1;
+  string entity_id = 2;        // IRI or generated ID
+  string label = 3;            // rdfs:label
+  string parent_id = 4;        // for classes — parent class ID
+  string domain_id = 5;        // for properties
+  string range_id = 6;         // for properties
+  repeated string annotations = 7; // key=value pairs
+  string source_file = 8;      // which source file provided this step (batch)
+  bool skip_if_exists = 9;     // skip if entity already exists in ontology
+}
+
+message ApplySequenceResponse {
+  string commit_id = 1;        // the versioning commit ID created
+  int32 steps_applied = 2;
+  int32 steps_skipped = 3;
+  int32 steps_failed = 4;
+  repeated string errors = 5;  // per-step error messages for failed steps
+  vedo.common.v1.ErrorDetail error = 6;
+}
+
+// =============================================================================
+// Query Operations (SPARQL / CYPHER)
+// =============================================================================
+
+message ExecuteSPARQLRequest {
+  string ontology_id = 1;
+  string query = 2;
+  int32 max_results = 3;
+}
+
+message ExecuteSPARQLResponse {
+  string results_json = 1;     // JSON serialized SPARQL results
+  int32 result_count = 2;
+  vedo.common.v1.ErrorDetail error = 3;
+}
+
+message ExecuteCYPHERRequest {
+  string ontology_id = 1;
+  string query = 2;
+  int32 max_results = 3;
+}
+
+message ExecuteCYPHERResponse {
+  string results_json = 1;
+  int32 result_count = 2;
+  vedo.common.v1.ErrorDetail error = 3;
+}
+
+// =============================================================================
+// GraphQL
+// =============================================================================
+
+message ExecuteGraphQLRequest {
+  string ontology_id = 1;
+  string query = 2;
+  string operation_name = 3;
+  string variables_json = 4;
+}
+
+message ExecuteGraphQLResponse {
+  string data_json = 1;
+  string errors_json = 2;      // JSON serialized GraphQL errors
+  vedo.common.v1.ErrorDetail error = 3;
+}
+
+// =============================================================================
+// Ontology Metadata
+// =============================================================================
+
+message Ontology {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string organization_id = 4;
+  enum Visibility {
+    VISIBILITY_UNSPECIFIED = 0;
+    VISIBILITY_PUBLIC = 1;
+    VISIBILITY_INTERNAL = 2;
+    VISIBILITY_PRIVATE = 3;
+  }
+  Visibility visibility = 5;
+  string default_branch_id = 6;
+  int32 class_count = 7;
+  int32 property_count = 8;
+  int32 individual_count = 9;
+  string created_at = 10;
+  string updated_at = 11;
+  string created_by = 12;
+}
+
+message CreateOntologyRequest {
+  string name = 1;
+  string description = 2;
+  string organization_id = 3;
+  Ontology.Visibility visibility = 4;
+}
+
+message CreateOntologyResponse {
+  Ontology ontology = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
+message GetOntologyRequest {
+  string ontology_id = 1;
+}
+
+message GetOntologyResponse {
+  Ontology ontology = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
+message ListOntologiesRequest {
+  string organization_id = 1;
+  vedo.common.v1.PaginationRequest pagination = 2;
+}
+
+message ListOntologiesResponse {
+  repeated Ontology ontologies = 1;
+  vedo.common.v1.PaginationResponse pagination = 2;
+  vedo.common.v1.ErrorDetail error = 3;
+}
+
+message UpdateOntologyRequest {
+  string ontology_id = 1;
+  string name = 2;
+  string description = 3;
+  Ontology.Visibility visibility = 4;
+}
+
+message UpdateOntologyResponse {
+  Ontology ontology = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
+message DeleteOntologyRequest {
+  string ontology_id = 1;
+}
+
+message DeleteOntologyResponse {
+  bool success = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
+// =============================================================================
+// Ontology Service
+// =============================================================================
+
+service OntologyService {
+  // Class operations
+  rpc CreateClass(CreateClassRequest) returns (CreateClassResponse);
+  rpc GetClass(GetClassRequest) returns (GetClassResponse);
+  rpc ListClasses(ListClassesRequest) returns (ListClassesResponse);
+  rpc UpdateClass(UpdateClassRequest) returns (UpdateClassResponse);
+  rpc DeleteClass(DeleteClassRequest) returns (DeleteClassResponse);
+
+  // Property operations
+  rpc CreateProperty(CreatePropertyRequest) returns (CreatePropertyResponse);
+  rpc GetProperty(GetPropertyRequest) returns (GetPropertyResponse);
+  rpc ListProperties(ListPropertiesRequest) returns (ListPropertiesResponse);
+  rpc UpdateProperty(UpdatePropertyRequest) returns (UpdatePropertyResponse);
+  rpc DeleteProperty(DeletePropertyRequest) returns (DeletePropertyResponse);
+
+  // Individual operations
+  rpc CreateIndividual(CreateIndividualRequest) returns (CreateIndividualResponse);
+  rpc GetIndividual(GetIndividualRequest) returns (GetIndividualResponse);
+  rpc ListIndividuals(ListIndividualsRequest) returns (ListIndividualsResponse);
+  rpc UpdateIndividual(UpdateIndividualRequest) returns (UpdateIndividualResponse);
+  rpc DeleteIndividual(DeleteIndividualRequest) returns (DeleteIndividualResponse);
+
+  // Ontology metadata
+  rpc CreateOntology(CreateOntologyRequest) returns (CreateOntologyResponse);
+  rpc GetOntology(GetOntologyRequest) returns (GetOntologyResponse);
+  rpc ListOntologies(ListOntologiesRequest) returns (ListOntologiesResponse);
+  rpc UpdateOntology(UpdateOntologyRequest) returns (UpdateOntologyResponse);
+  rpc DeleteOntology(DeleteOntologyRequest) returns (DeleteOntologyResponse);
+
+  // Atomic batch operations
+  rpc ApplySequence(ApplySequenceRequest) returns (ApplySequenceResponse);
+
+  // Query
+  rpc ExecuteSPARQL(ExecuteSPARQLRequest) returns (ExecuteSPARQLResponse);
+  rpc ExecuteCYPHER(ExecuteCYPHERRequest) returns (ExecuteCYPHERResponse);
+
+  // GraphQL
+  rpc ExecuteGraphQL(ExecuteGraphQLRequest) returns (ExecuteGraphQLResponse);
+}

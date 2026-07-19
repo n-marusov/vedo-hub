@@ -4,6 +4,7 @@ package org
 // Verifies that the API accepts MVP roles (Guest, Reporter, Developer, Maintainer, Owner)
 // and maintains backward compatibility with legacy roles (Viewer, Editor).
 // BDD: [Condition]_[Action]_[ExpectedResult]
+// Validates: REQ-NFR.SECURITY.organization-access-model
 
 import (
 	"fmt"

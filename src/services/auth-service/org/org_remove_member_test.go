@@ -2,6 +2,7 @@ package org
 
 // Additional RemoveMember tests for last-owner protection.
 // BDD: [Condition]_[Action]_[ExpectedResult]
+// Validates: REQ-NFR.SECURITY.organization-access-model
 
 import (
 	"testing"

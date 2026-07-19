@@ -1,0 +1,98 @@
+[
+  {
+    "rule_id": "TASK-COMPLETENESS",
+    "result": "fail",
+    "details": "26 of 27 tasks (96%) have all required sections (ordered subtasks, Files, Logging). Task 22 is missing the `> **Files:**` section entirely — it lists subtasks 1-8 and has a Logging line but no Files reference. All other tasks comply.",
+    "evidence": [
+      "Task 22 (lines 674-685): Has 8 ordered subtasks and `> **Logging:**` but no `> **Files:**` section",
+      "Tasks 1-4 (Phase 0): All have Files (lines 115, 148, 186, 213) and Logging (lines 116, 149, 187, 214)",
+      "Tasks 5-6 (Phase 1): All have Files (lines 237, 247) and Logging (lines 238, 248)",
+      "Tasks 7-10 (Phase 2): All have Files (lines 267, 290, 314, 353) and Logging (lines 268, 291, 315, 354)",
+      "Tasks 11-13 (Phase 3): All have Files (lines 374, 407, 424) and Logging (lines 375, 408, 425)",
+      "Tasks 14-17 (Phase 4): All have Files (lines 442, 502, 574, 533) and Logging (lines 443, 503, 575, 534)",
+      "Tasks 18-19 (Phase 5): All have Files (lines 612, 627) and Logging (lines 613, 628)",
+      "Tasks 20-21 (Phase 6): Both have Files (lines 652, 671) and Logging (lines 653, 672)",
+      "Tasks 23-27 (Phase 7): All have Files (lines 698, 713, 724, 735, 745) and Logging (lines 699, 714, 725, 736, 746)"
+    ]
+  },
+  {
+    "rule_id": "CRITERIA-CHECKABLE",
+    "result": "pass",
+    "details": "All 31 acceptance criteria (24 API + 5 E2E + 4 Verification Gate + 4 General) are verifiably checkable. Every criterion specifies either an explicit test command (`go test`, `cargo test`, `npx playwright test`), a precise HTTP status code and endpoint, or a concrete verifiable condition (specific error strings, numeric limits like '5 levels', score thresholds like 'TQS >= 6.0'). Criteria with broader wording (e.g. 'Frontend renders real data', 'Audit coverage complete') are grounded in test files and pass conditions, making them objectively checkable.",
+    "evidence": [
+      "Lines 753-755: Header states verification via specific test commands: `go test`, `cargo test`, `npx playwright test`",
+      "Lines 757-780: Each API criterion references specific HTTP status codes (200, 201, 204, 400, 401, 403) and/or error strings (CYCLE_DETECTED, FORBIDDEN_CROSS_TENANT_ACCESS)",
+      "Lines 768-772: Six criteria have explicit test commands: `go test ./src/services/auth-service/org/org_grpc_test.go`, `go test ./tests/security/...` etc.",
+      "Lines 773-774: Measurable thresholds: TQS >= 6.0, no B1-B7 anti-patterns",
+      "Lines 796-799: Verification Gate criteria each list specific test suite names and commands"
+    ]
+  },
+  {
+    "rule_id": "PHASE-CONSISTENCY",
+    "result": "warn",
+    "details": "No major missing dependencies between phases, but one inconsistency: Task 12 (Phase 3) adds `DeletePolicy()` and `DeleteScope()` methods to the `OrgStore` interface that should have been defined earlier. The proto (Phase 1 Task 5) defines the DeletePolicy RPC, the DB schema (Phase 2 Task 8) creates the policies table, but the PostgresOrgStore implementation (Phase 2 Task 9) does not explicitly include these methods. The gRPC handler task (Phase 3 Task 12) then retroactively adds them. This represents an interface drift between the persistence layer and the handler layer. No other dependency mismatches found across the phase chain.",
+    "evidence": [
+      "Task 12 (lines 404): 'Add `DeleteScope()` and `DeletePolicy()` to `OrgStore` interface + MemStore + PostgresStore' — indicates these methods were missing from the interface after Phase 2",
+      "Task 9 (lines 304-311): PostgresOrgStore implements 'ALL `OrgStore` interface methods' but DeleteScope/DeletePolicy are not listed among methods",
+      "Task 5 (lines 232): Proto defines DeletePolicy RPC, so the contract exists from Phase 1",
+      "Task 8 (lines 280-281): `003_create_policies.sql` creates the policies table with FK to scopes, but no delete path is defined in Task 9"
+    ]
+  },
+  {
+    "rule_id": "TRACEABILITY",
+    "result": "warn",
+    "details": "Only 2 of 27 tasks (~7%) contain explicit REQ-* or US-* traceability references in their task description or blockquotes. Task 16 references `REQ-FUN.API.write-idempotency` in a Source blockquote. Task 20 references `REQ-NFR.SECURITY.organization-access-model`, `SEC-AUTHZ-GATES-001`, and `ORG-ACCESS-001` in its subtasks. The remaining 25 task descriptions have no requirement or user story references. While the Research Context (line 41) and Acceptance Criteria (line 755) do reference requirements and user stories, the individual task descriptions lack traceability linkages.",
+    "evidence": [
+      "Task 16 (line 542): '> **Source:** `specs/requirements/REQ-FUN.API.write-idempotency` (P0, APPROVED)'",
+      "Task 20 (lines 638-649): References `REQ-NFR.SECURITY.organization-access-model`, `SEC-AUTHZ-GATES-001`, `ORG-ACCESS-001`, `ADR-DES.SECURITY.gitlab-like-organization-model`",
+      "Research Context (line 41): References `REQ-FUN.API.write-idempotency` and `UC-admin.access.manage-membership-and-permissions` but these are not in task descriptions",
+      "Acceptance Criteria (lines 755, 786, 796, 797): References `US-admin.access.assign-role`, `US-api.auth.jwt`, `US-api.docs.openapi`, `E2E-api.integration.rest` — but in the criteria section, not in task descriptions"
+    ]
+  },
+  {
+    "rule_id": "ACTIONABLE-TASKS",
+    "result": "fail",
+    "details": "11 of 27 tasks (41%) have a first subtask that is NOT writing tests. Tasks 1 (test config setup), 8 (migration SQL), 10 (DB init script), 12 (run existing tests), 15 (run existing tests), 20 (query traceability graph), 21 (update docs), 22 (start services), 23 (update references), 24 (document role mapping), and 27 (update acceptance criteria) all fail the 'first subtask = writing tests' rule. The remaining 16 tasks comply — their first subtask explicitly writes or creates tests (containing 'Write' + 'test', 'Write' + 'Test', or 'Add tests').",
+    "evidence": [
+      "Task 1 (line 75): Subtask 1 is 'Create Playwright config file' — not a test",
+      "Task 8 (line 271): Subtask 1 is 'Create 001_create_scopes.sql' — not a test",
+      "Task 10 (line 324): Subtask 1 is 'Create 01-create-org-db.sql' — not a test",
+      "Task 12 (line 379): Subtask 1 is 'Run gRPC contract tests from Task 11' — running, not writing",
+      "Task 15 (line 447): Subtask 1 is 'Run integration tests from Task 14' — running, not writing",
+      "Task 20 (line 636): Subtask 1 is 'Query existing traceability graph' — not a test",
+      "Task 21 (line 657): Subtask 1 is 'Update Antora developer guide' — not a test",
+      "Task 22 (line 676): Subtask 1 is 'Start all services via Docker Compose' — not a test",
+      "Task 23 (line 692): Subtask 1 is 'Update plan references' — not a test",
+      "Task 24 (line 703): Subtask 1 is 'Decide and document the compatibility mapping' — not a test",
+      "Task 27 (line 740): Subtask 1 is 'Update acceptance criteria' — not a test"
+    ]
+  },
+  {
+    "rule_id": "COMMIT-PLAN-CONSISTENCY",
+    "result": "pass",
+    "details": "All 7 commits reference valid task ranges that exist in the Tasks section (1-27). Commit 1 covers tasks 1-4, Commit 2 covers 5-6, Commit 3 covers 7-10, Commit 4 covers 11-13, Commit 5 covers 14-17, Commit 6 covers 18-22, Commit 7 covers 23-27. No missing or out-of-range task numbers. Commit 6 spans two phases (Phase 5 tasks 18-19 and Phase 6 tasks 20-22), which is a reasonable grouping.",
+    "evidence": [
+      "Commit Plan (lines 44-51): All 7 commits listed with task ranges",
+      "Tasks section (lines 53-748): Contains tasks 1 through 27 across 8 phases",
+      "Commit 1: tasks 1-4 exist in Phase 0 (lines 73-216)",
+      "Commit 2: tasks 5-6 exist in Phase 1 (lines 220-249)",
+      "Commit 3: tasks 7-10 exist in Phase 2 (lines 254-355)",
+      "Commit 4: tasks 11-13 exist in Phase 3 (lines 360-427)",
+      "Commit 5: tasks 14-17 exist in Phase 4 (lines 431-536)",
+      "Commit 6: tasks 18-22 exist in Phase 5 (581-630) and Phase 6 (634-685)",
+      "Commit 7: tasks 23-27 exist in Phase 7 (lines 691-746)"
+    ]
+  },
+  {
+    "rule_id": "DEFERRED-CLARITY",
+    "result": "pass",
+    "details": "Both deferred items are clearly marked with rationale, constraints/obstacles, and re-entry references. Keycloak Sync (lines 811-825) has: rationale (requires analysis of realm config, sync direction design, role mapping, real Keycloak testing), constraints (non-trivial integration blocking core M3), and re-entry (research task in M13 or dedicated sync story). Approval Rules (lines 827-832) has: rationale (belongs to M10 Collaboration & Review milestone), constraints (M3 delivers membership model; OMR out of scope), and re-entry (M10 milestone). Additionally, the MVP Alignment Addendum (lines 20-32) lists 5 'Out of MVP' items that are also referenced in Task 27 (line 743), creating a consistent deferral boundary.",
+    "evidence": [
+      "Keycloak Sync (lines 811-825): Has source reference, rationale (4 analysis steps), constraints, and re-entry: 'Create a research task in M13 or a dedicated sync story'",
+      "Approval Rules (lines 827-832): Has source reference, rationale (belongs to M10), constraints, and re-entry: 'M10 Collaboration & Review 1.0 milestone'",
+      "MVP Alignment Addendum (lines 28-32): Lists 5 'Out of MVP' items: CSV bulk import, approval rules, branch protection, notifications, nested max-visibility policy",
+      "Task 27 (line 743): Cross-references deferred items: 'Verify deferred items remain out of this plan: CSV bulk member import, approval rules, branch protection, group-level notifications, and nested maximum-visibility policy'",
+      "Research Context (line 42): Cross-reference to Deferred section: 'Keycloak sync — deferred (requires Keycloak Admin API analysis, see Deferred section)'"
+    ]
+  }
+]

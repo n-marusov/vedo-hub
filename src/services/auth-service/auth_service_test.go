@@ -1,5 +1,7 @@
 package main
 
+// Validates: REQ-NFR.SECURITY.organization-access-model
+
 import (
 	"bytes"
 	"encoding/json"

@@ -39,14 +39,23 @@ COPY ${SERVICE_DIR}/shared /vedo-core/src/services/shared/
 # Copy ticket-api (needed by ticket-telemetry-listener's replace ../ticket-api)
 COPY ${SERVICE_DIR}/ticket-api /vedo-core/src/services/ticket-api/
 
-# Download and cache dependencies
-RUN go mod download
+# Copy vendor directory if it exists (for offline builds — checked before go mod download)
+# The --link flag is omitted because COPY --link with optional sources fails silently
+COPY ${SERVICE_DIR}/${BINARY_NAME}/vendor/ ./vendor/
+
+# Download dependencies when vendor is not available (network required)
+RUN if [ ! -d vendor ] || [ ! -f vendor/modules.txt ]; then go mod download; fi
 
 # Copy all source code for the specific service
 COPY ${SERVICE_DIR}/${BINARY_NAME}/ ./
 
-# Sync go.mod/go.sum for the build environment, then compile a static binary
-RUN go mod tidy && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /out/service .
+# Build: use vendored deps when vendor is populated, otherwise use module cache
+# go mod tidy is only needed for non-vendor builds (vendor builds are pre-synced)
+RUN if [ -f vendor/modules.txt ]; then \
+      CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -mod=vendor -o /out/service .; \
+    else \
+      go mod tidy && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /out/service .; \
+    fi
 
 # Copy migrations directory if it exists (for services with SQL migrations like auth-service)
 RUN if [ -d migrations ]; then cp -r migrations /out/migrations; else mkdir -p /out/migrations; fi

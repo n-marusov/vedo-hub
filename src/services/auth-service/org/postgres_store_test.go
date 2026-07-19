@@ -6,6 +6,7 @@ package org
 //
 // Test setup requires a running PostgreSQL instance with:
 //   DATABASE_URL=postgres://postgres:password@localhost:5432/vedo_org_test?sslmode=disable
+// Validates: REQ-NFR.SECURITY.organization-access-model
 
 import (
 	"database/sql"

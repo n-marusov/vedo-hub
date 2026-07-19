@@ -1,0 +1,80 @@
+// Auth Service gRPC contract.
+// Token introspection, permission checking, and role management.
+syntax = "proto3";
+
+package vedo.auth.v1;
+
+option go_package = "vedo-core/src/services/shared/proto/auth/v1;authv1";
+option java_multiple_files = true;
+option java_package = "com.vedo.auth.v1";
+
+import "common/v1/common.proto";
+
+// =============================================================================
+// Token Introspection
+// =============================================================================
+
+message TokenIntrospectRequest {
+  string token = 1;
+}
+
+message TokenIntrospectResponse {
+  bool active = 1;
+  string subject = 2;
+  string organization_id = 3;
+  repeated string roles = 4;
+  map<string, string> claims = 5;
+  vedo.common.v1.ErrorDetail error = 6;
+}
+
+// =============================================================================
+// Permission Checking
+// =============================================================================
+
+message CheckPermissionRequest {
+  string subject = 1;
+  string action = 2;       // e.g., "ontology:read", "ontology:write", "ontology:delete"
+  string resource_id = 3;
+  string organization_id = 4;
+}
+
+message CheckPermissionResponse {
+  bool allowed = 1;
+  string reason = 2;       // human-readable explanation if denied
+  vedo.common.v1.ErrorDetail error = 3;
+}
+
+// =============================================================================
+// Role Management
+// =============================================================================
+
+message GetUserRolesRequest {
+  string user_id = 1;
+  string organization_id = 2;
+}
+
+message GetUserRolesResponse {
+  repeated string roles = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
+message ListPermissionsRequest {
+  string subject = 1;
+  string organization_id = 2;
+}
+
+message ListPermissionsResponse {
+  repeated string permissions = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
+// =============================================================================
+// Auth Service
+// =============================================================================
+
+service AuthService {
+  rpc TokenIntrospect(TokenIntrospectRequest) returns (TokenIntrospectResponse);
+  rpc CheckPermission(CheckPermissionRequest) returns (CheckPermissionResponse);
+  rpc GetUserRoles(GetUserRolesRequest) returns (GetUserRolesResponse);
+  rpc ListPermissions(ListPermissionsRequest) returns (ListPermissionsResponse);
+}

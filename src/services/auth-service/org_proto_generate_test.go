@@ -2,6 +2,8 @@
 // Validates that generated Go stubs compile and expose expected types and methods.
 package main
 
+// Validates: REQ-NFR.SECURITY.organization-access-model
+
 import (
 	"testing"
 
