@@ -139,7 +139,7 @@ async fn test_retire_snapshot_returns_not_found_for_missing_id() {
 async fn test_publish_different_formats_route_works() {
     let app = build_test_app();
 
-    let formats = ["turtle", "rdf-xml", "json-ld", "owl-xml"];
+    let formats = ["turtle", "rdf/xml", "jsonld", "owl"];
     for format in &formats {
         let body = format!(
             r#"{{"ontology_id":"format-test","branch_id":"main","commit_id":"abc","format":"{fmt}"}}"#,
