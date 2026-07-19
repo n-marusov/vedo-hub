@@ -1,5 +1,7 @@
 package org
 
+// Validates: ORG-ACCESS-001
+//
 // Proto definition validation tests.
 // Validates that org.proto message fields and scope parsing work correctly.
 // These tests validate the proto contracts at rest (before code generation).

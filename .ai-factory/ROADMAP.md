@@ -9,7 +9,7 @@
 - [x] **M0: Foundation & Infrastructure** — Microservices monorepo, Docker Compose orchestration, CI/CD baseline, OpenTelemetry/Grafana/Prometheus/Loki/Tempo observability, Keycloak authentication, health/readiness endpoints, and the initial `vedo-cli` operator boundary.
 - [x] **M1: Ontology Core Engine Baseline** — Core ontology storage and editing backend for TBox/ABox entities, graph browsing primitives, Git-like commits/history/branches/rollback, REST/GraphQL access paths, and SPARQL execution baseline.
 - [x] **M2: Document-to-Ontology & Template Baseline** — AI-assisted ontology creation from text/documents and predefined ontology templates, including preview, user confirmation, automatic ontology update, commit creation, and original document artifact attachment.
-- [~] **M3: Multi-Team Organization Model** — GitLab-like groups, subgroups, ontology projects, project catalog, visibility levels, Owner/Developer/Reporter/Guest-style memberships, role inheritance, last-owner protection, and group/project/member APIs.
+- [x] **M3: Multi-Team Organization Model** — GitLab-like groups, subgroups, ontology projects, project catalog, visibility levels, Owner/Developer/Reporter/Guest-style memberships, role inheritance, last-owner protection, and group/project/member APIs.
 - [~] **M4: MVP GUI Wiring & Frontend Integration** — Replace hardcoded frontend placeholders with real API/GraphQL calls where backend capabilities exist; keep future-only functions visible as disabled/read-only GUI stubs. This milestone provides the first coherent Web UI path through groups, projects, ontology editing, versioning, SPARQL, dashboard widgets, and planned-feature placeholders.
 
     **Блок A — Быстрые победы (API + GraphQL-запросы готовы, только подключить):**

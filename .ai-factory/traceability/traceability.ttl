@@ -1809,7 +1809,7 @@ base:gui/component/mfa-challenge-dialog vdo:implements base:design/page/dialogs 
 base:gui/component/publish-snapshot-dialog vdo:implements base:design/page/dialogs .
 
 # =============================================================================
-# M2.1 — Multi-Team Organization Model Traceability
+# M3 — Multi-Team Organization Model Traceability
 # =============================================================================
 
 base:nfr/org-access-model a vdo:NonFunctionalRequirement ;

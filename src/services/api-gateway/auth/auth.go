@@ -333,6 +333,17 @@ func isAdminEndpoint(path string) bool {
 	if strings.Contains(path, "/membership") || strings.Contains(path, "/policies") {
 		return true
 	}
+	// Org management endpoints — groups, projects, and membership/visibility/policy
+	// writes require Owner role (admin-level), enforced via the BFLA gate.
+	if strings.Contains(path, "/groups") || strings.Contains(path, "/projects") {
+		return true
+	}
+	if strings.Contains(path, "/ontologies/") &&
+		(strings.Contains(path, "/members") ||
+			strings.Contains(path, "/visibility") ||
+			strings.Contains(path, "/policies")) {
+		return true
+	}
 	return false
 }
 

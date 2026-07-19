@@ -1,5 +1,7 @@
 package org
 
+// Validates: ORG-ACCESS-001
+//
 // PostgreSQL schema contract tests.
 // These tests validate the expected behavior of the PostgreSQL-backed OrgStore.
 // They will FAIL (red phase) until the migration SQL and PostgresOrgStore are implemented.

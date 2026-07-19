@@ -61,14 +61,69 @@ All external requests go through the API Gateway. The frontend never accesses ba
 
 == Organization & Access Control
 
+Organizational model endpoints for group hierarchy, project catalog, membership management, visibility, and access policies.
+
+=== Groups
+
 |===
 |Method |Path |Description
 
-|`POST` |`/api/v1/groups` |Create a group
-|`GET` |`/api/v1/groups` |List groups
-|`POST` |`/api/v1/groups/{id}/members` |Add member
-|`GET` |`/api/v1/groups/{id}/members` |List members
+|`GET` |`/api/v1/groups` |List groups (paginated, searchable)
+|`POST` |`/api/v1/groups` |Create a group (Owner, idempotent)
+|`GET` |`/api/v1/groups/{id}` |Get group details
+|`PUT` |`/api/v1/groups/{id}` |Update group (Owner, idempotent)
+|`DELETE` |`/api/v1/groups/{id}` |Delete group (Owner, must be empty)
+|`GET` |`/api/v1/groups/{id}/subgroups` |List child groups
+|`GET` |`/api/v1/groups/{id}/members` |List group members
 |===
+
+=== Projects
+
+|===
+|Method |Path |Description
+
+|`GET` |`/api/v1/projects` |List projects (paginated, searchable)
+|`POST` |`/api/v1/projects` |Create a project (Owner, idempotent)
+|`GET` |`/api/v1/projects/{id}` |Get project details
+|`PUT` |`/api/v1/projects/{id}` |Update project (Owner, idempotent)
+|`DELETE` |`/api/v1/projects/{id}` |Delete project (Owner, idempotent)
+|===
+
+=== Members
+
+|===
+|Method |Path |Description
+
+|`GET` |`/api/v1/ontologies/{id}/members` |List ontology members
+|`POST` |`/api/v1/ontologies/{id}/members` |Add member (Owner, idempotent)
+|`PUT` |`/api/v1/ontologies/{id}/members/{userId}` |Update role (Owner, idempotent)
+|`DELETE` |`/api/v1/ontologies/{id}/members/{userId}` |Remove member (Owner, idempotent)
+|===
+
+=== Visibility
+
+|===
+|Method |Path |Description
+
+|`GET` |`/api/v1/ontologies/{id}/visibility` |Get visibility level
+|`PUT` |`/api/v1/ontologies/{id}/visibility` |Set visibility (Owner, idempotent)
+|===
+
+=== Access Policies
+
+|===
+|Method |Path |Description
+
+|`GET` |`/api/v1/ontologies/{id}/policies` |List ABAC policies
+|`POST` |`/api/v1/ontologies/{id}/policies` |Create policy (Owner, idempotent)
+|`DELETE` |`/api/v1/ontologies/{id}/policies/{policyId}` |Delete policy (Owner, idempotent)
+|===
+
+Role values: `Guest`, `Reporter`, `Developer`, `Maintainer`, `Owner`. Legacy `Viewer`/`Editor` aliases accepted for backward compatibility.
+
+Visibility values: `private`, `internal`, `public`. Private requires explicit membership; internal allows any authenticated org member; public allows anonymous read access.
+
+Write endpoints support `Idempotency-Key` header (UUID). Membership endpoints require it (400 if missing).
 
 == Merge Requests
 

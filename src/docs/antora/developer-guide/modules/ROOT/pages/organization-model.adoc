@@ -20,31 +20,60 @@ Architecture: `auth-service` owns org data (PostgreSQL), exposes gRPC API. `api-
 
 == Role Hierarchy
 
-[cols="1,2"]
+[cols="1,2,1"]
 |===
-| Role | Priority
-| Viewer | 1
-| Editor | 2
-| Maintainer | 3
-| SupportEngineer | 4
-| SRE | 5
-| SecurityLead | 6
-| ProductOwner | 7
-| Owner | 8
+| MVP Role | Priority | Legacy Alias
+| Guest | 1 | Viewer (mapped as alias)
+| Reporter | 2 | —
+| Developer | 3 | Editor (mapped as alias)
+| Maintainer | 4 | Maintainer
+| Owner | 9 | Owner
 |===
 
-Only Owners can manage memberships, change visibility, and manage policies.
+Legacy roles `Viewer` and `Editor` are accepted as backward-compatible aliases for `Guest` and `Developer` respectively. Enterprise/ops roles (`SupportEngineer`, `SRE`, `SecurityLead`, `ProductOwner`) exist in the data model but are outside the MVP happy path.
+
+Only Owners can manage memberships, change visibility, and manage policies. Permission inheritance follows max-role-wins: the highest role across direct and inherited memberships determines effective permissions.
+
+== Group Hierarchy
+
+Groups can be nested up to 5 levels deep. Creating or moving a group beyond this limit returns a `HIERARCHY_DEPTH_EXCEEDED` validation error.
+
+== Project Movement
+
+A project (ontology) can be moved from one group to another. Moving a project updates effective membership and inherited roles for all members based on the new parent group. Authorization caches for the affected scopes are invalidated on move.
 
 == PostgreSQL Schema
 
 The `vedo_org` database contains four tables:
 
 * `scopes` — group/ontology hierarchy nodes with visibility + tenant isolation
-* `memberships` — role assignments with UNIQUE(scope, user_id)
+* `memberships` — role assignments with UNIQUE(scope, user_id) and CHECK constraint validating role enum
 * `attribute_policies` — ABAC policy definitions (JSONB pattern)
-* `audit_events` — authorization audit trail
+* `audit_events` — authorization audit trail (event, reason, user_id, object_type, object_id, source_ip, trace_id)
 
-Migrations: `src/services/auth-service/migrations/` (001-005)
+Migrations: `src/services/auth-service/migrations/` (001-006)
+
+Migration 006 adds MVP role vocabulary (`Guest`, `Reporter`, `Developer`, `Maintainer`, `Owner`) to the memberships CHECK constraint while preserving legacy roles (`Viewer`, `Editor`) as backward-compatible aliases.
+
+== Audit Events
+
+Structured audit events are emitted for the following organizational lifecycle operations:
+
+* Group create, delete, move
+* Project create, delete, move
+* Member add, remove, role change
+
+Each audit event includes:
+
+* `event` — operation name
+* `reason` — reason or authorization context
+* `user_id` — acting user
+* `object_type`, `object_id` — target scope
+* `source_ip` — request origin
+* `trace_id` — OpenTelemetry trace correlation
+* `timestamp` — event time
+
+Audit events are persisted in the `audit_events` table and logged as structured JSON via `slog` at INFO/WARN level. Tokens, secrets, and PII beyond stable user/scope identifiers are excluded.
 
 == Environment Variables
 

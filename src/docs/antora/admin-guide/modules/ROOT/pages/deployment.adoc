@@ -108,6 +108,19 @@ healthcheck:
 
 Compose waits for `condition: service_healthy` before starting dependent services.
 
+== Organizational Database
+
+The `vedo_org` PostgreSQL database stores group/project hierarchy, role memberships, attribute policies, and audit events. It is created automatically via the init script at `deploy/postgres/init/01-create-org-db.sql`.
+
+The `auth-service` requires the `AUTH_SERVICE_DATABASE_URL` environment variable to connect:
+
+[source,bash]
+----
+AUTH_SERVICE_DATABASE_URL=postgres://postgres:password@postgres:5432/vedo_org?sslmode=disable
+----
+
+Migrations are applied automatically on auth-service startup (see `src/services/auth-service/migrations/`). If PostgreSQL is unavailable, auth-service falls back to an in-memory store for development.
+
 == See Also
 
 * xref:observability.adoc[Observability] — tracing, metrics, and logging

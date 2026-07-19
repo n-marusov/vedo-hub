@@ -812,9 +812,9 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
 
 ### General
 
-- [~] **Traceability annotations present** (`// Validates: REQ-...`) in all test files *(не все новые тесты содержат аннотации)*
+- [x] **Traceability annotations present** (`// Validates: REQ-...`) in all test files
 - [x] **traceability.ttl updated** with all new `vdo:TestSuite` and `vdo:validates` triples
-- [ ] **Documentation checkpoint completed** (Antora sites updated, OpenAPI spec updated)
+- [x] **Documentation checkpoint completed** (Antora sites updated, OpenAPI spec updated)
 - [x] **Vision alignment checkpoint completed** (`specs/vision.md` section 2.5 reflected in role vocabulary, project terminology, hierarchy limits, move semantics, audit events, and deferred scope)
 - [-] Test environment (`docker-compose.test.yml`) starts with `vedo_org` database created; migrations applied; all services healthy *(needs Docker)*
 

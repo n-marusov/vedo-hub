@@ -1,5 +1,7 @@
 package org
 
+// Validates: ORG-ACCESS-001
+//
 // gRPC contract tests for org service handlers.
 // Tests use in-memory MemStore (no PostgreSQL dependency).
 // Start gRPC server with test stub, make client calls, assert behaviors.
