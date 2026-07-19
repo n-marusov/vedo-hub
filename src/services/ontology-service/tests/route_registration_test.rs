@@ -18,6 +18,7 @@ use axum::{
     body::Body,
     http::{Method, Request, StatusCode},
 };
+use ontology_service::clients::auth_client::AuthClient;
 use ontology_service::{build_app, AppState};
 use tower::ServiceExt;
 
@@ -26,7 +27,10 @@ use tower::ServiceExt;
 /// (returning 503 SERVICE_UNAVAILABLE for DB-backed endpoints) rather than
 /// the axum default 404.
 fn app_no_db() -> axum::Router {
-    let state = Arc::new(AppState { neo4j: None });
+    let state = Arc::new(AppState {
+        neo4j: None,
+        auth_client: AuthClient::new(None),
+    });
     build_app(state)
 }
 

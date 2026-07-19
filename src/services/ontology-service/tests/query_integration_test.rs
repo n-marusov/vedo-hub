@@ -16,9 +16,13 @@ use tower::ServiceExt;
 /// Builds an app with no Neo4j pool so query endpoints respond with 503 for
 /// any query that would otherwise reach the database.
 fn app_no_db() -> axum::Router {
+    use ontology_service::clients::auth_client::AuthClient;
     use ontology_service::{build_app, AppState};
     use std::sync::Arc;
-    let state = Arc::new(AppState { neo4j: None });
+    let state = Arc::new(AppState {
+        neo4j: None,
+        auth_client: AuthClient::new(None),
+    });
     build_app(state)
 }
 

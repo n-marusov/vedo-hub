@@ -10,6 +10,7 @@
 use std::sync::Arc;
 
 use neo4rs;
+use ontology_service::clients::auth_client::AuthClient;
 use ontology_service::neo4j::{self, Neo4jPool};
 use ontology_service::{build_app, AppState};
 
@@ -71,6 +72,7 @@ pub async fn create_test_app() -> (axum::Router, Neo4jPool) {
     let pool = connect_to_neo4j().await;
     let state = Arc::new(AppState {
         neo4j: Some(pool.clone()),
+        auth_client: AuthClient::new(None),
     });
     let app = build_app(state);
     (app, pool)

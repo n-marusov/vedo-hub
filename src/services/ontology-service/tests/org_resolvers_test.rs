@@ -9,6 +9,28 @@
 use ontology_service::clients::auth_client::AuthClient;
 use ontology_service::graphql::types::GqlGroup;
 
+/// Verifies that AppState can be constructed with neo4j: None and an AuthClient.
+/// Regression guard: if AppState gains a new required field, this test will fail
+/// at compile time with E0063 (like the original bug in route_registration_test
+/// and query_integration_test).
+#[test]
+fn test_app_state_no_db_construction() {
+    use ontology_service::{build_app, AppState};
+    use std::sync::Arc;
+
+    let state = Arc::new(AppState {
+        neo4j: None,
+        auth_client: AuthClient::new(None),
+    });
+    let app = build_app(state);
+    // build_app returns a Router; just verify it's created without panic.
+    assert_eq!(
+        std::mem::size_of_val(&app),
+        std::mem::size_of::<axum::Router>(),
+        "build_app must return a valid Router"
+    );
+}
+
 /// Verifies that the AuthClient can be constructed with a custom base URL.
 #[tokio::test]
 async fn test_auth_client_construction() {
