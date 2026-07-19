@@ -34,7 +34,13 @@ class DocxParser(BaseParser):
     async def parse(self, file_path: str) -> ParsedDocument:
         """Parse a DOCX file and extract structured content."""
         self.validate_extension(file_path)
-        file_size = os.path.getsize(file_path)
+
+        try:
+            file_size = os.path.getsize(file_path)
+        except FileNotFoundError:
+            raise ParseError(f"File not found: {file_path}")
+        except OSError as exc:
+            raise ParseError(f"Failed to read DOCX file {file_path}: {exc}", original=exc)
 
         logger.debug(
             "Parsing DOCX: %s (size=%d bytes)",

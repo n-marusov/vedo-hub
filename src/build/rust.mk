@@ -1,6 +1,6 @@
 # @ctx: Rust build/lint/test rules — PLAT-LOCAL-002
 
-RUST_DIRS := $(shell find $(ROOT) -maxdepth 4 -name Cargo.toml -not -path "*/target/*" -not -path "*/templates/*" -not -path "*/shared/*" -exec dirname {} \; 2>/dev/null)
+RUST_DIRS := $(shell find $(ROOT) -maxdepth 4 -name Cargo.toml -not -path "*/target/*" -not -path "*/templates/*" -not -path "*/services/Cargo.toml" -exec dirname {} \; 2>/dev/null)
 
 .PHONY: build-rust
 build-rust:
@@ -22,10 +22,12 @@ lint-rust:
 .PHONY: test-rust
 test-rust:
 	@if [ -z "$(RUST_DIRS)" ]; then echo "No Rust services found"; exit 0; fi
-	@for dir in $(RUST_DIRS); do \
+	@failed=""; \
+	for dir in $(RUST_DIRS); do \
 		echo "[Rust] testing $$(basename $$dir)"; \
-		cd $$dir && cargo test 2>&1 || { echo "TEST_FAILED: cargo test failed in $$dir"; exit 1; }; \
-	done
+		cd $$dir && cargo test 2>&1 || failed="$$failed $$(basename $$dir)"; \
+	done; \
+	if [ -n "$$failed" ]; then echo "TEST_FAILED: cargo test failed in:$$failed"; exit 1; fi
 
 .PHONY: clean-rust
 clean-rust:

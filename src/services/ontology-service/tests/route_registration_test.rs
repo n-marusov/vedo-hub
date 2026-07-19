@@ -248,11 +248,3 @@ async fn test_graphql_route_resolves() {
     )
     .await;
 }
-
-// Suppress unused-import warning when the `common` module's helpers are not
-// directly referenced. `common` must still be declared so the test crate
-// resolves the module path expected by the workspace.
-#[allow(dead_code)]
-fn _silence_common_module() {
-    let _ = common::is_integration_enabled();
-}

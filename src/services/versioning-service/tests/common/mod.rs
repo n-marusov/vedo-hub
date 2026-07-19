@@ -1,5 +1,7 @@
 //! Common test utilities for versioning-service integration tests.
 
+#![allow(dead_code)]
+
 use versioning_service::postgres::{create_pool, PgConfig, PgPoolWrapper};
 
 /// Returns `true` if PostgreSQL integration tests are enabled.

@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import os
+import tempfile
+
 import pytest
 
 from parsers.base import ParseError
@@ -16,8 +19,9 @@ def parser() -> DocxParser:
 @pytest.mark.asyncio
 async def test_parse_non_docx_file(parser: DocxParser) -> None:
     """Attempting to parse a non-DOCX file should raise ParseError."""
+    nonexistent = os.path.join(tempfile.gettempdir(), "nonexistent.docx")
     with pytest.raises((ParseError, ValueError)):
-        await parser.parse("/tmp/nonexistent.docx")
+        await parser.parse(nonexistent)
 
 
 @pytest.mark.asyncio

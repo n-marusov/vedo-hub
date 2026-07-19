@@ -177,8 +177,8 @@ class CsvParser(BaseParser):
                 best_consistency = consistency
                 best_delimiter = delim
 
-            if consistency >= 0.5:
-                break  # Good enough
+            if consistency >= 0.5 and most_common_count > 1:
+                break  # Good enough — delimiter produces multiple columns
 
         if best_delimiter != ",":
             logger.info(

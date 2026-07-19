@@ -161,12 +161,9 @@ async def extract_document(
             f"Supported: {', '.join(sorted(SUPPORTED_FORMATS))}",
         )
 
-    # Check file size
-    file_size = 0
-    content_chunks: list[bytes] = []
-    async for chunk in file.file:
-        content_chunks.append(chunk)
-        file_size += len(chunk)
+    # Read file content
+    content_bytes = await file.read()
+    file_size = len(content_bytes)
 
     if file_size == 0:
         raise HTTPException(status_code=400, detail="Empty file")
@@ -181,7 +178,6 @@ async def extract_document(
         )
 
     # Save to temp file for parsing
-    content_bytes = b"".join(content_chunks)
     with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
         tmp.write(content_bytes)
         tmp_path = tmp.name

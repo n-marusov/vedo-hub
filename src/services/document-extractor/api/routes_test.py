@@ -20,7 +20,12 @@ with patch("config.settings") as mock_settings:
 
     from fastapi.testclient import TestClient
 
+    from api.routes import router as extract_router
     from main import app
+
+    # Register extract routes (normally done in lifespan, which TestClient
+    # doesn't trigger by default for module-level instantiation)
+    app.include_router(extract_router, prefix="/api/v1")
 
 
 client = TestClient(app)

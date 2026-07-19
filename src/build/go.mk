@@ -1,6 +1,6 @@
 # @ctx: Go build/lint/test rules — PLAT-LOCAL-002
 
-GO_DIRS := $(shell cd $(ROOT) && find . -maxdepth 3 -name go.mod -not -path "*/templates/*" -not -path "*/shared/proto/*" -exec dirname {} \; 2>/dev/null | sed 's|^\./||')
+GO_DIRS := $(shell cd $(ROOT) && find . -maxdepth 5 -name go.mod -not -path "*/templates/*" -not -path "*/shared/proto/*" -exec dirname {} \; 2>/dev/null | sed 's|^\./||')
 
 .PHONY: build-go
 build-go:
@@ -22,10 +22,12 @@ lint-go:
 .PHONY: test-go
 test-go:
 	@if [ -z "$(GO_DIRS)" ]; then echo "No Go services found"; exit 0; fi
-	@for dir in $(GO_DIRS); do \
+	@failed=""; \
+	for dir in $(GO_DIRS); do \
 		echo "[Go] testing $$(basename $$dir)"; \
-		cd $(ROOT)/$$dir && go test ./... 2>&1 || { echo "TEST_FAILED: go test failed in $$dir"; exit 1; }; \
-	done
+		cd $(ROOT)/$$dir && go test ./... 2>&1 || failed="$$failed $$(basename $$dir)"; \
+	done; \
+	if [ -n "$$failed" ]; then echo "TEST_FAILED: go test failed in:$$failed"; exit 1; fi
 
 .PHONY: vendor-go
 vendor-go: ## Populate vendor directories for all Go services (enables offline Docker builds)

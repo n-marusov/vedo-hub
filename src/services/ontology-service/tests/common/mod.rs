@@ -7,6 +7,8 @@
 //! - `clean_ontology()` — removes test data after a test run
 //! - `skip_if_no_neo4j()` — helper to skip tests when Neo4j isn't available
 
+#![allow(dead_code)]
+
 use std::sync::Arc;
 
 use neo4rs;

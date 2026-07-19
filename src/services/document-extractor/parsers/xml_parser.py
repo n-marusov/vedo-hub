@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import xml.etree.ElementTree as ET
 
 from parsers.base import BaseParser, ParseError
@@ -44,12 +45,20 @@ class XmlParser(BaseParser):
         structure_lines: list[str] = []
         namespaces: dict[str, str] = {}
 
-        # Collect namespaces
-        for event, elem in ET.iterwalk(root, events=("start",)):
-            for prefix, uri in elem.attrib.items():
-                if prefix.startswith("xmlns") or prefix == "xmlns":
-                    ns_key = prefix.split(":")[-1] if ":" in prefix else "__default__"
-                    namespaces[ns_key] = uri
+        # Collect namespace declarations from raw XML content
+        # ElementTree does not expose xmlns attributes in elem.attrib,
+        # so we scan the raw text for xmlns:prefix="uri" patterns.
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                raw_content = f.read()
+            for match in re.finditer(
+                r'\sxmlns(?::(\w+))?\s*=\s*["\']([^"\']+)["\']',
+                raw_content,
+            ):
+                prefix = match.group(1) or "__default__"
+                namespaces[prefix] = match.group(2)
+        except Exception:
+            pass
 
         # Add namespace info
         if namespaces:

@@ -21,10 +21,12 @@ lint-typescript:
 .PHONY: test-typescript
 test-typescript:
 	@if [ -z "$(TS_DIRS)" ]; then echo "No TypeScript services found"; exit 0; fi
-	@for dir in $(TS_DIRS); do \
+	@failed=""; \
+	for dir in $(TS_DIRS); do \
 		echo "[TypeScript] testing $$(basename $$dir)"; \
-		cd $(ROOT)/$$dir && pnpm test 2>&1 || { echo "TEST_FAILED: pnpm test failed in $$dir"; exit 1; }; \
-	done
+		cd $(ROOT)/$$dir && pnpm test 2>&1 || failed="$$failed $$(basename $$dir)"; \
+	done; \
+	if [ -n "$$failed" ]; then echo "TEST_FAILED: pnpm test failed in:$$failed"; exit 1; fi
 
 .PHONY: typecheck-typescript
 typecheck-typescript:
