@@ -305,6 +305,92 @@ func (s *OrgService) SetVisibility(requesterID, scope string, v Visibility) erro
 	return nil
 }
 
+// @hlv owner_only_membership
+// @hlv last_owner_protection
+// RemoveMember removes a user's membership from a scope with last-owner protection.
+// Only Owner can remove members. The last Owner of a scope cannot be removed.
+func (s *OrgService) RemoveMember(requesterID, scope, targetUserID string) (*AuditEvent, error) {
+	// @hlv:sec [INPUT_VALIDATION] — Validate inputs.
+	if requesterID == "" || scope == "" || targetUserID == "" {
+		return nil, ErrForbiddenInsufficientRole
+	}
+
+	scopeNode, err := s.store.GetScope(scope)
+	if err != nil || scopeNode == nil {
+		return nil, ErrScopeNotFound
+	}
+
+	// @hlv:sec [AUTH_BOUNDARY] — Only Owner can remove members.
+	requesterRole, err := s.GetEffectiveRole(requesterID, scope)
+	if err != nil {
+		return nil, err
+	}
+	if !IsOwner(requesterRole) {
+		audit := &AuditEvent{
+			Event:      "authorization.denied",
+			Reason:     "FORBIDDEN_ADMIN_ONLY",
+			UserID:     requesterID,
+			ObjectType: string(scopeNode.Type),
+			ObjectID:   scope,
+			Timestamp:  time.Now().UTC().Format(time.RFC3339),
+		}
+		log.Printf(`{"event":"state.changed","entity":"membership","user_id":"%s","scope":"%s","action":"deny","reason":"FORBIDDEN_ADMIN_ONLY"}`, requesterID, scope)
+		return audit, ErrForbiddenAdminOnly
+	}
+
+	// @hlv last_owner_protection — Cannot remove the last Owner from a scope.
+	members, err := s.store.GetMemberships(scope)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if the target user is an Owner
+	isTargetOwner := false
+	ownerCount := 0
+	for _, m := range members {
+		if m.Role == "Owner" {
+			ownerCount++
+			if m.UserID == targetUserID {
+				isTargetOwner = true
+			}
+		}
+	}
+
+	// Block removal if target is the last Owner
+	if isTargetOwner && ownerCount <= 1 {
+		audit := &AuditEvent{
+			Event:      "authorization.denied",
+			Reason:     "LAST_OWNER_REMOVAL_BLOCKED",
+			UserID:     requesterID,
+			ObjectType: string(scopeNode.Type),
+			ObjectID:   scope,
+			Timestamp:  time.Now().UTC().Format(time.RFC3339),
+		}
+		log.Printf(`{"event":"state.changed","entity":"membership","user_id":"%s","scope":"%s","action":"deny","reason":"LAST_OWNER_REMOVAL_BLOCKED"}`, requesterID, scope)
+		return audit, ErrLastOwnerRemovalBlocked
+	}
+
+	if err := s.store.DeleteMembership(scope, targetUserID); err != nil {
+		return nil, err
+	}
+
+	// @hlv cache_invalidation
+	s.cache.InvalidateScope(scope)
+
+	log.Printf(`{"event":"state.changed","entity":"membership","user_id":"%s","scope":"%s","target_user":"%s","action":"removed"}`, requesterID, scope, targetUserID)
+
+	audit := &AuditEvent{
+		Event:      "authorization.revoked",
+		Reason:     "member_removed",
+		UserID:     requesterID,
+		ObjectType: string(scopeNode.Type),
+		ObjectID:   scope,
+		Timestamp:  time.Now().UTC().Format(time.RFC3339),
+	}
+
+	return audit, nil
+}
+
 // @hlv visibility_checked
 // checkVisibility verifies that the user can access a scope at its visibility level.
 func (s *OrgService) checkVisibility(userID string, node *ScopeNode) error {

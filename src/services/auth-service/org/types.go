@@ -101,6 +101,7 @@ var (
 	ErrForbiddenObjectNotFound    = &OrgError{Code: "FORBIDDEN_OBJECT_NOT_FOUND_OR_ACCESS_DENIED", Message: "Object not found or access denied"}
 	ErrCycleDetected              = &OrgError{Code: "CYCLE_DETECTED", Message: "Circular group membership detected and rejected"}
 	ErrHierarchyDepthExceeded     = &OrgError{Code: "HIERARCHY_DEPTH_EXCEEDED", Message: "Group nesting depth exceeds maximum of 5 levels"}
+	ErrLastOwnerRemovalBlocked    = &OrgError{Code: "LAST_OWNER_REMOVAL_BLOCKED", Message: "Cannot remove the last Owner from a scope"}
 )
 
 // rolePriority maps role names to their priority (higher = more privileged).

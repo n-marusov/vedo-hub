@@ -181,19 +181,23 @@ func TestGrpc_InvalidRole_AddMember_ReturnsPermissionDenied(t *testing.T) {
 // TestGrpc_LastOwner_RemoveMember_ReturnsFailedPrecondition verifies last Owner protection.
 func TestGrpc_LastOwner_RemoveMember_ReturnsFailedPrecondition(t *testing.T) {
 	store := NewMemStore()
+	svc := NewOrgService(store)
 	_ = store.UpsertScope(ScopeNode{ID: "ontology/test", Type: ScopeOntology})
 	_ = store.UpsertMembership(OrgMembership{UserID: "owner", Scope: "ontology/test", Role: "Owner"})
 
-	// Attempt to remove the only owner — should be blocked
-	err := store.DeleteMembership("ontology/test", "owner")
-	if err != nil {
-		t.Logf("DeleteMembership error (expected in some implementations): %v", err)
+	// Attempt to remove the only owner via OrgService — should be blocked
+	_, err := svc.RemoveMember("owner", "ontology/test", "owner")
+	if err == nil {
+		t.Fatal("expected error for last-owner removal, got nil")
+	}
+	if err != ErrLastOwnerRemovalBlocked {
+		t.Fatalf("expected ErrLastOwnerRemovalBlocked, got %v", err)
 	}
 
-	// Last-owner protection is enforced at OrgService layer
+	// Verify member still exists (was not removed)
 	mems, _ := store.GetMemberships("ontology/test")
-	if len(mems) == 0 {
-		t.Log("WARN: last-owner protection not yet enforced at store level")
+	if len(mems) != 1 {
+		t.Fatalf("expected 1 member (last Owner not removed), got %d", len(mems))
 	}
 }
 
@@ -344,5 +348,17 @@ func TestOrgError_VISIBILITY_VIOLATION_ToGrpc_ReturnsPermissionDenied(t *testing
 	}
 	if grpcErr.code != "VISIBILITY_VIOLATION" {
 		t.Fatalf("expected VISIBILITY_VIOLATION code, got %q", grpcErr.code)
+	}
+}
+
+// TestOrgError_LAST_OWNER_REMOVAL_BLOCKED_ToGrpc verifies LAST_OWNER_REMOVAL_BLOCKED maps to PermissionDenied.
+func TestOrgError_LAST_OWNER_REMOVAL_BLOCKED_ToGrpc_ReturnsPermissionDenied(t *testing.T) {
+	err := mapOrgErrorToGrpc(ErrLastOwnerRemovalBlocked)
+	grpcErr, ok := err.(*grpcError)
+	if !ok {
+		t.Fatalf("expected grpcError, got %T", err)
+	}
+	if grpcErr.code != "LAST_OWNER_REMOVAL_BLOCKED" {
+		t.Fatalf("expected LAST_OWNER_REMOVAL_BLOCKED code, got %q", grpcErr.code)
 	}
 }
