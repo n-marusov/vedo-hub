@@ -1,6 +1,6 @@
 <!-- @hlv:artifact code-frontend implements spec-gui-ow-001 -->
 <!-- @ctx: Root shell strictly aligned to design/frontend.pen Header + Sidebar organisms -->
-<!-- @m2.5 Phase 5 — Wired: user avatar/initials from Keycloak, sidebar badge counts from API, header action buttons, keyboard shortcuts -->
+<!-- @m4 Phase 5 — Wired: user avatar/initials from Keycloak, sidebar badge counts from API, header action buttons, keyboard shortcuts -->
 <template>
   <router-view v-if="!showShell" />
 
@@ -13,7 +13,7 @@
 
       <div class="header-fill-spacer"></div>
 
-      <!-- @m2.5 Search bar with keyboard shortcut (Ctrl+K or /) -->
+      <!-- @m4 Search bar with keyboard shortcut (Ctrl+K or /) -->
       <div class="header-search" role="search" aria-label="Search">
         <Search :size="15" class="header-search-icon" />
         <input
@@ -29,7 +29,7 @@
 
       <div class="header-fill-spacer"></div>
 
-      <!-- @m2.5 Header action buttons — all wired with @click handlers -->
+      <!-- @m4 Header action buttons — all wired with @click handlers -->
       <div class="header-actions" aria-label="Header actions">
         <button class="header-icon-btn" type="button" aria-label="Create" @click="handleCreate">
           <Plus :size="14" />
@@ -49,7 +49,7 @@
         <button class="header-icon-btn" type="button" :aria-label="themeLabel" @click="toggleTheme">
           <component :is="themeIcon" :size="16" />
         </button>
-        <!-- @m2.5 User avatar — wired to useCurrentUser for real name/initials -->
+        <!-- @m4 User avatar — wired to useCurrentUser for real name/initials -->
         <button class="header-avatar-menu" type="button" aria-label="Current user menu">
           <span class="header-avatar">
             <span v-if="displayInitials && displayInitials !== '?'" class="header-avatar-initials">{{ displayInitials }}</span>
@@ -147,12 +147,12 @@ const showShell = computed(() => {
 	);
 });
 
-// @m2.5 — Sidebar navigation items with badge counts from DASHBOARD_QUERY
+// @m4 — Sidebar navigation items with badge counts from DASHBOARD_QUERY
 const { result: navResult } = useQuery(DASHBOARD_QUERY, undefined, {
 	enabled: showShell,
 });
 
-// @m2.5 — Reactive nav badge counts from dashboard aggregate query
+// @m4 — Reactive nav badge counts from dashboard aggregate query
 const navCounts = reactive({
 	mr: "0",
 	commits: "0",
@@ -192,7 +192,7 @@ type SidebarItem = {
 	badge?: string;
 };
 
-// @m2.5 — Sidebar items updated with all M2.5 route matches
+// @m4 — Sidebar items updated with all M2.5 route matches
 const mainItems: SidebarItem[] = [
 	{
 		label: "Home",
@@ -240,7 +240,7 @@ const mainItems: SidebarItem[] = [
 		matches: ["/dashboard/deployments"],
 		badge: navCounts.deployments,
 	},
-	// @m2.5 — Add matches for M2.5 page routes (Metrics, Members, Validation, Versioning, SPARQL)
+	// @m4 — Add matches for M2.5 page routes (Metrics, Members, Validation, Versioning, SPARQL)
 	{
 		label: "Metrics",
 		icon: LayoutDashboard,
@@ -255,7 +255,7 @@ const mainItems: SidebarItem[] = [
 	},
 ];
 
-// @m2.5 — Reactive badge updates from navCounts
+// @m4 — Reactive badge updates from navCounts
 watch(
 	() => [
 		navCounts.mr,
@@ -331,7 +331,7 @@ function toggleTheme(): void {
 	currentTheme.value = next;
 }
 
-// @m2.5 — Header action handlers
+// @m4 — Header action handlers
 function handleCreate(): void {
 	console.debug(
 		JSON.stringify({
@@ -371,7 +371,7 @@ function handleSearch(): void {
 	router.push({ path: "/search", query: { q: searchQuery.value } });
 }
 
-// @m2.5 — Keyboard shortcuts
+// @m4 — Keyboard shortcuts
 function handleShellKeydown(event: KeyboardEvent): void {
 	// Ctrl+K or / — focus search
 	if ((event.ctrlKey || event.metaKey) && event.key === "k") {
@@ -561,7 +561,7 @@ function isInputFocused(): boolean {
   font-weight: 600;
 }
 
-/* @m2.5 User avatar with initials */
+/* @m4 User avatar with initials */
 .header-avatar {
   border-radius: 16px;
   color: var(--muted-foreground);

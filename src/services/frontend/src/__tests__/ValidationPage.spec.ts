@@ -1,4 +1,4 @@
-// @m2.5 — ValidationPage vitest spec (RED phase for Block В)
+// @m4 — ValidationPage vitest spec (RED phase for Block В)
 // Validates: REQ-USR.UI.gui-implementation
 // After GREEN (Task 4.4): page should run SHACL validation via RUN_VALIDATION_MUTATION and display results
 

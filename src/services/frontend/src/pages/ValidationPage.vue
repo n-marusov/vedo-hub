@@ -1,5 +1,5 @@
 <!-- @ctx: Validation page strictly mirrored from design/frontend.pen frame valRep -->
-<!-- @m2.5 — Wired to RUN_VALIDATION_MUTATION via Apollo GraphQL -->
+<!-- @m4 — Wired to RUN_VALIDATION_MUTATION via Apollo GraphQL -->
 <template>
   <div class="validation-page" role="main" aria-label="Validation Report content">
     <section class="validation-title-row">
@@ -61,7 +61,7 @@ const ontologyId = computed(
 		"",
 );
 
-// @m2.5 — Wire validation to RUN_VALIDATION_MUTATION
+// @m4 — Wire validation to RUN_VALIDATION_MUTATION
 const { mutate, loading } = useMutation(RUN_VALIDATION_MUTATION);
 
 const validationResult = ref<{
@@ -223,7 +223,7 @@ async function runValidation(): Promise<void> {
   overflow: hidden;
 }
 
-/* @m2.5 Spinner */
+/* @m4 Spinner */
 .spinning {
   animation: spin 1s linear infinite;
 }

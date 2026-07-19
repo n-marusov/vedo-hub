@@ -46,7 +46,7 @@
         <div v-for="member in members" :key="member.name + member.mail" class="table-row">
           <span class="member-col member-name">{{ member.name }}</span>
           <span class="role-col">
-            <!-- @m2.5 Inline role edit: select when editing, pill when not -->
+            <!-- @m4 Inline role edit: select when editing, pill when not -->
             <select
               v-if="editingMemberName === member.name"
               :value="member.role"
@@ -82,7 +82,7 @@
       </section>
     </template>
 
-    <!-- @m2.5 Remove confirmation dialog -->
+    <!-- @m4 Remove confirmation dialog -->
     <Dialog
       :open="removeDialogOpen"
       title="Remove member"
@@ -96,7 +96,7 @@
       </template>
     </Dialog>
 
-    <!-- @m2.5 Notification toast -->
+    <!-- @m4 Notification toast -->
     <div v-if="notifyMessage" class="members-notify" role="status">{{ notifyMessage }}</div>
   </div>
 </template>
@@ -148,7 +148,7 @@ watch(
 	{ immediate: true },
 );
 
-// ── @m2.5 Inline Edit State ─────────────────────────────────────────────────────
+// ── @m4 Inline Edit State ─────────────────────────────────────────────────────
 
 const editingMemberName = ref<string | null>(null);
 const notifyMessage = ref<string | null>(null);
@@ -180,7 +180,7 @@ function onRoleBlur(_member: MemberRow): void {
 	editingMemberName.value = null;
 }
 
-// ── @m2.5 Remove Member ─────────────────────────────────────────────────────────
+// ── @m4 Remove Member ─────────────────────────────────────────────────────────
 
 const removeDialogOpen = ref(false);
 const removingMemberName = ref("");
@@ -426,7 +426,7 @@ watch(error, (err) => {
   cursor: pointer;
 }
 
-/* @m2.5 Dialog buttons */
+/* @m4 Dialog buttons */
 .dialog-cancel-btn {
   height: 32px;
   border-radius: 6px;
@@ -451,7 +451,7 @@ watch(error, (err) => {
   cursor: pointer;
 }
 
-/* @m2.5 Role select */
+/* @m4 Role select */
 .role-select {
   height: 28px;
   border-radius: 6px;
@@ -464,7 +464,7 @@ watch(error, (err) => {
   cursor: pointer;
 }
 
-/* @m2.5 Notification toast */
+/* @m4 Notification toast */
 .members-notify {
   position: fixed;
   bottom: 24px;

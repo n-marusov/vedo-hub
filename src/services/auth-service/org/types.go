@@ -100,19 +100,26 @@ var (
 	ErrVisibilityViolation        = &OrgError{Code: "VISIBILITY_VIOLATION", Message: "User cannot access resource at this visibility level"}
 	ErrForbiddenObjectNotFound    = &OrgError{Code: "FORBIDDEN_OBJECT_NOT_FOUND_OR_ACCESS_DENIED", Message: "Object not found or access denied"}
 	ErrCycleDetected              = &OrgError{Code: "CYCLE_DETECTED", Message: "Circular group membership detected and rejected"}
+	ErrHierarchyDepthExceeded     = &OrgError{Code: "HIERARCHY_DEPTH_EXCEEDED", Message: "Group nesting depth exceeds maximum of 5 levels"}
 )
 
 // rolePriority maps role names to their priority (higher = more privileged).
 // @hlv:sec [AUTH_BOUNDARY] — Role priority defines authorization escalation boundaries.
 var rolePriority = map[string]int{
-	"Viewer":          1,
-	"Editor":          2,
-	"Maintainer":      3,
-	"SupportEngineer": 4,
-	"SRE":             5,
-	"SecurityLead":    6,
-	"ProductOwner":    7,
-	"Owner":           8,
+	// MVP roles (user-facing)
+	"Guest":      1,
+	"Reporter":   2,
+	"Developer":  3,
+	"Maintainer": 4,
+	"Owner":      9,
+	// Legacy roles (backward compatibility — accepted as aliases for MVP roles)
+	"Viewer": 1,
+	"Editor": 3,
+	// Enterprise/ops roles (outside MVP happy path)
+	"SupportEngineer": 5,
+	"SRE":             6,
+	"SecurityLead":    7,
+	"ProductOwner":    8,
 }
 
 // ResolveMaxRole returns the highest role from a list of memberships.

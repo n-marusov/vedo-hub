@@ -1,4 +1,4 @@
-// @m2.5 — Apollo mock link for Block В (Backend Pages)
+// @m4 — Apollo mock link for Block В (Backend Pages)
 // Intercepts specific queries with realistic mock data when VITE_USE_MOCK_API=true
 
 import type { FetchResult, Operation } from "@apollo/client/core";
@@ -58,7 +58,7 @@ export class MockApolloLink extends ApolloLink {
 	}
 }
 
-// @m2.5 — Check whether mock API mode is enabled
+// @m4 — Check whether mock API mode is enabled
 export function isMockApiEnabled(): boolean {
 	return import.meta.env.VITE_USE_MOCK_API === "true";
 }

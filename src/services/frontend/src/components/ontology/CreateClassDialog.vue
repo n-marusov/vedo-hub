@@ -1,4 +1,4 @@
-<!-- @m2.5 — Create Class Dialog -->
+<!-- @m4 — Create Class Dialog -->
 <!-- @hlv:artifact create-class-dialog implements GUI-OW-001 -->
 <template>
   <Dialog :open="open" title="Create Class" :modal="true" @close="$emit('close')">
@@ -94,7 +94,7 @@ async function submit(): Promise<void> {
 
 	submitting.value = true;
 	try {
-		// [bookmark] Backend CREATE_CLASS mutation not in M2.5 scope — mock submit
+		// [bookmark] Backend CREATE_CLASS mutation not in M4 scope — mock submit
 		await new Promise((resolve) => setTimeout(resolve, 500));
 		console.debug(
 			JSON.stringify({

@@ -1,4 +1,4 @@
-// @m2.5 — VersioningPage vitest spec (GREEN phase: uses mountWithProviders)
+// @m4 — VersioningPage vitest spec (GREEN phase: uses mountWithProviders)
 // Validates: REQ-USR.UI.gui-implementation
 // Tests: commits and branches from API via Apollo GraphQL queries
 import {

@@ -1,4 +1,4 @@
-// @m2.5 — ProjectsPage vitest spec (GREEN: uses mountWithProviders)
+// @m4 — ProjectsPage vitest spec (GREEN: uses mountWithProviders)
 // Validates: REQ-USR.UI.gui-implementation
 // Tests: projects list from LIST_PROJECTS_QUERY via Apollo
 import {

@@ -1,4 +1,4 @@
-// @m2.5 — PublishSnapshotDialog vitest spec
+// @m4 — PublishSnapshotDialog vitest spec
 // Validates: REQ-USR.UI.gui-implementation
 import {
 	mountWithProviders,

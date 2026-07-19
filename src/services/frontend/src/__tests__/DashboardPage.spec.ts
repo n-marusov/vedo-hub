@@ -1,4 +1,4 @@
-// @m2.5 — DashboardPage vitest spec (RED phase for Block В)
+// @m4 — DashboardPage vitest spec (RED phase for Block В)
 // Validates: REQ-USR.UI.gui-implementation
 // After GREEN (Task 4.2): page should render widgets, attention items, activity feed, recent ontologies from API
 

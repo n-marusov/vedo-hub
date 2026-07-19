@@ -1,6 +1,6 @@
 <!-- @hlv:artifact code-frontend implements spec-gui-ow-001 -->
 <!-- @ctx: Organism/MergeRequests — collapsible section cards, no tabs -->
-<!-- @m2.5 — Wired: accepts mergeRequests as prop from MergeRequestsPage -->
+<!-- @m4 — Wired: accepts mergeRequests as prop from MergeRequestsPage -->
 <template>
     <div class="merge-requests" role="region" aria-label="Merge requests">
         <MergeRequestCard
@@ -33,7 +33,7 @@
 import { computed, reactive } from "vue";
 import MergeRequestCard from "./MergeRequestCard.vue";
 
-// @m2.5 — MR entry from LIST_MERGE_REQUESTS_QUERY
+// @m4 — MR entry from LIST_MERGE_REQUESTS_QUERY
 interface MREntry {
 	id: string;
 	title: string;
@@ -58,7 +58,7 @@ interface MRSection {
 	emptyText: string;
 }
 
-// @m2.5 — Compute section counts from API data
+// @m4 — Compute section counts from API data
 const openCount = computed(
 	() => props.mergeRequests.filter((mr) => mr.status === "open").length,
 );

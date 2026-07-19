@@ -1,4 +1,4 @@
-<!-- @m2.5 — Create Property Dialog -->
+<!-- @m4 — Create Property Dialog -->
 <!-- @hlv:artifact create-property-dialog implements GUI-OW-001 -->
 <template>
   <Dialog :open="open" title="Create Property" size="md" :modal="true" @close="$emit('close')">

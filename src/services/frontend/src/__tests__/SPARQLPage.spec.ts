@@ -1,4 +1,4 @@
-// @m2.5 — SPARQLPage vitest spec (GREEN: uses mountWithProviders)
+// @m4 — SPARQLPage vitest spec (GREEN: uses mountWithProviders)
 // Validates: REQ-USR.UI.gui-implementation
 // Tests: SPARQL query execution via Apollo GraphQL SPARQL_EXECUTE_QUERY
 import {

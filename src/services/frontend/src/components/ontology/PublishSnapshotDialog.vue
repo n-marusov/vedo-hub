@@ -1,4 +1,4 @@
-<!-- @m2.5 — Publish Snapshot Dialog -->
+<!-- @m4 — Publish Snapshot Dialog -->
 <!-- @hlv:artifact publish-snapshot-dialog implements GUI-OW-001 -->
 <template>
   <Dialog :open="open" title="Publish Snapshot" size="md" :modal="true" @close="$emit('close')">
@@ -97,7 +97,7 @@ async function publish(): Promise<void> {
 
 	publishing.value = true;
 	try {
-		// [bookmark] Full publish flow not in M2.5 scope — mock publish
+		// [bookmark] Full publish flow not in M4 scope — mock publish
 		await new Promise((resolve) => setTimeout(resolve, 800));
 		console.debug(
 			JSON.stringify({

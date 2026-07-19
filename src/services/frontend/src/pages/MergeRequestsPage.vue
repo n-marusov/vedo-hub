@@ -1,6 +1,6 @@
 <!-- @hlv:artifact code-frontend implements spec-gui-ow-001 -->
 <!-- @ctx: Merge Requests page — aligned to design/pages/merge-requests.pen -->
-<!-- @m2.5 — Wired to LIST_MERGE_REQUESTS_QUERY via Apollo GraphQL, filtered by tab -->
+<!-- @m4 — Wired to LIST_MERGE_REQUESTS_QUERY via Apollo GraphQL, filtered by tab -->
 <template>
     <div class="mr-page" role="main" aria-label="Merge requests">
         <div class="mr-title-row">
@@ -20,7 +20,7 @@
 
         <Tab v-model="activeTab" :tabs="tabs" label="Merge request filter" />
 
-        <!-- @m2.5 Loading state -->
+        <!-- @m4 Loading state -->
         <div v-if="loading" class="mr-section">
             <div class="skeleton-card" v-for="n in 3" :key="n">
                 <div class="skeleton-line skeleton-line--wide"></div>
@@ -28,7 +28,7 @@
             </div>
         </div>
 
-        <!-- @m2.5 Error state -->
+        <!-- @m4 Error state -->
         <div v-else-if="error" class="mr-section">
             <div class="error-state">
                 <p>Failed to load merge requests.</p>
@@ -36,7 +36,7 @@
             </div>
         </div>
 
-        <!-- @m2.5 Data state — pass filtered MRs to organism -->
+        <!-- @m4 Data state — pass filtered MRs to organism -->
         <MergeRequests v-else class="mr-section" :mergeRequests="filteredMRs" />
     </div>
 </template>
@@ -57,7 +57,7 @@ const tabs = [
 
 const activeTab = ref("active");
 
-// @m2.5 — Wire merge requests to LIST_MERGE_REQUESTS_QUERY
+// @m4 — Wire merge requests to LIST_MERGE_REQUESTS_QUERY
 const { result, loading, error, refetch } = useQuery(
 	LIST_MERGE_REQUESTS_QUERY,
 	() => ({
@@ -181,7 +181,7 @@ watch(error, (err) => {
     width: 100%;
 }
 
-/* @m2.5 Skeleton loading */
+/* @m4 Skeleton loading */
 .skeleton-card {
     padding: 12px 16px;
     border-bottom: 1px solid var(--border);
@@ -202,7 +202,7 @@ watch(error, (err) => {
     50% { opacity: 0.8; }
 }
 
-/* @m2.5 Error state */
+/* @m4 Error state */
 .error-state {
     padding: 32px;
     text-align: center;

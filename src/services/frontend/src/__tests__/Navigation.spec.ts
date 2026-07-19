@@ -1,4 +1,4 @@
-// @m2.5 — App.vue Navigation vitest spec (RED phase for Block Г)
+// @m4 — App.vue Navigation vitest spec (RED phase for Block Г)
 // Validates: REQ-USR.UI.gui-implementation
 // After GREEN (Tasks 5.2–5.6): user avatar, sidebar badges, header actions, route highlighting, sidebar collapse
 

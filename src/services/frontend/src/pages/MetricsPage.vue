@@ -1,5 +1,5 @@
 <!-- @ctx: Metrics page strictly mirrored from design/frontend.pen frame metDas -->
-<!-- @m2.5 — Wired to ONTOLOGY_METRICS_QUERY via Apollo GraphQL -->
+<!-- @m4 — Wired to ONTOLOGY_METRICS_QUERY via Apollo GraphQL -->
 <template>
   <div class="metrics-page" role="main" aria-label="Metrics Dashboard content">
     <section class="metrics-title-row">
@@ -19,7 +19,7 @@
       <span class="context-time">Last updated: {{ lastUpdated }}</span>
     </section>
 
-    <!-- @m2.5 Loading state -->
+    <!-- @m4 Loading state -->
     <section v-if="loading" class="metrics-content card">
       <div class="kpi-grid">
         <article v-for="n in 4" :key="n" class="kpi-card skeleton">
@@ -30,7 +30,7 @@
       </div>
     </section>
 
-    <!-- @m2.5 Error state -->
+    <!-- @m4 Error state -->
     <section v-else-if="error" class="metrics-content card">
       <div class="error-state">
         <p>Failed to load metrics data.</p>
@@ -38,7 +38,7 @@
       </div>
     </section>
 
-    <!-- @m2.5 Data state — KPI counters from ONTOLOGY_METRICS_QUERY -->
+    <!-- @m4 Data state — KPI counters from ONTOLOGY_METRICS_QUERY -->
     <section v-else class="metrics-content card">
       <div class="kpi-grid">
         <article class="kpi-card">
@@ -92,7 +92,7 @@ const ontologyId = computed(
 		"",
 );
 
-// @m2.5 — Wire metrics to ONTOLOGY_METRICS_QUERY
+// @m4 — Wire metrics to ONTOLOGY_METRICS_QUERY
 const { result, loading, error, refetch } = useQuery(
 	ONTOLOGY_METRICS_QUERY,
 	() => ({
@@ -304,7 +304,7 @@ watch(error, (err) => {
 .primary { color: var(--primary); }
 .muted { color: var(--muted-foreground); }
 
-/* @m2.5 Skeleton loading */
+/* @m4 Skeleton loading */
 .skeleton { animation: pulse 1.5s ease-in-out infinite; }
 .skeleton-line { height: 14px; border-radius: 4px; background: var(--muted); }
 .skeleton-line--label { width: 50%; }
@@ -315,7 +315,7 @@ watch(error, (err) => {
   50% { opacity: 0.8; }
 }
 
-/* @m2.5 Error state */
+/* @m4 Error state */
 .error-state {
   grid-column: 1 / -1;
   padding: 32px;

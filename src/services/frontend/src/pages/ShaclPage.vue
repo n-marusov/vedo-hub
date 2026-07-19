@@ -1,4 +1,4 @@
-<!-- @m2.5 — SHACL Rule Builder page -->
+<!-- @m4 — SHACL Rule Builder page -->
 <!-- @hlv:artifact shacl-page implements GUI-OW-001 -->
 <template>
   <div class="shacl-page" role="main" aria-label="SHACL Rule Builder">
@@ -70,7 +70,7 @@ const ontologyName = computed(() => (route.query.name as string) || "");
 const { addError } = useErrorPresentation();
 
 // ── SHACL rules query ────────────────────────────────────────────────────────
-// Placeholder — real SHACL rule storage is post-M2.5
+// Placeholder — real SHACL rule storage is post-M4
 const SHACL_RULES_QUERY = gql`
   query GetShaclRules($ontologyId: ID!) {
     shaclRules(ontologyId: $ontologyId) {

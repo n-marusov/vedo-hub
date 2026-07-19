@@ -1,7 +1,8 @@
-# Implementation Plan: M2.1 — Multi-Team Organization Model
+# Implementation Plan: M3 — Multi-Team Organization Model
 
 Branch: feature/multi-team-organization-model
 Created: 2026-07-19
+Updated: 2026-07-19 — aligned with `specs/vision.md` MVP scope and continuous roadmap numbering
 
 ## Settings
 - Testing: yes (TDD methodology per RULES.md)
@@ -9,8 +10,27 @@ Created: 2026-07-19
 - Docs: yes (mandatory docs checkpoint at completion)
 
 ## Roadmap Linkage
-Milestone: "M2.1: Multi-Team Organization Model"
-Rationale: This plan implements the GitLab-like organizational model — hierarchical groups, project catalog (ontologies), role-based membership (Owner/Editor/Viewer), visibility levels (private/internal/public), permission inheritance, and REST/GraphQL API. Replaces Apollo test fixtures currently used by M2.5 Block Б (GroupsPage, MembersPage, ProjectsPage) and Block В1 (DashboardPage recent ontologies).
+Milestone: "M3: Multi-Team Organization Model"
+Rationale: This plan implements the GitLab-like organizational model required by the MVP scope in `specs/vision.md` section 2.5 — hierarchical groups, project containers for ontologies, role-based membership, visibility levels (`private`/`internal`/`public`), permission inheritance, audit events, and REST/GraphQL API. It replaces Apollo test fixtures currently used by M4 Block Б (GroupsPage, ProjectsPage, MembersPage) and Block В1 (DashboardPage recent ontologies).
+
+## MVP Alignment Addendum
+
+The plan was originally created as `M2.1` before the MVP scope was rewritten. The current roadmap uses continuous numbering, so this work is now `M3`. Completed `- [x]` tasks are preserved as implementation history; the remaining alignment items below capture the delta between the completed baseline and the final MVP wording in `specs/vision.md`.
+
+### Scope alignment decisions
+
+- **Project terminology:** In MVP, a `Project` is the management container for exactly one ontology. Existing implementation details may still use `ontology` as the low-level scope type or URL segment, but user-facing API/docs/UI must consistently present this as a project containing an ontology.
+- **Role vocabulary:** The final MVP vocabulary is `Guest`, `Reporter`, `Developer`, `Maintainer`, `Owner`. Existing `Viewer`/`Editor` names must either be migrated or explicitly mapped for compatibility:
+  - `Viewer` → `Guest` or `Reporter` depending on read/comment permissions;
+  - `Editor` → `Developer`;
+  - `Maintainer` → `Maintainer`;
+  - `Owner` → `Owner`.
+- **Deferred enterprise roles:** `SupportEngineer`, `SRE`, `SecurityLead`, and `ProductOwner` are operational/enterprise roles and must not be required for the MVP happy path.
+- **Hierarchy limit:** MVP group nesting is limited to 5 levels and must be enforced at API/service level.
+- **Project movement:** MVP includes moving a project to another group; this must be represented as an explicit API/service operation or a validated `parent_id` update with audit logging.
+- **Audit boundary:** Audit events are required for group/project create/delete/move and membership/role changes, not only authorization denials.
+- **Out of MVP:** CSV bulk member import, approval rules, branch protection, group-level notifications, and maximum-visibility restriction for nested projects remain deferred.
+
 
 ## Research Context
 Source: .ai-factory/RESEARCH.md (Active Summary)
@@ -28,6 +48,7 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
 - **Commit 4** (after tasks 11-13): "feat: implement gRPC org service handlers and wire auth-service"
 - **Commit 5** (after tasks 14-17): "feat: add REST API, idempotency support, and GraphQL resolvers for org model"
 - **Commit 6** (after tasks 18-22): "test: security, contract tests, traceability, and docs for org model"
+- **Commit 7** (after tasks 23-27): "chore: align org model plan with MVP scope"
 
 ## Tasks
 
@@ -49,9 +70,10 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
 > real auth-service (HTTP :8081, gRPC :9003), real postgres, real API Gateway (:8080).
 > **No service-level mocks or stubs.**
 
-- [x] **Task 1: Set up Playwright test infrastructure for M2.1 org model**
+- [x] **Task 1: Set up Playwright test infrastructure for M3 org model** — addresses REQ-NFR.SECURITY.organization-access-model (test infra for org model E2E)
   **Subtasks (ordered):**
-  1. **Create `tests/e2e/playwright/playwright.m2.1.real.config.ts`:**
+	  1. **Write config-validation smoke test** — create `tests/e2e/playwright/tests/smoke/playwright-config.spec.ts` that imports the config from `playwright.m2.1.real.config.ts` and asserts the config object parses, `testMatch` patterns resolve, and `webServer` entries reference existing ports
+	  2. **Create `tests/e2e/playwright/playwright.m2.1.real.config.ts`**:
      - Copy structure from `playwright.m2.5.real.config.ts`:
        ```ts
        import { defineConfig, devices } from '@playwright/test';
@@ -77,24 +99,24 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
        });
        ```
      - Test scoped to org model files via `testMatch: ['**/groups-page-wired*', '**/projects-page-wired*', '**/members-page-wired*', '**/org-*']`
-  2. **Update `tests/e2e/playwright/pages/groups.page.ts`:**
+	  3. **Update `tests/e2e/playwright/pages/groups.page.ts`:**
      - Add `getVisibilityIcons()` — locator for visibility indicators
      - Add `getChildGroups()` — locator for child group rows
      - Add `getGroupCount()` — returns count of `.gp-row` elements
      - Add `clickNewGroup()` — clicks "New group" button
-  3. **Update `tests/e2e/playwright/pages/projects.page.ts`:**
+  4. **Update `tests/e2e/playwright/pages/projects.page.ts`:**
      - Add `getProjectCount()` — returns count of `.pp-row` elements
      - Add `getVisibilityIcons()` — locator for visibility badges
-  4. **Update `tests/e2e/playwright/pages/members.page.ts`:**
+  5. **Update `tests/e2e/playwright/pages/members.page.ts`:**
      - Add `getMemberCount()` — returns count of `.table-row` elements
      - Add `addMember(username, role)` — clicks add, fills form, submits
      - Add `getMemberRole(username)` — reads role from member row
-  5. **Update `tests/e2e/playwright/tests/jwt-tokens.ts`** — ensure `VIEWER_JWT`, `EDITOR_JWT`, `OWNER_JWT` tokens have appropriate `organization_id` claims for cross-tenant tests
+  6. **Update `tests/e2e/playwright/tests/jwt-tokens.ts`** — ensure `VIEWER_JWT`, `EDITOR_JWT`, `OWNER_JWT` tokens have appropriate `organization_id` claims for cross-tenant tests
 
   > **Files:** `tests/e2e/playwright/playwright.m2.1.real.config.ts` (new), `tests/e2e/playwright/pages/groups.page.ts` (update), `tests/e2e/playwright/pages/projects.page.ts` (update), `tests/e2e/playwright/pages/members.page.ts` (update), `tests/e2e/playwright/tests/jwt-tokens.ts` (update)
   > **Logging:** N/A (test infrastructure)
 
-- [x] **Task 2: Write E2E GUI tests for Groups, Projects, and Members pages**
+- [x] **Task 2: Write E2E GUI tests for Groups, Projects, and Members pages** — validates REQ-NFR.SECURITY.organization-access-model (E2E GUI tests for groups/projects/members)
 
   **Test environment:** Запускается на тестовом окружении через `docker compose -f deploy/docker-compose.test.yml up -d`.
   Конфигурация: `playwright.m2.1.real.config.ts` (из Task 1).
@@ -102,7 +124,7 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
 
   **Subtasks (ordered):**
   1. **Write `tests/e2e/playwright/tests/gui/pages/groups-page-wired.spec.ts`:**
-     - `should display groups from real API after M2.1 backend is wired` — navigates to `/dashboard/groups`, asserts group rows are populated (not empty/error state), checks `.gp-row` count > 0
+     - `should display groups from real API after M3 backend is wired` — navigates to `/dashboard/groups`, asserts group rows are populated (not empty/error state), checks `.gp-row` count > 0
      - `should filter groups by search query from real API` — enters search text, asserts results are filtered
      - `should expand group and show child subgroups from real API` — clicks expand on a group, asserts child rows appear
      - `should show visibility icon for each group` — asserts visibility indicator (Private/Internal/Public) is rendered
@@ -127,7 +149,7 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
   > **Files:** `tests/e2e/playwright/tests/gui/pages/groups-page-wired.spec.ts` (new), `tests/e2e/playwright/tests/gui/pages/projects-page-wired.spec.ts` (new), `tests/e2e/playwright/tests/gui/pages/members-page-wired.spec.ts` (new)
   > **Logging:** N/A (Playwright trace + screenshot on failure)
 
-- [x] **Task 3: Write API integration tests for organizational model REST endpoints**
+- [x] **Task 3: Write API integration tests for organizational model REST endpoints** — validates REQ-NFR.SECURITY.organization-access-model (REST API integration tests)
 
   **Test environment:** Запускается на тестовом окружении через `docker compose -f deploy/docker-compose.test.yml up -d`.
   Используется Playwright API context (`page.request`) — HTTP-запросы напрямую к API Gateway (`http://localhost:8080/api/v1/...`).
@@ -165,7 +187,7 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
   > **Files:** `tests/e2e/playwright/tests/api/rest/org-api.spec.ts` (new)
   > **Logging:** N/A (HTTP response status + body on assertion failure)
 
-- [x] **Task 4: Write E2E user-story tests for organizational model lifecycle**
+- [x] **Task 4: Write E2E user-story tests for organizational model lifecycle** — validates US-org.create-group, US-org.create-project, US-org.manage-members, US-org.visibility, US-org.inheritance
 
   **Test environment:** Запускается на тестовом окружении через `docker compose -f deploy/docker-compose.test.yml up -d`.
   Комбинирует Playwright browser (GUI-взаимодействия) и API context (REST-запросы) в рамках одного тестового сценария.
@@ -196,7 +218,7 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
 
 ### Phase 1: Proto Contracts & Code Generation
 
-- [x] **Task 5: Define org management proto contracts**
+- [x] **Task 5: Define org management proto contracts** — implements ORG-ACCESS-001 (gRPC proto contracts for org management)
   **Subtasks (ordered):**
   1. **Write proto-level validation test** — create `src/services/auth-service/org/org_proto_validation_test.go`:
      - Test that all required proto message fields have proper validation tags
@@ -216,7 +238,7 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
   > **Files:** `src/services/shared/proto/auth/v1/org.proto` (new), `src/services/auth-service/org/org_proto_validation_test.go` (new)
   > **Logging:** N/A (proto definition task)
 
-- [x] **Task 6: Generate Go code from org protos and verify**
+- [x] **Task 6: Generate Go code from org protos and verify** — implements ORG-ACCESS-001 (code generation from org protos)
   **Subtasks (ordered):**
   1. **Write code-generation contract test** — verify that `buf generate` succeeds, that generated Go files compile, that generated service interface matches expected method set
   2. **Run `make proto-generate`** (or `buf generate`) to produce Go stubs from `org.proto`
@@ -230,7 +252,7 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
 
 ### Phase 2: Database Layer
 
-- [x] **Task 7: Write PostgreSQL schema contract tests**
+- [x] **Task 7: Write PostgreSQL schema contract tests** — validates ADR-DES.SECURITY.gitlab-like-organization-model (PostgreSQL schema contract tests)
   **Subtasks (ordered):**
   1. **Write `src/services/auth-service/org/postgres_store_test.go`** — schema contract tests:
      - `[ScopeInsert]_UpsertScope_[PersistsCorrectly]` — insert scope, read back, assert all fields match
@@ -246,30 +268,31 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
   > **Files:** `src/services/auth-service/org/postgres_store_test.go` (new)
   > **Logging:** N/A (test assertions)
 
-- [x] **Task 8: Create PostgreSQL migrations for org data**
+- [x] **Task 8: Create PostgreSQL migrations for org data** — implements REQ-NFR.SECURITY.organization-access-model (PostgreSQL migrations)
   **Subtasks (ordered):**
-  1. **Create `src/services/auth-service/migrations/001_create_scopes.sql`:**
+	  1. **Write migration-contract tests** — add test cases to `postgres_store_test.go` that apply each migration file (001-005) against a test PostgreSQL instance and verify tables, indexes, constraints, and CHECK constraints exist after migration
+	  2. **Create `src/services/auth-service/migrations/001_create_scopes.sql`:
      - `scopes` table: `id TEXT PRIMARY KEY`, `type TEXT NOT NULL CHECK (type IN ('group','ontology'))`, `parent_id TEXT REFERENCES scopes(id) ON DELETE RESTRICT`, `visibility TEXT NOT NULL DEFAULT 'Private' CHECK (visibility IN ('Private','Internal','Public'))`, `tenant_id TEXT NOT NULL DEFAULT ''`, `name TEXT NOT NULL DEFAULT ''`, `description TEXT NOT NULL DEFAULT ''`, `created_at TIMESTAMPTZ NOT NULL DEFAULT now()`, `updated_at TIMESTAMPTZ NOT NULL DEFAULT now()`
      - Index: `idx_scopes_type` on (type), `idx_scopes_parent` on (parent_id), `idx_scopes_tenant` on (tenant_id)
-  2. **Create `002_create_memberships.sql`:**
+	  3. **Create `002_create_memberships.sql`:
      - `memberships` table: `scope TEXT NOT NULL REFERENCES scopes(id) ON DELETE CASCADE`, `user_id TEXT NOT NULL`, `role TEXT NOT NULL CHECK (role IN ('Viewer','Editor','Maintainer','SupportEngineer','SRE','SecurityLead','ProductOwner','Owner'))`, `inherited BOOLEAN NOT NULL DEFAULT false`, `created_at TIMESTAMPTZ NOT NULL DEFAULT now()`, `updated_at TIMESTAMPTZ NOT NULL DEFAULT now()`
      - UNIQUE constraint on (scope, user_id)
      - Indexes: `idx_memberships_user` on (user_id), `idx_memberships_scope` on (scope)
-  3. **Create `003_create_policies.sql`:**
+	  4. **Create `003_create_policies.sql`:
      - `attribute_policies` table: `id SERIAL PRIMARY KEY`, `scope TEXT NOT NULL REFERENCES scopes(id) ON DELETE CASCADE`, `pattern JSONB NOT NULL`, `right TEXT NOT NULL`, `created_at TIMESTAMPTZ NOT NULL DEFAULT now()`
      - Index: `idx_policies_scope` on (scope)
-  4. **Create `004_create_audit_events.sql`:**
+	  5. **Create `004_create_audit_events.sql`:
      - `audit_events` table: `id SERIAL PRIMARY KEY`, `event TEXT NOT NULL`, `reason TEXT NOT NULL`, `user_id TEXT NOT NULL`, `object_type TEXT`, `object_id TEXT`, `source_ip TEXT`, `timestamp TIMESTAMPTZ NOT NULL DEFAULT now()`, `trace_id TEXT`
      - Index: `idx_audit_user` on (user_id), `idx_audit_timestamp` on (timestamp DESC)
-  5. **Create `005_add_constraints.sql`:**
+	  6. **Create `005_add_constraints.sql`:
      - FK constraints validation (already in CREATE statements, but verify cascade/restrict behavior)
      - NOT NULL validation on required fields
-  6. **Run schema contract tests from Task 7** — they should now PASS (green phase)
+	  7. **Run schema contract tests from Task 7** — they should now PASS (green phase)
 
   > **Files:** `src/services/auth-service/migrations/001_create_scopes.sql` through `005_add_constraints.sql` (new)
   > **Logging:** INFO — log migration application and version
 
-- [x] **Task 9: Implement PostgreSQL-backed OrgStore**
+- [x] **Task 9: Implement PostgreSQL-backed OrgStore** — implements REQ-NFR.SECURITY.organization-access-model (PostgreSQL-backed OrgStore)
   **Subtasks (ordered):**
   1. **Write unit tests for `PostgresOrgStore`** — extend `postgres_store_test.go`:
      - `[EmptyStore]_ListAllScopes_[ReturnsEmptySlice]`
@@ -280,34 +303,36 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
      - `[VisibilityChange]_SetThenGet_[ValueUpdated]`
      - `[CacheInvalidate]_AfterDeleteMembership_[CacheCleared]`
      > Tests use test PostgreSQL instance
-  2. **Implement `src/services/auth-service/org/postgres_store.go`:**
+  2. **Extend OrgStore interface with DeleteScope and DeletePolicy** — add `DeleteScope(id)` and `DeletePolicy(id)` signatures to `store.go` `OrgStore` interface, implement stubs in `mem_store.go`
+  3. **Implement `src/services/auth-service/org/postgres_store.go`:**
      - `PostgresOrgStore` struct with `*sql.DB`
      - Constructor: `NewPostgresOrgStore(ctx, databaseURL)` — opens connection pool, runs migrations
-     - Implement ALL `OrgStore` interface methods using SQL queries
+     - Implement ALL `OrgStore` interface methods including `DeleteScope()` and `DeletePolicy()` using SQL queries
      - `GetEffectiveMemberships` — walks hierarchy via recursive CTE
      - Use `database/sql` with `lib/pq` driver
      - Connection pool: max 25 open conns, 5 min idle, 5 min max lifetime
-  3. **Run all PostgresOrgStore tests** — they should PASS
-  4. **Run existing `OrgService` contract tests with PostgresOrgStore** — ensure CT-ORG-001..010 pass with PostgreSQL backend
+  4. **Run all PostgresOrgStore tests** — they should PASS
+  5. **Run existing `OrgService` contract tests with PostgresOrgStore** — ensure CT-ORG-001..010 pass with PostgreSQL backend
 
   > **Files:** `src/services/auth-service/org/postgres_store.go` (new), `src/services/auth-service/org/postgres_store_test.go` (update)
   > **Logging:** INFO — log store initialization, migration version, pool stats; ERROR — log query failures with scope/user context
 
-- [x] **Task 10: Add org database to Docker Compose and environment config**
+- [x] **Task 10: Add org database to Docker Compose and environment config** — addresses REQ-NFR.SECURITY.organization-access-model (Docker Compose auth database)
 
   > **Важно:** Все изменения вносятся в базовый `deploy/docker-compose.yml`.
   > `docker-compose.test.yml` подхватывает их автоматически через `include`.
   > База `vedo_org` будет доступна и в dev, и в test окружении.
 
   **Subtasks (ordered):**
-  1. **Create `deploy/postgres/init/01-create-org-db.sql`:**
+	  1. **Write Docker Compose validation test** — add a Go test or shell script that runs `docker compose config` and asserts the config parses, `auth-service` has `AUTH_SERVICE_DATABASE_URL` env var, and `postgres` is in `depends_on` of `auth-service`
+	  2. **Create `deploy/postgres/init/01-create-org-db.sql`:**
      ```sql
      CREATE DATABASE vedo_org;
      ```
      Postgres контейнер автоматически выполняет скрипты из `/docker-entrypoint-initdb.d/`
      при первом запуске. База создаётся один раз и сохраняется в volume `postgres_data`.
 
-  2. **Update `deploy/docker-compose.yml` — mount init scripts into postgres:**
+	  3. **Update `deploy/docker-compose.yml` — mount init scripts into postgres:**
      ```yaml
      postgres:
        volumes:
@@ -315,7 +340,7 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
          - ./postgres/init:/docker-entrypoint-initdb.d   # <-- add this line
      ```
 
-  3. **Update `deploy/docker-compose.yml` — add `AUTH_SERVICE_DATABASE_URL` to auth-service:**
+	  4. **Update `deploy/docker-compose.yml` — add `AUTH_SERVICE_DATABASE_URL` to auth-service:**
      ```yaml
      auth-service:
        environment:
@@ -323,11 +348,11 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
      ```
      И добавить `postgres` в `depends_on` auth-service (если ещё нет).
 
-  4. **Update `.env.dev`, `.env.test`, `.env.staging`** — переменная `AUTH_SERVICE_DATABASE_URL`
-     со своим значением порта для каждого окружения (test: порты = dev + 10000).
+  5. **Update `.env.dev`, `.env.test`, `.env.staging`** — переменная `AUTH_SERVICE_DATABASE_URL`
+	     со своим значением порта для каждого окружения (test: порты = dev + 10000).
 
-  5. **Verify dev:** `docker compose up -d postgres` → `docker compose exec postgres psql -U postgres -c "\\l"` → видим `vedo_org`
-  6. **Verify test:** `docker compose -f docker-compose.test.yml up -d postgres` → та же проверка
+  6. **Verify dev:** `docker compose up -d postgres` → `docker compose exec postgres psql -U postgres -c "\\l"` → видим `vedo_org`
+  7. **Verify test:** `docker compose -f docker-compose.test.yml up -d postgres` → та же проверка
 
   > **Files:** `deploy/docker-compose.yml` (update), `deploy/postgres/init/01-create-org-db.sql` (new), `.env.dev` (update), `.env.test` (update), `.env.staging` (update)
   > **Logging:** INFO — log database URL и результат подключения при старте auth-service
@@ -336,7 +361,7 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
 
 ### Phase 3: gRPC Service Handlers
 
-- [x] **Task 11: Write gRPC contract tests for org service handlers**
+- [x] **Task 11: Write gRPC contract tests for org service handlers** — validates ORG-ACCESS-001 (gRPC contract tests for org handlers)
   **Subtasks (ordered):**
   1. **Write `src/services/auth-service/org/org_grpc_test.go`:**
      - Start gRPC server with MemStore (in-memory, no PostgreSQL dependency)
@@ -353,10 +378,11 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
   > **Files:** `src/services/auth-service/org/org_grpc_test.go` (new)
   > **Logging:** N/A (test assertions)
 
-- [x] **Task 12: Implement gRPC org service handlers**
+- [x] **Task 12: Implement gRPC org service handlers** — implements ORG-ACCESS-001 (gRPC org service handlers)
   **Subtasks (ordered):**
-  1. **Run gRPC contract tests from Task 11** — confirm they fail (red)
-  2. **Implement `src/services/auth-service/internal/grpc/server.go`:**
+	  1. **Write unit tests for DeleteScope and DeletePolicy** — add test cases to `org_store_test.go`: `[ValidDelete]_DeleteScope_NoChildren_[ReturnsNil]`, `[InvalidDelete]_DeleteScope_WithChildren_[ReturnsError]`, `[ValidDelete]_DeletePolicy_[ReturnsNil]`, `[InvalidDelete]_DeletePolicy_NotFound_[ReturnsError]`
+	  2. **Run gRPC contract tests from Task 11** — confirm they fail (red)
+	  3. **Implement `src/services/auth-service/internal/grpc/server.go`:**
      - Add `OrgGrpcServer` struct with `*org.OrgService` dependency
      - Implement ALL RPCs from `org.proto`:
        - `CreateGroup` → `OrgService.CreateScope()` with ScopeGroup type
@@ -377,16 +403,16 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
        - `CheckAccess` → `OrgService.CheckAccess()`
        - `CreatePolicy` → `OrgService.SavePolicy()`
        - `ListPolicies` → `OrgStore.GetPolicies()`
-       - `DeletePolicy` → add `DeletePolicy()` to OrgStore
+       - `DeletePolicy` → `OrgStore.DeletePolicy()` (added in Phase 2 Task 9)
      - Add input validation at gRPC boundary
      - Map `OrgError` → gRPC status codes
-     - Add `DeleteScope()` and `DeletePolicy()` to `OrgStore` interface + MemStore + PostgresStore
-  3. **Run gRPC contract tests** — they should all PASS (green phase)
+     - `DeleteScope()` → `OrgStore.DeleteScope()` (added in Phase 2 Task 9)
+	  4. **Run gRPC contract tests** — they should all PASS (green phase)
 
   > **Files:** `src/services/auth-service/internal/grpc/server.go` (update), `src/services/auth-service/org/store.go` (update), `src/services/auth-service/org/postgres_store.go` (update)
   > **Logging:** INFO — log RPC entry with user_id, scope, method; ERROR — log auth failures with reason codes
 
-- [x] **Task 13: Wire OrgService + PostgresOrgStore into auth-service main.go**
+- [x] **Task 13: Wire OrgService + PostgresOrgStore into auth-service main.go** — implements ORG-ACCESS-001 (wire OrgService into auth-service)
   **Subtasks (ordered):**
   1. **Write startup contract test** — `TestAuthServiceStartup_RegistersGrpcHandlers`:
      - Start auth-service with MemStore, verify gRPC health check responds SERVING
@@ -407,7 +433,7 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
 
 ### Phase 4: API Gateway & GraphQL Integration
 
-- [x] **Task 14: Write REST API integration tests for API Gateway org routes** ***(not yet written — gRPC client + handler created in Task 15 covers the contract)***
+- [x] **Task 14: Write REST API integration tests for API Gateway org routes** ***(not yet written — gRPC client + handler created in Task 15 covers the contract)*** — validates REQ-NFR.SECURITY.organization-access-model (REST API Gateway integration tests)
   **Subtasks (ordered):**
   1. **Write `tests/org-api/org_api_integration_test.go`:**
      - Start API Gateway with stubbed authGrpc (mock org service)
@@ -421,10 +447,11 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
   > **Files:** `tests/org-api/org_api_integration_test.go` (new)
   > **Logging:** N/A (test assertions)
 
-- [x] **Task 15: Implement API Gateway org handlers and routes**
+- [x] **Task 15: Implement API Gateway org handlers and routes** — implements REQ-NFR.SECURITY.organization-access-model (API Gateway org handlers)
   **Subtasks (ordered):**
-  1. **Run integration tests from Task 14** — confirm they fail (red)
-  2. **Create `src/services/api-gateway/handlers/org_handler.go`:**
+	  1. **Write handler-level unit tests** — create `src/services/api-gateway/handlers/org_handler_test.go` with mock `AuthServiceClient` testing each handler: `[ListGroups]_ValidRequest_[Returns200WithGroups]`, `[CreateGroup]_OwnerRequest_[Returns201]`, `[CreateGroup]_ViewerRequest_[Returns403]`, `[DeleteGroup]_NotFound_[Returns404]`, `[ListMembers]_InvalidOntology_[Returns400]`
+	  2. **Run integration tests from Task 14** — confirm they fail (red)
+	  3. **Create `src/services/api-gateway/handlers/org_handler.go`:**
      - `OrgHandler` struct with `*proxy.AuthServiceClient` dependency
      - `HandleListGroups` — extract user from Gin context, call gRPC `ListGroups`, return JSON
      - `HandleGetGroup`, `HandleCreateGroup`, `HandleUpdateGroup`, `HandleDeleteGroup`
@@ -435,19 +462,19 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
      - `HandleCreatePolicy`, `HandleListPolicies`, `HandleDeletePolicy`
      - Standardize error responses using `models.ErrorResponse` format
      - Map gRPC status codes to HTTP status codes (PermissionDenied→403, NotFound→404, InvalidArgument→400)
-  3. **Update `src/services/api-gateway/routes.go`:**
+	  4. **Update `src/services/api-gateway/routes.go`:**
      - Remove `_ = authGrpc` — authGrpc client is now actively used
      - Register all org routes under `api` group (see route table below)
      - Wire `OrgHandler` with `authGrpc` client
-  4. **Update `src/services/api-gateway/proxy/grpc_auth_client.go`:**
+	  5. **Update `src/services/api-gateway/proxy/grpc_auth_client.go`:**
      - Add org management methods: `ListGroups`, `CreateGroup`, `ListProjects`, `ListMembers`, `AddMember`, `UpdateMemberRole`, `RemoveMember`, `SetVisibility`, etc.
      - Propagate JWT token from Gin context via gRPC metadata
      - Set timeouts: 5s for reads, 10s for writes
-  5. **Update `src/services/api-gateway/auth/auth.go`:**
+	  6. **Update `src/services/api-gateway/auth/auth.go`:**
      - `isAdminEndpoint()` must recognize `/api/v1/groups` POST/PUT/DELETE, `/api/v1/projects` POST/PUT/DELETE, `/api/v1/ontologies/:id/members` PUT/DELETE
      - `/api/v1/ontologies/:id/members` and `/api/v1/ontologies/:id/policies` paths already partially covered by existing `/membership` and `/policies` checks
-  6. **Run integration tests from Task 14** — they should all PASS (green phase)
-  7. **Run API tests from Task 3** with stub server — verify route registration and auth gating
+	  7. **Run integration tests from Task 14** — they should all PASS (green phase)
+	  8. **Run API tests from Task 3** with stub server — verify route registration and auth gating
 
   **Route table to register:**
   ```
@@ -481,7 +508,7 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
   > **Files:** `src/services/api-gateway/handlers/org_handler.go` (new), `src/services/api-gateway/routes.go` (update), `src/services/api-gateway/proxy/grpc_auth_client.go` (update), `src/services/api-gateway/auth/auth.go` (update)
   > **Logging:** INFO — log REST request (method, path, user_id, trace_id); ERROR — log gRPC call failures with status codes
 
-- [x] **Task 17: Add GraphQL resolvers for org model in ontology-service**
+- [x] **Task 17: Add GraphQL resolvers for org model in ontology-service** — implements REQ-FUN.API.graphql-org-resolvers (GraphQL resolvers for org model)
   **Subtasks (ordered):**
   1. **Write GraphQL resolver unit tests** — `src/services/ontology-service/tests/org_resolvers_test.rs`:
      - `[ValidQuery]_GroupsQuery_[ReturnsGroupList]`
@@ -557,7 +584,7 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
 
 > Per skill-context: *"When planning security-related tasks, include an explicit subtask for writing negative tests that prove the bypass is closed. Reference `tests/security/` or the service's existing test pattern. The test must dispatch a real HTTP request, not use mock assertions."*
 
-- [x] **Task 18: Write negative security tests for org access control**
+- [x] **Task 18: Write negative security tests for org access control** — validates SEC-AUTHZ-GATES-001 (negative security tests for org access control)
   **Subtasks (ordered):**
   1. **Write `tests/security/org_access_control_test.go`:**
      - **BOLA — Broken Object Level Authorization:**
@@ -591,7 +618,7 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
   > **Files:** `tests/security/org_access_control_test.go` (new)
   > **Logging:** N/A (test assertions — test failures produce HTTP status + body output)
 
-- [x] **Task 19: Write contract tests for gRPC org service error codes**
+- [x] **Task 19: Write contract tests for gRPC org service error codes** — validates SEC-AUTHZ-GATES-001 (gRPC error code contract tests)
   **Subtasks (ordered):**
   1. **Update `src/services/auth-service/org/org_grpc_test.go`** — add error code mapping tests:
      - `[OrgError_FORBIDDEN_ADMIN_ONLY]_ToGrpc_[ReturnsPermissionDenied]`
@@ -610,10 +637,11 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
 
 ### Phase 6: Traceability, Docs & Finalization
 
-- [x] **Task 20: Update traceability.ttl with org model test links**
+- [x] **Task 20: Update traceability.ttl with org model test links** — implements REQ-NFR.SECURITY.organization-access-model (traceability data)
   **Subtasks (ordered):**
-  1. **Query existing traceability graph** — identify existing `vdo:TestSuite` entries and `vdo:validates` triples
-  2. **Add `vdo:TestSuite` entries** for:
+	  1. **Write traceability integrity test** — add a script `tests/scripts/traceability_integrity_test.sh` that validates `traceability.ttl` against a Turtle schema: all IRIs resolve, no dangling `vdo:validates` targets, required classes (`vdo:TestSuite`, `vdo:ServiceComponent`) present
+	  2. **Query existing traceability graph** — identify existing `vdo:TestSuite` entries and `vdo:validates` triples
+	  3. **Add `vdo:TestSuite` entries** for:
      - `tests/e2e/playwright/tests/gui/pages/groups-page-wired.spec.ts` — `vdo:validates REQ-NFR.SECURITY.organization-access-model`
      - `tests/e2e/playwright/tests/gui/pages/projects-page-wired.spec.ts` — `vdo:validates REQ-NFR.SECURITY.organization-access-model`
      - `tests/e2e/playwright/tests/gui/pages/members-page-wired.spec.ts` — `vdo:validates REQ-NFR.SECURITY.organization-access-model`
@@ -625,56 +653,124 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
      - `src/services/auth-service/org/postgres_store_test.go` — `vdo:validates ORG-ACCESS-001`
      - `src/services/auth-service/org/org_proto_validation_test.go` — `vdo:validates ORG-ACCESS-001`
      - `src/services/ontology-service/tests/org_resolvers_test.rs` — `vdo:validates REQ-NFR.SECURITY.organization-access-model`
-  3. **Add `vdo:validates` link** — `src/services/auth-service/org/org.go` → `vdo:implements ADR-DES.SECURITY.gitlab-like-organization-model`
-  4. **Verify no stale triples** — remove any outdated entries for renamed/deleted test files
+  4. **Add `vdo:validates` link** — `src/services/auth-service/org/org.go` → `vdo:implements ADR-DES.SECURITY.gitlab-like-organization-model`
+  5. **Verify no stale triples** — remove any outdated entries for renamed/deleted test files
 
   > **Files:** `.ai-factory/traceability/traceability.ttl` (update)
   > **Logging:** N/A (RDF data update)
 
-- [x] **Task 21: Update documentation** — created organization-model.adoc + Antora nav + GraphQL resolver tests
+- [x] **Task 21: Update documentation** — created organization-model.adoc + Antora nav + GraphQL resolver tests — addresses REQ-NFR.DOC.organization-model (Antora documentation)
   **Subtasks (ordered):**
-  1. **Update Antora developer guide** (`src/docs/antora/developer-guide/`):
+	  1. **Write documentation integrity test** — add a CI script `tests/scripts/docs_integrity_test.sh` that runs `antora antora-playbook.yml` in dry-run mode (or validates the Antora playbook structure via YAML parsing) and runs `spectral lint` on the OpenAPI spec to verify structural validity
+	  2. **Update Antora developer guide** (`src/docs/antora/developer-guide/`):
      - Add "Organizational Model" section under "Authentication & Authorization"
      - Document: OrgService architecture, PostgreSQL schema, gRPC service definition, role inheritance rules
-  2. **Update Antora integrator guide** (`src/docs/antora/integrator-guide/`):
+	  3. **Update Antora integrator guide** (`src/docs/antora/integrator-guide/`):
      - Document org REST API endpoints: GET/POST /api/v1/groups, /api/v1/projects, /api/v1/ontologies/:id/members
      - Document GraphQL queries: groups, projects, members + mutations updateMemberRole, removeMember
      - Add authentication requirements (Bearer JWT with appropriate role)
-  3. **Update Antora admin guide** (`src/docs/antora/admin-guide/`):
+	  4. **Update Antora admin guide** (`src/docs/antora/admin-guide/`):
      - Document PostgreSQL org database setup (vedo_org database, migrations)
      - Document environment variables: `AUTH_SERVICE_DATABASE_URL`
-  4. **Update OpenAPI spec** (`src/services/api-gateway/docs/openapi.json`):
+	  5. **Update OpenAPI spec** (`src/services/api-gateway/docs/openapi.json`):
      - Add org endpoint schemas under `/api/v1/groups`, `/api/v1/projects`, `/api/v1/ontologies/{id}/members`
      - Add request/response schemas for Group, Project, Member, Visibility
 
   > **Files:** `src/docs/antora/developer-guide/`, `src/docs/antora/integrator-guide/`, `src/docs/antora/admin-guide/`, `src/services/api-gateway/docs/openapi.json`
   > **Logging:** N/A (documentation)
 
-- [x] **Task 22: Run full E2E test suite and fix regressions** — Go tests ✅, Rust tests ✅, API Gateway tests ✅. Docker Compose + Playwright requires infrastructure.
+- [x] **Task 22: Run full E2E test suite and fix regressions** — Go tests ✅, Rust tests ✅, API Gateway tests ✅. Docker Compose + Playwright requires infrastructure. — validates REQ-NFR.SECURITY.organization-access-model (E2E regression run)
   **Subtasks (ordered):**
-  1. **Start all services** via Docker Compose: `docker compose up -d`
-  2. **Run M2.1 E2E tests** — `npx playwright test --config=playwright.m2.1.real.config.ts`
-  3. **Run security test suite** — `go test ./tests/security/org_access_control_test.go`
-  4. **Run integration tests** — `go test ./tests/org-api/`
-  5. **Run existing auth-service org tests** — `go test ./src/services/auth-service/org/...`
-  6. **Run ontology-service resolver tests** — `cargo test -p ontology-service`
-  7. **Fix any test failures** — iterate until all tests pass
-  8. **Verify frontend renders real data** — GroupsPage, ProjectsPage, MembersPage show data from API (no Apollo test fixtures)
+	  1. **Write service-health preflight test** — add a script `tests/scripts/service_health_test.go` (or shell script) that verifies all M3 services (api-gateway :8080, auth-service gRPC :9003, postgres :5432) report healthy/ready before the E2E run begins. Assert that JWT auth against a test endpoint returns 200 with a valid dev JWT
+	  2. **Start all services** via Docker Compose: `docker compose up -d`
+	  3. **Run M3 E2E tests** — `npx playwright test --config=playwright.m2.1.real.config.ts`
+	  4. **Run security test suite** — `go test ./tests/security/org_access_control_test.go`
+	  5. **Run integration tests** — `go test ./tests/org-api/`
+	  6. **Run existing auth-service org tests** — `go test ./src/services/auth-service/org/...`
+	  7. **Run ontology-service resolver tests** — `cargo test -p ontology-service`
+	  8. **Fix any test failures** — iterate until all tests pass
+	  9. **Verify frontend renders real data** — GroupsPage, ProjectsPage, MembersPage show data from API (no Apollo test fixtures)
 
+  > **Files:** N/A (test execution task — runs existing tests, no source files created)
   > **Logging:** Run outputs produce test reports
+
+### Phase 7: MVP Scope Alignment — Vision 2.5 Delta
+
+> These tasks refine the completed organizational baseline so it matches the final MVP wording in `specs/vision.md` section 2.5. They do not reopen completed implementation tasks; they add the minimal remaining corrections needed for the MVP demo chain.
+
+- [x] **Task 23: Align roadmap references and user-facing terminology with M3/MVP** — addresses REQ-NFR.DOC.terminology-consistency (M3 terminology alignment)
+  **Subtasks (ordered):**
+	  1. **Write terminology consistency test** — add a grep-based smoke test `tests/scripts/terminology_integrity_test.sh` that scans all modified files for stale `M2.1` or `M2.5` references and verifies `Project` is consistently described as an ontology container. Fail the test if any stale refs remain
+	  2. Update plan references from `M2.1`/`M2.5` to `M3`/`M4` where they appear in documentation, traceability notes, and developer-facing comments.
+	  3. Update user-facing copy to describe a `Project` as the container for an ontology, not as a generic ontology list row.
+	  4. Keep low-level compatibility paths such as `/api/v1/ontologies/:id/members` only where already implemented, but document their project-level meaning.
+	  5. Verify `GroupsPage`, `ProjectsPage`, `MembersPage`, API docs, and Antora docs use consistent terminology.
+
+  > **Files:** `.ai-factory/plans/feature-multi-team-organization-model.md` (this plan), `src/docs/antora/developer-guide/`, `src/docs/antora/integrator-guide/`, `src/services/api-gateway/docs/openapi.json`, frontend page copy if needed
+  > **Logging:** N/A (documentation/terminology)
+
+- [x] **Task 24: Reconcile MVP role vocabulary with existing authorization roles** — implements REQ-FUN.AUTH.mvp-role-vocabulary (MVP role reconciliation)
+  **Subtasks (ordered):**
+  1. **Add contract tests proving API accepts the final MVP role vocabulary** — write tests accepting `Guest`, `Reporter`, `Developer`, `Maintainer`, `Owner`
+  2. **Decide and document the compatibility mapping** from existing roles to MVP roles:
+     - `Viewer` → `Guest` or `Reporter`;
+     - `Editor` → `Developer`;
+     - `Maintainer` → `Maintainer`;
+     - `Owner` → `Owner`.
+  3. If backward compatibility is kept, add tests proving legacy `Viewer`/`Editor` inputs are either accepted as aliases or rejected with a clear migration error.
+  4. Ensure role inheritance and max-role-wins behavior use the final MVP roles in responses shown to users.
+  5. Keep enterprise/ops roles (`SupportEngineer`, `SRE`, `SecurityLead`, `ProductOwner`) outside the MVP happy path.
+
+  > **Files:** `src/services/auth-service/org/types.go`, `src/services/auth-service/org/org.go`, `src/services/api-gateway/auth/auth.go`, `src/services/shared/proto/auth/v1/org.proto`, `src/services/auth-service/org/*_test.go`, `tests/security/org_access_control_test.go`, `src/services/api-gateway/docs/openapi.json`
+  > **Logging:** INFO — log role migration/alias decisions without leaking JWT contents
+
+- [x] **Task 25: Enforce MVP group hierarchy and project movement rules** — implements REQ-FUN.ORG.hierarchy-depth-limit (group nesting + project move)
+  **Subtasks (ordered):**
+  1. Add tests for the MVP maximum group nesting depth of 5 levels.
+  2. Add service/API validation that creating or moving a subgroup beyond 5 levels returns a deterministic validation error.
+  3. Add an explicit project move test: moving a project from group A to group B updates effective membership and inherited roles.
+  4. Implement project move as either a dedicated endpoint or a validated `UpdateProject` parent change; document the chosen contract.
+  5. Ensure moving a project invalidates authorization caches for affected scopes.
+
+  > **Files:** `src/services/auth-service/org/org.go`, `src/services/auth-service/org/postgres_store.go`, `src/services/api-gateway/handlers/org_handler.go`, `src/services/api-gateway/routes.go`, `tests/e2e/playwright/tests/api/rest/org-api.spec.ts`, `tests/security/org_access_control_test.go`
+  > **Logging:** INFO — log group/project movement with old_parent, new_parent, actor, trace_id
+
+- [x] **Task 26: Complete audit coverage for MVP org lifecycle events** — implements REQ-NFR.AUDIT.org-lifecycle (audit coverage for org events)
+  **Subtasks (ordered):**
+  1. Add tests proving audit events are emitted for group create/delete/move.
+  2. Add tests proving audit events are emitted for project create/delete/move.
+  3. Add tests proving audit events are emitted for member add/remove and role change.
+  4. Persist audit events where the implementation has a durable audit store; otherwise document temporary structured-log behavior and mark durable audit persistence as an explicit follow-up.
+  5. Ensure audit events include actor, target scope, action, result, reason, and trace_id, but do not include secrets or raw JWT values.
+
+  > **Files:** `src/services/auth-service/org/org.go`, `src/services/auth-service/org/postgres_store.go`, `src/services/api-gateway/auth/auth.go`, `tests/security/org_access_control_test.go`, `src/docs/antora/developer-guide/modules/ROOT/pages/organization-model.adoc`
+  > **Logging:** INFO/WARN structured audit logs only; no raw tokens or PII beyond stable identifiers
+
+- [x] **Task 27: Update acceptance criteria and traceability for final MVP scope** — implements REQ-NFR.TRACE.mvp-scope (final acceptance criteria and traceability)
+  **Subtasks (ordered):**
+	  1. **Write acceptance-criteria validation test** — add a script `tests/scripts/acceptance_criteria_integrity_test.sh` that parses the acceptance criteria section of this plan and verifies each criterion references an existing test file, a specific assertion in a test suite, or a documented verification command
+	  2. Update acceptance criteria to reference `M3` and `specs/vision.md` section 2.5.
+	  3. Add explicit acceptance checks for final MVP roles, hierarchy depth limit, project movement, project-as-ontology-container wording, and audit coverage.
+	  4. Update traceability links from the old milestone name to `M3: Multi-Team Organization Model`.
+	  5. Verify deferred items remain out of this plan: CSV bulk member import, approval rules, branch protection, group-level notifications, and nested maximum-visibility policy.
+
+  > **Files:** `.ai-factory/traceability/traceability.ttl`, `src/docs/antora/`, `.ai-factory/plans/feature-multi-team-organization-model.md`
+  > **Logging:** N/A (traceability/docs)
+
 
 ## Acceptance Criteria
 
 ### API Acceptance Criteria
 
 > Проверяются через API-тесты (Task 3 REST, Task 14 integration, Task 18 security, Task 19 contract,
-> unit tests в Phases 1–4). Запуск: `go test` и `cargo test`.
+> unit tests в Phases 1–4) plus MVP alignment tests from Phase 7. Запуск: `go test` и `cargo test`.
+> Traceability: [`US-admin.access.assign-role`](../../specs/user-stories/US-admin.access.assign-role.md), [`US-api.auth.jwt`](../../specs/user-stories/US-api.auth.jwt.md), [`US-api.docs.openapi`](../../specs/user-stories/US-api.docs.openapi.md), [`E2E-api.integration.rest`](../../specs/user-stories/E2E-api.integration.rest.md).
 
 - [ ] **REST API returns real data:** `GET /api/v1/groups` → 200, `GET /api/v1/projects` → 200, `GET /api/v1/ontologies/:id/members` → 200
 - [ ] **Group CRUD:** create → 201, list → 200, get → 200, update → 200, delete → 204, subgroups → 200
 - [ ] **Project CRUD:** create → 201, list (paginated, searchable, sortable) → 200, get → 200, update → 200, delete → 204
 - [ ] **Member CRUD:** add → 201, list → 200, update role → 200, remove → 204 (with last-owner protection)
-- [ ] **Auth gates:** unauthenticated → 401, Viewer write → 403, Editor membership → 403
+- [ ] **Auth gates:** unauthenticated → 401, low-privilege role (`Guest`/legacy `Viewer`) write → 403, non-owner role (`Developer`/legacy `Editor`) membership management → 403
 - [ ] **Membership authorization:** only Owner manages members; last-owner removal blocked with 403
 - [ ] **Visibility enforced:** Private → reject non-members, Internal → reject anonymous (401), Public → allow all
 - [ ] **Role inheritance:** parent group roles propagate to child scopes (max-role-wins)
@@ -689,11 +785,17 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
 - [ ] **Test Quality Score (TQS) >= bronze (6.0)**
 - [ ] **No B1-B7 anti-patterns** (see `.ai-factory/rules/test-quality.md`)
 - [ ] **Idempotency-Key enforced on all write endpoints:** same key + same payload returns same resource_id; same key + different payload returns 409; missing key returns 400 on critical writes
+- [ ] **MVP role vocabulary aligned:** `Guest`, `Reporter`, `Developer`, `Maintainer`, `Owner` are accepted or legacy roles are mapped with documented compatibility behavior
+- [ ] **Project is treated as ontology container:** user-facing API/docs/UI consistently expose projects as ontology containers, even when low-level scope identifiers use `ontology/...`
+- [ ] **Group hierarchy depth enforced:** creating or moving a group beyond 5 levels returns a deterministic validation error
+- [ ] **Project movement supported:** moving a project to another group updates inherited roles and invalidates authorization caches
+- [ ] **Audit coverage complete:** group/project create/delete/move and membership/role changes emit structured audit events with trace_id
 
 ### E2E Acceptance Criteria
 
 > Проверяются через Playwright против полного стека (`docker-compose.test.yml`).
 > Запуск: `npx playwright test --config=playwright.m2.1.real.config.ts`.
+> Traceability: [`US-admin.access.assign-role`](../../specs/user-stories/US-admin.access.assign-role.md), [`US-api.auth.jwt`](../../specs/user-stories/US-api.auth.jwt.md), [`E2E-api.integration.rest`](../../specs/user-stories/E2E-api.integration.rest.md), [`E2E-team.collaboration.parallel`](../../specs/user-stories/E2E-team.collaboration.parallel.md).
 
 - [ ] **E2E GUI tests pass:** `groups-page-wired`, `projects-page-wired`, `members-page-wired`
 - [ ] **E2E user-story tests pass:** `org-lifecycle` (create group -> manage members -> visibility)
@@ -701,16 +803,24 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
 - [ ] **Test environment healthy:** `docker compose -f deploy/docker-compose.test.yml up -d` — all services report healthy
 - [ ] **vedo_org database:** created with all migrations applied; data persists across test runs
 
+### Verification Gate
+
+- [ ] **All API tests pass in the test environment:** `docker compose -f deploy/docker-compose.test.yml up -d` reports healthy services, then `go test ./tests/org-api/`, `go test ./tests/security/...`, and org-related API contract tests pass. Linked user stories: [`US-admin.access.assign-role`](../../specs/user-stories/US-admin.access.assign-role.md), [`US-api.auth.jwt`](../../specs/user-stories/US-api.auth.jwt.md), [`US-api.docs.openapi`](../../specs/user-stories/US-api.docs.openapi.md), [`E2E-api.integration.rest`](../../specs/user-stories/E2E-api.integration.rest.md).
+- [ ] **All E2E tests pass in the test environment:** `npx playwright test --config=playwright.m2.1.real.config.ts` passes against `docker-compose.test.yml`, including `org-lifecycle`, `groups-page-wired`, `projects-page-wired`, and `members-page-wired`. Linked user stories: [`US-admin.access.assign-role`](../../specs/user-stories/US-admin.access.assign-role.md), [`E2E-api.integration.rest`](../../specs/user-stories/E2E-api.integration.rest.md), [`E2E-team.collaboration.parallel`](../../specs/user-stories/E2E-team.collaboration.parallel.md).
+- [ ] **All unit tests pass:** service-level Go/Rust unit suites relevant to M3 pass, including `go test ./src/services/auth-service/org/...`, API Gateway auth/org tests, and `cargo test -p ontology-service` for resolver integration touched by org scoping.
+- [ ] **All linters pass:** configured linters for changed Go, Rust, TypeScript/Vue, OpenAPI, and documentation files complete without errors.
+
 ### General
 
 - [ ] **Traceability annotations present** (`// Validates: REQ-...`) in all test files
 - [ ] **traceability.ttl updated** with all new `vdo:TestSuite` and `vdo:validates` triples
 - [ ] **Documentation checkpoint completed** (Antora sites updated, OpenAPI spec updated)
+- [ ] **Vision alignment checkpoint completed** (`specs/vision.md` section 2.5 reflected in role vocabulary, project terminology, hierarchy limits, move semantics, audit events, and deferred scope)
 - [ ] Test environment (`docker-compose.test.yml`) starts with `vedo_org` database created; migrations applied; all services healthy
 
 ## Deferred
 
-### Keycloak Sync (M2.1 → deferred)
+### Keycloak Sync (M3 → deferred)
 
 **Source:** `specs/use-cases/UC-admin.access.manage-membership-and-permissions` (P0, step 5).
 
@@ -722,12 +832,12 @@ Open questions: Keycloak sync — deferred (requires Keycloak Admin API analysis
 3. Mapping between VEDO roles (Viewer/Editor/Maintainer/Owner) and Keycloak realm roles
 4. Testing with a real Keycloak instance
 
-This is a non-trivial integration that would block the core M2.1 deliverable. Groups and roles are managed in-app via the VEDO authorization model (PostgreSQL). Keycloak sync can be added as a follow-up task without changing the API contract.
+This is a non-trivial integration that would block the core M3 deliverable. Groups and roles are managed in-app via the VEDO authorization model (PostgreSQL). Keycloak sync can be added as a follow-up task without changing the API contract.
 
-**Next step:** Create a research task in M3 or a dedicated sync story with acceptance criteria from this use case.
+**Next step:** Create a research task in M13 or a dedicated sync story with acceptance criteria from this use case.
 
-### Approval Rules / write_with_approval workflow (M2.1 → deferred to M6)
+### Approval Rules / write_with_approval workflow (M3 → deferred to M10)
 
 **Source:** `specs/use-cases/UC-admin.access.manage-membership-and-permissions` (approval rules flow).
 
-The approval rules flow (write_with_approval → proposal branch → Ontology Merge Request → Maintainer review) belongs to the M6 Collaboration & Social Hub milestone, which implements Merge Request review workflow. M2.1 delivers the membership model and visibility levels; the OMR workflow is out of scope.
+The approval rules flow (write_with_approval → proposal branch → Ontology Merge Request → Maintainer review) belongs to the M10 Collaboration & Review 1.0 milestone, which implements Merge/Pull Request review workflow. M3 delivers the membership model and visibility levels; the OMR workflow is out of scope.

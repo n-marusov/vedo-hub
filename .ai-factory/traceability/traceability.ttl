@@ -1878,3 +1878,18 @@ base:test/org-graphql-resolvers a vdo:TestSuite ;
     rdfs:label "Org GraphQL Resolver Tests"@en ;
     vdo:filePath "src/services/ontology-service/tests/org_resolvers_test.rs" ;
     vdo:validates base:nfr/org-access-model .
+
+base:test/org-role-vocabulary a vdo:TestSuite ;
+    rdfs:label "Org MVP Role Vocabulary Tests"@en ;
+    vdo:filePath "src/services/auth-service/org/org_roles_test.go" ;
+    vdo:validates base:nfr/org-access-model .
+
+base:test/org-hierarchy-depth a vdo:TestSuite ;
+    rdfs:label "Org Hierarchy Depth and Move Tests"@en ;
+    vdo:filePath "src/services/auth-service/org/org_hierarchy_test.go" ;
+    vdo:validates base:nfr/org-access-model .
+
+base:test/org-terminology-consistency a vdo:TestSuite ;
+    rdfs:label "Org Terminology Consistency Test"@en ;
+    vdo:filePath "tests/scripts/terminology_integrity_test.sh" ;
+    vdo:validates base:nfr/org-access-model .

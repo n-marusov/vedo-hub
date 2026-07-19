@@ -1,4 +1,4 @@
-<!-- @m2.5 — Create Individual Dialog -->
+<!-- @m4 — Create Individual Dialog -->
 <!-- @hlv:artifact create-individual-dialog implements GUI-OW-001 -->
 <template>
   <Dialog :open="open" title="Create Individual" size="md" :modal="true" @close="$emit('close')">

@@ -1,4 +1,4 @@
-// @m2.5 — MergeRequestsPage vitest spec (RED phase for Block В)
+// @m4 — MergeRequestsPage vitest spec (RED phase for Block В)
 // Validates: REQ-USR.UI.gui-implementation
 // After GREEN (Task 4.5): page should render MR sections, filter tabs, and data from API
 

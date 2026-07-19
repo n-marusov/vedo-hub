@@ -1,4 +1,4 @@
-// @m2.5 — useCurrentUser composable for App.vue and DashboardPage user display
+// @m4 — useCurrentUser composable for App.vue and DashboardPage user display
 // Decodes JWT from Keycloak session stored in localStorage, exposes name/email/initials
 
 import { computed, onMounted, ref } from "vue";

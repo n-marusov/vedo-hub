@@ -1,4 +1,4 @@
-// @m2.5 — GroupsPage vitest spec (GREEN: uses mountWithProviders)
+// @m4 — GroupsPage vitest spec (GREEN: uses mountWithProviders)
 // Validates: REQ-USR.UI.gui-implementation
 // Tests: groups hierarchy from LIST_GROUPS_QUERY via Apollo
 import {

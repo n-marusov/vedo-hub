@@ -1,4 +1,4 @@
-// @m2.5 — Mock providers for vitest component tests
+// @m4 — Mock providers for vitest component tests
 // Re-exports from test-utils for plan-specified import path
 
 import {
@@ -21,9 +21,9 @@ import { describe } from "vitest";
 import type { Component } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
 
-// @m2.5 — Vitest mock data for operations not covered by mock-data.ts
+// @m4 — Vitest mock data for operations not covered by mock-data.ts
 // Provides realistic defaults so all component tests can mount without a real server
-// @m2.5 — Per-test result overrides for edge-case simulation
+// @m4 — Per-test result overrides for edge-case simulation
 // Use setMockOperationResult() before mounting to simulate errors or custom data
 const overrideResults: Map<
 	string,
@@ -118,7 +118,7 @@ const VITEST_MOCK_RESOLVERS: Record<string, () => unknown> = {
 	}),
 };
 
-// @m2.5 — Apollo link that resolves ALL operations for vitest (no real HTTP)
+// @m4 — Apollo link that resolves ALL operations for vitest (no real HTTP)
 // Uses known mock resolvers; falls back to empty data/default for unknown operations
 class VitestMockLink extends ApolloLink {
 	request(operation: Operation): Observable<FetchResult> | null {
@@ -166,7 +166,7 @@ class VitestMockLink extends ApolloLink {
 	}
 }
 
-// @m2.5 — Creates a mock Apollo client for vitest environment
+// @m4 — Creates a mock Apollo client for vitest environment
 // Components using useQuery/useMutation need an Apollo client via provideApolloClient()
 export function createMockApolloClient(): ApolloClient<unknown> {
 	return new ApolloClient({
@@ -179,7 +179,7 @@ export function createMockApolloClient(): ApolloClient<unknown> {
 	});
 }
 
-// @m2.5 — Creates a mock router with a provided route
+// @m4 — Creates a mock router with a provided route
 // Uses createMemoryHistory with initial URL to avoid async navigation issues
 export function createMockRouter(initialRoute = "/dashboard/home") {
 	const router = createRouter({
@@ -197,7 +197,7 @@ export function createMockRouter(initialRoute = "/dashboard/home") {
 
 const mockApolloClient = createMockApolloClient();
 
-// @m2.5 — Mounts a component with common providers (router, Apollo client, stubs)
+// @m4 — Mounts a component with common providers (router, Apollo client, stubs)
 // Deep-merges global options so user-provided stubs/plugins don't override defaults
 export function mountWithProviders(
 	component: Component,
@@ -228,12 +228,12 @@ export function mountWithProviders(
 	});
 }
 
-// @m2.5 — Wait for async query to settle (flush promises and timers)
+// @m4 — Wait for async query to settle (flush promises and timers)
 export async function waitForQuery(): Promise<void> {
 	await new Promise((resolve) => setTimeout(resolve, 100));
 }
 
-// @m2.5 — Creates a describePage helper for consistent page test structure
+// @m4 — Creates a describePage helper for consistent page test structure
 export function describePage(name: string, fn: () => void): void {
 	describe(`Page: ${name}`, fn);
 }

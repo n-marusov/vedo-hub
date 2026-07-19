@@ -1,4 +1,4 @@
-// @m2.5 — AnnotationDialog vitest spec
+// @m4 — AnnotationDialog vitest spec
 // Validates: REQ-USR.UI.gui-implementation
 import {
 	mountWithProviders,

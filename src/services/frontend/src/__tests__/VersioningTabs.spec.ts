@@ -1,4 +1,4 @@
-// @m2.5 — VersioningTabs vitest spec (GREEN phase: uses mountWithProviders)
+// @m4 — VersioningTabs vitest spec (GREEN phase: uses mountWithProviders)
 // Tests: Tags, Graph, and Compare tabs using Apollo queries
 import {
 	describePage,

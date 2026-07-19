@@ -7,7 +7,7 @@
 CREATE TABLE IF NOT EXISTS memberships (
     scope       TEXT NOT NULL REFERENCES scopes(id) ON DELETE CASCADE,
     user_id     TEXT NOT NULL,
-    role        TEXT NOT NULL CHECK (role IN ('Viewer', 'Editor', 'Maintainer', 'SupportEngineer', 'SRE', 'SecurityLead', 'ProductOwner', 'Owner')),
+    role        TEXT NOT NULL CHECK (role IN ('Guest', 'Reporter', 'Developer', 'Maintainer', 'Owner', 'Viewer', 'Editor', 'SupportEngineer', 'SRE', 'SecurityLead', 'ProductOwner')),
     inherited   BOOLEAN NOT NULL DEFAULT false,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at  TIMESTAMPTZ NOT NULL DEFAULT now(),

@@ -1,4 +1,4 @@
-// @m2.5 — MfaChallengeDialog vitest spec
+// @m4 — MfaChallengeDialog vitest spec
 // Validates: REQ-USR.UI.gui-implementation
 import {
 	mountWithProviders,

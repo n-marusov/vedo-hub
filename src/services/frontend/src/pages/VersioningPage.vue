@@ -450,7 +450,7 @@ watch(error, (err) => {
 
 .muted { color: var(--muted-foreground); }
 
-/* @m2.5 Skeleton loading */
+/* @m4 Skeleton loading */
 .version-loading {
   padding: 16px;
 }

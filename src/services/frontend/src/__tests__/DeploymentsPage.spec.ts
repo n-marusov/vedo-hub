@@ -1,4 +1,4 @@
-// @m2.5 — DeploymentsPage vitest spec (RED phase for Block В)
+// @m4 — DeploymentsPage vitest spec (RED phase for Block В)
 // Validates: REQ-USR.UI.gui-implementation
 // After GREEN (Task 4.5): page should render deployment cards from API with show stopped toggle
 

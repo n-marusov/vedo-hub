@@ -412,8 +412,8 @@ export const CREATE_COMMENT_MUTATION = gql`
   ${COMMENT_FRAGMENT}
 `;
 
-// ── M2.5 Queries & Mutations ──────────────────────────────────────────────────────
-// @m2.5 — Added for GUI wiring implementation
+// ── M4 Queries & Mutations ──────────────────────────────────────────────────────
+// @m4 — Added for GUI wiring implementation
 
 /// Execute a SPARQL query against the ontology.
 export const SPARQL_EXECUTE_QUERY = gql`

@@ -1,6 +1,6 @@
 <!-- @hlv:artifact code-frontend implements spec-gui-ow-001 -->
 <!-- @ctx: Organism/Deployments — list of deployment cards with show stopped checkbox and delete -->
-<!-- @m2.5 — Wired: accepts deployments as prop from DeploymentsPage -->
+<!-- @m4 — Wired: accepts deployments as prop from DeploymentsPage -->
 <template>
     <div class="deployments" role="region" aria-label="Deployments">
         <label class="dp-show-stopped">
@@ -34,7 +34,7 @@
 import { computed, ref } from "vue";
 import DeploymentCard from "./DeploymentCard.vue";
 
-// @m2.5 — Deployment entry from LIST_DEPLOYMENTS_QUERY
+// @m4 — Deployment entry from LIST_DEPLOYMENTS_QUERY
 interface DeploymentEntry {
 	id: string;
 	status: string;
@@ -110,7 +110,7 @@ function formatDate(dateStr: string): string {
     gap: 0;
 }
 
-/* @m2.5 Empty state */
+/* @m4 Empty state */
 .dp-empty {
     padding: 32px;
     text-align: center;

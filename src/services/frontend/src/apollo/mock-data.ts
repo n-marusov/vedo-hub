@@ -1,7 +1,7 @@
-// @m2.5 — Mock data for Apollo mock link — Block В (Backend Pages)
+// @m4 — Mock data for Apollo mock link — Block В (Backend Pages)
 // Realistic data shapes matching queries.ts GraphQL contracts
 
-// @m2.5 — Inline type definitions matching queries.ts GraphQL contracts
+// @m4 — Inline type definitions matching queries.ts GraphQL contracts
 // These replace @/types/graphql (module not yet created — to be generated from schema)
 
 interface DashboardAggregateQuery {
@@ -286,7 +286,7 @@ interface SparqlExecuteQuery {
 	};
 }
 
-// @m2.5 — Mock SPARQL results — columns/rows matching SparqlExecute GraphQL response
+// @m4 — Mock SPARQL results — columns/rows matching SparqlExecute GraphQL response
 export const MOCK_SPARQL_RESULTS: SparqlExecuteQuery = {
 	sparqlQuery: {
 		columns: ["s", "p", "o"],
@@ -322,7 +322,7 @@ export const MOCK_SPARQL_RESULTS: SparqlExecuteQuery = {
 	},
 };
 
-// @m2.5 — Helper: create a 200ms artificial delay to simulate network latency
+// @m4 — Helper: create a 200ms artificial delay to simulate network latency
 export function delay(ms = 200): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }

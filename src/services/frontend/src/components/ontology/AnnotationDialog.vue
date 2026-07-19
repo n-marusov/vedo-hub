@@ -1,4 +1,4 @@
-<!-- @m2.5 — Annotation Dialog -->
+<!-- @m4 — Annotation Dialog -->
 <!-- @hlv:artifact annotation-dialog implements GUI-OW-001 -->
 <template>
   <Dialog :open="open" title="Annotation" size="sm" :modal="true" @close="$emit('close')">

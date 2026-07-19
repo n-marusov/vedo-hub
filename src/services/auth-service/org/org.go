@@ -380,7 +380,9 @@ func (s *OrgService) EvaluateABAC(userID, scope, right string, attributes map[st
 }
 
 // @hlv CYCLE_DETECTED
-// CreateScope creates a new group or ontology scope with circular dependency detection.
+// @hlv hierarchy_depth
+// CreateScope creates a new group or ontology scope with circular dependency detection
+// and hierarchy depth validation (max 5 levels). Emits audit log on success.
 func (s *OrgService) CreateScope(requesterID string, node ScopeNode) error {
 	if node.ParentID != "" {
 		// @hlv:sec [INPUT_VALIDATION] — Validate parent exists before creating child.
@@ -393,9 +395,125 @@ func (s *OrgService) CreateScope(requesterID string, node ScopeNode) error {
 		if hasCycle, _ := s.detectCycle(node.ParentID, node.ID); hasCycle {
 			return ErrCycleDetected
 		}
+
+		// @hlv hierarchy_depth — MVP group nesting is limited to 5 levels.
+		depth, err := s.scopeDepth(node.ParentID)
+		if err != nil {
+			return err
+		}
+		if depth >= 5 {
+			return ErrHierarchyDepthExceeded
+		}
 	}
 
-	return s.store.UpsertScope(node)
+	if err := s.store.UpsertScope(node); err != nil {
+		return err
+	}
+
+	// @hlv audit_log
+	log.Printf(`{"event":"audit.scope.created","scope":"%s","type":"%s","parent":"%s","requester":"%s","visibility":"%s"}`, node.ID, node.Type, node.ParentID, requesterID, node.Visibility)
+
+	return nil
+}
+
+// @hlv hierarchy_depth
+// MoveScope moves a project from one group to another, validating depth and owner auth.
+// Returns the updated scope and an audit event.
+func (s *OrgService) MoveScope(requesterID, scopeID, newParentID string) (*ScopeNode, *AuditEvent, error) {
+	// @hlv:sec [INPUT_VALIDATION] — Validate inputs.
+	if scopeID == "" || newParentID == "" {
+		return nil, nil, ErrForbiddenInsufficientRole
+	}
+
+	scope, err := s.store.GetScope(scopeID)
+	if err != nil || scope == nil {
+		return nil, nil, ErrScopeNotFound
+	}
+
+	// Validate new parent exists.
+	newParent, err := s.store.GetScope(newParentID)
+	if err != nil || newParent == nil {
+		return nil, nil, ErrScopeNotFound
+	}
+
+	// @hlv CYCLE_DETECTED — Check moving scope doesn't create cycle.
+	if hasCycle, _ := s.detectCycle(newParentID, scopeID); hasCycle {
+		return nil, nil, ErrCycleDetected
+	}
+
+	// @hlv hierarchy_depth — Check new parent depth + 1 <= 5.
+	depth, err := s.scopeDepth(newParentID)
+	if err != nil {
+		return nil, nil, err
+	}
+	if depth >= 5 {
+		return nil, nil, ErrHierarchyDepthExceeded
+	}
+
+	// @hlv:sec [AUTH_BOUNDARY] — Only Owner can move scopes.
+	requesterRole, err := s.GetEffectiveRole(requesterID, scopeID)
+	if err != nil {
+		return nil, nil, err
+	}
+	if !IsOwner(requesterRole) {
+		return nil, nil, ErrForbiddenAdminOnly
+	}
+
+	oldParentID := scope.ParentID
+	scope.ParentID = newParentID
+	if err := s.store.UpsertScope(*scope); err != nil {
+		return nil, nil, err
+	}
+
+	// @hlv cache_invalidation — Invalidate authorization caches for affected scopes.
+	s.cache.InvalidateScope(scopeID)
+	if oldParentID != "" {
+		s.cache.InvalidateScope(oldParentID)
+	}
+	s.cache.InvalidateScope(newParentID)
+
+	// @hlv log_state_changes
+	log.Printf(`{"event":"state.changed","entity":"scope","scope":"%s","old_parent":"%s","new_parent":"%s","actor":"%s"}`, scopeID, oldParentID, newParentID, requesterID)
+
+	audit := &AuditEvent{
+		Event:      "scope.moved",
+		Reason:     "project_moved",
+		UserID:     requesterID,
+		ObjectType: string(scope.Type),
+		ObjectID:   scopeID,
+		Timestamp:  time.Now().UTC().Format(time.RFC3339),
+	}
+
+	return scope, audit, nil
+}
+
+// scopeDepth calculates the depth of a scope in the hierarchy (0 = root, 5 = max).
+// @hlv hierarchy_depth
+func (s *OrgService) scopeDepth(scopeID string) (int, error) {
+	depth := 0
+	currentID := scopeID
+	visited := make(map[string]bool)
+
+	for currentID != "" {
+		if visited[currentID] {
+			return 0, ErrCycleDetected
+		}
+		visited[currentID] = true
+
+		node, err := s.store.GetScope(currentID)
+		if err != nil || node == nil {
+			return depth, nil // Reached root or unknown scope
+		}
+		if node.ParentID == "" {
+			break
+		}
+		depth++
+		if depth > 10 {
+			return 0, ErrCycleDetected // Safety limit
+		}
+		currentID = node.ParentID
+	}
+	return depth, nil
 }
 
 // collectInheritedScopes walks up the hierarchy to collect all parent scopes.

@@ -120,7 +120,7 @@ import { computed, reactive, ref, watch } from "vue";
 
 const searchQuery = ref("");
 
-// @m2.5 Reactive expand/collapse map — keyed by group name
+// @m4 Reactive expand/collapse map — keyed by group name
 type ExpandedMap = Record<string, boolean>;
 const expanded = reactive<ExpandedMap>({});
 

@@ -1,4 +1,4 @@
-<!-- @m2.5 — MFA Challenge Dialog -->
+<!-- @m4 — MFA Challenge Dialog -->
 <!-- @hlv:artifact mfa-challenge-dialog implements GUI-OW-001 -->
 <template>
   <Dialog :open="open" title="Two-Factor Authentication" size="sm" :modal="true" @close="$emit('close')">

@@ -6,7 +6,7 @@
       <span class="crumb crumb--current">Home</span>
     </div>
 
-    <!-- @m2.5 Greeting — wired to useCurrentUser for real user name/role -->
+    <!-- @m4 Greeting — wired to useCurrentUser for real user name/role -->
     <section class="dash-greeting card">
       <div class="dash-avatar">
         <span v-if="displayInitials !== '?'" class="avatar-initials">{{ displayInitials }}</span>
@@ -19,7 +19,7 @@
       <button class="status-btn" type="button"><Smile :size="14" />Set status</button>
     </section>
 
-    <!-- @m2.5 Widgets — wired to dashboard.widgets from GQL -->
+    <!-- @m4 Widgets — wired to dashboard.widgets from GQL -->
     <section v-if="loading" class="dash-widgets" aria-label="Loading">
       <article v-for="n in 3" :key="n" class="widget card skeleton">
         <div class="skeleton-line skeleton-line--title"></div>
@@ -48,7 +48,7 @@
 
     <section class="dash-columns">
       <div class="dash-left">
-        <!-- @m2.5 Attention items — wired to dashboard.attentionItems from GQL -->
+        <!-- @m4 Attention items — wired to dashboard.attentionItems from GQL -->
         <article class="card attention-card">
           <header class="attention-header">
             <h2>Items that need your attention</h2>
@@ -64,7 +64,7 @@
           </div>
         </article>
 
-        <!-- @m2.5 Activity feed — wired to dashboard.activityFeed from GQL -->
+        <!-- @m4 Activity feed — wired to dashboard.activityFeed from GQL -->
         <article class="card activity-card">
           <header class="activity-header">
             <h2>Team Activity</h2>
@@ -97,7 +97,7 @@
         </article>
       </div>
 
-      <!-- @m2.5 Recent ontologies — wired to dashboard.recentOntologies from GQL, clickable -->
+      <!-- @m4 Recent ontologies — wired to dashboard.recentOntologies from GQL, clickable -->
       <article class="card quick-card">
         <header class="section-header">
           <h2>Recent project</h2>
@@ -149,7 +149,7 @@ const { displayName, displayInitials } = useCurrentUser();
 
 const activityFilter = ref("All team");
 
-// @m2.5 — Wire dashboard to DASHBOARD_QUERY (GraphQL)
+// @m4 — Wire dashboard to DASHBOARD_QUERY (GraphQL)
 const { result, loading, error, refetch } = useQuery(DASHBOARD_QUERY);
 
 // ── Resolvers: map GQL data to UI shapes ──
@@ -295,7 +295,7 @@ const resolvedRecentOntologies = computed<RecentOntology[]>(() => {
 	);
 });
 
-// @m2.5 — Navigate to ontology workspace via router
+// @m4 — Navigate to ontology workspace via router
 function navigateToOntology(ontologyId: string): void {
 	console.debug(
 		JSON.stringify({
@@ -459,7 +459,7 @@ function formatTimeAgo(timestamp: string): string {
   font-size: 12px;
 }
 
-/* @m2.5 Skeleton loading states */
+/* @m4 Skeleton loading states */
 .skeleton {
   animation: pulse 1.5s ease-in-out infinite;
 }
@@ -478,7 +478,7 @@ function formatTimeAgo(timestamp: string): string {
   50% { opacity: 0.8; }
 }
 
-/* @m2.5 Error state */
+/* @m4 Error state */
 .error-state {
   grid-column: 1 / -1;
   padding: 32px;

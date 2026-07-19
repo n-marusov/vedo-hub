@@ -1,4 +1,4 @@
-// @m2.5 — MetricsPage vitest spec (RED phase for Block В)
+// @m4 — MetricsPage vitest spec (RED phase for Block В)
 // Validates: REQ-USR.UI.gui-implementation
 // After GREEN (Task 4.3): page should render KPI counters and trends from API
 
