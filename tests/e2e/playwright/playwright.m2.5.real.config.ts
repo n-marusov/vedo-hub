@@ -1,9 +1,14 @@
 import { defineConfig, devices } from '@playwright/test';
 
-// @ctx: M2.5 E2E real-backend config — starts docker-compose.test.yml (5 services)
-// + Vite dev server proxied to real api-gateway-test (port 8081)
+/**
+ * Real-backend E2E config — starts docker-compose.test.yml (full stack
+ * with JWT_DEV_PUBLIC_KEY_PEM) + Vite dev server on port 3000.
+ *
+ * Usage:
+ *   pnpm exec playwright test --config=playwright.m2.5.real.config.ts
+ */
 export default defineConfig({
-  testDir: './tests/m2.5',
+  testDir: './tests',
   timeout: 30_000,
   retries: 0,
   reporter: [['list']],
@@ -14,8 +19,8 @@ export default defineConfig({
   webServer: [
     {
       command:
-        'docker compose -f deploy/docker-compose.test.yml up -d --wait --wait-timeout 60',
-      port: 8081,
+        'docker compose -f ../../../deploy/docker-compose.test.yml up -d --wait --wait-timeout 60',
+      port: 8080,
       reuseExistingServer: true,
       timeout: 90_000,
     },
@@ -23,7 +28,7 @@ export default defineConfig({
       command:
         'npx vite --host 0.0.0.0 --port 3000',
       env: {
-        VITE_API_TARGET: 'http://localhost:8081',
+        VITE_API_TARGET: 'http://localhost:8080',
       },
       port: 3000,
       reuseExistingServer: true,

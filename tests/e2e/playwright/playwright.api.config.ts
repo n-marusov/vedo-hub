@@ -1,10 +1,17 @@
 import { defineConfig, devices } from '@playwright/test';
 
+/**
+ * API test configuration — fast REST/GraphQL integration tests.
+ * Runs first in CI gates, provides quick feedback before slower GUI tests.
+ *
+ * Usage:
+ *   pnpm exec playwright test --config=playwright.api.config.ts
+ */
 export default defineConfig({
-  testDir: './tests',
+  testDir: './tests/api',
   timeout: 30_000,
   retries: 2,
-  reporter: [['html'], ['json', { outputFile: 'test-results/results.json' }]],
+  reporter: [['list'], ['html'], ['json', { outputFile: 'test-results/api-results.json' }]],
   use: {
     baseURL: 'http://localhost:3000',
     trace: 'retain-on-failure',
@@ -13,8 +20,6 @@ export default defineConfig({
   },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
-    { name: 'webkit', use: { ...devices['Desktop Safari'] } }
   ],
   webServer: {
     command: 'bash ../../../src/scripts/compose-smoke.sh',
