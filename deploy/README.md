@@ -1,16 +1,57 @@
 # Vedo Core Docker Compose
 
-This directory contains Docker Compose setup split into two layers:
+This directory contains Docker Compose setup split into multiple layers:
 
-- `docker-compose.yml` for core application services
-- `docker-compose.observability.yml` for monitoring stack under `obs` profile
+- `docker-compose.yml` — core application services
+- `docker-compose.observability.yml` — monitoring stack (`obs` profile)
+- `docker-compose.llm.yaml` — local LLM (Ollama, `llm` profile)
+- `docker-compose.docs.yaml` — documentation servers (`documentation` profile)
+- `docker-compose.test.yml` — E2E test overrides (dev JWT public key)
 
-> **Vault (HashiCorp Vault) НЕ включён** в compose-файлы milestone 001. Для локальной разработки токены и секреты хранятся в `~/.vedo/config.yaml` или передаются через переменные окружения. Vault используется только в CI/CD и production. Подробнее: `human/artifacts/requirements/REQ-FUN.PROCESS.ci-cd-requirements.md`.
+> **Vault (HashiCorp Vault) НЕ включён** в compose-файлы milestone 001. Для локальной разработки токены и секреты хранятся в `~/.vedo/config.yaml` или передаются через переменные окружения. Vault используется только в CI/CD и production.
 
 ## Prerequisites
 
 - Docker Engine with Compose v2 (`docker compose`)
 - Enough free ports (see port maps in compose files)
+
+## Multi-Environment Setup
+
+Проект поддерживает три окружения с непересекающимися портами, что позволяет
+запускать их параллельно:
+
+| Окружение | Env-файл | Смещение портов | COMPOSE_PROJECT_NAME |
+|-----------|----------|----------------|---------------------|
+| **dev** | `.env.dev` | без смещения (по умолчанию) | `vedo-core-dev` |
+| **test** | `.env.test` | +10000 | `vedo-core-test` |
+| **staging** | `.env.staging` | +20000 | `vedo-core-staging` |
+
+### Быстрый старт
+
+```bash
+# Dev
+cp .env.dev .env && docker compose -f deploy/docker-compose.yml up -d
+
+# Test (параллельно с dev, порты не конфликтуют)
+docker compose --env-file .env.test -f deploy/docker-compose.yml up -d
+
+# Staging (параллельно с dev и test)
+docker compose --env-file .env.staging -f deploy/docker-compose.yml up -d
+```
+
+### Соглашение об именах переменных
+
+- `XXX_PORT` — хост-порт (меняется между окружениями)
+- `XXX_CONTAINER_PORT` — контейнерный порт (одинаков во всех окружениях)
+- `SERVICE_PORT` / `GRPC_PORT` внутри контейнера всегда используют контейнерные порты
+
+### Проверка конфигурации
+
+```bash
+docker compose --env-file .env.dev  -f deploy/docker-compose.yml config > /dev/null
+docker compose --env-file .env.test -f deploy/docker-compose.yml config > /dev/null
+docker compose --env-file .env.staging -f deploy/docker-compose.yml config > /dev/null
+```
 
 ## Run Modes
 
@@ -55,76 +96,57 @@ docker compose \
   --profile obs down
 ```
 
-## Validation and Status
+## Port Reference (dev — без смещения)
 
-Validate core config:
+| Service | Host Port | Container Port | Protocol |
+|---------|----------|---------------|----------|
+| Frontend (SPA) | 3000 | 3000 | HTTP |
+| Publish Browse UI | 3002 | 3002 | HTTP |
+| API Gateway | 8080 | 8080 | REST/GraphQL |
+| Auth Service (gRPC) | 9003 | 9003 | gRPC |
+| Ontology Service | — (internal) | 8082 / 9001 | REST / gRPC |
+| Versioning Service (gRPC) | 9002 | 9002 | gRPC |
+| Metrics Service | 8084 | 8084 | HTTP |
+| Commenting Service (gRPC) | 9004 | 9004 | gRPC |
+| Publisher Service (gRPC) | 9005 | 9005 | gRPC |
+| Public Browse API (gRPC) | 9011 | 9011 | gRPC |
+| Ticket API | 8088 / 9010 | 8088 / 9010 | HTTP / gRPC |
+| Ticket Classifier | 8089 | 8089 | HTTP |
+| Ticket Telemetry Listener | 8090 | 8090 | HTTP |
+| Ticket Notifier | 8091 | 8091 | HTTP |
+| Document Extractor (gRPC) | 9013 | 9013 | gRPC |
+| AI Orchestration | — (internal) | 8093 / 9014 | HTTP / gRPC |
 
-```bash
-docker compose config
-```
+| Infrastructure | Host Port | Container Port |
+|---------------|----------|---------------|
+| Neo4j | 7474 / 7687 | 7474 / 7687 |
+| PostgreSQL | 5432 | 5432 |
+| Redis | 6379 | 6379 |
+| RabbitMQ | 5672 / 15672 | 5672 / 15672 |
+| MinIO | 9000 / 9001 | 9000 / 9001 |
+| Keycloak | 8180 | 8080 |
 
-Validate merged config with observability:
+| Observability | Host Port | Container Port |
+|--------------|----------|---------------|
+| Prometheus | 9090 | 9090 |
+| Grafana | 3001 | 3000 |
+| Loki | 3100 | 3100 |
+| Tempo | 3200 / 4317 / 4318 | 3200 / 4317 / 4318 |
+| OTEL Collector | 8888 / 8889 | 8888 / 8889 |
 
-```bash
-docker compose \
-  -f docker-compose.yml \
-  -f docker-compose.observability.yml \
-  --profile obs config
-```
+| Extras | Host Port | Container Port |
+|--------|----------|---------------|
+| Ollama (LLM) | 11434 | 11434 |
+| Docs (user/dev/admin/integrator) | 5000–5003 | 5000–5003 |
 
-Check container status:
+### Порты test и staging окружений
 
-```bash
-docker compose ps --all
-```
+Для получения порта test-окружения добавьте **+10000** (кроме RabbitMQ AMQP — **+10001**).
+Для staging: **+20000** (RabbitMQ AMQP — **+20002**).
 
-Tail observability logs:
+Пример: API Gateway в dev = 8080, в test = 18080, в staging = 28080.
 
-```bash
-docker compose \
-  -f docker-compose.yml \
-  -f docker-compose.observability.yml \
-  --profile obs logs --tail=200 grafana otel-collector prometheus loki tempo
-```
-
-## Port Reference
-
-| Service | HTTP (health) | gRPC (internal) | Protocol |
-|---------|---------------|-----------------|----------|
-| API Gateway | 8080 | — | REST/GraphQL → gRPC |
-| Auth Service | 8081 | 9003 | gRPC |
-| Ontology Service | 8082 | 9001 | gRPC |
-| Versioning Service | 8083 | 9002 | gRPC |
-| Metrics Service | 8084 | — | HTTP (Prometheus) |
-| Commenting Service | 8085 | 9004 | gRPC |
-| Publisher Service | 8086 | 9005 | gRPC |
-| Public Browse API | 8087 | 9011 | gRPC |
-| Ticket API | 8088 (CLI) | 9010 | HTTP + gRPC |
-| Document Extractor | 8092 | 9013 | gRPC |
-| AI Orchestration | 8093 | 9014 | gRPC |
-
-Ports 9006–9009 are reserved for future services.
-Port 9012 is reserved for Metrics Service gRPC (if needed).
-Port 9014 is the AI Orchestration Service gRPC endpoint.
-
-> **Internal communication** uses gRPC on ports 9001–9014.
-> **Health checks** remain on HTTP ports (8081–8092) for Docker health probes.
-> **External clients** connect to the API Gateway on port 8080 (REST/GraphQL).
-
-### Legacy Ports (deprecated)
-
-Pre-M2 services exposed their functional HTTP ports directly to the host.
-These ports are now internal-only (`expose` in Docker Compose) or removed:
-
-- `8082` → internal (ontology-service HTTP health)
-- `8083` → internal (versioning-service HTTP health)
-- `8081` → internal (auth-service HTTP health)
-- `8084` → internal (metrics-service HTTP health)
-- `8085` → internal (commenting-service HTTP health)
-- `8086` → internal (publisher-service HTTP health)
-- `8087` → internal (public-browse-api HTTP health)
-
-## Useful Endpoints
+## Useful Endpoints (dev)
 
 - Frontend: `http://localhost:3000`
 - API gateway health: `http://localhost:8080/health`
@@ -186,3 +208,5 @@ docker compose up -d  # restart document-extractor with LLM config
 
 - Observability services are inactive by default and start only with `--profile obs`.
 - Grafana dashboards are provisioned from `deploy/observability/grafana/dashboards`.
+- Для смены окружения используйте соответствующий `--env-file` (`.env.dev`, `.env.test`, `.env.staging`).
+- Контейнерные порты одинаковы во всех окружениях — межсервисное взаимодействие всегда работает через container network.

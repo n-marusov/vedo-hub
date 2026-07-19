@@ -113,6 +113,10 @@ Antora documentation source in `src/docs/antora/`. Build with `cd src/docs/antor
 | Admin Guide | `src/docs/antora/admin-guide/` | Deployment, observability, security |
 | Integrator Guide | `src/docs/antora/integrator-guide/` | API reference, authentication, integration config |
 | Antora Playbook | `src/docs/antora/antora-playbook.yml` | Site build configuration |
+| Deploy Guide | `deploy/README.md` | Docker Compose, multi-env setup, port reference |
+| Env: dev | `.env.dev` | Dev environment — default ports |
+| Env: test | `.env.test` | Test environment — ports +10000 |
+| Env: staging | `.env.staging` | Staging environment — ports +20000 |
 | License | `LICENSE` | Project license |
 | Project Specs | `specs/context.md` | Project context and overview |
 | Tech Stack | `specs/stack.md` | Technology stack decisions and rationale |

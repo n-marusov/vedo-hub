@@ -25,6 +25,29 @@ Open `http://localhost:3000` — the frontend is ready. The API Gateway is at `h
 
 All variables in `deploy/docker-compose.yml` use `${VAR:-default}` syntax — every setting has a sensible default and can be overridden via shell environment or a `.env` file. **No `.env` file is required for development** — `make docker-up` works out of the box.
 
+### Multi-Environment Setup
+
+The project ships three pre-configured env files with non-overlapping ports, so you can run dev, test, and staging stacks in parallel:
+
+| Environment | Env file | Port offset | COMPOSE_PROJECT_NAME |
+|-------------|----------|-------------|---------------------|
+| **dev** | `.env.dev` | none (defaults) | `vedo-core-dev` |
+| **test** | `.env.test` | +10000 | `vedo-core-test` |
+| **staging** | `.env.staging` | +20000 | `vedo-core-staging` |
+
+```bash
+# Dev (default)
+cp .env.dev .env && docker compose -f deploy/docker-compose.yml up -d
+
+# Test — runs alongside dev, no port conflicts
+docker compose --env-file .env.test -f deploy/docker-compose.yml up -d
+
+# Staging — runs alongside dev and test
+docker compose --env-file .env.staging -f deploy/docker-compose.yml up -d
+```
+
+Each env file defines separate host ports while keeping container ports identical — inter-service communication always works through the Docker network. See `deploy/README.md` for the full port reference and advanced usage.
+
 ### Ways to configure
 
 | Method | Example | Best for |
@@ -76,30 +99,30 @@ make docker-up
 
 ### Service ports
 
-Every service port can be overridden with a dedicated variable. Useful when conflicts arise:
+Every host port can be overridden. Container ports are fixed across all environments — see `deploy/README.md` for the full table. Key host ports (dev defaults):
 
 | Variable | Default |
 |----------|---------|
+| `FRONTEND_PORT` | `3000` |
+| `PUBLISH_BROWSE_UI_PORT` | `3002` |
 | `API_GATEWAY_PORT` | `8080` |
-| `AUTH_SERVICE_REST_PORT` | `8081` |
-| `ONTOLOGY_SERVICE_REST_PORT` | `8082` |
-| `VERSIONING_SERVICE_REST_PORT` | `8083` |
+| `AUTH_SERVICE_GRPC_PORT` | `9003` |
+| `VERSIONING_SERVICE_GRPC_PORT` | `9002` |
 | `METRICS_SERVICE_REST_PORT` | `8084` |
-| `COMMENTING_SERVICE_REST_PORT` | `8085` |
-| `PUBLISHER_SERVICE_REST_PORT` | `8086` |
-| `PUBLIC_BROWSE_REST_PORT` | `8087` |
-| `TICKET_API_REST_PORT` | `8088` |
+| `COMMENTING_SERVICE_GRPC_PORT` | `9004` |
+| `PUBLISHER_SERVICE_GRPC_PORT` | `9005` |
+| `PUBLIC_BROWSE_GRPC_PORT` | `9011` |
+| `TICKET_API_REST_PORT` / `TICKET_API_GRPC_PORT` | `8088` / `9010` |
 | `TICKET_CLASSIFIER_PORT` | `8089` |
 | `TICKET_TELEMETRY_STUB_PORT` | `8090` |
 | `TICKET_NOTIFIER_STUB_PORT` | `8091` |
-| `DOCUMENT_EXTRACTOR_HTTP_PORT` | `8092` |
-| `AI_ORCH_HEALTH_PORT` | `8093` |
+| `DOCUMENT_EXTRACTOR_GRPC_PORT` | `9013` |
 | `NEO4J_HTTP_PORT` / `NEO4J_BOLT_PORT` | `7474` / `7687` |
 | `POSTGRES_PORT` | `5432` |
 | `REDIS_PORT` | `6379` |
 | `RABBITMQ_AMQP_PORT` / `RABBITMQ_MGMT_PORT` | `5672` / `15672` |
-| `KC_HOSTNAME_PORT` | `8180` |
 | `MINIO_API_PORT` / `MINIO_CONSOLE_PORT` | `9000` / `9001` |
+| `KC_HOSTNAME_PORT` | `8180` |
 
 ### Local native development
 
