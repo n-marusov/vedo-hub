@@ -1,4 +1,6 @@
-name: vedo-core
+# Project name is set via COMPOSE_PROJECT_NAME in .env.* files
+# If not set, Docker derives it from the current directory name.
+# See .env.example for configuration.
 
 x-healthcheck-defaults: &healthcheck-defaults
   interval: 10s

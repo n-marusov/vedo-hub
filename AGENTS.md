@@ -112,7 +112,7 @@ Antora documentation source in `src/docs/antora/`. Build with `cd src/docs/antor
 | User Guide | `src/docs/antora/user-guide/` | Quick start, ontology editing, versioning |
 | Developer Guide | `src/docs/antora/developer-guide/` | Getting started, architecture, config, testing |
 | Org Model | `src/docs/antora/developer-guide/modules/ROOT/pages/organization-model.adoc` | Multi-team organization model (groups, projects, members, RBAC) |
-| Admin Guide | `src/docs/antora/admin-guide/` | Deployment, observability, security |
+| Admin Guide | `src/docs/antora/admin-guide/` | Deployment, port reference, observability, security |
 | Integrator Guide | `src/docs/antora/integrator-guide/` | API reference, authentication, integration config |
 | Antora Playbook | `src/docs/antora/antora-playbook.yml` | Site build configuration |
 | Deploy Guide | `deploy/README.md` | Docker Compose, multi-env setup, port reference |

@@ -179,26 +179,48 @@ docker-build-%:
 	fi
 
 ##@ Docker — Compose Lifecycle
-COMPOSE_FILE ?= ../deploy/docker-compose.yml
-COMPOSE_PROFILE ?=
+COMPOSE_FILE        ?= ../deploy/docker-compose.yml
+COMPOSE_PROFILE     ?=
 
 .PHONY: docker-up docker-down docker-logs docker-ps docker-shell
 
-docker-up: ## Start all services via Docker Compose
-	docker compose -f $(COMPOSE_FILE) $(if $(COMPOSE_PROFILE),--profile $(COMPOSE_PROFILE)) up -d
+docker-up: ## Start all services via Docker Compose (use ENV=dev|test|staging)
+	docker compose \
+		$(if $(ENV),--env-file ../.env.$(ENV)) \
+		-f $(COMPOSE_FILE) \
+		$(if $(COMPOSE_PROFILE),--profile $(COMPOSE_PROFILE)) \
+		up -d
 
-docker-down: ## Stop all services
-	docker compose -f $(COMPOSE_FILE) down
+docker-down: ## Stop all services (use ENV=dev|test|staging)
+	docker compose \
+		$(if $(ENV),--env-file ../.env.$(ENV)) \
+		-f $(COMPOSE_FILE) \
+		down
 
-docker-logs: ## Tail logs from all services
-	docker compose -f $(COMPOSE_FILE) logs -f
+docker-logs: ## Tail logs from all services (use ENV=dev|test|staging)
+	docker compose \
+		$(if $(ENV),--env-file ../.env.$(ENV)) \
+		-f $(COMPOSE_FILE) \
+		logs -f
 
-docker-ps: ## List running service containers
-	docker compose -f $(COMPOSE_FILE) ps
+docker-ps: ## List running service containers (use ENV=dev|test|staging)
+	docker compose \
+		$(if $(ENV),--env-file ../.env.$(ENV)) \
+		-f $(COMPOSE_FILE) \
+		ps
 
-docker-shell: ## Open shell in a service container (usage: make docker-shell SVC=<name>)
+docker-shell: ## Open shell in a service container (usage: make docker-shell SVC=<name> ENV=dev)
 	@if [ -z "$(SVC)" ]; then echo "Usage: make docker-shell SVC=<service-name>"; exit 1; fi
-	docker compose -f $(COMPOSE_FILE) exec $(SVC) sh
+	docker compose \
+		$(if $(ENV),--env-file ../.env.$(ENV)) \
+		-f $(COMPOSE_FILE) \
+		exec $(SVC) sh
+
+docker-config: ## Validate compose config (use ENV=dev|test|staging)
+	docker compose \
+		$(if $(ENV),--env-file ../.env.$(ENV)) \
+		-f $(COMPOSE_FILE) \
+		config > /dev/null && echo "Config OK"
 
 ##@ Docker — Status
 .PHONY: docker-status docker-status-full
