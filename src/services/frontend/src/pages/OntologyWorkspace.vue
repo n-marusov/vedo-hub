@@ -10,14 +10,14 @@
     </div>
 
     <template v-else>
-      <div class="workspace-main">
-        <aside class="group-sidebar card-side">
+   <div class="workspace-main">
+    <aside class="group-sidebar card-side panel-left">
           <div class="group-header">Project group</div>
         </aside>
 
         <div class="splitter"><GripVertical :size="8" /></div>
 
-        <section class="workspace-content">
+        <section class="workspace-content panel-center">
             <div class="workspace-toolbar">
               <span class="toolbar-title">{{ ontologyData?.name || ontologyId }}</span>
               <span v-if="ontologyData?.branch" class="toolbar-branch-badge">{{ ontologyData.branch }}</span>
@@ -186,7 +186,7 @@
 
             <div class="splitter"><GripVertical :size="8" /></div>
 
-            <aside class="property-panel card-side">
+            <aside class="property-panel card-side panel-right">
               <div class="panel-title">Individuals</div>
               <div class="panel-tools">
                 <Search :size="14" class="muted" />
@@ -472,7 +472,10 @@ watch(selectedClassId, () => {
 
 <style scoped>
 .workspace-page {
-  min-height: calc(100vh - 56px);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .workspace-loading,
@@ -480,14 +483,15 @@ watch(selectedClassId, () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 200px;
+  min-height: 200px;
   font-family: 'IBM Plex Mono', monospace;
   color: var(--muted-foreground);
 }
 
 .workspace-main {
+  flex: 1;
+  min-height: 0;
   display: flex;
-  height: calc(100vh - 56px);
 }
 
 .card-side {
@@ -505,6 +509,7 @@ watch(selectedClassId, () => {
   font-size: 13px;
   font-weight: 600;
   margin-bottom: 10px;
+  color: var(--foreground);
 }
 
 .splitter {

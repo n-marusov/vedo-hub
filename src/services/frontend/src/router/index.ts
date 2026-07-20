@@ -48,6 +48,7 @@ const routes: RouteRecordRaw[] = [
 	{
 		path: "/ontology/:id/query",
 		name: "ontology-query",
+		alias: "/ontology/:id/sparql",
 		component: () => import("@/pages/SPARQLPage.vue"),
 		meta: { requiresAuth: true, title: "SPARQL Query Builder" },
 	},

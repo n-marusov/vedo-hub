@@ -14,8 +14,9 @@
       </div>
       <div class="dash-greeting-text">
         <h1 class="dash-name">{{ displayName }}</h1>
-        <p class="dash-role">Knowledge Engineer</p>
+        <p class="dash-role">{{ userRole }}</p>
       </div>
+      <span class="status-indicator">online</span>
       <button class="status-btn" type="button"><Smile :size="14" />Set status</button>
     </section>
 
@@ -33,7 +34,7 @@
       </div>
     </section>
     <section v-else class="dash-widgets" aria-label="Collaboration widgets">
-      <article v-for="widget in resolvedWidgets" :key="widget.title" class="widget card">
+      <article v-for="widget in resolvedWidgets" :key="widget.title" class="widget card widget-card" tabindex="0">
         <header class="widget-head">
           <p class="widget-title">{{ widget.title }}</p>
           <component :is="widget.icon" :size="20" :class="['widget-icon', widget.iconColor]" />
@@ -128,6 +129,7 @@
 
 <script setup lang="ts">
 import { DASHBOARD_QUERY } from "@/apollo/queries";
+import { getUserRole } from "@/auth/session";
 import { useCurrentUser } from "@/composables/useCurrentUser";
 import { useQuery } from "@vue/apollo-composable";
 import {
@@ -146,6 +148,7 @@ import { useRouter } from "vue-router";
 
 const router = useRouter();
 const { displayName, displayInitials } = useCurrentUser();
+const userRole = computed(() => getUserRole() || "Knowledge Engineer");
 
 const activityFilter = ref("All team");
 
@@ -408,6 +411,12 @@ function formatTimeAgo(timestamp: string): string {
   font-size: 12px;
   background: transparent;
   cursor: pointer;
+}
+
+.status-indicator {
+  font-size: 12px;
+  color: var(--success);
+  white-space: nowrap;
 }
 
 .dash-widgets {

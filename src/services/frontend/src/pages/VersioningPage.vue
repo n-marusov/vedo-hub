@@ -6,7 +6,7 @@
       <span v-if="view === 'commits'" class="branch-badge">{{ currentBranch }}</span>
     </section>
 
-    <section class="version-tabs" role="tablist" aria-label="Versioning tabs">
+    <section class="version-tabs ver-tabs" role="tablist" aria-label="Versioning tabs">
       <button
         v-for="tab in tabs"
         :key="tab.id"
@@ -15,12 +15,14 @@
         role="tab"
         :aria-selected="tab.id === view"
         @click="go(tab.id)"
+        @keydown.left.prevent="onArrowLeft($event)"
+        @keydown.right.prevent="onArrowRight($event)"
       >
         {{ tab.label }}
-      </button>
-    </section>
+        </button>
+      </section>
 
-    <!-- Loading state -->
+      <!-- Loading state -->
     <div v-if="loading" class="version-loading loading-indicator">
       <div class="skeleton" v-for="n in 3" :key="n"></div>
     </div>
@@ -60,7 +62,7 @@
         <DiffView v-else-if="view === 'compare'" :changes="changes" :commit-options="commitOptions" />
         <TagList v-else-if="view === 'tags'" :tags="tags" />
         <RepositoryGraph v-else-if="view === 'graph'" :nodes="graphNodes" />
-        <div v-else class="mr-placeholder">Merge requests content goes here</div>
+        <div v-else class="mr-placeholder">Merge requests — coming soon</div>
       </section>
     </template>
   </div>
@@ -93,11 +95,34 @@ const ontologyId = computed(() => String(route.params.id));
 const tabs = [
 	{ id: "commits", label: "Commits" },
 	{ id: "branches", label: "Branches" },
-	{ id: "compare", label: "Compare Revisions" },
+	{ id: "compare", label: "Compare" },
 	{ id: "tags", label: "Tags" },
-	{ id: "graph", label: "Repository Graph" },
+	{ id: "graph", label: "Graph" },
 	{ id: "merge_requests", label: "Merge Requests" },
 ];
+
+// Keyboard arrow navigation for tabs
+function onArrowRight(e: KeyboardEvent) {
+	const target = e.target as HTMLElement;
+	const parent = target?.closest(".ver-tabs");
+	if (!parent) return;
+	const buttons = Array.from(parent.querySelectorAll("button"));
+	const idx = buttons.indexOf(target as HTMLButtonElement);
+	if (idx < buttons.length - 1) {
+		buttons[idx + 1]?.focus();
+	}
+}
+
+function onArrowLeft(e: KeyboardEvent) {
+	const target = e.target as HTMLElement;
+	const parent = target?.closest(".ver-tabs");
+	if (!parent) return;
+	const buttons = Array.from(parent.querySelectorAll("button"));
+	const idx = buttons.indexOf(target as HTMLButtonElement);
+	if (idx > 0) {
+		buttons[idx - 1]?.focus();
+	}
+}
 
 const titles: Record<string, string> = {
 	commits: "Commit History",

@@ -4,9 +4,9 @@
     <header class="public-header">
       <div class="public-brand">
         <img src="/vedo-core-logo-1.jpg" alt="VEDO Core" class="public-brand-logo" />
-        <span class="public-brand-text">VEDO Core</span>
+        <h1 class="public-brand-text" role="heading">Public Ontology</h1>
       </div>
-      <span class="public-center">{{ metadata?.name ?? 'Public Ontology View' }}</span>
+      <span class="public-center">{{ metadata?.name ?? 'Public Ontology' }}</span>
       <span class="public-readonly">Read-only</span>
     </header>
 

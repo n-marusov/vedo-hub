@@ -12,13 +12,13 @@
           class="login-logo-icon"
         />
         <div class="login-text-col">
-          <span class="login-title" id="login-title">VEDO Core</span>
+          <h1 class="login-title" id="login-title" role="heading">Sign in to VEDO</h1>
           <span class="login-subtitle">Build, connect, and share knowledge at scale</span>
         </div>
       </div>
 
       <!-- OAuth provider buttons -->
-      <div class="oauth-buttons" role="list" aria-label="OAuth providers">
+      <div class="oauth-buttons" aria-label="OAuth providers">
         <button
           v-for="provider in providers"
           :key="provider.id"
@@ -26,7 +26,6 @@
           :disabled="provider.disabled"
           :aria-disabled="provider.disabled"
           :aria-label="provider.label"
-          role="listitem"
           @click="handleLogin(provider.id)"
         >
           <span class="oauth-btn__label">{{ provider.label }}</span>
@@ -39,50 +38,50 @@
 </template>
 
 <script setup lang="ts">
-import { initiateLogin } from '@/auth/keycloak'
-import { ref } from 'vue'
+import { initiateLogin } from "@/auth/keycloak";
+import { ref } from "vue";
 
 // @ctx: OAuth providers per GUI-LOGIN-001 Input provider enum — matches design/frontend.pen
 // @hlv:sec [AUTH_BOUNDARY] — only Corporate SSO enabled; external providers disabled until configured
 const providers = [
-  { id: 'vk' as const, label: 'Continue with VK ID', disabled: true },
-  { id: 'yandex' as const, label: 'Continue with Yandex ID', disabled: true },
-  { id: 'mailru' as const, label: 'Continue with Mail.ru', disabled: true },
-  { id: 'google' as const, label: 'Continue with Google', disabled: true },
-  { id: 'corporate_sso' as const, label: 'Corporate SSO (SAML/OIDC)', disabled: false }
-]
+	{ id: "vk" as const, label: "VK ID", disabled: true },
+	{ id: "yandex" as const, label: "Yandex ID", disabled: true },
+	{ id: "mailru" as const, label: "Mail.ru", disabled: true },
+	{ id: "google" as const, label: "Google", disabled: true },
+	{ id: "corporate_sso" as const, label: "Corporate SSO", disabled: false },
+];
 
-const error = ref<string | null>(null)
+const error = ref<string | null>(null);
 
 // @hlv:sec [INPUT_VALIDATION] — provider validated against known enum before OAuth redirect
 async function handleLogin(providerId: string): Promise<void> {
-  error.value = null
+	error.value = null;
 
-  // @hlv LOGIN_PROVIDER_UNSUPPORTED
-  const knownProviders = ['vk', 'yandex', 'mailru', 'google', 'corporate_sso']
-  if (!knownProviders.includes(providerId)) {
-    error.value = 'Unsupported OAuth provider.'
-    return
-  }
+	// @hlv LOGIN_PROVIDER_UNSUPPORTED
+	const knownProviders = ["vk", "yandex", "mailru", "google", "corporate_sso"];
+	if (!knownProviders.includes(providerId)) {
+		error.value = "Unsupported OAuth provider.";
+		return;
+	}
 
-  const provider = providers.find((p) => p.id === providerId)
-  if (provider?.disabled) {
-    error.value = `${provider.label} is not configured for this instance.`
-    return
-  }
+	const provider = providers.find((p) => p.id === providerId);
+	if (provider?.disabled) {
+		error.value = `${provider.label} is not configured for this instance.`;
+		return;
+	}
 
-  // @hlv:sec [AUTH_BOUNDARY] — Corporate SSO uses local Keycloak OIDC flow with PKCE
-  if (providerId === 'corporate_sso') {
-    try {
-      await initiateLogin()
-    } catch (e: unknown) {
-      error.value = e instanceof Error ? e.message : 'Failed to initiate login'
-    }
-    return
-  }
+	// @hlv:sec [AUTH_BOUNDARY] — Corporate SSO uses local Keycloak OIDC flow with PKCE
+	if (providerId === "corporate_sso") {
+		try {
+			await initiateLogin();
+		} catch (e: unknown) {
+			error.value = e instanceof Error ? e.message : "Failed to initiate login";
+		}
+		return;
+	}
 
-  // @hlv LOGIN_SSO_CONFIG_MISSING
-  error.value = `${provider?.label} is not configured for this instance.`
+	// @hlv LOGIN_SSO_CONFIG_MISSING
+	error.value = `${provider?.label} is not configured for this instance.`;
 }
 </script>
 
@@ -133,7 +132,7 @@ async function handleLogin(providerId: string): Promise<void> {
 .login-title {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 18px;
-  font-weight: 400;
+  font-weight: 600;
   color: var(--foreground);
 }
 
