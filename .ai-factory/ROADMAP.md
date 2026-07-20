@@ -10,7 +10,7 @@
 - [x] **M1: Ontology Core Engine Baseline** — Core ontology storage and editing backend for TBox/ABox entities, graph browsing primitives, Git-like commits/history/branches/rollback, REST/GraphQL access paths, and SPARQL execution baseline.
 - [~] **M2: Document-to-Ontology & Template Baseline** — Backend/API baseline for AI-assisted ontology creation from text/documents and predefined templates: parsing, preview sequence generation, user confirmation/apply flow, ontology update, commit creation, and original document artifact attachment. Baseline GUI coverage is limited to document upload/preview/apply wiring; NL→OWL prompt UI, iterative refinement controls, AI class/property suggestion panels, and advanced batch deduplication UI are carried into M4/M5/M9 as noted below.
 - [x] **M3: Multi-Team Organization Model** — GitLab-like groups, subgroups, ontology projects, project catalog, visibility levels, Owner/Developer/Reporter/Guest-style memberships, role inheritance, last-owner protection, and group/project/member APIs.
-- [~] **M4: MVP GUI Wiring & Frontend Integration** — Replace hardcoded frontend placeholders with real API/GraphQL calls where backend capabilities exist; keep future-only functions visible as disabled/read-only GUI stubs. This milestone provides the first coherent Web UI path through groups, projects, ontology editing, versioning, SPARQL, dashboard widgets, and planned-feature placeholders.
+- [x] **M4: MVP GUI Wiring & Frontend Integration** — Replace hardcoded frontend placeholders with real API/GraphQL calls where backend capabilities exist; keep future-only functions visible as disabled/read-only GUI stubs. This milestone provides the first coherent Web UI path through groups, projects, ontology editing, versioning, SPARQL, dashboard widgets, and planned-feature placeholders.
 
     **Блок A — Быстрые победы (API + GraphQL-запросы готовы, только подключить):**
     - [x] **A1. VersioningPage** — подключить `GET_COMMIT_HISTORY_QUERY` и `GET_BRANCHES_QUERY` (запросы уже в `queries.ts`, бэкенд versioning-service работает). Заменить хардкодные `commits[]`, `branches[]`, `tags[]`, `graphNodes[]` на реальные Apollo-запросы. Добавить состояния загрузки/ошибки.
@@ -34,12 +34,12 @@
     - [x] **Г2. DashboardPage (онтологии)** — строки «Recent project» сделать кликабельными, ведущими на `OntologyWorkspace`.
 
     **Блок Д — Carry-over wiring from M2/M3 backend capabilities (GUI entry points missing or partial):**
-    - [ ] **Д1. OntologyWorkspace (NL→OWL)** — wire a visible NL prompt input and Generate action to the existing AI generation backend/API; render the generated sequence in the existing preview/apply workflow.
-    - [ ] **Д2. OntologyWorkspace (Iterative refinement)** — wire feedback/refinement controls to the existing refinement endpoint; preserve previous sequence state and show refined steps before apply.
-    - [ ] **Д3. AI completion panels** — wire class/property suggestion entry points, ranked suggestions, accept/reject actions, and confidence/rationale display to ai-orchestration completion APIs.
-    - [ ] **Д4. Ontology template GUI flow** — verify and finish the user-facing template selection/apply workflow against real backend/API data, not only test fixtures.
-    - [ ] **Д5. Ontology entity create workflows** — wire class/property/individual create buttons and dialogs in `OntologyWorkspace` to existing ontology-service/api-gateway CRUD; backend CRUD is part of M1 and must not be treated as missing.
-    - [ ] **Д6. Organization GUI read-after-write** — ensure groups/projects/members created through REST APIs appear in `GroupsPage`, `ProjectsPage`, and `MembersPage` via the same persisted backend data source.
+    - [x] **Д1. OntologyWorkspace (NL→OWL)** — wire a visible NL prompt input and Generate action to the existing AI generation backend/API; render the generated sequence in the existing preview/apply workflow.
+    - [x] **Д2. OntologyWorkspace (Iterative refinement)** — wire feedback/refinement controls to the existing refinement endpoint; preserve previous sequence state and show refined steps before apply.
+    - [x] **Д3. AI completion panels** — wire class/property suggestion entry points, ranked suggestions, accept/reject actions, and confidence/rationale display to ai-orchestration completion APIs.
+    - [x] **Д4. Ontology template GUI flow** — verify and finish the user-facing template selection/apply workflow against real backend/API data, not only test fixtures.
+    - [x] **Д5. Ontology entity create workflows** — wire class/property/individual create buttons and dialogs in `OntologyWorkspace` to existing ontology-service/api-gateway CRUD; backend CRUD is part of M1 and must not be treated as missing.
+    - [x] **Д6. Organization GUI read-after-write** — ensure groups/projects/members created through REST APIs appear in `GroupsPage`, `ProjectsPage`, and `MembersPage` via the same persisted backend data source.
 
     **Технические требования ко всем страницам:**
     - Каждая страница должна проходить три состояния: **loading** (скелетон/спиннер), **error** (понятное сообщение + кнопка Retry), **data** (рендер данных).
@@ -73,6 +73,7 @@
 | M1: Ontology Core Engine Baseline | 2026-07-14 |
 | M2: Document-to-Ontology & Template Baseline | 2026-07-18 |
 | M3: Multi-Team Organization Model | 2026-07-19 |
+| M4: MVP GUI Wiring & Frontend Integration | 2026-07-20 |
 
 ## Roadmap Notes
 

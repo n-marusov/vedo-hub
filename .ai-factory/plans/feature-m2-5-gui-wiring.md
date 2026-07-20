@@ -699,46 +699,46 @@ npx playwright test --config=playwright.m2.5.config.ts --project=chromium
 
   **Logging:** `DEBUG [E2E.Real] page=<name> state=<loading|data|error|empty> duration=<ms>`
 
-- [ ] **Task 6.7: Wire carried-over M2/M3 GUI entry points found by full GUI test scan** *(depends on Tasks 6.4–6.6; scope-corrected 2026-07-20)*
+- [x] **Task 6.7: Wire carried-over M2/M3 GUI entry points found by full GUI test scan** *(depends on Tasks 6.4–6.6; scope-corrected 2026-07-20)*
 
   **Governing specs:** `specs/user-stories/US-io.document.*`, `specs/user-stories/US-io.ontology.*`, `specs/vision.md` MVP chain, and M2/M3 completed backend/API plans.
 
   **Root cause:** Full GUI scan showed several E2E tests target backend/API capabilities that exist, but the current Vue frontend does not expose the required entry points or does not read back from the same persisted backend source. These are M4/M5 wiring bugs, not evidence that ontology CRUD, AI orchestration, or organization APIs are missing.
 
-  - [ ] **Task 6.7a: Wire NL→OWL generation UI in `OntologyWorkspace`**
+  - [x] **Task 6.7a: Wire NL→OWL generation UI in `OntologyWorkspace`**
     - Add visible prompt input (`data-testid="nl-to-owl-input"`) and Generate action.
     - Call the existing AI generation API through API Gateway/ai-orchestration.
     - Render returned sequence via `SequencePreview` and reuse existing apply workflow.
     - Unskip/fix `tests/gui/user-stories/nl-to-owl-generation.spec.ts` after wiring.
 
-  - [ ] **Task 6.7b: Wire iterative refinement UI**
+  - [x] **Task 6.7b: Wire iterative refinement UI**
     - Add feedback input (`data-testid="refinement-input"`) and Refine action.
     - Send prior sequence + feedback to existing refinement endpoint.
     - Preserve accumulated sequence state before apply.
     - Unskip/fix `tests/gui/user-stories/iterative-refinement.spec.ts` after wiring.
 
-  - [ ] **Task 6.7c: Wire AI class/property suggestion panels**
+  - [x] **Task 6.7c: Wire AI class/property suggestion panels**
     - Add class/property suggestion entry points from selected entity detail.
     - Render ranked `.ai-suggestion-item` rows with confidence and rationale.
     - Implement accept/reject and apply accepted suggestions through existing ontology CRUD APIs.
     - Unskip/fix `ai-completion.spec.ts` and `ai-property-suggestions.spec.ts` after wiring.
 
-  - [ ] **Task 6.7d: Verify ontology template GUI workflow against real backend/API**
+  - [x] **Task 6.7d: Verify ontology template GUI workflow against real backend/API**
     - Ensure template list, selection, preview, and apply flow do not rely solely on static fixtures.
     - Keep marketplace/custom-template editing out of MVP; that remains post-MVP.
     - Fix `ontology-templates.spec.ts` if interrupted/full run exposes failures.
 
-  - [ ] **Task 6.7e: Wire ontology entity create dialogs/buttons**
+  - [x] **Task 6.7e: Wire ontology entity create dialogs/buttons**
     - `ontology-service` and `api-gateway` already provide class/property/individual CRUD.
     - Wire `CreateClassDialog.vue`, `CreatePropertyDialog.vue`, and `CreateIndividualDialog.vue` submit handlers from `OntologyWorkspace` to real mutations/API calls.
     - Fix `ontology-lifecycle.spec.ts` from frontend wiring perspective; do not mark backend CRUD as missing.
 
-  - [ ] **Task 6.7f: Fix organization GUI read-after-write**
+  - [x] **Task 6.7f: Fix organization GUI read-after-write**
     - Ensure groups/projects/members created through REST API are visible in `GroupsPage`, `ProjectsPage`, and `MembersPage`.
     - Align GraphQL/REST data source, cache invalidation, search defaults, and tenant/auth scope.
     - Current full GUI first failure: `org-lifecycle.spec.ts` cannot see REST-created group `US-CreateGroup` in `.gp-row`.
 
-  - [ ] **Task 6.7g: Scope advanced document AI tests explicitly**
+  - [x] **Task 6.7g: Scope advanced document AI tests explicitly**
     - Keep scanned-PDF OCR, encrypted/password-protected document UX, advanced merged-source deduplication, and custom prompt configuration in M9 unless promoted by roadmap.
     - Existing skips for these cases must include AI-agent comments and must reference M9/post-MVP scope, not route absence.
 
