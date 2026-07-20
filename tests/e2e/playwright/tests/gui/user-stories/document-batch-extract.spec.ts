@@ -11,11 +11,10 @@ import path from 'path';
 // - Conflict resolution: different definitions for same entity → conflict UI choices
 // - Partial failure: one file fails → other files still extracted successfully
 
-// @skip — batch document upload with deduplication, conflict resolution, and partial-failure
-// handling is a POST-MVP capability.
-// Roadmap: M9 (Document AI 1.0 — POST-MVP). M2 covers single-file document extraction only.
-// Unskip when: batch upload endpoint and deduplication/conflict resolution UI are implemented.
-test.describe.skip('Document Extraction — Batch Upload', () => {
+// BatchUploader is implemented and integrated in OntologyWorkspace. Keep active
+// smoke coverage for the current UI; skip only advanced assertions that require
+// backend-grade deduplication/conflict semantics not present in the current mock flow.
+test.describe('Document Extraction — Batch Upload', () => {
   let uploadPage: DocumentUploadPage;
 
   test.beforeEach(async ({ page }) => {
@@ -24,21 +23,31 @@ test.describe.skip('Document Extraction — Batch Upload', () => {
 
   test('upload 3 files of different formats with combined preview and source attribution', async () => {
     // US-io.document.batch-extract: Multi-format batch extraction
-    await uploadPage.page.route('**/api/v1/ontologies/**/extract', async (route) => {
+    let extractCall = 0;
+    await uploadPage.page.route('**/api/v1/documents/extract', async (route) => {
       if (route.request().method() === 'POST') {
-        // Extract source filename from request to return appropriate response
+        const responses = [
+          [
+            { operation: 'CREATE_CLASS', entityId: 'Person', label: 'Person', parentId: 'owl:Thing', sourceFile: 'specification.md' },
+            { operation: 'CREATE_CLASS', entityId: 'Student', label: 'Student', parentId: 'Person', parentLabel: 'Person', sourceFile: 'specification.md' },
+          ],
+          [
+            { operation: 'CREATE_CLASS', entityId: 'Product', label: 'Product', parentId: 'owl:Thing', sourceFile: 'data.json' },
+            { operation: 'CREATE_CLASS', entityId: 'Customer', label: 'Customer', parentId: 'owl:Thing', sourceFile: 'data.json' },
+          ],
+          [
+            { operation: 'CREATE_CLASS', entityId: 'Vehicle', label: 'Vehicle', parentId: 'owl:Thing', sourceFile: 'entities.csv' },
+          ],
+        ];
+        const steps = responses[extractCall] ?? [];
+        const sourceFile = ['specification.md', 'data.json', 'entities.csv'][extractCall] ?? 'unknown';
+        extractCall++;
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
           body: JSON.stringify({
-            steps: [
-              { operation: 'CREATE_CLASS', entityId: 'Person', label: 'Person', parentId: 'owl:Thing', sourceFile: 'specification.md' },
-              { operation: 'CREATE_CLASS', entityId: 'Student', label: 'Student', parentId: 'Person', sourceFile: 'specification.md' },
-              { operation: 'CREATE_CLASS', entityId: 'Product', label: 'Product', parentId: 'owl:Thing', sourceFile: 'data.json' },
-              { operation: 'CREATE_CLASS', entityId: 'Customer', label: 'Customer', parentId: 'owl:Thing', sourceFile: 'data.json' },
-              { operation: 'CREATE_CLASS', entityId: 'Vehicle', label: 'Vehicle', parentId: 'owl:Thing', sourceFile: 'entities.csv' },
-            ],
-            sourceFile: 'batch',
+            steps,
+            sourceFile,
             warnings: [],
             batchResults: [
               { fileName: 'specification.md', status: 'success', stepCount: 2 },
@@ -52,15 +61,18 @@ test.describe.skip('Document Extraction — Batch Upload', () => {
       }
     });
 
-    await uploadPage.page.route('**/api/v1/ontologies/**/apply', async (route) => {
+    await uploadPage.page.route('**/api/v1/documents/apply', async (route) => {
       if (route.request().method() === 'POST') {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
           body: JSON.stringify({
+            success: true,
             commitId: 'batch-commit-001',
+            commitUrl: '/commits/batch-commit-001',
             message: 'Batch extract from 3 files',
             branchId: 'main',
+            appliedCount: 5,
             entityCount: 5,
           }),
         });
@@ -71,9 +83,9 @@ test.describe.skip('Document Extraction — Batch Upload', () => {
 
     await uploadPage.openDocumentUpload('TestOntology');
     await uploadPage.uploadMultipleFiles([
-      path.resolve(__dirname, '../../fixtures/m2/specification.md'),
-      path.resolve(__dirname, '../../fixtures/m2/data.json'),
-      path.resolve(__dirname, '../../fixtures/m2/entities.csv'),
+      path.resolve(__dirname, '../../../fixtures/specification.md'),
+      path.resolve(__dirname, '../../../fixtures/data.json'),
+      path.resolve(__dirname, '../../../fixtures/entities.csv'),
     ]);
 
     const steps = await uploadPage.getPreviewSequence();
@@ -91,9 +103,13 @@ test.describe.skip('Document Extraction — Batch Upload', () => {
     expect(productSource?.toLowerCase()).toContain('data.json');
   });
 
-  test('deduplication: same class from multiple files shown once with combined sources', async () => {
-    // US-io.document.batch-extract: Deduplication
-    await uploadPage.page.route('**/api/v1/ontologies/**/extract', async (route) => {
+  test.skip('deduplication: same class from multiple files shown once with combined sources', async () => {
+    // AI-agent note: M2/M4 currently provide batch upload and duplicate marking, but
+    // `useBatchUpload.mergeSteps()` keeps duplicate rows with `isDuplicate` instead
+    // of merging them into one row with combined source attribution. Implement this
+    // when product semantics for cross-document deduplication are added (likely M5/M9),
+    // then unskip and assert the merged-source UI.
+    await uploadPage.page.route('**/api/v1/documents/extract', async (route) => {
       if (route.request().method() === 'POST') {
         await route.fulfill({
           status: 200,
@@ -120,8 +136,8 @@ test.describe.skip('Document Extraction — Batch Upload', () => {
 
     await uploadPage.openDocumentUpload('TestOntology');
     await uploadPage.uploadMultipleFiles([
-      path.resolve(__dirname, '../../fixtures/m2/specification.md'),
-      path.resolve(__dirname, '../../fixtures/m2/requirements.txt'),
+      path.resolve(__dirname, '../../../fixtures/specification.md'),
+      path.resolve(__dirname, '../../../fixtures/requirements.txt'),
     ]);
 
     // Verify deduplication warning
@@ -135,34 +151,46 @@ test.describe.skip('Document Extraction — Batch Upload', () => {
     expect(personCount).toBe(1);
   });
 
-  test('conflict resolution: different definitions trigger conflict UI with resolution choices', async () => {
-    // US-io.document.batch-extract: Conflict resolution
-    await uploadPage.page.route('**/api/v1/ontologies/**/extract', async (route) => {
+  test('conflict resolution: different labels trigger conflict UI with resolution choices', async () => {
+    // US-io.document.batch-extract: current BatchUploader detects label conflicts
+    let extractCall = 0;
+    await uploadPage.page.route('**/api/v1/documents/extract', async (route) => {
+      if (route.request().method() === 'POST') {
+        const responses = [
+          [{ id: 'person-a', operation: 'CREATE_CLASS', entityId: 'Person', label: 'Person', parentId: 'owl:Thing', sourceFile: 'specification.md' }],
+          [{ id: 'person-b', operation: 'CREATE_CLASS', entityId: 'Person', label: 'Human', parentId: 'owl:Thing', sourceFile: 'requirements.txt' }],
+        ];
+        const sourceFile = ['specification.md', 'requirements.txt'][extractCall] ?? 'unknown';
+        const steps = responses[extractCall] ?? [];
+        extractCall++;
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            id: `preview-${sourceFile}`,
+            ontologyId: 'TestOntology',
+            steps,
+            sourceFile,
+            totalSteps: steps.length,
+            createdAt: new Date().toISOString(),
+          }),
+        });
+      } else {
+        await route.continue();
+      }
+    });
+
+    await uploadPage.page.route('**/api/v1/documents/apply', async (route) => {
       if (route.request().method() === 'POST') {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
           body: JSON.stringify({
-            steps: [
-              { operation: 'CREATE_CLASS', entityId: 'Person', label: 'Person', parentId: 'owl:Thing', sourceFile: 'specification.md' },
-            ],
-            sourceFile: 'batch',
-            warnings: [],
-            conflicts: [
-              {
-                entityId: 'Person',
-                label: 'Person',
-                definitions: [
-                  { parentId: 'owl:Thing', sourceFile: 'specification.md' },
-                  { parentId: 'owl:Top', sourceFile: 'requirements.txt' },
-                ],
-                type: 'PARENT_MISMATCH',
-              },
-            ],
-            batchResults: [
-              { fileName: 'specification.md', status: 'success', stepCount: 1 },
-              { fileName: 'requirements.txt', status: 'conflict', stepCount: 0 },
-            ],
+            success: true,
+            commitId: 'conflict-commit-001',
+            commitUrl: '/commits/conflict-commit-001',
+            appliedCount: 2,
+            timestamp: new Date().toISOString(),
           }),
         });
       } else {
@@ -172,8 +200,8 @@ test.describe.skip('Document Extraction — Batch Upload', () => {
 
     await uploadPage.openDocumentUpload('TestOntology');
     await uploadPage.uploadMultipleFiles([
-      path.resolve(__dirname, '../../fixtures/m2/specification.md'),
-      path.resolve(__dirname, '../../fixtures/m2/requirements.txt'),
+      path.resolve(__dirname, '../../../fixtures/specification.md'),
+      path.resolve(__dirname, '../../../fixtures/requirements.txt'),
     ]);
 
     // Verify conflicts are displayed
@@ -191,23 +219,38 @@ test.describe.skip('Document Extraction — Batch Upload', () => {
 
   test('partial failure: one file fails while others are still extracted successfully', async () => {
     // US-io.document.batch-extract: Partial failure handling
-    await uploadPage.page.route('**/api/v1/ontologies/**/extract', async (route) => {
+    let extractCall = 0;
+    await uploadPage.page.route('**/api/v1/documents/extract', async (route) => {
       if (route.request().method() === 'POST') {
+        const sourceFile = ['specification.md', 'data.json', 'entities.csv'][extractCall] ?? 'unknown';
+        extractCall++;
+
+        if (sourceFile === 'data.json') {
+          await route.fulfill({
+            status: 422,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              code: 'UNSUPPORTED_SCHEMA_VERSION',
+              message: 'Unsupported schema version',
+            }),
+          });
+          return;
+        }
+
+        const steps = sourceFile === 'specification.md'
+          ? [{ id: 'person-step', operation: 'CREATE_CLASS', entityId: 'Person', label: 'Person', parentId: 'owl:Thing', sourceFile }]
+          : [{ id: 'vehicle-step', operation: 'CREATE_CLASS', entityId: 'Vehicle', label: 'Vehicle', parentId: 'owl:Thing', sourceFile }];
+
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
           body: JSON.stringify({
-            steps: [
-              { operation: 'CREATE_CLASS', entityId: 'Person', label: 'Person', parentId: 'owl:Thing', sourceFile: 'specification.md' },
-              { operation: 'CREATE_CLASS', entityId: 'Vehicle', label: 'Vehicle', parentId: 'owl:Thing', sourceFile: 'entities.csv' },
-            ],
-            sourceFile: 'batch',
-            warnings: ['data.json failed to parse: unsupported schema version'],
-            batchResults: [
-              { fileName: 'specification.md', status: 'success', stepCount: 1 },
-              { fileName: 'data.json', status: 'failed', error: 'Unsupported schema version' },
-              { fileName: 'entities.csv', status: 'success', stepCount: 1 },
-            ],
+            id: `preview-${sourceFile}`,
+            ontologyId: 'TestOntology',
+            steps,
+            sourceFile,
+            totalSteps: steps.length,
+            createdAt: new Date().toISOString(),
           }),
         });
       } else {
@@ -217,9 +260,9 @@ test.describe.skip('Document Extraction — Batch Upload', () => {
 
     await uploadPage.openDocumentUpload('TestOntology');
     await uploadPage.uploadMultipleFiles([
-      path.resolve(__dirname, '../../fixtures/m2/specification.md'),
-      path.resolve(__dirname, '../../fixtures/m2/data.json'),
-      path.resolve(__dirname, '../../fixtures/m2/entities.csv'),
+      path.resolve(__dirname, '../../../fixtures/specification.md'),
+      path.resolve(__dirname, '../../../fixtures/data.json'),
+      path.resolve(__dirname, '../../../fixtures/entities.csv'),
     ]);
 
     // Verify successful steps are present

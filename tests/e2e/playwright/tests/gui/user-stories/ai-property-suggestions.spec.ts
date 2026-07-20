@@ -10,10 +10,12 @@ import { DocumentUploadPage } from '../../../pages/document-upload.page';
 // - Accept a property suggestion → verify property created with domain/range
 // - Verify datatype vs object property distinction in suggestions
 
-// @skip — AI-assisted property suggestions (domain/range hints) depends on the
-// ai-orchestration-service LLM integration.
-// Roadmap: M9 (Document AI 1.0 — POST-MVP).
-// Unskip when: AI property suggestion endpoint and suggestion UI panel are implemented.
+// @skip — backend/API for AI-assisted property completion exists from M2 planning and
+// ai-orchestration-service, but the current frontend workspace has no visible
+// property-suggestion entry point/panel (no `ai-suggestion-item`, domain/range hint UI,
+// or “suggest properties” control found in `src/services/frontend/src`).
+// AI-agent note: do not mark this as backend-missing. Wire the existing
+// ai-orchestration completion API into OntologyWorkspace/Class detail UI, then unskip.
 test.describe.skip('AI-Assisted Property Suggestions', () => {
   let uploadPage: DocumentUploadPage;
 

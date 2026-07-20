@@ -17,14 +17,14 @@ test.describe('Document Extraction — Structured Data', () => {
   const MOCK_JSON_SEQUENCE = {
     steps: [
       { operation: 'CREATE_CLASS', entityId: 'Product', label: 'Product', parentId: 'owl:Thing' },
-      { operation: 'CREATE_CLASS', entityId: 'Book', label: 'Book', parentId: 'Product' },
-      { operation: 'CREATE_CLASS', entityId: 'Electronics', label: 'Electronics', parentId: 'Product' },
+      { operation: 'CREATE_CLASS', entityId: 'Book', label: 'Book', parentId: 'Product', parentLabel: 'Product' },
+      { operation: 'CREATE_CLASS', entityId: 'Electronics', label: 'Electronics', parentId: 'Product', parentLabel: 'Product' },
       { operation: 'CREATE_CLASS', entityId: 'Customer', label: 'Customer', parentId: 'owl:Thing' },
       { operation: 'CREATE_CLASS', entityId: 'Order', label: 'Order', parentId: 'owl:Thing' },
-      { operation: 'CREATE_OBJECT_PROPERTY', entityId: 'purchases', label: 'purchases', domainId: 'Customer', rangeId: 'Product' },
-      { operation: 'CREATE_OBJECT_PROPERTY', entityId: 'contains', label: 'contains', domainId: 'Order', rangeId: 'Product' },
-      { operation: 'CREATE_DATATYPE_PROPERTY', entityId: 'price', label: 'price', domainId: 'Product', rangeId: 'decimal' },
-      { operation: 'CREATE_DATATYPE_PROPERTY', entityId: 'quantity', label: 'quantity', domainId: 'Order', rangeId: 'integer' },
+      { operation: 'CREATE_OBJECT_PROPERTY', entityId: 'purchases', label: 'purchases', domain: 'Customer', range: 'Product' },
+      { operation: 'CREATE_OBJECT_PROPERTY', entityId: 'contains', label: 'contains', domain: 'Order', range: 'Product' },
+      { operation: 'CREATE_DATATYPE_PROPERTY', entityId: 'price', label: 'price', domain: 'Product', range: 'decimal' },
+      { operation: 'CREATE_DATATYPE_PROPERTY', entityId: 'quantity', label: 'quantity', domain: 'Order', range: 'integer' },
     ],
     sourceFile: 'data.json',
     warnings: [],
@@ -34,7 +34,7 @@ test.describe('Document Extraction — Structured Data', () => {
     uploadPage = new DocumentUploadPage(page);
 
     // Default mock for extraction - overridden per test
-    await page.route('**/api/v1/ontologies/**/extract', async (route) => {
+    await page.route('**/api/v1/documents/extract', async (route) => {
       if (route.request().method() === 'POST') {
         await route.fulfill({
           status: 200,
@@ -50,7 +50,7 @@ test.describe('Document Extraction — Structured Data', () => {
       }
     });
 
-    await page.route('**/api/v1/ontologies/**/apply', async (route) => {
+    await page.route('**/api/v1/documents/apply', async (route) => {
       if (route.request().method() === 'POST') {
         await route.fulfill({
           status: 200,
@@ -70,8 +70,8 @@ test.describe('Document Extraction — Structured Data', () => {
 
   test('upload XLSX with Class/Parent/Property columns and verify column mapping', async () => {
     // US-io.document.extract-structured: XLSX column mapping
-    await uploadPage.page.unroute('**/api/v1/ontologies/**/extract');
-    await uploadPage.page.route('**/api/v1/ontologies/**/extract', async (route) => {
+    await uploadPage.page.unroute('**/api/v1/documents/extract');
+    await uploadPage.page.route('**/api/v1/documents/extract', async (route) => {
       if (route.request().method() === 'POST') {
         await route.fulfill({
           status: 200,
@@ -79,10 +79,10 @@ test.describe('Document Extraction — Structured Data', () => {
           body: JSON.stringify({
             steps: [
               { operation: 'CREATE_CLASS', entityId: 'Vehicle', label: 'Vehicle', parentId: 'owl:Thing' },
-              { operation: 'CREATE_CLASS', entityId: 'Car', label: 'Car', parentId: 'Vehicle' },
-              { operation: 'CREATE_CLASS', entityId: 'Truck', label: 'Truck', parentId: 'Vehicle' },
-              { operation: 'CREATE_DATATYPE_PROPERTY', entityId: 'hasSpeed', label: 'hasSpeed', domainId: 'Vehicle', rangeId: 'decimal' },
-              { operation: 'CREATE_DATATYPE_PROPERTY', entityId: 'hasCapacity', label: 'hasCapacity', domainId: 'Vehicle', rangeId: 'integer' },
+              { operation: 'CREATE_CLASS', entityId: 'Car', label: 'Car', parentId: 'Vehicle', parentLabel: 'Vehicle' },
+              { operation: 'CREATE_CLASS', entityId: 'Truck', label: 'Truck', parentId: 'Vehicle', parentLabel: 'Vehicle' },
+              { operation: 'CREATE_DATATYPE_PROPERTY', entityId: 'hasSpeed', label: 'hasSpeed', domain: 'Vehicle', range: 'decimal' },
+              { operation: 'CREATE_DATATYPE_PROPERTY', entityId: 'hasCapacity', label: 'hasCapacity', domain: 'Vehicle', range: 'integer' },
             ],
             sourceFile: 'classes.xlsx',
             warnings: [],
@@ -101,7 +101,7 @@ test.describe('Document Extraction — Structured Data', () => {
     });
 
     await uploadPage.openDocumentUpload('TestOntology');
-    await uploadPage.uploadFile(path.resolve(__dirname, '../../fixtures/m2/classes.xlsx'));
+    await uploadPage.uploadFile(path.resolve(__dirname, '../../../fixtures/classes.xlsx'));
 
     const steps = await uploadPage.getPreviewSequence();
     expect(steps.length).toBe(5);
@@ -119,8 +119,8 @@ test.describe('Document Extraction — Structured Data', () => {
 
   test('upload JSON with nested objects and verify hierarchy', async () => {
     // US-io.document.extract-structured: JSON nested objects → hierarchy
-    await uploadPage.page.unroute('**/api/v1/ontologies/**/extract');
-    await uploadPage.page.route('**/api/v1/ontologies/**/extract', async (route) => {
+    await uploadPage.page.unroute('**/api/v1/documents/extract');
+    await uploadPage.page.route('**/api/v1/documents/extract', async (route) => {
       if (route.request().method() === 'POST') {
         await route.fulfill({
           status: 200,
@@ -133,7 +133,7 @@ test.describe('Document Extraction — Structured Data', () => {
     });
 
     await uploadPage.openDocumentUpload('TestOntology');
-    await uploadPage.uploadFile(path.resolve(__dirname, '../../fixtures/m2/data.json'));
+    await uploadPage.uploadFile(path.resolve(__dirname, '../../../fixtures/data.json'));
 
     const steps = await uploadPage.getPreviewSequence();
     expect(steps.length).toBe(9);
@@ -155,8 +155,8 @@ test.describe('Document Extraction — Structured Data', () => {
 
   test('upload XML with tags and attributes and verify class mapping', async () => {
     // US-io.document.extract-structured: XML tags/attributes → class mapping
-    await uploadPage.page.unroute('**/api/v1/ontologies/**/extract');
-    await uploadPage.page.route('**/api/v1/ontologies/**/extract', async (route) => {
+    await uploadPage.page.unroute('**/api/v1/documents/extract');
+    await uploadPage.page.route('**/api/v1/documents/extract', async (route) => {
       if (route.request().method() === 'POST') {
         await route.fulfill({
           status: 200,
@@ -164,13 +164,13 @@ test.describe('Document Extraction — Structured Data', () => {
           body: JSON.stringify({
             steps: [
               { operation: 'CREATE_CLASS', entityId: 'LibraryItem', label: 'LibraryItem', parentId: 'owl:Thing' },
-              { operation: 'CREATE_CLASS', entityId: 'Book', label: 'Book', parentId: 'LibraryItem' },
-              { operation: 'CREATE_CLASS', entityId: 'Magazine', label: 'Magazine', parentId: 'LibraryItem' },
+              { operation: 'CREATE_CLASS', entityId: 'Book', label: 'Book', parentId: 'LibraryItem', parentLabel: 'LibraryItem' },
+              { operation: 'CREATE_CLASS', entityId: 'Magazine', label: 'Magazine', parentId: 'LibraryItem', parentLabel: 'LibraryItem' },
               { operation: 'CREATE_CLASS', entityId: 'Author', label: 'Author', parentId: 'owl:Thing' },
               { operation: 'CREATE_CLASS', entityId: 'Member', label: 'Member', parentId: 'owl:Thing' },
-              { operation: 'CREATE_OBJECT_PROPERTY', entityId: 'writtenBy', label: 'writtenBy', domainId: 'Book', rangeId: 'Author' },
-              { operation: 'CREATE_OBJECT_PROPERTY', entityId: 'borrowedBy', label: 'borrowedBy', domainId: 'LibraryItem', rangeId: 'Member' },
-              { operation: 'CREATE_DATATYPE_PROPERTY', entityId: 'isbn', label: 'isbn', domainId: 'Book', rangeId: 'string' },
+              { operation: 'CREATE_OBJECT_PROPERTY', entityId: 'writtenBy', label: 'writtenBy', domain: 'Book', range: 'Author' },
+              { operation: 'CREATE_OBJECT_PROPERTY', entityId: 'borrowedBy', label: 'borrowedBy', domain: 'LibraryItem', range: 'Member' },
+              { operation: 'CREATE_DATATYPE_PROPERTY', entityId: 'isbn', label: 'isbn', domain: 'Book', range: 'string' },
             ],
             sourceFile: 'schema.xml',
             warnings: [],
@@ -182,7 +182,7 @@ test.describe('Document Extraction — Structured Data', () => {
     });
 
     await uploadPage.openDocumentUpload('TestOntology');
-    await uploadPage.uploadFile(path.resolve(__dirname, '../../fixtures/m2/schema.xml'));
+    await uploadPage.uploadFile(path.resolve(__dirname, '../../../fixtures/schema.xml'));
 
     const steps = await uploadPage.getPreviewSequence();
     expect(steps.length).toBe(8);
@@ -196,8 +196,8 @@ test.describe('Document Extraction — Structured Data', () => {
 
   test('upload CSV with delimiter detection and verify parsing', async () => {
     // US-io.document.extract-structured: CSV with delimiter detection
-    await uploadPage.page.unroute('**/api/v1/ontologies/**/extract');
-    await uploadPage.page.route('**/api/v1/ontologies/**/extract', async (route) => {
+    await uploadPage.page.unroute('**/api/v1/documents/extract');
+    await uploadPage.page.route('**/api/v1/documents/extract', async (route) => {
       if (route.request().method() === 'POST') {
         await route.fulfill({
           status: 200,
@@ -205,11 +205,11 @@ test.describe('Document Extraction — Structured Data', () => {
           body: JSON.stringify({
             steps: [
               { operation: 'CREATE_CLASS', entityId: 'Vehicle', label: 'Vehicle', parentId: 'owl:Thing' },
-              { operation: 'CREATE_CLASS', entityId: 'Car', label: 'Car', parentId: 'Vehicle' },
-              { operation: 'CREATE_CLASS', entityId: 'Motorcycle', label: 'Motorcycle', parentId: 'Vehicle' },
-              { operation: 'CREATE_DATATYPE_PROPERTY', entityId: 'hasSpeed', label: 'hasSpeed', domainId: 'Vehicle', rangeId: 'decimal' },
-              { operation: 'CREATE_DATATYPE_PROPERTY', entityId: 'hasColor', label: 'hasColor', domainId: 'Vehicle', rangeId: 'string' },
-              { operation: 'CREATE_OBJECT_PROPERTY', entityId: 'drives', label: 'drives', domainId: 'Person', rangeId: 'Vehicle' },
+              { operation: 'CREATE_CLASS', entityId: 'Car', label: 'Car', parentId: 'Vehicle', parentLabel: 'Vehicle' },
+              { operation: 'CREATE_CLASS', entityId: 'Motorcycle', label: 'Motorcycle', parentId: 'Vehicle', parentLabel: 'Vehicle' },
+              { operation: 'CREATE_DATATYPE_PROPERTY', entityId: 'hasSpeed', label: 'hasSpeed', domain: 'Vehicle', range: 'decimal' },
+              { operation: 'CREATE_DATATYPE_PROPERTY', entityId: 'hasColor', label: 'hasColor', domain: 'Vehicle', range: 'string' },
+              { operation: 'CREATE_OBJECT_PROPERTY', entityId: 'drives', label: 'drives', domain: 'Person', range: 'Vehicle' },
             ],
             sourceFile: 'entities.csv',
             warnings: [],
@@ -222,7 +222,7 @@ test.describe('Document Extraction — Structured Data', () => {
     });
 
     await uploadPage.openDocumentUpload('TestOntology');
-    await uploadPage.uploadFile(path.resolve(__dirname, '../../fixtures/m2/entities.csv'));
+    await uploadPage.uploadFile(path.resolve(__dirname, '../../../fixtures/entities.csv'));
 
     const steps = await uploadPage.getPreviewSequence();
     expect(steps.length).toBe(6);

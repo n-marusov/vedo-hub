@@ -17,18 +17,18 @@ test.describe('Document Extraction — Preview and Apply', () => {
   let uploadPage: DocumentUploadPage;
 
   const MOCK_STEPS = [
-    { operation: 'CREATE_CLASS', entityId: 'Person', label: 'Person', parentId: 'owl:Thing', sourceFile: 'test.md' },
-    { operation: 'CREATE_CLASS', entityId: 'Student', label: 'Student', parentId: 'Person', sourceFile: 'test.md' },
-    { operation: 'CREATE_CLASS', entityId: 'Professor', label: 'Professor', parentId: 'Person', sourceFile: 'test.md' },
-    { operation: 'CREATE_CLASS', entityId: 'Course', label: 'Course', parentId: 'owl:Thing', sourceFile: 'test.md' },
-    { operation: 'CREATE_OBJECT_PROPERTY', entityId: 'teaches', label: 'teaches', domainId: 'Professor', rangeId: 'Course', sourceFile: 'test.md' },
-    { operation: 'CREATE_DATATYPE_PROPERTY', entityId: 'name', label: 'name', domainId: 'Person', rangeId: 'string', sourceFile: 'test.md' },
+    { id: 'step-person', operation: 'CREATE_CLASS', entityId: 'Person', label: 'Person', parentId: 'owl:Thing', sourceFile: 'test.md' },
+    { id: 'step-student', operation: 'CREATE_CLASS', entityId: 'Student', label: 'Student', parentId: 'Person', sourceFile: 'test.md' },
+    { id: 'step-professor', operation: 'CREATE_CLASS', entityId: 'Professor', label: 'Professor', parentId: 'Person', sourceFile: 'test.md' },
+    { id: 'step-course', operation: 'CREATE_CLASS', entityId: 'Course', label: 'Course', parentId: 'owl:Thing', sourceFile: 'test.md' },
+    { id: 'step-teaches', operation: 'CREATE_OBJECT_PROPERTY', entityId: 'teaches', label: 'teaches', domainId: 'Professor', rangeId: 'Course', sourceFile: 'test.md' },
+    { id: 'step-name', operation: 'CREATE_DATATYPE_PROPERTY', entityId: 'name', label: 'name', domainId: 'Person', rangeId: 'string', sourceFile: 'test.md' },
   ];
 
   test.beforeEach(async ({ page }) => {
     uploadPage = new DocumentUploadPage(page);
 
-    await page.route('**/api/v1/ontologies/**/extract', async (route) => {
+    await page.route('**/api/v1/documents/extract', async (route) => {
       if (route.request().method() === 'POST') {
         await route.fulfill({
           status: 200,
@@ -48,7 +48,7 @@ test.describe('Document Extraction — Preview and Apply', () => {
   test('toggle step inclusion excludes steps from count', async () => {
     // US-io.document.preview-sequence: Toggle step inclusion
     await uploadPage.openDocumentUpload('TestOntology');
-    await uploadPage.uploadFile(path.resolve(__dirname, '../../fixtures/m2/specification.md'));
+    await uploadPage.uploadFile(path.resolve(__dirname, '../../../fixtures/specification.md'));
 
     let initialCount = await uploadPage.getStepCount();
     expect(initialCount).toBe(6);
@@ -67,7 +67,7 @@ test.describe('Document Extraction — Preview and Apply', () => {
   test('inline label editing updates label in preview', async () => {
     // US-io.document.preview-sequence: Inline label editing
     await uploadPage.openDocumentUpload('TestOntology');
-    await uploadPage.uploadFile(path.resolve(__dirname, '../../fixtures/m2/specification.md'));
+    await uploadPage.uploadFile(path.resolve(__dirname, '../../../fixtures/specification.md'));
 
     // Edit label of the first step
     await uploadPage.editStepLabel(0, 'Human');
@@ -79,8 +79,8 @@ test.describe('Document Extraction — Preview and Apply', () => {
 
   test('duplicate detection shows warning for entities with same label', async () => {
     // US-io.document.preview-sequence: Duplicate detection
-    await uploadPage.page.unroute('**/api/v1/ontologies/**/extract');
-    await uploadPage.page.route('**/api/v1/ontologies/**/extract', async (route) => {
+    await uploadPage.page.unroute('**/api/v1/documents/extract');
+    await uploadPage.page.route('**/api/v1/documents/extract', async (route) => {
       if (route.request().method() === 'POST') {
         await route.fulfill({
           status: 200,
@@ -88,7 +88,7 @@ test.describe('Document Extraction — Preview and Apply', () => {
           body: JSON.stringify({
             steps: [
               ...MOCK_STEPS,
-              { operation: 'CREATE_CLASS', entityId: 'Person', label: 'Person', parentId: 'owl:Thing', sourceFile: 'test.md', skipIfExists: true },
+              { id: 'step-person-duplicate', operation: 'CREATE_CLASS', entityId: 'PersonDuplicate', label: 'Person', parentId: 'owl:Thing', sourceFile: 'test.md', isDuplicate: true, duplicateOf: 'Person' },
             ],
             sourceFile: 'test.md',
             warnings: ['Duplicate entity Person — will be skipped on apply'],
@@ -100,7 +100,7 @@ test.describe('Document Extraction — Preview and Apply', () => {
     });
 
     await uploadPage.openDocumentUpload('TestOntology');
-    await uploadPage.uploadFile(path.resolve(__dirname, '../../fixtures/m2/specification.md'));
+    await uploadPage.uploadFile(path.resolve(__dirname, '../../../fixtures/specification.md'));
 
     // Verify duplicate warning is displayed
     const warning = await uploadPage.getDuplicateWarning();
@@ -110,16 +110,19 @@ test.describe('Document Extraction — Preview and Apply', () => {
 
   test('apply sequence shows progress indicator advancing to 100%', async () => {
     // US-io.document.preview-sequence: Apply with progress
-    await uploadPage.page.route('**/api/v1/ontologies/**/apply', async (route) => {
+    await uploadPage.page.route('**/api/v1/documents/apply', async (route) => {
       if (route.request().method() === 'POST') {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
           body: JSON.stringify({
+            success: true,
             commitId: 'preview-commit-001',
+            commitUrl: '/commits/preview-commit-001',
             message: 'Applied ontology from preview',
             branchId: 'main',
             timestamp: new Date().toISOString(),
+            appliedCount: 6,
             entityCount: 6,
           }),
         });
@@ -129,7 +132,7 @@ test.describe('Document Extraction — Preview and Apply', () => {
     });
 
     await uploadPage.openDocumentUpload('TestOntology');
-    await uploadPage.uploadFile(path.resolve(__dirname, '../../fixtures/m2/specification.md'));
+    await uploadPage.uploadFile(path.resolve(__dirname, '../../../fixtures/specification.md'));
 
     await uploadPage.applySequence();
 
@@ -144,16 +147,19 @@ test.describe('Document Extraction — Preview and Apply', () => {
 
   test('success state shows commit link after apply completes', async () => {
     // US-io.document.preview-sequence: Commit link display
-    await uploadPage.page.route('**/api/v1/ontologies/**/apply', async (route) => {
+    await uploadPage.page.route('**/api/v1/documents/apply', async (route) => {
       if (route.request().method() === 'POST') {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
           body: JSON.stringify({
+            success: true,
             commitId: 'abc123def456',
+            commitUrl: '/commits/abc123def456',
             message: 'Applied ontology from preview',
             branchId: 'main',
             timestamp: new Date().toISOString(),
+            appliedCount: 6,
             entityCount: 6,
           }),
         });
@@ -163,7 +169,7 @@ test.describe('Document Extraction — Preview and Apply', () => {
     });
 
     await uploadPage.openDocumentUpload('TestOntology');
-    await uploadPage.uploadFile(path.resolve(__dirname, '../../fixtures/m2/specification.md'));
+    await uploadPage.uploadFile(path.resolve(__dirname, '../../../fixtures/specification.md'));
 
     await uploadPage.applySequence();
 
@@ -180,7 +186,7 @@ test.describe('Document Extraction — Preview and Apply', () => {
     // First call fails, second succeeds
     let callCount = 0;
 
-    await uploadPage.page.route('**/api/v1/ontologies/**/apply', async (route) => {
+    await uploadPage.page.route('**/api/v1/documents/apply', async (route) => {
       if (route.request().method() === 'POST') {
         callCount++;
         if (callCount === 1) {
@@ -197,9 +203,12 @@ test.describe('Document Extraction — Preview and Apply', () => {
             status: 200,
             contentType: 'application/json',
             body: JSON.stringify({
+              success: true,
               commitId: 'retry-commit-001',
+              commitUrl: '/commits/retry-commit-001',
               message: 'Applied ontology after retry',
               branchId: 'main',
+              appliedCount: 6,
               entityCount: 6,
             }),
           });
@@ -210,7 +219,7 @@ test.describe('Document Extraction — Preview and Apply', () => {
     });
 
     await uploadPage.openDocumentUpload('TestOntology');
-    await uploadPage.uploadFile(path.resolve(__dirname, '../../fixtures/m2/specification.md'));
+    await uploadPage.uploadFile(path.resolve(__dirname, '../../../fixtures/specification.md'));
 
     await uploadPage.applySequence();
 

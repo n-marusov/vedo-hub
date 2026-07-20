@@ -42,6 +42,7 @@
           ref="editInputRef"
           :value="editValue"
           class="preview-row__edit-input"
+          @input="editValue = ($event.target as HTMLInputElement).value"
           @keyup.enter="saveEdit"
           @keyup.escape="cancelEdit"
           @blur="saveEdit"
@@ -85,86 +86,90 @@
 </template>
 
 <script setup lang="ts">
-import { Pencil } from 'lucide-vue-next'
-import { computed, nextTick, ref } from 'vue'
-import type { OperationType, SequenceStep } from '../../types/extraction'
+import { Pencil } from "lucide-vue-next";
+import { computed, nextTick, ref } from "vue";
+import type { OperationType, SequenceStep } from "../../types/extraction";
 
 const props = defineProps<{
-  step: SequenceStep
-  showSource?: boolean
-}>()
+	step: SequenceStep;
+	showSource?: boolean;
+}>();
 
 const emit = defineEmits<{
-  'toggle-include': [stepId: string]
-  'update-label': [stepId: string, label: string]
-}>()
+	"toggle-include": [stepId: string];
+	"update-label": [stepId: string, label: string];
+}>();
 
 // ── Inline editing ─────────────────────────────────────────────────────────
 
-const editing = ref(false)
-const editValue = ref('')
-const editInputRef = ref<HTMLInputElement | null>(null)
-const checkboxId = computed(() => `step-toggle-${props.step.id}`)
+const editing = ref(false);
+const editValue = ref("");
+const editInputRef = ref<HTMLInputElement | null>(null);
+const checkboxId = computed(() => `step-toggle-${props.step.id}`);
 
 function startEdit() {
-  if (!props.step.included) return
-  editValue.value = props.step.label
-  editing.value = true
-  nextTick(() => {
-    editInputRef.value?.focus()
-    editInputRef.value?.select()
-  })
+	if (!props.step.included) return;
+	editValue.value = props.step.label;
+	editing.value = true;
+	nextTick(() => {
+		editInputRef.value?.focus();
+		editInputRef.value?.select();
+	});
 }
 
 function saveEdit() {
-  if (!editing.value) return
-  editing.value = false
-  const trimmed = editValue.value.trim()
-  if (trimmed && trimmed !== props.step.label) {
-    console.debug('[SequencePreviewRow] label updated', {
-      stepId: props.step.id,
-      oldLabel: props.step.label,
-      newLabel: trimmed
-    })
-    emit('update-label', props.step.id, trimmed)
-  }
+	if (!editing.value) return;
+	editing.value = false;
+	const trimmed = editValue.value.trim();
+	if (trimmed && trimmed !== props.step.label) {
+		console.debug("[SequencePreviewRow] label updated", {
+			stepId: props.step.id,
+			oldLabel: props.step.label,
+			newLabel: trimmed,
+		});
+		emit("update-label", props.step.id, trimmed);
+	}
 }
 
 function cancelEdit() {
-  editing.value = false
-  editValue.value = ''
+	editing.value = false;
+	editValue.value = "";
 }
 
 function toggleInclude() {
-  console.debug('[SequencePreviewRow] toggle include', {
-    stepId: props.step.id,
-    included: !props.step.included
-  })
-  emit('toggle-include', props.step.id)
+	console.debug("[SequencePreviewRow] toggle include", {
+		stepId: props.step.id,
+		included: !props.step.included,
+	});
+	emit("toggle-include", props.step.id);
 }
 
 // ── Display helpers ─────────────────────────────────────────────────────────
 
 const operationLabels: Record<OperationType, string> = {
-  CREATE_CLASS: 'Class',
-  CREATE_PROPERTY: 'Property',
-  CREATE_INDIVIDUAL: 'Individual',
-  UPDATE_LABEL: 'Update',
-  UPDATE_COMMENT: 'Comment',
-  DELETE: 'Delete'
-}
+	CREATE_CLASS: "Class",
+	CREATE_PROPERTY: "Property",
+	CREATE_INDIVIDUAL: "Individual",
+	UPDATE_LABEL: "Update",
+	UPDATE_COMMENT: "Comment",
+	DELETE: "Delete",
+};
 
 const operationColors: Record<OperationType, string> = {
-  CREATE_CLASS: 'class',
-  CREATE_PROPERTY: 'property',
-  CREATE_INDIVIDUAL: 'individual',
-  UPDATE_LABEL: 'update',
-  UPDATE_COMMENT: 'update',
-  DELETE: 'delete'
-}
+	CREATE_CLASS: "class",
+	CREATE_PROPERTY: "property",
+	CREATE_INDIVIDUAL: "individual",
+	UPDATE_LABEL: "update",
+	UPDATE_COMMENT: "update",
+	DELETE: "delete",
+};
 
-const operationLabel = computed(() => operationLabels[props.step.operation] || props.step.operation)
-const operationColor = computed(() => operationColors[props.step.operation] || 'default')
+const operationLabel = computed(
+	() => operationLabels[props.step.operation] || props.step.operation,
+);
+const operationColor = computed(
+	() => operationColors[props.step.operation] || "default",
+);
 </script>
 
 <style scoped>

@@ -1,10 +1,32 @@
-import { type Page, type Locator } from '@playwright/test';
+import { type Page } from '@playwright/test';
+import { OWNER_JWT } from '../tests/jwt-tokens';
 
 // Page Object Model for Document Extraction and AI Ontology Creation
 // Covers: US-io.document.extract-*, US-io.document.batch-extract, US-io.document.preview-sequence
 
 export class DocumentUploadPage {
   constructor(public readonly page: Page) {}
+
+  async setupExtractionMocks() {
+    // Kept for backward compatibility with older tests; current user-story specs
+    // install their own Playwright route mocks for /api/v1/documents/*.
+  }
+
+  async setupBrowserAuth() {
+    const session = {
+      accessToken: OWNER_JWT,
+      refreshToken: OWNER_JWT,
+      userId: 'user-123',
+      tenantId: 'org-001',
+      roles: ['Owner'],
+      expiresAt: Date.now() + 86_400_000,
+    };
+
+    await this.page.addInitScript(({ sessionJson, token }) => {
+      sessionStorage.setItem('vedo_session', sessionJson);
+      localStorage.setItem('vedo-jwt-token', token);
+    }, { sessionJson: JSON.stringify(session), token: OWNER_JWT });
+  }
 
   // ─── Navigation ───────────────────────────────────────────────────
 
@@ -13,7 +35,10 @@ export class DocumentUploadPage {
   }
 
   async openDocumentUpload(ontologyName: string) {
-    await this.page.goto(`/ontology/${ontologyName}/upload`);
+    await this.setupBrowserAuth();
+    await this.page.goto(`/ontology/${ontologyName}/workspace`);
+    await this.page.getByRole('button', { name: /ai import/i }).click();
+    await this.page.getByRole('region', { name: /document upload zone|batch document upload/i }).waitFor({ state: 'visible' });
   }
 
   // ─── File Upload ──────────────────────────────────────────────────
@@ -25,7 +50,7 @@ export class DocumentUploadPage {
     await fileChooser.setFiles([filePath]);
     // Wait for upload processing to complete
     await this.page.waitForResponse((resp) =>
-      resp.url().includes('/api/v1/ontologies/') && resp.url().includes('/extract') && resp.status() === 200,
+      resp.url().includes('/api/v1/documents/extract') && resp.status() === 200,
       { timeout: 15_000 }
     ).catch(() => {
       // Mock route handles this through fulfilled responses
@@ -33,53 +58,62 @@ export class DocumentUploadPage {
   }
 
   async uploadMultipleFiles(filePaths: string[]) {
+    await this.page.getByRole('button', { name: /batch upload/i }).click();
     const fileChooserPromise = this.page.waitForEvent('filechooser');
-    await this.page.getByRole('button', { name: /upload documents|upload files/i }).click();
+    await this.page.getByRole('region', { name: /batch document upload/i }).getByRole('button', { name: /browse/i }).click();
     const fileChooser = await fileChooserPromise;
     await fileChooser.setFiles(filePaths);
-    await this.page.waitForTimeout(2000);
+    await this.page.locator('.batch-uploader__upload-btn').click();
+    await this.page.waitForSelector('.preview-row', { timeout: 15_000 }).catch(() => {});
   }
 
   // ─── Preview Sequence ─────────────────────────────────────────────
 
   async getPreviewSequence(): Promise<string[]> {
-    return this.page.locator('.sequence-step-item').allTextContents();
+    return this.page.locator('.preview-row').allTextContents();
   }
 
   async getStepLabels(): Promise<string[]> {
-    return this.page.locator('.sequence-step-label').allTextContents();
+    return this.page.locator('.preview-row__label-text').allTextContents();
   }
 
   async getStepCount(): Promise<number> {
-    return this.page.locator('.sequence-step-item').count();
+    return this.page.locator('.preview-row').count();
   }
 
   async editStepLabel(index: number, newLabel: string) {
-    const step = this.page.locator('.sequence-step-item').nth(index);
-    await step.locator('.step-label-edit').click();
-    await step.locator('.step-label-input').fill(newLabel);
-    await step.locator('.step-label-save').click();
+    const step = this.page.locator('.preview-row').nth(index);
+    await step.locator('.preview-row__label-text').click();
+    const input = step.locator('.preview-row__edit-input');
+    await input.waitFor({ state: 'visible' });
+    await input.fill(newLabel);
+    await input.press('Enter');
+    await step.locator('.preview-row__label-text').filter({ hasText: newLabel }).waitFor({ state: 'visible' });
   }
 
   async toggleStep(index: number) {
-    await this.page.locator('.sequence-step-item').nth(index)
-      .locator('.step-toggle-checkbox').click();
+    await this.page.locator('.preview-row').nth(index)
+      .locator('.preview-row__toggle-input').check({ force: true });
   }
 
   async toggleStepInclusion(index: number, include: boolean) {
-    const checkbox = this.page.locator('.sequence-step-item').nth(index)
-      .locator('.step-toggle-checkbox');
+    const checkbox = this.page.locator('.preview-row').nth(index)
+      .locator('.preview-row__toggle-input');
     const isChecked = await checkbox.isChecked();
     if ((include && !isChecked) || (!include && isChecked)) {
-      await checkbox.click();
+      await checkbox.evaluate((element) => (element as HTMLInputElement).click());
     }
   }
 
   async getStepWarning(index: number): Promise<string | null> {
-    const warning = this.page.locator('.sequence-step-item').nth(index)
-      .locator('.step-warning');
-    if (await warning.isVisible()) {
-      return warning.textContent();
+    const row = this.page.locator('.preview-row').nth(index);
+    const duplicate = row.locator('.preview-row__duplicate');
+    if (await duplicate.isVisible()) {
+      return duplicate.textContent();
+    }
+    const classes = await row.getAttribute('class');
+    if (classes?.includes('preview-row--excluded')) {
+      return 'excluded';
     }
     return null;
   }
@@ -87,7 +121,7 @@ export class DocumentUploadPage {
   // ─── Duplicate Detection ──────────────────────────────────────────
 
   async getDuplicateWarning(): Promise<string | null> {
-    const warning = this.page.locator('.duplicate-detection-warning');
+    const warning = this.page.locator('.preview__duplicates-info, .preview-row__duplicate, .uploader__error-message').first();
     if (await warning.isVisible()) {
       return warning.textContent();
     }
@@ -97,8 +131,8 @@ export class DocumentUploadPage {
   // ─── Batch / Source Attribution ───────────────────────────────────
 
   async getSourceAttribution(stepIndex: number): Promise<string | null> {
-    const attr = this.page.locator('.sequence-step-item').nth(stepIndex)
-      .locator('.source-attribution');
+    const attr = this.page.locator('.preview-row').nth(stepIndex)
+      .locator('.preview-row__source-badge, .preview__group-title');
     if (await attr.isVisible()) {
       return attr.textContent();
     }
@@ -106,7 +140,8 @@ export class DocumentUploadPage {
   }
 
   async getFileUploadStatus(fileName: string): Promise<string | null> {
-    const statusEl = this.page.locator(`.file-upload-item[data-filename="${fileName}"] .upload-status`);
+    const fileRow = this.page.locator('.batch-uploader__file').filter({ hasText: fileName }).first();
+    const statusEl = fileRow.locator('.batch-uploader__file-status').first();
     if (await statusEl.isVisible()) {
       return statusEl.textContent();
     }
@@ -121,26 +156,26 @@ export class DocumentUploadPage {
 
   async resolveConflict(index: number, strategy: 'keep-new' | 'keep-existing' | 'keep-both') {
     const conflict = this.page.locator('.conflict-item').nth(index);
-    await conflict.locator(`input[value="${strategy}"]`).check();
-    await conflict.locator('.conflict-apply').click();
+    const buttonName = strategy === 'keep-new' ? /keep b/i : /keep a/i;
+    await conflict.getByRole('button', { name: buttonName }).click();
   }
 
   async resolveAllConflicts(strategy: 'keep-new' | 'keep-existing' | 'keep-both') {
     const count = await this.getConflictCount();
     for (let i = 0; i < count; i++) {
-      await this.resolveConflict(0, strategy);
-      await this.page.waitForTimeout(200);
+      await this.resolveConflict(i, strategy);
     }
+    await this.page.getByRole('button', { name: /apply resolutions/i }).click();
   }
 
   // ─── Apply Workflow ───────────────────────────────────────────────
 
   async applySequence() {
-    await this.page.getByRole('button', { name: /apply/i }).click();
+    await this.page.locator('.apply-flow .apply-btn').click();
   }
 
   async getProgressBarValue(): Promise<number | null> {
-    const progressBar = this.page.locator('.apply-progress-bar');
+    const progressBar = this.page.locator('.modal__progress-fill');
     if (await progressBar.isVisible()) {
       const value = await progressBar.getAttribute('value');
       return value ? parseInt(value, 10) : null;
@@ -149,7 +184,7 @@ export class DocumentUploadPage {
   }
 
   async getProgressText(): Promise<string | null> {
-    const text = this.page.locator('.apply-progress-text');
+    const text = this.page.locator('.modal__progress-text');
     if (await text.isVisible()) {
       return text.textContent();
     }
@@ -158,7 +193,8 @@ export class DocumentUploadPage {
 
   async waitForApplyComplete(timeout = 30_000): Promise<boolean> {
     try {
-      await this.page.waitForSelector('.apply-success', { timeout });
+      await this.page.getByRole('button', { name: /import \d+ entit/i }).click();
+      await this.page.waitForSelector('.modal__title--success', { timeout });
       return true;
     } catch {
       return false;
@@ -166,7 +202,7 @@ export class DocumentUploadPage {
   }
 
   async getSuccessMessage(): Promise<string | null> {
-    const success = this.page.locator('.apply-success');
+    const success = this.page.locator('.modal__title--success, .modal__desc').first();
     if (await success.isVisible()) {
       return success.textContent();
     }
@@ -174,7 +210,7 @@ export class DocumentUploadPage {
   }
 
   async getCommitLink(): Promise<string | null> {
-    const link = this.page.locator('.apply-success a.commit-link');
+    const link = this.page.locator('.modal__commit-link a, a.modal__commit-hash').first();
     if (await link.isVisible()) {
       return link.getAttribute('href');
     }
@@ -182,7 +218,16 @@ export class DocumentUploadPage {
   }
 
   async getErrorMessage(): Promise<string | null> {
-    const error = this.page.locator('.apply-error');
+    const confirm = this.page.getByRole('button', { name: /import \d+ entit/i });
+    if (await confirm.isVisible().catch(() => false)) {
+      await confirm.click();
+    }
+
+    const errorTitle = this.page.locator('.modal__title--error').first();
+    if (await errorTitle.isVisible({ timeout: 10_000 }).catch(() => false)) {
+      return errorTitle.textContent();
+    }
+    const error = this.page.locator('.uploader__error-message').first();
     if (await error.isVisible()) {
       return error.textContent();
     }
@@ -196,7 +241,7 @@ export class DocumentUploadPage {
   // ─── Error / Edge Cases ───────────────────────────────────────────
 
   async getValidationError(): Promise<string | null> {
-    const error = this.page.locator('.validation-error');
+    const error = this.page.locator('.uploader__error-message, .modal__desc').first();
     if (await error.isVisible()) {
       return error.textContent();
     }

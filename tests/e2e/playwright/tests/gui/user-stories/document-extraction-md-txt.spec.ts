@@ -33,10 +33,13 @@ test.describe('Document Extraction — Markdown and Text', () => {
   ];
 
   const MOCK_COMMIT_RESPONSE = {
+    success: true,
     commitId: 'abc123def456',
+    commitUrl: '/commits/abc123def456',
     message: 'Extracted ontology from specification.md',
     branchId: 'main',
     timestamp: new Date().toISOString(),
+    appliedCount: 13,
     entityCount: 13,
   };
 
@@ -44,7 +47,7 @@ test.describe('Document Extraction — Markdown and Text', () => {
     uploadPage = new DocumentUploadPage(page);
 
     // Mock the extraction API endpoint for specification.md
-    await page.route('**/api/v1/ontologies/**/extract', async (route) => {
+    await page.route('**/api/v1/documents/extract', async (route) => {
       const request = route.request();
       const url = request.url();
       const method = request.method();
@@ -65,7 +68,7 @@ test.describe('Document Extraction — Markdown and Text', () => {
     });
 
     // Mock the apply endpoint
-    await page.route('**/api/v1/ontologies/**/apply', async (route) => {
+    await page.route('**/api/v1/documents/apply', async (route) => {
       if (route.request().method() === 'POST') {
         await route.fulfill({
           status: 200,
@@ -81,14 +84,14 @@ test.describe('Document Extraction — Markdown and Text', () => {
   test('upload specification.md and verify preview with 8 classes, 5 properties', async () => {
     // US-io.document.extract-md-txt: Upload markdown → preview extracted ontology
     await uploadPage.openDocumentUpload('TestOntology');
-    await uploadPage.uploadFile(path.resolve(__dirname, '../../fixtures/m2/specification.md'));
+    await uploadPage.uploadFile(path.resolve(__dirname, '../../../fixtures/specification.md'));
 
     // Verify preview shows extracted steps
     const steps = await uploadPage.getPreviewSequence();
     expect(steps.length).toBeGreaterThanOrEqual(13);
 
     // Verify class count (8 classes)
-    const classSteps = steps.filter((s) => s.includes('CREATE_CLASS'));
+    const classSteps = steps.filter((s) => s.includes('Class'));
     expect(classSteps.length).toBe(8);
 
     // Verify property count (5 properties = 2 object + 3 datatype)
@@ -101,7 +104,7 @@ test.describe('Document Extraction — Markdown and Text', () => {
   test('edit a label in the preview and apply sequence', async () => {
     // US-io.document.extract-md-txt: Edit extracted label before applying
     await uploadPage.openDocumentUpload('TestOntology');
-    await uploadPage.uploadFile(path.resolve(__dirname, '../../fixtures/m2/specification.md'));
+    await uploadPage.uploadFile(path.resolve(__dirname, '../../../fixtures/specification.md'));
 
     // Edit the first class label
     await uploadPage.editStepLabel(0, 'Human');
@@ -125,8 +128,8 @@ test.describe('Document Extraction — Markdown and Text', () => {
   test('upload requirements.txt and verify plain text extraction', async () => {
     // US-io.document.extract-md-txt: Plain text extraction from structured text
     // Use a second mock route for plain text extraction
-    await uploadPage.page.unroute('**/api/v1/ontologies/**/extract');
-    await uploadPage.page.route('**/api/v1/ontologies/**/extract', async (route) => {
+    await uploadPage.page.unroute('**/api/v1/documents/extract');
+    await uploadPage.page.route('**/api/v1/documents/extract', async (route) => {
       if (route.request().method() === 'POST') {
         await route.fulfill({
           status: 200,
@@ -151,7 +154,7 @@ test.describe('Document Extraction — Markdown and Text', () => {
     });
 
     await uploadPage.openDocumentUpload('TestOntology');
-    await uploadPage.uploadFile(path.resolve(__dirname, '../../fixtures/m2/requirements.txt'));
+    await uploadPage.uploadFile(path.resolve(__dirname, '../../../fixtures/requirements.txt'));
 
     const steps = await uploadPage.getPreviewSequence();
     expect(steps.length).toBeGreaterThanOrEqual(5);

@@ -91,6 +91,7 @@
                 <SequencePreview
                   :steps="extractionSteps"
                   :ontology-id="ontologyId"
+                  :source-files="extractionSourceFiles"
                   @apply="onApplySequence"
                   @cancel="onApplyCancel"
                 />
@@ -246,12 +247,33 @@ const showAiPanel = ref(false);
 const uploadMode = ref<"single" | "batch">("single");
 const extractionSteps = ref<SequenceStep[]>([]);
 const showApplyButton = ref(false);
+const extractionSourceFiles = computed(
+	() =>
+		Array.from(
+			new Set(
+				extractionSteps.value.map((step) => step.sourceFile).filter(Boolean),
+			),
+		) as string[],
+);
+
+function normalizeExtractionStep(
+	step: SequenceStep,
+	index: number,
+): SequenceStep {
+	return {
+		...step,
+		id:
+			step.id ||
+			`${step.operation}-${step.entityId || step.label || index}-${index}`,
+		included: step.included ?? true,
+	};
+}
 
 function onUploadComplete(result: ExtractionPreview) {
 	console.info("[OntologyWorkspace] upload complete", {
 		steps: result.steps.length,
 	});
-	extractionSteps.value = result.steps.map((s) => ({ ...s, included: true }));
+	extractionSteps.value = result.steps.map(normalizeExtractionStep);
 	showApplyButton.value = true;
 }
 
@@ -273,7 +295,7 @@ function onBatchComplete(result: { steps: SequenceStep[] }) {
 	console.info("[OntologyWorkspace] batch complete", {
 		steps: result.steps.length,
 	});
-	extractionSteps.value = result.steps.map((s) => ({ ...s, included: true }));
+	extractionSteps.value = result.steps.map(normalizeExtractionStep);
 	showApplyButton.value = true;
 }
 
@@ -291,10 +313,8 @@ function onApplySuccess(result: { commitId?: string; commitUrl?: string }) {
 	console.info("[OntologyWorkspace] apply success", {
 		commitId: result.commitId,
 	});
-	// Reset after successful apply
-	extractionSteps.value = [];
-	showApplyButton.value = false;
-	showAiPanel.value = false;
+	// Keep the AI panel and success modal mounted so the user can inspect
+	// the import result and commit link before explicitly closing it.
 }
 
 function onApplyError(error: string) {
