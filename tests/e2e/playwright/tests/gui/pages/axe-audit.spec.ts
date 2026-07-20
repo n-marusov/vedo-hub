@@ -9,7 +9,7 @@ test.describe('Automated Accessibility Audit (axe-core)', () => {
     { path: '/dashboard', name: 'dashboard' },
     { path: '/ontology/ont-123/workspace', name: 'workspace' },
     { path: '/ontology/ont-123/sparql', name: 'sparql' },
-    { path: '/metrics', name: 'metrics' },
+    // Note: /metrics is served by nginx as plain text, not HTML
     { path: '/ontology/ont-123/members', name: 'members' },
     { path: '/ontology/ont-123/validation', name: 'validation' },
     { path: '/ontology/ont-123/versioning/commits', name: 'versioning' },

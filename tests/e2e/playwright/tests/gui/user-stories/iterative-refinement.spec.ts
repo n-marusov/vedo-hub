@@ -10,7 +10,11 @@ import { DocumentUploadPage } from '../../../pages/document-upload.page';
 // - Multiple refinement rounds → verify sequence accumulates changes
 // - Apply final refined version → verify all entities created
 
-test.describe('Iterative Refinement', () => {
+// @skip — iterative AI refinement (generate → feedback → refine → apply) depends on
+// the NL-to-OWL refinement loop which is a POST-MVP capability.
+// Roadmap: M9 (Document AI 1.0 — POST-MVP). M2 covers single-pass NL→OWL generation only.
+// Unskip when: iterative refinement API endpoint and refinement UI components are implemented.
+test.describe.skip('Iterative Refinement', () => {
   let uploadPage: DocumentUploadPage;
   let refinementRound = 0;
 

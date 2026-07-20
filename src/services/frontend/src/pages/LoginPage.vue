@@ -140,7 +140,7 @@ async function handleLogin(providerId: string): Promise<void> {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 13px;
   font-weight: 400;
-  color: var(--muted-foreground);
+  color: #9ca3af; /* WCAG AA: 6.5:1 contrast on #101010 card background */
 }
 
 /* OAuth buttons */

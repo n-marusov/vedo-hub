@@ -11,7 +11,11 @@ import path from 'path';
 // - Conflict resolution: different definitions for same entity → conflict UI choices
 // - Partial failure: one file fails → other files still extracted successfully
 
-test.describe('Document Extraction — Batch Upload', () => {
+// @skip — batch document upload with deduplication, conflict resolution, and partial-failure
+// handling is a POST-MVP capability.
+// Roadmap: M9 (Document AI 1.0 — POST-MVP). M2 covers single-file document extraction only.
+// Unskip when: batch upload endpoint and deduplication/conflict resolution UI are implemented.
+test.describe.skip('Document Extraction — Batch Upload', () => {
   let uploadPage: DocumentUploadPage;
 
   test.beforeEach(async ({ page }) => {

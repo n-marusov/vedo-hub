@@ -10,7 +10,11 @@ import { DocumentUploadPage } from '../../../pages/document-upload.page';
 // - Accept a suggestion → verify created entity
 // - Reject all suggestions → verify no changes made
 
-test.describe('AI-Assisted Class Completion', () => {
+// @skip — AI-assisted class completion (subclass suggestions with confidence scores,
+// accept/reject workflow) depends on the ai-orchestration-service LLM integration.
+// Roadmap: M9 (Document AI 1.0 — POST-MVP).
+// Unskip when: AI subclass suggestion endpoint and suggestion UI panel are implemented.
+test.describe.skip('AI-Assisted Class Completion', () => {
   let uploadPage: DocumentUploadPage;
 
   const MOCK_CLASS_SUGGESTIONS = {
@@ -68,7 +72,7 @@ test.describe('AI-Assisted Class Completion', () => {
     });
   });
 
-  test('open class and request AI subclass suggestions with ranked list', async () => {
+  test.skip('open class and request AI subclass suggestions with ranked list', async () => {
     // US-io.ontology.ai-completion: Request suggestions
     await uploadPage.openDocumentUpload('TestOntology');
 

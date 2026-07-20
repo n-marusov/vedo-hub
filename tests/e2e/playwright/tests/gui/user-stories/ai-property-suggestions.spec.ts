@@ -10,7 +10,11 @@ import { DocumentUploadPage } from '../../../pages/document-upload.page';
 // - Accept a property suggestion → verify property created with domain/range
 // - Verify datatype vs object property distinction in suggestions
 
-test.describe('AI-Assisted Property Suggestions', () => {
+// @skip — AI-assisted property suggestions (domain/range hints) depends on the
+// ai-orchestration-service LLM integration.
+// Roadmap: M9 (Document AI 1.0 — POST-MVP).
+// Unskip when: AI property suggestion endpoint and suggestion UI panel are implemented.
+test.describe.skip('AI-Assisted Property Suggestions', () => {
   let uploadPage: DocumentUploadPage;
 
   const MOCK_PROPERTY_SUGGESTIONS = {

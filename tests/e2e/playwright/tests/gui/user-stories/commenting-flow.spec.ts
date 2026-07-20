@@ -7,7 +7,11 @@ import { UNIVERSITY_ONTOLOGY } from '../../ontology-test-data';
 //
 // Depends on: commenting-service (Task 10.1), frontend commenting UI (Task 11.9)
 
-test.describe('Commenting Flow E2E', () => {
+// @skip — depends on commenting-service (Task 10.1) and frontend commenting UI (Task 11.9).
+// Feature: entity/project comments with threaded replies, activity feed, notifications.
+// Roadmap: M5 (MVP Gap Closure — comments part, not started) + M10 (Collaboration 1.0 — POST-MVP).
+// Unskip when: commenting-service is deployed and commenting UI components are wired in OntologyWorkspace.
+test.describe.skip('Commenting Flow E2E', () => {
   let workspace: OntologyWorkspacePage;
 
   test.beforeEach(async ({ page }) => {
