@@ -9,6 +9,7 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './tests/gui',
+  testIgnore: '**/*-wired.spec.ts',
   timeout: 30_000,
   retries: 0,           // no retries — first failure stops the run
   maxFailures: 1,        // stop entire run after 1 failure
