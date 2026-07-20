@@ -17,7 +17,7 @@ export default defineConfig({
     { name: 'webkit', use: { ...devices['Desktop Safari'] } }
   ],
   webServer: {
-    command: 'bash ../../../src/scripts/compose-smoke.sh',
+    command: 'docker compose -f ../../../deploy/docker-compose.test.yml up -d --wait --wait-timeout 120',
     url: 'http://localhost:3000/health',
     reuseExistingServer: true,
     timeout: 600_000

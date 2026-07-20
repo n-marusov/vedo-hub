@@ -249,7 +249,10 @@ bash tests/test_contract_gate.sh
 
 ### E2E Tests (Playwright)
 
-Two-phase execution — **API** runs first (fast feedback), **GUI** runs second and stops on the first failure:
+Two-phase execution — **API** runs first (fast feedback), **GUI** runs second and stops on the first failure.
+
+Playwright configs automatically start the backend using `deploy/docker-compose.test.yml`,
+which overrides the API Gateway to accept self-signed test JWT tokens instead of requiring Keycloak.
 
 ```bash
 cd tests/e2e/playwright

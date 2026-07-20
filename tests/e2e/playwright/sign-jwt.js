@@ -15,6 +15,7 @@ const ownerToken = signJWT({
   sub: 'user-123',
   user_id: 'user-123',
   tenant_id: '',
+  organization_id: 'org-001',
   roles: ['Owner'],
 });
 
@@ -23,8 +24,19 @@ const viewerToken = signJWT({
   sub: 'viewer-user',
   user_id: 'viewer-user',
   tenant_id: '',
+  organization_id: 'org-001',
   roles: ['Viewer'],
+});
+
+// Editor token — for role-based access tests
+const editorToken = signJWT({
+  sub: 'editor-user',
+  user_id: 'editor-user',
+  tenant_id: '',
+  organization_id: 'org-001',
+  roles: ['Editor'],
 });
 
 console.log(`OWNER_JWT=${ownerToken}`);
 console.log(`VIEWER_JWT=${viewerToken}`);
+console.log(`EDITOR_JWT=${editorToken}`);
