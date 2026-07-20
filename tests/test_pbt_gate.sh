@@ -3,9 +3,9 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-COMPOSE_PATH="$ROOT_DIR/src/docker-compose.yaml"
-OBS_COMPOSE_PATH="$ROOT_DIR/src/docker-compose.observability.yaml"
-DOCS_COMPOSE_PATH="$ROOT_DIR/src/docker-compose.docs.yaml"
+COMPOSE_PATH="$ROOT_DIR/deploy/docker-compose.yml"
+OBS_COMPOSE_PATH="$ROOT_DIR/deploy/docker-compose.observability.yml"
+DOCS_COMPOSE_PATH="$ROOT_DIR/deploy/docker-compose.docs.yaml"
 REPORT_PATH="$ROOT_DIR/../validation/gate-results/pbt-runtime.json"
 
 mapfile -t host_ports < <(grep -h -oE '"[0-9]+:[0-9]+"' "$COMPOSE_PATH" "$OBS_COMPOSE_PATH" "$DOCS_COMPOSE_PATH" | tr -d '"' | cut -d: -f1)

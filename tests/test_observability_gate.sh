@@ -5,8 +5,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 REPORT_PATH="$ROOT_DIR/../validation/gate-results/observability-runtime.json"
 PROM_CFG="$ROOT_DIR/src/infra/observability/prometheus/prometheus.yml"
-COMPOSE_FILE="$ROOT_DIR/src/docker-compose.yaml"
-OBS_COMPOSE_FILE="$ROOT_DIR/src/docker-compose.observability.yaml"
+OBS_COMPOSE_FILE="$ROOT_DIR/deploy/docker-compose.observability.yml"
 
 check_marker() {
   local marker="$1"
