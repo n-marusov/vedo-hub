@@ -81,6 +81,13 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"status": "ready", "service": serviceName})
 	})
 	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"name":        serviceName,
+			"version":     "0.2.0",
+			"description": "Authentication and authorization service",
+		})
+	})
 
 	// ---- Initialize Org Store and Service ----
 	databaseURL := os.Getenv("AUTH_SERVICE_DATABASE_URL")

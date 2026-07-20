@@ -77,6 +77,13 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"status": "ready", "service": serviceName})
 	})
 	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"name":        serviceName,
+			"version":     "0.2.0",
+			"description": "Ticket management API",
+		})
+	})
 
 	// API v1 routes for CLI compatibility
 	api := r.Group("/api/v1")
