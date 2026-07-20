@@ -17,6 +17,8 @@ Rationale: This plan implements the GitLab-like organizational model required by
 
 The plan was originally created as `M2.1` before the MVP scope was rewritten. The current roadmap uses continuous numbering, so this work is now `M3`. Completed `- [x]` tasks are preserved as implementation history; the remaining alignment items below capture the delta between the completed baseline and the final MVP wording in `specs/vision.md`.
 
+**Scope correction (2026-07-20):** M3 completion covers the organization backend/API model and persisted group/project/member semantics. GUI read-after-write behavior — for example, a group created through REST immediately appearing in `GroupsPage` — is an M4 frontend wiring/cache/data-source responsibility. If `org-lifecycle.spec.ts` fails because a REST-created group is not visible in `.gp-row`, treat it as M4 GUI integration drift, not as proof that the M3 backend/API is absent.
+
 ### Scope alignment decisions
 
 - **Project terminology:** In MVP, a `Project` is the management container for exactly one ontology. Existing implementation details may still use `ontology` as the low-level scope type or URL segment, but user-facing API/docs/UI must consistently present this as a project containing an ontology.

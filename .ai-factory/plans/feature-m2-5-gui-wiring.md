@@ -6,6 +6,7 @@ Improved: 2026-07-18 — $aif-improve pass 1 (3 missing tasks, 3 task improvemen
 Improved: 2026-07-18 — $aif-improve pass 2 (7 missing sub-tasks for E2E test fixes, 4 task improvements, 1 dependency fix, 1 out-of-scope)
 Improved: 2026-07-18 — $aif-improve pass 6 (3 missing tasks for real-backend docker-compose.test.yml verification, 3 task improvements, 1 dependency fix, 1 out-of-scope)
 Improved: 2026-07-18 — $aif-improve pass 7 (1 missing task for stub-server __typename fix, 2 task improvements)
+Scope-corrected: 2026-07-20 — factual GUI E2E triage split completed backend/API from pending frontend entry-point wiring for M2/M3 carry-over flows
 
 ## Settings
 - Testing: yes — **TDD (tests first)**: E2E contracts → vitest RED → implementation GREEN → E2E GREEN
@@ -13,8 +14,10 @@ Improved: 2026-07-18 — $aif-improve pass 7 (1 missing task for stub-server __t
 - Docs: yes (mandatory docs checkpoint after implementation)
 
 ## Roadmap Linkage
-Milestone: "M2.5: GUI Wiring & Frontend Integration"
-Rationale: Direct implementation of the M2.5 milestone — replaces all hardcoded frontend stubs (69/86 interactive elements have no API calls) with real GraphQL/REST calls to M0–M2 backend services.
+Milestone: "M4: MVP GUI Wiring & Frontend Integration" (formerly M2.5)
+Rationale: Direct implementation of the GUI wiring milestone — replaces hardcoded frontend stubs with real GraphQL/REST calls to completed M0–M3 backend services where backend capabilities exist, and exposes future-only functions as disabled/read-only planned stubs.
+
+**Scope correction (2026-07-20):** GUI E2E triage showed that some M2/M3 backend/API capabilities were recorded as fully done in their feature plans while the current frontend still lacks user-facing entry points. This plan now explicitly owns those carry-over wiring gaps instead of treating them as backend-missing or hiding the tests with broad skips: NL→OWL prompt UI, iterative refinement UI, AI class/property suggestion panels, ontology template apply flow verification, ontology entity create dialog/button mutation wiring, and organization read-after-write reflection from persisted REST-created data.
 
 ## Specification References
 
@@ -114,6 +117,8 @@ This plan implements the following specifications. Each task references its gove
 | `App.vue` user avatar is hardcoded `<User :size="16" />` (line 39). | New Task 5.6: wire to useCurrentUser. |
 | `useDraftState` composable already implements `saveDraft()` with `apolloClient.mutate(UPDATE_DRAFT_MUTATION)`. | Task 2.3 simplified: just wire button to `useDraftState().saveDraft()`. |
 | `useErrorPresentation` composable provides structured error contract (`addError(code, message)`). | All page wiring tasks now reference this composable for error handling. |
+| M2 backend/API includes NL→OWL, refinement, completion, templates, and document extraction, but current frontend lacks visible selectors/controls such as `nl-to-owl-input`, `refinement-input`, `ai-suggestion-item`, “suggest subclasses”, and “suggest properties”. | New Phase 6.7 carry-over tasks added; related GUI tests should be fixed by wiring UI, not by claiming backend is missing. |
+| M3 backend/API includes group/project/member APIs, but GUI E2E can still fail when REST-created objects are not read back through the same persisted data source used by `GroupsPage`/`ProjectsPage`/`MembersPage`. | New Task 6.7f added; current `org-lifecycle.spec.ts` failure is treated as a real M4 wiring/read-after-write bug. |
 
 ## Commit Plan
 
@@ -123,8 +128,9 @@ This plan implements the following specifications. Each task references its gove
 - **Commit 4** (after Phase 3 — Block Б GREEN): `feat: wire Projects, Groups, Members, and Versioning tabs — vitest green`
 - **Commit 5** (after Phase 4 — Block В GREEN): `feat: wire Dashboard, Metrics, Validation, Deployments, MR — vitest green`
 - **Commit 6** (after Phase 5 — Block Г GREEN): `feat: wire App.vue layout — user, sidebar, navigation — vitest green`
-- **Commit 7** (after Phase 6 — E2E GREEN): `test: E2E tests pass — all M2.5 pages verified end-to-end (stub + real backend via docker-compose.test.yml)`
-- **Commit 8** (after Phase 7): `docs: M2.5 documentation and traceability update`
+- **Commit 7** (after Phase 6): `test: E2E tests pass — all M4 pages verified end-to-end (stub + real backend via docker-compose.test.yml)`
+- **Commit 7b** (after Phase 6.7): `feat: wire carried-over AI and organization GUI entry points`
+- **Commit 8** (after Phase 7): `docs: M4 documentation and traceability update`
 
 ## Tasks
 
@@ -601,9 +607,9 @@ npx playwright test --config=playwright.m2.5.config.ts --project=chromium
   npx playwright test tests/m2.5/api-gateway-full.spec.ts --project=chromium
   ```
 
-- [x] **Task 6.3: Run full E2E suite (regression check)**
+- [~] **Task 6.3: Run full E2E suite (regression check)**
 
-  **Status: Vitest regression PASS (121 tests, 18 files).** Full Playwright E2E regression against real backend → Tasks 6.4–6.6 (new) using `deploy/docker-compose.test.yml` (5-service minimal test stack). Proxy and mock infrastructure changes don't affect production builds.
+  **Status: Vitest regression PASS (121 tests, 18 files).** Full Playwright E2E regression against real backend → Tasks 6.4–6.7 (new/corrected) using `deploy/docker-compose.test.yml`. Proxy and mock infrastructure changes don't affect production builds.
 
   ```bash
   # Vite proxy only affects dev server — production nginx is unchanged
@@ -692,6 +698,60 @@ npx playwright test --config=playwright.m2.5.config.ts --project=chromium
   **Acceptance:** Page render cycle (loading → data/empty → error with retry) passes for all 11 pages against real backend.
 
   **Logging:** `DEBUG [E2E.Real] page=<name> state=<loading|data|error|empty> duration=<ms>`
+
+- [ ] **Task 6.7: Wire carried-over M2/M3 GUI entry points found by full GUI test scan** *(depends on Tasks 6.4–6.6; scope-corrected 2026-07-20)*
+
+  **Governing specs:** `specs/user-stories/US-io.document.*`, `specs/user-stories/US-io.ontology.*`, `specs/vision.md` MVP chain, and M2/M3 completed backend/API plans.
+
+  **Root cause:** Full GUI scan showed several E2E tests target backend/API capabilities that exist, but the current Vue frontend does not expose the required entry points or does not read back from the same persisted backend source. These are M4/M5 wiring bugs, not evidence that ontology CRUD, AI orchestration, or organization APIs are missing.
+
+  - [ ] **Task 6.7a: Wire NL→OWL generation UI in `OntologyWorkspace`**
+    - Add visible prompt input (`data-testid="nl-to-owl-input"`) and Generate action.
+    - Call the existing AI generation API through API Gateway/ai-orchestration.
+    - Render returned sequence via `SequencePreview` and reuse existing apply workflow.
+    - Unskip/fix `tests/gui/user-stories/nl-to-owl-generation.spec.ts` after wiring.
+
+  - [ ] **Task 6.7b: Wire iterative refinement UI**
+    - Add feedback input (`data-testid="refinement-input"`) and Refine action.
+    - Send prior sequence + feedback to existing refinement endpoint.
+    - Preserve accumulated sequence state before apply.
+    - Unskip/fix `tests/gui/user-stories/iterative-refinement.spec.ts` after wiring.
+
+  - [ ] **Task 6.7c: Wire AI class/property suggestion panels**
+    - Add class/property suggestion entry points from selected entity detail.
+    - Render ranked `.ai-suggestion-item` rows with confidence and rationale.
+    - Implement accept/reject and apply accepted suggestions through existing ontology CRUD APIs.
+    - Unskip/fix `ai-completion.spec.ts` and `ai-property-suggestions.spec.ts` after wiring.
+
+  - [ ] **Task 6.7d: Verify ontology template GUI workflow against real backend/API**
+    - Ensure template list, selection, preview, and apply flow do not rely solely on static fixtures.
+    - Keep marketplace/custom-template editing out of MVP; that remains post-MVP.
+    - Fix `ontology-templates.spec.ts` if interrupted/full run exposes failures.
+
+  - [ ] **Task 6.7e: Wire ontology entity create dialogs/buttons**
+    - `ontology-service` and `api-gateway` already provide class/property/individual CRUD.
+    - Wire `CreateClassDialog.vue`, `CreatePropertyDialog.vue`, and `CreateIndividualDialog.vue` submit handlers from `OntologyWorkspace` to real mutations/API calls.
+    - Fix `ontology-lifecycle.spec.ts` from frontend wiring perspective; do not mark backend CRUD as missing.
+
+  - [ ] **Task 6.7f: Fix organization GUI read-after-write**
+    - Ensure groups/projects/members created through REST API are visible in `GroupsPage`, `ProjectsPage`, and `MembersPage`.
+    - Align GraphQL/REST data source, cache invalidation, search defaults, and tenant/auth scope.
+    - Current full GUI first failure: `org-lifecycle.spec.ts` cannot see REST-created group `US-CreateGroup` in `.gp-row`.
+
+  - [ ] **Task 6.7g: Scope advanced document AI tests explicitly**
+    - Keep scanned-PDF OCR, encrypted/password-protected document UX, advanced merged-source deduplication, and custom prompt configuration in M9 unless promoted by roadmap.
+    - Existing skips for these cases must include AI-agent comments and must reference M9/post-MVP scope, not route absence.
+
+  **Files likely affected:**
+  - `src/services/frontend/src/pages/OntologyWorkspace.vue`
+  - `src/services/frontend/src/components/ontology/*.vue`
+  - `src/services/frontend/src/apollo/queries.ts`
+  - `src/services/frontend/src/pages/GroupsPage.vue`, `ProjectsPage.vue`, `MembersPage.vue`
+  - `tests/e2e/playwright/tests/gui/user-stories/*.spec.ts`
+
+  **Acceptance:** Full GUI run with `pnpm exec playwright test --config=playwright.gui.config.ts` progresses past org lifecycle and no baseline M2/M3 backend-backed GUI tests remain skipped solely because frontend wiring is missing.
+
+  **Logging:** `DEBUG [M4.carryover] feature=<nl-to-owl|refinement|suggestions|org-read-after-write> status=<start|success|error>`
 
 <!-- ===================================================================================== -->
 <!-- Commit checkpoint: Phase 6 → "test: E2E tests pass — all M2.5 pages verified end-to-end" -->
