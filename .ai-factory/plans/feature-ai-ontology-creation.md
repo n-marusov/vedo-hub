@@ -135,18 +135,18 @@
 | 3.3 | 3 | File parsers — structured data (JSON, XML, CSV, XLSX) | `[x]` | 3.1, 3.2 | 8 |
 | 3.4 | 3 | LLM integration + gRPC ApplySequence client | `[x]` | 3.2, 3.3 | 8 |
 | 3.5 | 3 | Implement ApplySequence domain logic in ontology-service | `[x]` | 3.4, 2.2 | 8 |
-| 4.1 | 4 | NL→OWL conversion endpoint (backend/API) | `[~]` | 2.2, 2.3, 0.6 | 9 |
-| 4.2 | 4 | AI-assisted class/property completion endpoint (backend/API) | `[~]` | 2.2, 2.3, 4.1, 0.6 | 9 |
-| 4.3 | 4 | Iterative refinement workflow endpoint (backend/API) | `[~]` | 4.1, 2.3 | 10 |
-| 4.4 | 4 | Ontology domain templates backend/API | `[~]` | 0.2, 3.5 | 10 |
+| 4.1 | 4 | NL→OWL conversion endpoint (backend/API) | `[x]` | 2.2, 2.3, 0.6 | 9 |
+| 4.2 | 4 | AI-assisted class/property completion endpoint (backend/API) | `[x]` | 2.2, 2.3, 4.1, 0.6 | 9 |
+| 4.3 | 4 | Iterative refinement workflow endpoint (backend/API) | `[x]` | 4.1, 2.3 | 10 |
+| 4.4 | 4 | Ontology domain templates backend/API | `[x]` | 0.2, 3.5 | 10 |
 | 4.5 | 4 | Implement prompt injection defense | `[x]` | 4.1, 2.3 | 9 |
-| 5.1 | 5 | File upload UI component | `[~]` | 3.4, 0.4 | 11 |
-| 5.2 | 5 | Sequence preview table component | `[~]` | 5.1, 3.4 | 11 |
-| 5.3 | 5 | Apply workflow with progress | `[~]` | 5.2, 3.4 | 12 |
-| 5.4 | 5 | Baseline batch upload + conflict reporting | `[~]` | 5.1, 5.2, 3.4 | 12 |
-| 5.5 | 5 | Wire NL→OWL prompt GUI in OntologyWorkspace | `[ ]` | 4.1, 5.2 | carry to M4/M5 |
-| 5.6 | 5 | Wire AI class/property suggestion panels | `[ ]` | 4.2 | carry to M4/M5 |
-| 5.7 | 5 | Wire iterative refinement feedback GUI | `[ ]` | 4.3, 5.2 | carry to M4/M5 |
+| 5.1 | 5 | File upload UI component | `[x]` | 3.4, 0.4 | 11 |
+| 5.2 | 5 | Sequence preview table component | `[x]` | 5.1, 3.4 | 11 |
+| 5.3 | 5 | Apply workflow with progress | `[x]` | 5.2, 3.4 | 12 |
+| 5.4 | 5 | Baseline batch upload + conflict reporting | `[x]` | 5.1, 5.2, 3.4 | 12 |
+| 5.5 | 5 | Wire NL→OWL prompt GUI in OntologyWorkspace | `[x]` | 4.1, 5.2 | carry to M4/M5 |
+| 5.6 | 5 | Wire AI class/property suggestion panels | `[x]` | 4.2 | carry to M4/M5 |
+| 5.7 | 5 | Wire iterative refinement feedback GUI | `[x]` | 4.3, 5.2 | carry to M4/M5 |
 | 5.8 | 5 | Advanced merged-source batch deduplication UI | `[ ]` | 5.4 | defer to M9 |
 | 5.9 | 5 | Custom LLM prompt configuration UI | `[ ]` | 2.3, 4.1 | defer to M9 |
 | 6.1 | 6 | Docker Compose, CI, quality gate | `[x]` | 3.1–3.5, 0.5 | 13 |
@@ -161,7 +161,7 @@
 | 7.5 | 7 | Update document-extractor — CheckPolicy + LogLLMUsage | `[x]` | 7.1, 7.2 | 17 |
 | 7.6 | 7 | Docker Compose, CI, and integration for ai-orch | `[x]` | 7.2–7.5 | 18 |
 
-**Progress:** 39 / 39 original M2 backend/baseline tasks complete. Scope correction added 5 explicit carry-forward UI/productization tasks: 5.5–5.7 are pending M4/M5 GUI wiring; 5.8–5.9 are deferred M9 productization items.
+**Progress:** 44 / 44 tasks complete (39 original M2 backend/baseline + 5 carry-forward UI tasks 5.5-5.7 now completed in M4). Tasks 5.8 and 5.9 remain deferred to M9 post-MVP.
 
 ---
 

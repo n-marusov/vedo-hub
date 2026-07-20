@@ -1957,3 +1957,79 @@ base:test/gateway-query-integration a vdo:TestSuite ;
     rdfs:comment "Integration tests for SPARQL/CYPHER query endpoints"@en ;
     vdo:filePath "src/services/api-gateway/query_integration_test.go" ;
     vdo:validates base:nfr/security-bola-bfla .
+
+# --- M1 Review Blocker Fixes — Code Artifacts ---
+
+base:code/m1-fix-gateway-auth a vdo:CodeArtifact ;
+    rdfs:label "API Gateway Auth Middleware (M1 Blocker Fix)"@en ;
+    rdfs:comment "JWT error sanitization, alg=none explicit rejection, header contract enforcement"@en ;
+    vdo:filePath "src/services/api-gateway/auth/auth.go" ;
+    vdo:implements base:nfr/security-bola-bfla .
+
+base:code/m1-fix-gateway-keyfunc a vdo:CodeArtifact ;
+    rdfs:label "API Gateway Keyfunc (M1 Blocker Fix)"@en ;
+    rdfs:comment "Explicit alg=none rejection in JWKS keyfunc"@en ;
+    vdo:filePath "src/services/api-gateway/auth/keyfunc.go" ;
+    vdo:implements base:nfr/security-bola-bfla .
+
+base:code/m1-fix-gateway-proxy a vdo:CodeArtifact ;
+    rdfs:label "API Gateway Proxy (M1 Blocker Fix)"@en ;
+    rdfs:comment "Query string preservation, hop-by-hop header filtering (RFC 7230), header propagation"@en ;
+    vdo:filePath "src/services/api-gateway/proxy/proxy.go" ;
+    vdo:implements base:nfr/security-bola-bfla .
+
+base:code/m1-fix-ontology-query-handler a vdo:CodeArtifact ;
+    rdfs:label "Ontology Query Handler (M1 Blocker Fix)"@en ;
+    rdfs:comment "Strengthened read-only Cypher validation with procedure allowlist, DB error sanitization"@en ;
+    vdo:filePath "src/services/ontology-service/src/handlers/query_handler.rs" ;
+    vdo:implements base:nfr/security-bola-bfla .
+
+base:code/m1-fix-versioning-commit-repo a vdo:CodeArtifact ;
+    rdfs:label "Versioning Commit Repository (M1 Blocker Fix)"@en ;
+    rdfs:comment "Atomic commit creation in transaction, branch reachability validation (CTE)"@en ;
+    vdo:filePath "src/services/versioning-service/src/repositories/commit_repo.rs" ;
+    vdo:implements base:nfr/performance-p95 .
+
+base:code/m1-fix-versioning-branch-repo a vdo:CodeArtifact ;
+    rdfs:label "Versioning Branch Repository (M1 Blocker Fix)"@en ;
+    rdfs:comment "Atomic branch deletion with cleanup, no-op merge rejection"@en ;
+    vdo:filePath "src/services/versioning-service/src/repositories/branch_repo.rs" ;
+    vdo:implements base:nfr/performance-p95 .
+
+base:code/m1-fix-versioning-merge-service a vdo:CodeArtifact ;
+    rdfs:label "Versioning Merge Service (M1 Blocker Fix)"@en ;
+    rdfs:comment "Merge conflict detection optimized from O(n^2) to O(n) using HashSet"@en ;
+    vdo:filePath "src/services/versioning-service/src/services/merge_service.rs" ;
+    vdo:implements base:nfr/performance-p95 .
+
+base:code/m1-fix-versioning-state-service a vdo:CodeArtifact ;
+    rdfs:label "Versioning State Service (M1 Blocker Fix)"@en ;
+    rdfs:comment "Checkout and rollback with branch ancestor reachability validation"@en ;
+    vdo:filePath "src/services/versioning-service/src/services/state_service.rs" ;
+    vdo:implements base:nfr/performance-p95 .
+
+# --- M1 Review Blocker Fixes — Test Suites ---
+
+base:test/m1-fix-gateway-auth a vdo:TestSuite ;
+    rdfs:label "Gateway Auth Regression Tests (M1 Blocker Fix)"@en ;
+    rdfs:comment "Regression tests for JWT error sanitization and alg=none rejection"@en ;
+    vdo:filePath "src/services/api-gateway/auth/auth_test.go" ;
+    vdo:validates base:nfr/security-bola-bfla .
+
+base:test/m1-fix-gateway-proxy a vdo:TestSuite ;
+    rdfs:label "Gateway Proxy Regression Tests (M1 Blocker Fix)"@en ;
+    rdfs:comment "Regression tests for query string preservation and hop-by-hop header filtering"@en ;
+    vdo:filePath "src/services/api-gateway/proxy/proxy_test.go" ;
+    vdo:validates base:nfr/security-bola-bfla .
+
+base:test/m1-fix-ontology-query-integration a vdo:TestSuite ;
+    rdfs:label "Ontology Query Security Tests (M1 Blocker Fix)"@en ;
+    rdfs:comment "Security regression tests for read-only Cypher validation and DB error sanitization"@en ;
+    vdo:filePath "src/services/ontology-service/tests/query_integration_test.rs" ;
+    vdo:validates base:nfr/security-bola-bfla .
+
+base:test/m1-fix-versioning-transactional a vdo:TestSuite ;
+    rdfs:label "Versioning Transactional Regression Tests (M1 Blocker Fix)"@en ;
+    rdfs:comment "Regression tests for atomic commit, branch deletion, merge correctness, and checkpoint validation"@en ;
+    vdo:filePath "src/services/versioning-service/tests/transactional_integration_test.rs" ;
+    vdo:validates base:nfr/performance-p95 .

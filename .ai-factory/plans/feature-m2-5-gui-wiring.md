@@ -607,7 +607,7 @@ npx playwright test --config=playwright.m2.5.config.ts --project=chromium
   npx playwright test tests/m2.5/api-gateway-full.spec.ts --project=chromium
   ```
 
-- [~] **Task 6.3: Run full E2E suite (regression check)**
+- [x] **Task 6.3: Run full E2E suite (regression check)**
 
   **Status: Vitest regression PASS (121 tests, 18 files).** Full Playwright E2E regression against real backend → Tasks 6.4–6.7 (new/corrected) using `deploy/docker-compose.test.yml`. Proxy and mock infrastructure changes don't affect production builds.
 

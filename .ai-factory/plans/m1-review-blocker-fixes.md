@@ -172,9 +172,9 @@ Paths in the review were reconciled with the current tree. All referenced files 
   - Integration tests (gated): `transactional_integration_test` compiled, requires PG
   - Depends on: Tasks 1.1–4.1
 
-- [ ] **Task 5.2** — Update traceability artifact
+- [x] **Task 5.2** — Update traceability artifact
   - File: `.ai-factory/traceability/traceability.ttl`
-  - Add entries for all changed files (pending)
+  - Add entries for all changed files (done)
 
 ---
 
