@@ -33,6 +33,22 @@
                 <span v-if="saving" class="btn-spinner"></span>
                 {{ saving ? 'Saving...' : 'Save' }}
               </button>
+              <div class="toolbar-create-group">
+                <button
+                  class="toolbar-btn toolbar-create-btn"
+                  type="button"
+                  title="Create entity"
+                  @click="openCreateClass"
+                >
+                  <Plus :size="14" />
+                  Create
+                </button>
+                <div class="toolbar-create-dropdown">
+                  <button type="button" @click="openCreateClass">Class</button>
+                  <button type="button" @click="openCreateProperty">Property</button>
+                  <button type="button" @click="openCreateIndividual">Individual</button>
+                </div>
+              </div>
               <button
                 :class="['toolbar-btn', { 'toolbar-btn--active': showAiPanel }]"
                 type="button"
@@ -47,46 +63,147 @@
             <div v-if="showAiPanel" class="workspace-ai-panel">
               <div class="ai-panel__header">
                 <h3 class="ai-panel__title">AI-Assisted Ontology Import</h3>
-                <p class="ai-panel__desc">Upload documents to extract ontology classes, properties, and individuals.</p>
+                <p class="ai-panel__desc">Upload documents or describe your ontology in natural language.</p>
               </div>
 
-              <!-- Upload section -->
-              <div v-if="uploadMode === 'single'" class="ai-panel__section">
-                <DocumentUploader
-                  :ontology-id="ontologyId"
-                  :mode="'single'"
-                  @upload-complete="onUploadComplete"
-                  @upload-error="onUploadError"
-                />
-              </div>
-              <div v-else class="ai-panel__section">
-                <BatchUploader
-                  :ontology-id="ontologyId"
-                  @batch-complete="onBatchComplete"
-                  @batch-error="onUploadError"
-                  @reset="onBatchReset"
-                />
-              </div>
-
-              <!-- Mode toggle -->
-              <div class="ai-panel__mode-toggle">
+              <!-- Tab bar: Document Import / NL→OWL -->
+              <div class="ai-panel__tabs">
                 <button
-                  :class="['ai-panel__mode-btn', { 'ai-panel__mode-btn--active': uploadMode === 'single' }]"
+                  :class="['ai-panel__tab', { 'ai-panel__tab--active': aiTab === 'document' }]"
                   type="button"
-                  @click="uploadMode = 'single'"
+                  data-testid="ai-tab-document"
+                  @click="switchAiTab('document')"
                 >
-                  Single file
+                  <FileText :size="14" />
+                  Document Import
                 </button>
                 <button
-                  :class="['ai-panel__mode-btn', { 'ai-panel__mode-btn--active': uploadMode === 'batch' }]"
+                  :class="['ai-panel__tab', { 'ai-panel__tab--active': aiTab === 'nl-to-owl' }]"
                   type="button"
-                  @click="uploadMode = 'batch'"
+                  data-testid="ai-tab-nl-to-owl"
+                  @click="switchAiTab('nl-to-owl')"
                 >
-                  Batch upload
+                  <MessageSquare :size="14" />
+                  NL→OWL
                 </button>
               </div>
 
-              <!-- Sequence Preview (after upload) -->
+              <!-- ── Document Import Tab ── -->
+              <template v-if="aiTab === 'document'">
+                <!-- Upload section -->
+                <div v-if="uploadMode === 'single'" class="ai-panel__section">
+                  <DocumentUploader
+                    :ontology-id="ontologyId"
+                    :mode="'single'"
+                    @upload-complete="onUploadComplete"
+                    @upload-error="onUploadError"
+                  />
+                </div>
+                <div v-else class="ai-panel__section">
+                  <BatchUploader
+                    :ontology-id="ontologyId"
+                    @batch-complete="onBatchComplete"
+                    @batch-error="onUploadError"
+                    @reset="onBatchReset"
+                  />
+                </div>
+
+                <!-- Upload mode toggle -->
+                <div class="ai-panel__mode-toggle">
+                  <button
+                    :class="['ai-panel__mode-btn', { 'ai-panel__mode-btn--active': uploadMode === 'single' }]"
+                    type="button"
+                    @click="uploadMode = 'single'"
+                  >
+                    Single file
+                  </button>
+                  <button
+                    :class="['ai-panel__mode-btn', { 'ai-panel__mode-btn--active': uploadMode === 'batch' }]"
+                    type="button"
+                    @click="uploadMode = 'batch'"
+                  >
+                    Batch upload
+                  </button>
+                </div>
+              </template>
+
+              <!-- ── NL→OWL Generation Tab ── -->
+              <template v-if="aiTab === 'nl-to-owl'">
+                <!-- Prompt input -->
+                <div class="ai-panel__section">
+                  <div class="nl-prompt">
+                    <label class="nl-prompt__label" for="nl-to-owl-input">
+                      Describe your ontology in natural language
+                    </label>
+                    <textarea
+                      id="nl-to-owl-input"
+                      v-model="nlPrompt"
+                      class="nl-prompt__textarea"
+                      data-testid="nl-to-owl-input"
+                      placeholder="Example: Create a product ontology with classes for Product, Category, Manufacturer, and Review."
+                      :disabled="isGenerating"
+                      rows="4"
+                    ></textarea>
+                    <div class="nl-prompt__actions">
+                      <span class="nl-prompt__hint">Describe classes, properties, and relationships you want to model.</span>
+                      <button
+                        class="nl-prompt__generate-btn"
+                        type="button"
+                        data-testid="nl-to-owl-generate"
+                        :disabled="!nlPrompt.trim() || isGenerating"
+                        @click="handleGenerateFromText"
+                      >
+                        <span v-if="isGenerating" class="btn-spinner"></span>
+                        {{ isGenerating ? 'Generating...' : 'Generate' }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Generation error -->
+                <div v-if="generationError" class="ai-panel__section">
+                  <div class="nl-error">
+                    <span class="nl-error__icon">!</span>
+                    <span>{{ generationError }}</span>
+                    <button class="nl-error__retry" type="button" @click="handleGenerateFromText">Retry</button>
+                  </div>
+                </div>
+
+                <!-- Refinement section (shown after generation) -->
+                <div v-if="nlResult && nlResult.steps.length > 0 && !isGenerating" class="ai-panel__section">
+                  <div class="nl-refinement">
+                    <label class="nl-refinement__label" for="refinement-input">
+                      Refine the result (optional)
+                    </label>
+                    <div class="nl-refinement__row">
+                      <input
+                        id="refinement-input"
+                        v-model="refinementFeedback"
+                        class="nl-refinement__input"
+                        data-testid="refinement-input"
+                        type="text"
+                        placeholder="Add more classes, change relationships, or specify details..."
+                        :disabled="isRefining"
+                      />
+                      <button
+                        class="nl-refinement__btn"
+                        type="button"
+                        data-testid="refinement-submit"
+                        :disabled="!refinementFeedback.trim() || isRefining"
+                        @click="handleRefine"
+                      >
+                        <span v-if="isRefining" class="btn-spinner"></span>
+                        {{ isRefining ? 'Refining...' : 'Refine' }}
+                      </button>
+                    </div>
+                    <span v-if="refinementRound > 0" class="nl-refinement__round">
+                      Refinement round {{ refinementRound }} / {{ maxRefinementRounds }}
+                    </span>
+                  </div>
+                </div>
+              </template>
+
+              <!-- Sequence Preview (shared between tabs) -->
               <div v-if="extractionSteps.length > 0" class="ai-panel__section">
                 <SequencePreview
                   :steps="extractionSteps"
@@ -198,25 +315,58 @@
                 <span class="i-name">{{ item.label }}</span>
                 <span class="i-type i-type--active">{{ item.classLabel }}</span>
               </div>
+              <AiSuggestionPanel
+                v-if="selectedClassId"
+                :ontology-id="ontologyId"
+                :class-id="selectedClassId"
+                @suggestion-accepted="onAiSuggestionAccepted"
+              />
             </aside>
           </div>
         </section>
       </div>
     </template>
+
+      <!-- Create Entity Dialogs -->
+      <CreateClassDialog
+        :open="showCreateClass"
+        :ontology-id="ontologyId"
+        @close="showCreateClass = false"
+        @created="onClassCreated"
+      />
+      <CreatePropertyDialog
+        :open="showCreateProperty"
+        :ontology-id="ontologyId"
+        @close="showCreateProperty = false"
+        @created="onPropertyCreated"
+      />
+      <CreateIndividualDialog
+        :open="showCreateIndividual"
+        :ontology-id="ontologyId"
+        @close="showCreateIndividual = false"
+        @created="onIndividualCreated"
+      />
   </div>
 </template>
 
 <script setup lang="ts">
 import ApplySequenceButton from "@/components/ontology/ApplySequenceButton.vue";
+import AiSuggestionPanel from "@/components/ontology/AiSuggestionPanel.vue";
 import BatchUploader from "@/components/ontology/BatchUploader.vue";
+import CreateClassDialog from "@/components/ontology/CreateClassDialog.vue";
+import CreateIndividualDialog from "@/components/ontology/CreateIndividualDialog.vue";
+import CreatePropertyDialog from "@/components/ontology/CreatePropertyDialog.vue";
 import DocumentUploader from "@/components/ontology/DocumentUploader.vue";
 import SequencePreview from "@/components/ontology/SequencePreview.vue";
 import GraphVisualization from "@/components/organisms/GraphVisualization.vue";
 import { useQuery } from "@vue/apollo-composable";
 import {
 	ChevronRight,
+	FileText,
 	Folder,
 	GripVertical,
+	MessageSquare,
+	Plus,
 	Search,
 	Zap,
 } from "lucide-vue-next";
@@ -228,7 +378,9 @@ import {
 	ONTOLOGY_QUERY,
 } from "../apollo/queries";
 import { useDraftState } from "../composables/useDraftState";
-import type { ExtractionPreview, SequenceStep } from "../types/extraction";
+import { generateFromText, refineSequence } from "../api/ai";
+import type { AiGenerationResult } from "../api/ai";
+import type { AiSuggestion, ExtractionPreview, SequenceStep } from "../types/extraction";
 
 const route = useRoute();
 const ontologyId = ref((route.params.id as string) || "default");
@@ -243,9 +395,27 @@ const saving = ref(false);
 
 // ── AI Import Panel state ──────────────────────────────────────────────────
 
-const showAiPanel = ref(false);
-const uploadMode = ref<"single" | "batch">("single");
-const extractionSteps = ref<SequenceStep[]>([]);
+	const showAiPanel = ref(false);
+	const aiTab = ref<"document" | "nl-to-owl">("document");
+	const uploadMode = ref<"single" | "batch">("single");
+
+	// ── NL→OWL Generation state ────────────────────────────────────────────────
+
+	const nlPrompt = ref("");
+	const isGenerating = ref(false);
+	const generationError = ref<string | null>(null);
+	const nlResult = ref<AiGenerationResult | null>(null);
+
+	// ── Iterative Refinement state ────────────────────────────────────────────
+
+	const refinementFeedback = ref("");
+	const isRefining = ref(false);
+	const refinementRound = ref(0);
+	const maxRefinementRounds = 5;
+
+	// ── Extraction / Preview state (shared) ───────────────────────────────────
+
+	const extractionSteps = ref<SequenceStep[]>([]);
 const showApplyButton = ref(false);
 const extractionSourceFiles = computed(
 	() =>
@@ -254,9 +424,43 @@ const extractionSourceFiles = computed(
 				extractionSteps.value.map((step) => step.sourceFile).filter(Boolean),
 			),
 		) as string[],
-);
+	);
 
-function normalizeExtractionStep(
+	// ── Create Dialog state ───────────────────────────────────────────────────
+
+	const showCreateClass = ref(false);
+	const showCreateProperty = ref(false);
+	const showCreateIndividual = ref(false);
+
+	function openCreateClass() { showCreateClass.value = true; }
+	function openCreateProperty() { showCreateProperty.value = true; }
+	function openCreateIndividual() { showCreateIndividual.value = true; }
+
+	function onClassCreated(_name: string) {
+		showCreateClass.value = false;
+		draftState.trackChange("create:class", null, _name);
+	}
+
+	function onPropertyCreated(_name: string) {
+		showCreateProperty.value = false;
+		draftState.trackChange("create:property", null, _name);
+	}
+
+	function onIndividualCreated(_name: string) {
+		showCreateIndividual.value = false;
+		draftState.trackChange("create:individual", null, _name);
+	}
+
+	function onAiSuggestionAccepted(suggestion: AiSuggestion) {
+		console.info("[OntologyWorkspace] AI suggestion accepted", {
+			id: suggestion.id,
+			label: suggestion.label,
+			type: suggestion.type,
+		});
+		draftState.trackChange("ai:suggest", null, suggestion.label);
+	}
+
+	function normalizeExtractionStep(
 	step: SequenceStep,
 	index: number,
 ): SequenceStep {
@@ -319,6 +523,112 @@ function onApplySuccess(result: { commitId?: string; commitUrl?: string }) {
 
 function onApplyError(error: string) {
 	console.error("[OntologyWorkspace] apply error", { error });
+}
+
+// ── AI Tab switching ────────────────────────────────────────────────────────
+
+function switchAiTab(tab: "document" | "nl-to-owl") {
+	aiTab.value = tab;
+	if (tab === "nl-to-owl") {
+		uploadMode.value = "single"; // reset document mode when switching away
+	}
+}
+
+// ── NL→OWL Generation ───────────────────────────────────────────────────────
+
+async function handleGenerateFromText(): Promise<void> {
+	const text = nlPrompt.value.trim();
+	if (!text || isGenerating.value) return;
+
+	isGenerating.value = true;
+	generationError.value = null;
+	console.info("[OntologyWorkspace] NL→OWL generation start", {
+		ontologyId: ontologyId.value,
+		textLength: text.length,
+	});
+
+	try {
+		const result = await generateFromText({
+			ontologyId: ontologyId.value,
+			text,
+		});
+
+		nlResult.value = result;
+		refinementRound.value = 0;
+		refinementFeedback.value = "";
+
+		// Convert AI result steps to extraction steps and show preview
+		extractionSteps.value = result.steps.map((s, i) => ({
+			...s,
+			id: s.id || `ai-${i}`,
+			included: s.included ?? true,
+			sourceFile: undefined,
+		}));
+		showApplyButton.value = true;
+
+		console.info("[OntologyWorkspace] NL→OWL generation complete", {
+			steps: result.steps.length,
+			id: result.id,
+		});
+	} catch (err) {
+		const msg = err instanceof Error ? err.message : String(err);
+		generationError.value = msg;
+		console.error("[OntologyWorkspace] NL→OWL generation failed", { error: msg });
+	} finally {
+		isGenerating.value = false;
+	}
+}
+
+// ── Iterative Refinement ────────────────────────────────────────────────────
+
+async function handleRefine(): Promise<void> {
+	const feedback = refinementFeedback.value.trim();
+	if (!feedback || isRefining.value || !nlResult.value) return;
+
+	if (refinementRound.value >= maxRefinementRounds) {
+		console.warn("[OntologyWorkspace] max refinement rounds reached");
+		return;
+	}
+
+	isRefining.value = true;
+	const currentRound = refinementRound.value + 1;
+	console.info("[OntologyWorkspace] refinement start", {
+		round: currentRound,
+		feedbackLength: feedback.length,
+	});
+
+	try {
+		const result = await refineSequence({
+			ontologyId: ontologyId.value,
+			sequenceId: nlResult.value.id,
+			previousSteps: extractionSteps.value,
+			feedback,
+		});
+
+		refinementRound.value = currentRound;
+		refinementFeedback.value = "";
+
+		// Update steps with refined results
+		extractionSteps.value = result.steps.map((s, i) => ({
+			...s,
+			id: s.id || `refine-${currentRound}-${i}`,
+			included: s.included ?? true,
+			sourceFile: undefined,
+		}));
+
+		console.info("[OntologyWorkspace] refinement complete", {
+			round: currentRound,
+			steps: result.steps.length,
+		});
+	} catch (err) {
+		const msg = err instanceof Error ? err.message : String(err);
+		console.error("[OntologyWorkspace] refinement failed", {
+			round: currentRound,
+			error: msg,
+		});
+	} finally {
+		isRefining.value = false;
+	}
 }
 
 // ── Graph visualization data ───────────────────────────────────────────────────────────
@@ -850,6 +1160,288 @@ watch(selectedClassId, () => {
 .ai-panel__apply {
   display: flex;
   justify-content: flex-start;
+}
+
+/* ── Toolbar Create Dropdown ────────────────────────── */
+
+.toolbar-create-group {
+  position: relative;
+  display: inline-flex;
+}
+
+.toolbar-create-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.toolbar-create-group:hover .toolbar-create-dropdown {
+  display: flex;
+}
+
+.toolbar-create-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  flex-direction: column;
+  background: var(--surface-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px;
+  z-index: 100;
+  min-width: 140px;
+  margin-top: 2px;
+}
+
+.toolbar-create-dropdown button {
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.toolbar-create-dropdown button:hover {
+  background: var(--surface-tertiary);
+}
+
+/* ── Tab bar ─────────────────────────────────────────── */
+
+.ai-panel__tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--spacing-3, 12px);
+}
+
+.ai-panel__tab {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2, 6px);
+  padding: var(--spacing-2, 8px) var(--spacing-4, 16px);
+  border: none;
+  background: transparent;
+  color: var(--text-muted, #6b7280);
+  font-size: var(--font-size-sm, 13px);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all var(--transition-fast, 0.15s);
+}
+
+.ai-panel__tab:hover {
+  color: var(--text-primary, #fafafa);
+}
+
+.ai-panel__tab--active {
+  color: var(--primary, #10b981);
+  border-bottom-color: var(--primary, #10b981);
+}
+
+/* ── NL Prompt (NL→OWL tab) ─────────────────────────── */
+
+.nl-prompt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2, 8px);
+}
+
+.nl-prompt__label {
+  font-size: var(--font-size-sm, 13px);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--text-primary, #fafafa);
+}
+
+.nl-prompt__textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: var(--spacing-2, 8px) var(--spacing-3, 12px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 8px);
+  background: var(--surface-primary, #101010);
+  color: var(--text-primary, #fafafa);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: var(--font-size-sm, 13px);
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.nl-prompt__textarea:focus {
+  outline: none;
+  border-color: var(--primary, #10b981);
+}
+
+.nl-prompt__textarea:disabled {
+  opacity: 0.5;
+}
+
+.nl-prompt__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nl-prompt__hint {
+  font-size: var(--font-size-xs, 12px);
+  color: var(--text-muted, #6b7280);
+}
+
+.nl-prompt__generate-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2, 6px);
+  padding: var(--spacing-2, 8px) var(--spacing-4, 16px);
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--primary, #10b981);
+  background: var(--primary, #10b981);
+  color: var(--text-inverse, #0a0a0a);
+  font-size: var(--font-size-sm, 13px);
+  font-weight: var(--font-weight-medium, 500);
+  cursor: pointer;
+  transition: background var(--transition-fast, 0.15s);
+}
+
+.nl-prompt__generate-btn:hover:not(:disabled) {
+  background: var(--primary-hover, #34d399);
+}
+
+.nl-prompt__generate-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Generation Error ───────────────────────────────── */
+
+.nl-error {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2, 8px);
+  padding: var(--spacing-2, 8px) var(--spacing-3, 12px);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-md, 8px);
+  background: rgba(239, 68, 68, 0.05);
+  color: var(--status-error, #ef4444);
+  font-size: var(--font-size-sm, 13px);
+}
+
+.nl-error__icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.15);
+  font-weight: 700;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.nl-error__retry {
+  margin-left: auto;
+  padding: var(--spacing-1, 4px) var(--spacing-2, 8px);
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary, #6b7280);
+  font-size: var(--font-size-xs, 12px);
+  cursor: pointer;
+}
+
+.nl-error__retry:hover {
+  background: var(--surface-secondary, #141414);
+}
+
+/* ── Refinement section ─────────────────────────────── */
+
+.nl-refinement {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2, 6px);
+  padding: var(--spacing-3, 12px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 8px);
+  background: var(--surface-secondary, #141414);
+}
+
+.nl-refinement__label {
+  font-size: var(--font-size-sm, 13px);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--text-primary, #fafafa);
+}
+
+.nl-refinement__row {
+  display: flex;
+  gap: var(--spacing-2, 8px);
+}
+
+.nl-refinement__input {
+  flex: 1;
+  height: 36px;
+  padding: 0 var(--spacing-3, 12px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 8px);
+  background: var(--surface-primary, #101010);
+  color: var(--text-primary, #fafafa);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: var(--font-size-sm, 13px);
+}
+
+.nl-refinement__input:focus {
+  outline: none;
+  border-color: var(--primary, #10b981);
+}
+
+.nl-refinement__input:disabled {
+  opacity: 0.5;
+}
+
+.nl-refinement__btn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2, 6px);
+  padding: 0 var(--spacing-3, 12px);
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--primary, #10b981);
+  background: var(--primary, #10b981);
+  color: var(--text-inverse, #0a0a0a);
+  font-size: var(--font-size-sm, 13px);
+  font-weight: var(--font-weight-medium, 500);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.nl-refinement__btn:hover:not(:disabled) {
+  background: var(--primary-hover, #34d399);
+}
+
+.nl-refinement__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.nl-refinement__round {
+  font-size: var(--font-size-xs, 12px);
+  color: var(--text-muted, #6b7280);
+}
+
+.btn-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 @media (max-width: 1280px) {

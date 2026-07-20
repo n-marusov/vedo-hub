@@ -58,12 +58,16 @@ import Dialog from "@/components/ui-kit/Dialog.vue";
 import GhostButton from "@/components/ui-kit/GhostButton.vue";
 import PrimaryButton from "@/components/ui-kit/PrimaryButton.vue";
 import { useErrorPresentation } from "@/composables/useErrorPresentation";
+import { useMutation } from "@vue/apollo-composable";
 import { reactive, ref } from "vue";
+import { CREATE_CLASS_MUTATION } from "../../apollo/queries";
 
-defineProps<{ open: boolean }>();
+const props = defineProps<{ open: boolean; ontologyId: string }>();
 const emit = defineEmits<{ close: []; created: [className: string] }>();
 
 const { addError } = useErrorPresentation();
+
+const { mutate: createClass } = useMutation(CREATE_CLASS_MUTATION);
 
 const className = ref("");
 const parentClass = ref("");
@@ -78,6 +82,7 @@ async function submit(): Promise<void> {
 			level: "debug",
 			msg: "CreateClass.submitted",
 			className: className.value,
+			ontologyId: props.ontologyId,
 			ts: new Date().toISOString(),
 		}),
 	);
@@ -94,18 +99,30 @@ async function submit(): Promise<void> {
 
 	submitting.value = true;
 	try {
-		// [bookmark] Backend CREATE_CLASS mutation not in M4 scope — mock submit
-		await new Promise((resolve) => setTimeout(resolve, 500));
-		console.debug(
-			JSON.stringify({
-				level: "debug",
-				msg: "CreateClass.success",
-				className: className.value,
-				ts: new Date().toISOString(),
-			}),
-		);
-		emit("created", className.value);
-		reset();
+		const result = await createClass({
+			ontologyId: props.ontologyId,
+			label: className.value.trim(),
+			parentId: parentClass.value || undefined,
+			description: description.value.trim() || undefined,
+			annotations:
+				annotations.length > 0 ? annotations.filter((a) => a.key) : undefined,
+		});
+
+		if (result?.data?.createClass) {
+			console.debug(
+				JSON.stringify({
+					level: "debug",
+					msg: "CreateClass.success",
+					className: className.value,
+					classId: result.data.createClass.id,
+					ts: new Date().toISOString(),
+				}),
+			);
+			emit("created", className.value);
+			reset();
+		} else {
+			throw new Error("No data returned from createClass mutation");
+		}
 	} catch (e) {
 		const msg = e instanceof Error ? e.message : String(e);
 		addError("CREATE-CLASS-FAILED", msg);

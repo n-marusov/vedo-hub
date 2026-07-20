@@ -616,3 +616,43 @@ export const LIST_MERGE_REQUESTS_QUERY = gql`
       commentCount
   }
 `;
+
+// ── Entity CREATE Mutations (Task 6.7e) ───────────────────────────────────
+
+/// Create a new class within an ontology.
+export const CREATE_CLASS_MUTATION = gql`
+  mutation CreateClass($ontologyId: ID!, $label: String!, $parentId: String, $description: String, $annotations: [AnnotationInput]) {
+    createClass(ontologyId: $ontologyId, label: $label, parentId: $parentId, description: $description, annotations: $annotations) {
+      id
+      label
+      comment
+      parents
+      children
+    }
+  }
+`;
+
+/// Create a new property within an ontology.
+export const CREATE_PROPERTY_MUTATION = gql`
+  mutation CreateProperty($ontologyId: ID!, $label: String!, $propertyType: String!, $domain: String, $range: String, $description: String) {
+    createProperty(ontologyId: $ontologyId, label: $label, propertyType: $propertyType, domain: $domain, range: $range, description: $description) {
+      id
+      label
+      propertyType
+      domains
+      ranges
+    }
+  }
+`;
+
+/// Create a new individual within an ontology class.
+export const CREATE_INDIVIDUAL_MUTATION = gql`
+  mutation CreateIndividual($ontologyId: ID!, $label: String!, $classId: String!, $propertyValues: [PropertyValueInput]) {
+    createIndividual(ontologyId: $ontologyId, label: $label, classId: $classId, propertyValues: $propertyValues) {
+      id
+      label
+      classId
+      classLabel
+    }
+  }
+`;

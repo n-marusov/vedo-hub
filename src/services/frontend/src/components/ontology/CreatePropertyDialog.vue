@@ -83,12 +83,16 @@ import Dialog from "@/components/ui-kit/Dialog.vue";
 import GhostButton from "@/components/ui-kit/GhostButton.vue";
 import PrimaryButton from "@/components/ui-kit/PrimaryButton.vue";
 import { useErrorPresentation } from "@/composables/useErrorPresentation";
+import { useMutation } from "@vue/apollo-composable";
 import { ref } from "vue";
+import { CREATE_PROPERTY_MUTATION } from "../../apollo/queries";
 
-defineProps<{ open: boolean }>();
+const props = defineProps<{ open: boolean; ontologyId: string }>();
 const emit = defineEmits<{ close: []; created: [propertyName: string] }>();
 
 const { addError } = useErrorPresentation();
+
+const { mutate: createProperty } = useMutation(CREATE_PROPERTY_MUTATION);
 
 const activeTab = ref<"config" | "preview">("config");
 const propertyName = ref("");
@@ -118,6 +122,7 @@ async function submit(): Promise<void> {
 			msg: "CreateProperty.submitted",
 			propName: propertyName.value,
 			propType: propertyType.value,
+			ontologyId: props.ontologyId,
 			ts: new Date().toISOString(),
 		}),
 	);
@@ -134,17 +139,29 @@ async function submit(): Promise<void> {
 
 	submitting.value = true;
 	try {
-		await new Promise((resolve) => setTimeout(resolve, 500));
-		console.debug(
-			JSON.stringify({
-				level: "debug",
-				msg: "CreateProperty.success",
-				propName: propertyName.value,
-				ts: new Date().toISOString(),
-			}),
-		);
-		emit("created", propertyName.value);
-		reset();
+		const result = await createProperty({
+			ontologyId: props.ontologyId,
+			label: propertyName.value.trim(),
+			propertyType: propertyType.value,
+			domain: domain.value.trim() || undefined,
+			range: range.value.trim() || undefined,
+		});
+
+		if (result?.data?.createProperty) {
+			console.debug(
+				JSON.stringify({
+					level: "debug",
+					msg: "CreateProperty.success",
+					propName: propertyName.value,
+					propId: result.data.createProperty.id,
+					ts: new Date().toISOString(),
+				}),
+			);
+			emit("created", propertyName.value);
+			reset();
+		} else {
+			throw new Error("No data returned from createProperty mutation");
+		}
 	} catch (e) {
 		const msg = e instanceof Error ? e.message : String(e);
 		addError("CREATE-PROPERTY-FAILED", msg);
