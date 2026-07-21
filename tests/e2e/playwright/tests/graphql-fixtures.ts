@@ -220,19 +220,7 @@ async function handleGuiGraphql(route: Route) {
     return fulfillGraphql(route, { graphNeighborhood: MOCK_GRAPH_NEIGHBORHOOD }, 200);
   }
 
-  if (signature.includes('SparqlExecute') || signature.includes('sparqlQuery')) {
-    const sparql = String(body.variables?.query || '');
-    if (/invalid/i.test(sparql)) {
-      return route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ errors: [{ message: 'SPARQL syntax error near INVALID' }] }),
-      });
-    }
-    return fulfillGraphql(route, { sparqlQuery: MOCK_SPARQL_RESULTS }, 300);
-  }
-
-  if (signature.includes('RunValidation') || signature.includes('runValidation')) {
+  	if (signature.includes('RunValidation') || signature.includes('runValidation')) {
     return fulfillGraphql(route, { runValidation: MOCK_VALIDATION }, 300);
   }
 
