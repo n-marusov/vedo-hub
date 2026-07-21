@@ -458,10 +458,10 @@ export const LIST_GROUPS_QUERY = gql`
   }
 `;
 
-/// List members of an ontology with roles.
+/// List members of a project with roles.
 export const LIST_MEMBERS_QUERY = gql`
-  query ListMembers($ontologyId: ID!) {
-    members(ontologyId: $ontologyId) {
+  query ListMembers($projectId: ID!) {
+    members(projectId: $projectId) {
       id
       userId
       username
@@ -474,8 +474,8 @@ export const LIST_MEMBERS_QUERY = gql`
 
 /// Update a member's role.
 export const UPDATE_MEMBER_ROLE_MUTATION = gql`
-  mutation UpdateMemberRole($ontologyId: ID!, $userId: ID!, $role: String!) {
-    updateMemberRole(ontologyId: $ontologyId, userId: $userId, role: $role) {
+  mutation UpdateMemberRole($projectId: ID!, $userId: ID!, $role: String!) {
+    updateMemberRole(projectId: $projectId, userId: $userId, role: $role) {
       success
       member {
         id
@@ -486,10 +486,10 @@ export const UPDATE_MEMBER_ROLE_MUTATION = gql`
   }
 `;
 
-/// Remove a member from an ontology.
+/// Remove a member from a project.
 export const REMOVE_MEMBER_MUTATION = gql`
-  mutation RemoveMember($ontologyId: ID!, $userId: ID!) {
-    removeMember(ontologyId: $ontologyId, userId: $userId) {
+  mutation RemoveMember($projectId: ID!, $userId: ID!) {
+    removeMember(projectId: $projectId, userId: $userId) {
       success
     }
   }

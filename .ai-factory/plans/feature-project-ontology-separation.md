@@ -965,6 +965,8 @@ feat(auth-service): rename scopes.type='ontology' to 'project' and add ontologie
 
 #### Task 5.4 — Commit Phase 5
 
+> ✅ **Completed:** 2026-07-21 (main `683cc26`)
+
 ```
 refactor(api-gateway): route org endpoints under /projects/{id}/...
 
@@ -984,6 +986,8 @@ refactor(api-gateway): route org endpoints under /projects/{id}/...
 
 #### Task 6.1 — Update Apollo queries and mocks
 
+> ✅ **Completed:** 2026-07-21 (mock-link.ts has no member fixtures — no-op)
+
 - **Files:**
   - `src/services/frontend/src/apollo/queries.ts`
   - `src/services/frontend/src/apollo/mock-link.ts`
@@ -1000,6 +1004,8 @@ refactor(api-gateway): route org endpoints under /projects/{id}/...
   existing frontend tests still pass.
 
 #### Task 6.2 — Update `MembersPage.vue` and related pages
+
+> ✅ **Completed:** 2026-07-21 (biome + vitest 166/166 pass; ProjectsPage.vue and OntologyWorkspace.vue have no member links)
 
 - **Files:**
   - `src/services/frontend/src/pages/MembersPage.vue`
