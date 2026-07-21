@@ -36,7 +36,7 @@ export class DocumentUploadPage {
 
   async openDocumentUpload(ontologyName: string) {
     await this.setupBrowserAuth();
-    await this.page.goto(`/ontology/${ontologyName}/workspace`);
+    await this.page.goto(`/project/${ontologyName}/workspace`);
     await this.page.getByRole('button', { name: /ai import/i }).click();
     await this.page.getByRole('region', { name: /document upload zone|batch document upload/i }).waitFor({ state: 'visible' });
   }

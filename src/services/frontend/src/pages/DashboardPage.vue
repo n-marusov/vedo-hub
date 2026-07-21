@@ -308,7 +308,7 @@ function navigateToOntology(ontologyId: string): void {
 			ts: new Date().toISOString(),
 		}),
 	);
-	router.push(`/ontology/${ontologyId}/workspace`);
+	router.push(`/project/${ontologyId}/workspace`)
 }
 
 function toggleActivityFilter(): void {

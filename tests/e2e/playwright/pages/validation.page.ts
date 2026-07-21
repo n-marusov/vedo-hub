@@ -8,7 +8,7 @@ export class ValidationPage {
 
   async goto(ontologyId?: string) {
     const id = ontologyId || 'test';
-    await this.page.goto(`/ontology/${id}/validation`);
+    		await this.page.goto(`/project/${id}/validation`);
   }
 
   async runValidation() {

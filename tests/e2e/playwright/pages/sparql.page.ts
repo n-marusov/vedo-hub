@@ -8,7 +8,7 @@ export class SparqlPage {
 
   async goto(ontologyId?: string) {
     const id = ontologyId || 'test';
-    await this.page.goto(`/ontology/${id}/query`);
+    		await this.page.goto(`/project/${id}/query`);
   }
 
   async enterQuery(text: string) {

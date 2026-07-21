@@ -9,7 +9,7 @@ export class VersioningPage {
   async goto(ontologyId?: string, view?: string) {
     const id = ontologyId || 'test';
     const v = view || 'commits';
-    await this.page.goto(`/ontology/${id}/versioning/${v}`);
+    		await this.page.goto(`/project/${id}/versioning/${v}`);
   }
 
   async switchTab(tab: string) {
