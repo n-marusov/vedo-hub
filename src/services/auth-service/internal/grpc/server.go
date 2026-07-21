@@ -6,6 +6,8 @@ package grpcserver
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"log"
 	"log/slog"
 
@@ -176,17 +178,17 @@ func (s *OrgGrpcServer) CreateProject(ctx context.Context, req *authv1.CreatePro
 		return nil, mapOrgError(err)
 	}
 
-	// Create the paired ontologies row (1:1 invariant). The ontology_id
-	// uses the project scope ID as its identifier (legacy identity pattern,
-	// matching the backfill migration 009).
-	ontologyID := projectScopeID
+	// Generate a UUID v4 for the paired Ontology (REQ-FUN.DATA.ontology-identifier-standard).
+	ontologyID := newUUID()
 	if err := s.svc.Store().CreateOntology(org.Ontology{
 		ProjectScope: projectScopeID,
 		OntologyID:   ontologyID,
 	}); err != nil {
 		slog.Error("project.create.ontology_pairing_failed", "project_id", projectScopeID, "err", err)
 		// Best-effort cleanup: remove the scope if the ontology pairing failed.
-		_ = s.svc.Store().DeleteScope(projectScopeID)
+		if delErr := s.svc.Store().DeleteScope(projectScopeID); delErr != nil {
+			slog.Error("project.create.cleanup_failed", "project_id", projectScopeID, "err", delErr)
+		}
 		return nil, status.Errorf(codes.Internal, "PROJECT_CREATE_ONTOLOGY_PAIRING_FAILED: %v", err)
 	}
 
@@ -486,4 +488,20 @@ func policyToProto(p *org.AttributePolicy) *authv1.AttributePolicy {
 		Pattern: p.Pattern,
 		Right:   p.Right,
 	}
+}
+
+// newUUID generates a UUID v4 (RFC 4122) using crypto/rand.
+// Used for ontology_id per REQ-FUN.DATA.ontology-identifier-standard.
+func newUUID() string {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		// crypto/rand.Read never fails on modern kernels; this fallback
+		// returns a placeholder if something goes wrong.
+		return "00000000-0000-0000-0000-000000000000"
+	}
+	// Set version 4 bits and RFC 4122 variant bits
+	b[6] = (b[6] & 0x0f) | 0x40
+	b[8] = (b[8] & 0x3f) | 0x80
+	s := hex.EncodeToString(b)
+	return s[:8] + "-" + s[8:12] + "-" + s[12:16] + "-" + s[16:20] + "-" + s[20:]
 }

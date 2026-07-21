@@ -123,7 +123,7 @@ interface MemberRow {
 const { result, loading, error, refetch } = useQuery(
   LIST_MEMBERS_QUERY,
   () => ({
-    projectId: projectId.value
+    ontologyId: projectId.value
   }),
   {
     fetchPolicy: 'cache-and-network',
