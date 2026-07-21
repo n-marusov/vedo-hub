@@ -451,6 +451,8 @@ docs(specs): separate Project (container) from Ontology (content)
 
 #### Task 1.5 — Commit Phase 1
 
+> ✅ **Completed:** 2026-07-21 (submodule `6a73a73`, main `daea0fa`)
+
 ```
 docs(adr): add ADR-DES.API.organization-rest-endpoints
 
@@ -474,6 +476,8 @@ project-scoped endpoints.
 
 #### Task 2.1 — Remove `ProjectSummary.ontology_count` and align Project schemas
 
+> ✅ **Completed:** 2026-07-21
+
 - **Files:** `src/services/api-gateway/docs/openapi.json`
 - **Deliverable:**
   - In `ProjectSummary` (L2752-2762): remove the `ontology_count` field.
@@ -489,6 +493,8 @@ project-scoped endpoints.
   openapi.json` returns `true`.
 
 #### Task 2.2 — Move `/ontologies/{id}/members` → `/projects/{id}/members`
+
+> ✅ **Completed:** 2026-07-21
 
 - **Files:** `src/services/api-gateway/docs/openapi.json` (L1325-1410)
 - **Deliverable:**
@@ -507,6 +513,8 @@ project-scoped endpoints.
 
 #### Task 2.3 — Move `/ontologies/{id}/members/{userId}` → `/projects/{id}/members/{userId}`
 
+> ✅ **Completed:** 2026-07-21
+
 - **Files:** `src/services/api-gateway/docs/openapi.json` (L1411-1497)
 - **Deliverable:**
   - Replace path key. Update `operationId`s
@@ -520,6 +528,8 @@ project-scoped endpoints.
 
 #### Task 2.4 — Move `/ontologies/{id}/visibility` → `/projects/{id}/visibility`
 
+> ✅ **Completed:** 2026-07-21
+
 - **Files:** `src/services/api-gateway/docs/openapi.json` (L1498-1576)
 - **Deliverable:**
   - Replace path key. Update `operationId`s
@@ -531,6 +541,8 @@ project-scoped endpoints.
 - **Validation:** old path absent; new path present with GET and PUT.
 
 #### Task 2.5 — Move `/ontologies/{id}/policies` → `/projects/{id}/policies`
+
+> ✅ **Completed:** 2026-07-21
 
 - **Files:** `src/services/api-gateway/docs/openapi.json` (L1577-1659)
 - **Deliverable:**
@@ -544,6 +556,8 @@ project-scoped endpoints.
 
 #### Task 2.6 — Move `/ontologies/{id}/policies/{policyId}` → `/projects/{id}/policies/{policyId}`
 
+> ✅ **Completed:** 2026-07-21
+
 - **Files:** `src/services/api-gateway/docs/openapi.json` (L1660-1693)
 - **Deliverable:**
   - Replace path key. Update `operationId`
@@ -553,6 +567,8 @@ project-scoped endpoints.
 - **Validation:** old path absent; new path present with DELETE.
 
 #### Task 2.7 — Revisit `CreateOntologyRequest` under 1:1
+
+> ✅ **Completed:** 2026-07-21
 
 - **Files:** `src/services/api-gateway/docs/openapi.json` (L2880-2889)
 - **Deliverable:**
@@ -571,6 +587,8 @@ project-scoped endpoints.
   `POST /projects` carries `x-vedo-status: canonical`.
 
 #### Task 2.8 — Validate OpenAPI JSON
+
+> ✅ **Completed:** 2026-07-21 (JSON parses, 0 orphaned $refs; redocly not available — WARN skipped)
 
 - **Files:** `src/services/api-gateway/docs/openapi.json`
 - **Deliverable:**
