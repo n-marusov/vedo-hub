@@ -71,6 +71,22 @@ Synchronize glossary, ADR, REQ, Antora doc, OpenAPI, routes.go, org_handler.go.
 - Preserve GitLab-like inheritance: `Group → Project → members/visibility/policies`.
 - Coordinate with the `scopes` PostgreSQL schema (currently
   `type IN ('group', 'ontology')`).
+- Use `.ai-factory/references/gitlab-projects-groups-api.md` as the
+  canonical GitLab reference for endpoint shapes, access levels, and
+  group/project transfer semantics. The VEDO REST surface must mirror
+  GitLab `/groups/:id/...` and `/projects/:id/...` unless an explicit
+  deviation is documented in `ADR-DES.API.organization-rest-endpoints.md`.
+
+**References:**
+- `.ai-factory/references/gitlab-projects-groups-api.md` — GitLab
+  Projects & Groups API reference. Authoritative for endpoint shapes
+  (`/groups/:id/members`, `/projects/:id/members`, `/projects/:id/transfer`),
+  access levels (Guest/Reporter/Developer/Maintainer/Owner), pagination,
+  and best practices. VEDO deviations must be documented in the new ADR.
+- `.ai-factory/RESEARCH.md` — full exploration context and decision
+  rationale.
+
+---
 
 ## Affected Files
 
@@ -285,6 +301,14 @@ docs(specs): separate Project (container) from Ontology (content)
 - **Files:**
   - `specs/adr/ADR-DES.API.organization-rest-endpoints.md` — **NEW**
   - `specs/adr/README.md` — register the new ADR
+- **Reference:** `.ai-factory/references/gitlab-projects-groups-api.md`
+  — GitLab Projects & Groups API. Use as the authoritative source for
+  endpoint shapes, access levels (Guest/Reporter/Developer/Maintainer/Owner
+  per § «Access Levels Reference»), pagination (§ «Pagination»), and
+  group/project transfer semantics (§ «Transfer a group», § «Transfer a
+  project"). The ADR must explicitly cite this reference and document any
+  VEDO-specific deviation (e.g., the 1:1 Project ↔ Ontology pairing has
+  no GitLab analogue and must be called out as a VEDO extension).
 - **Deliverable:**
   - ADR body covers:
     - **Context:** organization model needs a public REST surface aligned
@@ -307,6 +331,11 @@ docs(specs): separate Project (container) from Ontology (content)
       `GET /api/v1/ontologies/{id}` where `{id}` is the ontology id (not
       the project id). The mapping Project → Ontology is exposed via
       `ProjectDetail.ontology_id` and `OntologyDetail.project_id`.
+      **VEDO extension:** GitLab has no analogue for this 1:1 pairing
+      (a GitLab Project *is* the repository; in VEDO the Project is the
+      workspace and the Ontology is the content). See
+      `.ai-factory/references/gitlab-projects-groups-api.md` § «Create a
+      project» for the GitLab baseline.
     - **Scope strings** in the auth-service gRPC contract: `"group/" + id`
       and `"project/" + id`. Legacy `"ontology/" + id` is accepted only
       during the migration window of this plan and is removed in the
@@ -316,7 +345,12 @@ docs(specs): separate Project (container) from Ontology (content)
       endpoints **require** it (400 `INVALID_IDEMPOTENCY_KEY` if missing).
     - **RBAC:** only `Owner` can manage members, visibility, and policies.
       `Maintainer` is scoped to the ontology workflow (branches, merge
-      requests) and cannot touch org endpoints.
+      requests) and cannot touch org endpoints. Access levels mirror
+      GitLab per `.ai-factory/references/gitlab-projects-groups-api.md`
+      § «Access Levels Reference» (Guest=10, Reporter=20, Developer=30,
+      Maintainer=40, Owner=50). VEDO legacy aliases `Viewer`/`Editor`
+      map to `Guest`/`Developer` respectively (per Antora
+      `organization-model.adoc` § «Role Hierarchy»).
     - **Audit:** every write emits a structured `audit_events` row
       (event, reason, user_id, object_type=`project|group`, object_id,
       source_ip, trace_id, timestamp).
@@ -324,13 +358,21 @@ docs(specs): separate Project (container) from Ontology (content)
       - `Ontology` as the REST carrier for members/visibility/policies
         (the status quo before this ADR) — rejected because it conflates
         the platform container with the graph content and breaks the
-        GitLab alignment.
+        GitLab alignment (see
+        `.ai-factory/references/gitlab-projects-groups-api.md` § «Project
+        members» — members live on `/projects/:id/members`, not on a
+        repository-content path).
       - Aliases `/ontologies/{id}/members` ↔ `/projects/{id}/members` —
         rejected because under 1:1 they only mask the model and complicate
         audit/idempotency routing.
       - Nesting members under `/groups/{id}/projects/{id}/members` —
         rejected as over-nesting; GitLab keeps `/projects/:id/members`
-        flat.
+        flat (§ «Project members»).
+      - Deviating from GitLab access level integers — rejected to keep
+        the role mapping intuitive for users coming from GitLab; the
+        numeric ladder (10/20/30/40/50) is preserved as the internal
+        authorization scale even though REST payloads use string role
+        names.
     - **Связанные ADR:** `gitlab-like-organization-model`,
       `protocol-stack-strategy`, `graphql-sparql-split-strategy`,
       `rest-graphql-mutation-boundary`, `write-idempotency-strategy`.
@@ -338,7 +380,9 @@ docs(specs): separate Project (container) from Ontology (content)
 - **Logging:** none.
 - **Dependencies:** Task 0.5.
 - **Validation:** ADR file exists, is listed in `README.md`, and its
-  endpoint table matches `openapi.json` after Phase 2.
+  endpoint table matches `openapi.json` after Phase 2. ADR body cites
+  `.ai-factory/references/gitlab-projects-groups-api.md` at least once
+  in the RBAC and rejected-alternatives sections.
 
 #### Task 1.2 — Update `ADR-DES.API.protocol-stack-strategy` table row
 
