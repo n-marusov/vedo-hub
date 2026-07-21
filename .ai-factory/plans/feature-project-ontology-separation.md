@@ -282,6 +282,8 @@ Synchronize glossary, ADR, REQ, Antora doc, OpenAPI, routes.go, org_handler.go.
 
 #### Task 0.5 — Commit Phase 0
 
+> ✅ **Completed:** 2026-07-21 (submodule `1e56cb5`, main `90a7fb8`)
+
 ```
 docs(specs): separate Project (container) from Ontology (content)
 
@@ -305,6 +307,8 @@ docs(specs): separate Project (container) from Ontology (content)
 > `graphql-sparql-split-strategy`, and `rest-graphql-mutation-boundary`.
 
 #### Task 1.1 — Create `ADR-DES.API.organization-rest-endpoints`
+
+> ✅ **Completed:** 2026-07-21
 
 - **Files:**
   - `specs/adr/ADR-DES.API.organization-rest-endpoints.md` — **NEW**
@@ -394,6 +398,8 @@ docs(specs): separate Project (container) from Ontology (content)
 
 #### Task 1.2 — Update `ADR-DES.API.protocol-stack-strategy` table row
 
+> ✅ **Completed:** 2026-07-21
+
 - **Files:** `specs/adr/ADR-DES.API.protocol-stack-strategy.md`
 - **Deliverable:**
   - In the «Разделение ответственности протоколов» table, replace the row
@@ -406,6 +412,8 @@ docs(specs): separate Project (container) from Ontology (content)
 - **Validation:** row references the new ADR.
 
 #### Task 1.3 — Update `ADR-DES.API.graphql-sparql-split-strategy` table
+
+> ✅ **Completed:** 2026-07-21
 
 - **Files:** `specs/adr/ADR-DES.API.graphql-sparql-split-strategy.md`
 - **Deliverable:**
@@ -421,6 +429,8 @@ docs(specs): separate Project (container) from Ontology (content)
   matches.
 
 #### Task 1.4 — Update `ADR-DES.API.rest-graphql-mutation-boundary` table
+
+> ✅ **Completed:** 2026-07-21
 
 - **Files:** `specs/adr/ADR-DES.API.rest-graphql-mutation-boundary.md`
 - **Deliverable:**
