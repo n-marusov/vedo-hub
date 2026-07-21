@@ -696,6 +696,8 @@ POST /projects.
 
 #### Task 3.4 — Commit Phase 3
 
+> ✅ **Completed:** 2026-07-21 (main `0cb8952`)
+
 ```
 docs(antora): document Project ↔ Ontology 1:1 model
 
@@ -716,6 +718,8 @@ docs(antora): document Project ↔ Ontology 1:1 model
 > `type='project'`.
 
 #### Task 4.1 — Write unit tests for the new schema (TDD)
+
+> ✅ **Completed:** 2026-07-21 (tests skip gracefully without PostgreSQL)
 
 > BDD naming: `[Condition]_[Action]_[ExpectedResult]`
 > Anti-patterns: see `.ai-factory/rules/test-quality.md`
@@ -739,6 +743,8 @@ docs(antora): document Project ↔ Ontology 1:1 model
 
 #### Task 4.2 — Create migration 007 (rename `type='ontology'` → `type='project'`)
 
+> ✅ **Completed:** 2026-07-21
+
 - **Files:**
   `src/services/auth-service/migrations/007_rename_ontology_scope_to_project.sql`
   — **NEW**
@@ -758,6 +764,8 @@ docs(antora): document Project ↔ Ontology 1:1 model
   after migration 008 is also applied.
 
 #### Task 4.3 — Create migration 008 (`ontologies` table)
+
+> ✅ **Completed:** 2026-07-21
 
 - **Files:**
   `src/services/auth-service/migrations/008_create_ontologies_table.sql`
@@ -780,6 +788,8 @@ docs(antora): document Project ↔ Ontology 1:1 model
 
 #### Task 4.4 — Create migration 009 (backfill `ontologies` from legacy scopes)
 
+> ✅ **Completed:** 2026-07-21
+
 - **Files:**
   `src/services/auth-service/migrations/009_seed_ontologies_from_legacy.sql`
   — **NEW**
@@ -800,6 +810,8 @@ docs(antora): document Project ↔ Ontology 1:1 model
   `type='project'` in `scopes`.
 
 #### Task 4.5 — Update `auth-service` org code for the new schema
+
+> ✅ **Completed:** 2026-07-21 (go vet + go test + go build all pass)
 
 - **Files:**
   - `src/services/auth-service/org/*.go` (all files in `org/`)
@@ -830,6 +842,8 @@ docs(antora): document Project ↔ Ontology 1:1 model
   covered by `LegacyOntologyScope_Migrated_BecomesProjectScope`.
 
 #### Task 4.6 — Update gRPC proto contract
+
+> ✅ **Completed:** 2026-07-21 (proto regenerated with protoc; vendored copies synced)
 
 - **Files:**
   - `src/services/auth-service/internal/proto/org.proto` (or

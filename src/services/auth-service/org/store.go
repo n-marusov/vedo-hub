@@ -18,6 +18,7 @@ type MemStore struct {
 	policies    map[string][]AttributePolicy
 	visibility  map[string]Visibility
 	scopes      map[string]*ScopeNode
+	ontologies  map[string]*Ontology // projectScope -> Ontology (1:1)
 }
 
 func NewMemStore() *MemStore {
@@ -27,6 +28,7 @@ func NewMemStore() *MemStore {
 		policies:    make(map[string][]AttributePolicy),
 		visibility:  make(map[string]Visibility),
 		scopes:      make(map[string]*ScopeNode),
+		ontologies:  make(map[string]*Ontology),
 	}
 }
 
@@ -200,6 +202,7 @@ func (m *MemStore) ListAllScopes() ([]ScopeNode, error) {
 func (m *MemStore) InvalidateCache(scope string) {}
 
 // DeleteScope removes a scope and associated data.
+// Cascades to the paired ontologies row (matches the PostgreSQL FK ON DELETE CASCADE).
 func (m *MemStore) DeleteScope(id string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -207,6 +210,7 @@ func (m *MemStore) DeleteScope(id string) error {
 	delete(m.visibility, id)
 	delete(m.memberships, id)
 	delete(m.policies, id)
+	delete(m.ontologies, id) // cascade: remove paired ontology
 	// Clean up user index entries for this scope
 	for uid, mems := range m.userIndex {
 		filtered := mems[:0]
@@ -218,6 +222,28 @@ func (m *MemStore) DeleteScope(id string) error {
 		m.userIndex[uid] = filtered
 	}
 	return nil
+}
+
+// CreateOntology inserts a 1:1 paired ontology row for a project scope.
+// The project scope must already exist in the scopes map (FK invariant).
+func (m *MemStore) CreateOntology(ont Ontology) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if _, ok := m.scopes[ont.ProjectScope]; !ok {
+		return &OrgError{Code: "SCOPE_NOT_FOUND", Message: "project scope does not exist; cannot create paired ontology"}
+	}
+	m.ontologies[ont.ProjectScope] = &ont
+	return nil
+}
+
+// GetOntologyByProjectScope returns the paired ontology for a project scope, or nil if none.
+func (m *MemStore) GetOntologyByProjectScope(projectScope string) (*Ontology, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	if ont, ok := m.ontologies[projectScope]; ok {
+		return ont, nil
+	}
+	return nil, nil
 }
 
 // DeletePolicy removes a policy from a scope by matching pattern + right.

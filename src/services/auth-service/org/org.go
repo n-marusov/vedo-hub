@@ -6,6 +6,7 @@ package org
 import (
 	"fmt"
 	"log"
+	"log/slog"
 	"strings"
 	"sync"
 	"time"
@@ -724,7 +725,11 @@ func hasRight(granted, required string) bool {
 	return rightHierarchy[granted] >= rightHierarchy[required]
 }
 
-// ParseScope splits "group/id" or "ontology/id" into type and ID.
+// ParseScope splits "group/id", "project/id", or legacy "ontology/id" into type and ID.
+// Under the 1:1 Project ↔ Ontology model, "project/" is the canonical prefix.
+// Legacy "ontology/" scope strings are accepted during the migration window and
+// rewritten to "project/" with a WARN log. The shim is removed in the follow-up
+// cleanup task (Task 7.4 of the project-ontology-separation plan).
 func ParseScope(scope string) (ScopeType, string, error) {
 	// @hlv:sec [INPUT_VALIDATION] — Parse and validate scope format.
 	parts := strings.SplitN(scope, "/", 2)
@@ -732,7 +737,12 @@ func ParseScope(scope string) (ScopeType, string, error) {
 		return "", "", fmt.Errorf("invalid scope format")
 	}
 	st := ScopeType(parts[0])
-	if st != ScopeGroup && st != ScopeOntology {
+	if st == ScopeOntology {
+		// Legacy alias shim: rewrite "ontology/" → "project/" with WARN log.
+		slog.Warn("scope.legacy_alias", "alias", "ontology", "target", "project", "scope", scope)
+		return ScopeProject, parts[1], nil
+	}
+	if st != ScopeGroup && st != ScopeProject {
 		return "", "", fmt.Errorf("unknown scope type: %s", parts[0])
 	}
 	return st, parts[1], nil

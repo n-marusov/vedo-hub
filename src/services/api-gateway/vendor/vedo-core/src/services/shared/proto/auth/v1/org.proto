@@ -14,10 +14,14 @@ import "common/v1/common.proto";
 // Message Types
 // =============================================================================
 
-// Scope represents a group or ontology node in the hierarchy.
+// Scope represents a group, project, or legacy ontology node in the hierarchy.
+// Under the 1:1 Project ↔ Ontology model, 'project' is the canonical type for
+// the workspace container. 'ontology' is retained as a legacy alias during the
+// migration window. The ontology_id field carries the 1:1 paired Ontology
+// identifier for project scopes (empty for groups).
 message Scope {
   string id = 1;
-  string type = 2;          // "group" or "ontology"
+  string type = 2;          // "group" or "project" (legacy "ontology" accepted during migration)
   string parent_id = 3;
   string name = 4;
   string description = 5;
@@ -25,6 +29,7 @@ message Scope {
   string tenant_id = 7;
   int32 child_count = 8;
   int32 member_count = 9;
+  string ontology_id = 10;  // 1:1 paired Ontology ID (set for projects, empty for groups)
 }
 
 // Member represents a user's role assignment within a scope.

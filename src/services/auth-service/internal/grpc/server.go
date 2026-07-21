@@ -7,6 +7,7 @@ package grpcserver
 import (
 	"context"
 	"log"
+	"log/slog"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -164,9 +165,10 @@ func (s *OrgGrpcServer) ListChildGroups(ctx context.Context, req *authv1.ListChi
 func (s *OrgGrpcServer) CreateProject(ctx context.Context, req *authv1.CreateProjectRequest) (*authv1.CreateProjectResponse, error) {
 	requesterID := extractUserID(ctx)
 
+	projectScopeID := "project/" + req.Name
 	node := org.ScopeNode{
-		ID:       "ontology/" + req.Name,
-		Type:     org.ScopeOntology,
+		ID:       projectScopeID,
+		Type:     org.ScopeProject,
 		TenantID: req.OrganizationId,
 	}
 
@@ -174,9 +176,28 @@ func (s *OrgGrpcServer) CreateProject(ctx context.Context, req *authv1.CreatePro
 		return nil, mapOrgError(err)
 	}
 
-	scope, _ := s.svc.Store().GetScope(node.ID)
-	log.Printf(`{"event":"grpc.request","method":"CreateProject","scope":"%s"}`, node.ID)
-	return &authv1.CreateProjectResponse{Project: scopeNodeToProto(scope)}, nil
+	// Create the paired ontologies row (1:1 invariant). The ontology_id
+	// uses the project scope ID as its identifier (legacy identity pattern,
+	// matching the backfill migration 009).
+	ontologyID := projectScopeID
+	if err := s.svc.Store().CreateOntology(org.Ontology{
+		ProjectScope: projectScopeID,
+		OntologyID:   ontologyID,
+	}); err != nil {
+		slog.Error("project.create.ontology_pairing_failed", "project_id", projectScopeID, "err", err)
+		// Best-effort cleanup: remove the scope if the ontology pairing failed.
+		_ = s.svc.Store().DeleteScope(projectScopeID)
+		return nil, status.Errorf(codes.Internal, "PROJECT_CREATE_ONTOLOGY_PAIRING_FAILED: %v", err)
+	}
+
+	scope, _ := s.svc.Store().GetScope(projectScopeID)
+	proto := scopeNodeToProto(scope)
+	if proto != nil {
+		proto.OntologyId = ontologyID
+	}
+	slog.Info("project.create", "project_id", projectScopeID, "ontology_id", ontologyID)
+	log.Printf(`{"event":"grpc.request","method":"CreateProject","scope":"%s","ontology_id":"%s"}`, projectScopeID, ontologyID)
+	return &authv1.CreateProjectResponse{Project: proto}, nil
 }
 
 func (s *OrgGrpcServer) GetProject(ctx context.Context, req *authv1.GetProjectRequest) (*authv1.GetProjectResponse, error) {
@@ -184,10 +205,17 @@ func (s *OrgGrpcServer) GetProject(ctx context.Context, req *authv1.GetProjectRe
 	if err != nil {
 		return nil, mapOrgError(err)
 	}
-	if scope == nil || scope.Type != org.ScopeOntology {
+	// Accept both 'project' (canonical) and 'ontology' (legacy alias) types.
+	if scope == nil || (scope.Type != org.ScopeProject && scope.Type != org.ScopeOntology) {
 		return nil, status.Errorf(codes.NotFound, "SCOPE_NOT_FOUND: project %s does not exist", req.Id)
 	}
-	return &authv1.GetProjectResponse{Project: scopeNodeToProto(scope)}, nil
+	proto := scopeNodeToProto(scope)
+	if proto != nil {
+		if ont, _ := s.svc.Store().GetOntologyByProjectScope(scope.ID); ont != nil {
+			proto.OntologyId = ont.OntologyID
+		}
+	}
+	return &authv1.GetProjectResponse{Project: proto}, nil
 }
 
 func (s *OrgGrpcServer) ListProjects(ctx context.Context, req *authv1.ListProjectsRequest) (*authv1.ListProjectsResponse, error) {
@@ -198,8 +226,15 @@ func (s *OrgGrpcServer) ListProjects(ctx context.Context, req *authv1.ListProjec
 
 	var projects []*authv1.Scope
 	for i := range scopes {
-		if scopes[i].Type == org.ScopeOntology {
-			projects = append(projects, scopeNodeToProto(&scopes[i]))
+		// Accept both 'project' (canonical) and 'ontology' (legacy alias) types.
+		if scopes[i].Type == org.ScopeProject || scopes[i].Type == org.ScopeOntology {
+			proto := scopeNodeToProto(&scopes[i])
+			if proto != nil {
+				if ont, _ := s.svc.Store().GetOntologyByProjectScope(scopes[i].ID); ont != nil {
+					proto.OntologyId = ont.OntologyID
+				}
+			}
+			projects = append(projects, proto)
 		}
 	}
 
