@@ -1,12 +1,39 @@
 // @m4 — CreatePropertyDialog vitest spec
 // Validates: REQ-USR.UI.gui-implementation
+//
+// @aif — Migrated from Apollo `createProperty` mutation to REST
+// `@/api/ontology` per ADR-DES.API.rest-graphql-mutation-boundary.md.
 import {
 	mountWithProviders,
 	waitForQuery,
 } from "@/__tests__/setup/mock-providers";
 import CreatePropertyDialog from "@/components/ontology/CreatePropertyDialog.vue";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
+
+// Mock REST ontology API — no HTTP in jsdom.
+vi.mock("@/api/ontology", () => ({
+	createClass: vi.fn().mockResolvedValue({
+		id: "new-class-1",
+		label: "Person",
+		comment: null,
+		parents: [] as string[],
+		children: [] as string[],
+	}),
+	createProperty: vi.fn().mockResolvedValue({
+		id: "new-property-1",
+		label: "hasName",
+		propertyType: "object",
+		domains: [] as string[],
+		ranges: [] as string[],
+	}),
+	createIndividual: vi.fn().mockResolvedValue({
+		id: "new-individual-1",
+		label: "JohnDoe",
+		classId: "owl:Thing",
+		classLabel: "owl:Thing",
+	}),
+}));
 
 const TeleportStub = { template: "<div><slot /></div>" };
 

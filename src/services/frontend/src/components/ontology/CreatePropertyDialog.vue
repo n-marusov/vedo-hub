@@ -79,20 +79,19 @@
 </template>
 
 <script setup lang="ts">
+// @aif — Migrated from Apollo GraphQL `CREATE_PROPERTY_MUTATION` to REST
+// `POST /api/v1/ontologies/:id/properties` per ADR-DES.API.rest-graphql-mutation-boundary.md.
+import { createProperty } from "@/api/ontology";
 import Dialog from "@/components/ui-kit/Dialog.vue";
 import GhostButton from "@/components/ui-kit/GhostButton.vue";
 import PrimaryButton from "@/components/ui-kit/PrimaryButton.vue";
 import { useErrorPresentation } from "@/composables/useErrorPresentation";
-import { useMutation } from "@vue/apollo-composable";
 import { ref } from "vue";
-import { CREATE_PROPERTY_MUTATION } from "../../apollo/queries";
 
 const props = defineProps<{ open: boolean; ontologyId: string }>();
 const emit = defineEmits<{ close: []; created: [propertyName: string] }>();
 
 const { addError } = useErrorPresentation();
-
-const { mutate: createProperty } = useMutation(CREATE_PROPERTY_MUTATION);
 
 const activeTab = ref<"config" | "preview">("config");
 const propertyName = ref("");
@@ -139,7 +138,7 @@ async function submit(): Promise<void> {
 
 	submitting.value = true;
 	try {
-		const result = await createProperty({
+		const property = await createProperty({
 			ontologyId: props.ontologyId,
 			label: propertyName.value.trim(),
 			propertyType: propertyType.value,
@@ -147,21 +146,17 @@ async function submit(): Promise<void> {
 			range: range.value.trim() || undefined,
 		});
 
-		if (result?.data?.createProperty) {
-			console.debug(
-				JSON.stringify({
-					level: "debug",
-					msg: "CreateProperty.success",
-					propName: propertyName.value,
-					propId: result.data.createProperty.id,
-					ts: new Date().toISOString(),
-				}),
-			);
-			emit("created", propertyName.value);
-			reset();
-		} else {
-			throw new Error("No data returned from createProperty mutation");
-		}
+		console.info(
+			JSON.stringify({
+				level: "info",
+				msg: "CreateProperty.success",
+				propName: propertyName.value,
+				propId: property.id,
+				ts: new Date().toISOString(),
+			}),
+		);
+		emit("created", propertyName.value);
+		reset();
 	} catch (e) {
 		const msg = e instanceof Error ? e.message : String(e);
 		addError("CREATE-PROPERTY-FAILED", msg);

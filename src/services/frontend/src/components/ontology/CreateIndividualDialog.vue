@@ -45,20 +45,19 @@
 </template>
 
 <script setup lang="ts">
+// @aif — Migrated from Apollo GraphQL `CREATE_INDIVIDUAL_MUTATION` to REST
+// `POST /api/v1/ontologies/:id/individuals` per ADR-DES.API.rest-graphql-mutation-boundary.md.
+import { createIndividual } from "@/api/ontology";
 import Dialog from "@/components/ui-kit/Dialog.vue";
 import GhostButton from "@/components/ui-kit/GhostButton.vue";
 import PrimaryButton from "@/components/ui-kit/PrimaryButton.vue";
 import { useErrorPresentation } from "@/composables/useErrorPresentation";
-import { useMutation } from "@vue/apollo-composable";
 import { reactive, ref } from "vue";
-import { CREATE_INDIVIDUAL_MUTATION } from "../../apollo/queries";
 
 const props = defineProps<{ open: boolean; ontologyId: string }>();
 const emit = defineEmits<{ close: []; created: [individualName: string] }>();
 
 const { addError } = useErrorPresentation();
-
-const { mutate: createIndividual } = useMutation(CREATE_INDIVIDUAL_MUTATION);
 
 const individualName = ref("");
 const selectedClass = ref("");
@@ -66,63 +65,61 @@ const propertyValues = reactive<Array<{ property: string; value: string }>>([]);
 const submitting = ref(false);
 const validationError = ref<{ field: string; message: string } | null>(null);
 
-	async function submit(): Promise<void> {
+async function submit(): Promise<void> {
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "CreateIndividual.submitted",
+			indName: individualName.value,
+			className: selectedClass.value,
+			ontologyId: props.ontologyId,
+			ts: new Date().toISOString(),
+		}),
+	);
+
+	validationError.value = null;
+
+	if (!individualName.value.trim()) {
+		validationError.value = {
+			field: "name",
+			message: "Individual name is required",
+		};
+		return;
+	}
+
+	if (!selectedClass.value.trim()) {
+		validationError.value = {
+			field: "class",
+			message: "Please select a class for this individual",
+		};
+		return;
+	}
+
+	submitting.value = true;
+	try {
+		const result = await createIndividual({
+			ontologyId: props.ontologyId,
+			label: individualName.value.trim(),
+			classId: selectedClass.value.trim(),
+			propertyValues: propertyValues
+				.filter((pv) => pv.property && pv.value)
+				.map((pv) => ({ propertyId: pv.property, value: pv.value })),
+		});
+
 		console.debug(
 			JSON.stringify({
 				level: "debug",
-				msg: "CreateIndividual.submitted",
+				msg: "CreateIndividual.success",
 				indName: individualName.value,
-				className: selectedClass.value,
-				ontologyId: props.ontologyId,
+				indId: result.id,
 				ts: new Date().toISOString(),
 			}),
 		);
-
-		validationError.value = null;
-
-		if (!individualName.value.trim()) {
-			validationError.value = {
-				field: "name",
-				message: "Individual name is required",
-			};
-			return;
-		}
-
-		if (!selectedClass.value.trim()) {
-			validationError.value = {
-				field: "class",
-				message: "Please select a class for this individual",
-			};
-			return;
-		}
-
-		submitting.value = true;
-		try {
-			const result = await createIndividual({
-				ontologyId: props.ontologyId,
-				label: individualName.value.trim(),
-				classId: selectedClass.value.trim(),
-				propertyValues: propertyValues.filter((pv) => pv.property && pv.value),
-			});
-
-			if (result?.data?.createIndividual) {
-				console.debug(
-					JSON.stringify({
-						level: "debug",
-						msg: "CreateIndividual.success",
-						indName: individualName.value,
-						indId: result.data.createIndividual.id,
-						ts: new Date().toISOString(),
-					}),
-				);
-				emit("created", individualName.value);
-				reset();
-			} else {
-				throw new Error("No data returned from createIndividual mutation");
-			}
-		} catch (e) {
-			const msg = e instanceof Error ? e.message : String(e);
-			addError("CREATE-INDIVIDUAL-FAILED", msg);
+		emit("created", individualName.value);
+		reset();
+	} catch (e) {
+		const msg = e instanceof Error ? e.message : String(e);
+		addError("CREATE-INDIVIDUAL-FAILED", msg);
 		console.error(
 			JSON.stringify({
 				level: "error",

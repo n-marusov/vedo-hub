@@ -2,12 +2,13 @@
 // Components using useQuery/useMutation need Apollo client provided at the app level.
 // This setup ensures all mount() calls get the Apollo client automatically.
 
+// NOTE: `MOCK_SPARQL_RESULTS` removed — SPARQL is REST-only per
+// ADR-DES.API.rest-graphql-mutation-boundary.md. Use `@/api/sparql` (axios).
 import {
 	MOCK_DASHBOARD_DATA,
 	MOCK_DEPLOYMENTS_DATA,
 	MOCK_MERGE_REQUESTS_DATA,
 	MOCK_METRICS_DATA,
-	MOCK_SPARQL_RESULTS,
 } from "@/apollo/mock-data";
 import { ApolloClient, ApolloLink, InMemoryCache } from "@apollo/client/core";
 import type { FetchResult, Operation } from "@apollo/client/core";
@@ -20,7 +21,6 @@ const VITEST_MOCK_RESOLVERS: Record<string, () => unknown> = {
 	OntologyMetrics: () => MOCK_METRICS_DATA,
 	ListDeployments: () => MOCK_DEPLOYMENTS_DATA,
 	ListMergeRequests: () => MOCK_MERGE_REQUESTS_DATA,
-	SparqlExecute: () => MOCK_SPARQL_RESULTS,
 	RunValidation: () => ({
 		runValidation: {
 			status: "ok",

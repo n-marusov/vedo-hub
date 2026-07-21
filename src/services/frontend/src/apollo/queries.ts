@@ -415,17 +415,10 @@ export const CREATE_COMMENT_MUTATION = gql`
 // ── M4 Queries & Mutations ──────────────────────────────────────────────────────
 // @m4 — Added for GUI wiring implementation
 
-/// Execute a SPARQL query against the ontology.
-export const SPARQL_EXECUTE_QUERY = gql`
-  query SparqlExecute($ontologyId: ID!, $query: String!, $limit: Int, $offset: Int) {
-    sparqlQuery(ontologyId: $ontologyId, query: $query, limit: $limit, offset: $offset) {
-      columns
-      rows
-      total
-      executionTimeMs
-    }
-  }
-`;
+/// NOTE: SPARQL execution has been moved to REST `POST /api/v1/sparql`.
+/// Removed `SPARQL_EXECUTE_QUERY` — see `src/services/frontend/src/api/sparql.ts`.
+/// Per ADR-DES.API.rest-graphql-mutation-boundary.md, SPARQL via GraphQL is
+/// forbidden (bypasses gateway DoS protection).
 
 /// List projects with search, sort, pagination.
 export const LIST_PROJECTS_QUERY = gql`
@@ -641,42 +634,7 @@ export const LIST_MERGE_REQUESTS_QUERY = gql`
   }
 `;
 
-// ── Entity CREATE Mutations (Task 6.7e) ───────────────────────────────────
-
-/// Create a new class within an ontology.
-export const CREATE_CLASS_MUTATION = gql`
-  mutation CreateClass($ontologyId: ID!, $label: String!, $parentId: String, $description: String, $annotations: [AnnotationInput]) {
-    createClass(ontologyId: $ontologyId, label: $label, parentId: $parentId, description: $description, annotations: $annotations) {
-      id
-      label
-      comment
-      parents
-      children
-    }
-  }
-`;
-
-/// Create a new property within an ontology.
-export const CREATE_PROPERTY_MUTATION = gql`
-  mutation CreateProperty($ontologyId: ID!, $label: String!, $propertyType: String!, $domain: String, $range: String, $description: String) {
-    createProperty(ontologyId: $ontologyId, label: $label, propertyType: $propertyType, domain: $domain, range: $range, description: $description) {
-      id
-      label
-      propertyType
-      domains
-      ranges
-    }
-  }
-`;
-
-/// Create a new individual within an ontology class.
-export const CREATE_INDIVIDUAL_MUTATION = gql`
-  mutation CreateIndividual($ontologyId: ID!, $label: String!, $classId: String!, $propertyValues: [PropertyValueInput]) {
-    createIndividual(ontologyId: $ontologyId, label: $label, classId: $classId, propertyValues: $propertyValues) {
-      id
-      label
-      classId
-      classLabel
-    }
-  }
-`;
+// Entity CREATE mutations removed (ADR-DES.API.rest-graphql-mutation-boundary.md).
+// createClass / createProperty / createIndividual were never implemented in the
+// Rust GraphQL schema and are forbidden per ADR — entity CRUD is REST-only.
+// Vue components now use `axios.post('/api/v1/ontologies/:id/classes', ...)`.

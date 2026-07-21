@@ -1,13 +1,14 @@
-//! GraphQL mutation root.
+//! GraphQL mutation root — **DEPRECATED, pending REST migration**.
 //!
-//! Currently exposes only the `updateDraft` mutation, which marks the
-//! workspace as dirty. The mutation is intentionally thin: it returns the
-//! current server timestamp so the frontend can correlate draft-state
-//! changes across the toolbar (`useVersionContext`).
+//! ADR-DES.API.rest-graphql-mutation-boundary.md устанавливает, что GraphQL
+//! в VEDO Core не содержит никаких mutations: все write-операции выполняются
+//! через REST `/api/v1/...` под API Gateway (Idempotency-Key, auth middleware,
+//! audit log, CircuitBreakerMiddleware DoS protection).
 //!
-//! Other write operations (class/property/individual CRUD) are served via
-//! the existing REST endpoints and proxied through the API Gateway. They
-//! can be mirrored to GraphQL mutations later without breaking the schema.
+//! Резолверы ниже (`update_draft`, `update_member_role`, `remove_member`)
+//! оставлены как **deprecated placeholders** на время миграции фронтенда на
+//! REST. После завершения миграции `MutationRoot` будет заменён на
+//! `EmptyMutation` в `build_schema` (см. `schema.rs`).
 
 use std::sync::Arc;
 
@@ -32,12 +33,19 @@ pub struct DraftInput {
 pub struct MutationRoot;
 
 #[Object]
+#[allow(deprecated)] // async-graphql Object macro references deprecated fields in generated introspection code.
 impl MutationRoot {
     /// Marks the workspace as dirty and returns the timestamp of the update.
+    ///
+    /// **DEPRECATED.** Use `PUT /api/v1/ontologies/{id}/draft` instead.
+    /// Mutation root будет удалён (см. ADR-DES.API.rest-graphql-mutation-boundary.md).
     ///
     /// The ontology dirty state is tracked by the frontend (`useVersionContext`)
     /// and persisted in browser storage. The backend only echoes the event so
     /// multiple collaborating clients can converge on a shared clock.
+    #[deprecated(
+        note = "GraphQL mutations are forbidden; use PUT /api/v1/ontologies/{id}/draft. MutationRoot will be removed."
+    )]
     async fn update_draft(
         &self,
         _ctx: &Context<'_>,
@@ -63,9 +71,14 @@ impl MutationRoot {
         })
     }
 
-    // ── Organization model mutations ─────────────────────────────────
+    // ── Organization model mutations — DEPRECATED, use REST ──────────
 
     /// Updates a member's role in an ontology scope.
+    ///
+    /// **DEPRECATED.** Use `PUT /api/v1/ontologies/{id}/members/{userId}` instead.
+    #[deprecated(
+        note = "GraphQL mutations are forbidden; use PUT /api/v1/ontologies/{id}/members/{userId}. MutationRoot will be removed."
+    )]
     async fn update_member_role(
         &self,
         ctx: &Context<'_>,
@@ -96,6 +109,11 @@ impl MutationRoot {
     }
 
     /// Removes a member from an ontology scope.
+    ///
+    /// **DEPRECATED.** Use `DELETE /api/v1/ontologies/{id}/members/{userId}` instead.
+    #[deprecated(
+        note = "GraphQL mutations are forbidden; use DELETE /api/v1/ontologies/{id}/members/{userId}. MutationRoot will be removed."
+    )]
     async fn remove_member(
         &self,
         ctx: &Context<'_>,

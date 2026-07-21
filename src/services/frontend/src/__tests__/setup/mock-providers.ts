@@ -6,7 +6,6 @@ import {
 	MOCK_DEPLOYMENTS_DATA,
 	MOCK_MERGE_REQUESTS_DATA,
 	MOCK_METRICS_DATA,
-	MOCK_SPARQL_RESULTS,
 } from "@/apollo/mock-data";
 import type { FetchResult, Operation } from "@apollo/client/core";
 import {
@@ -59,7 +58,7 @@ const VITEST_MOCK_RESOLVERS: Record<string, () => unknown> = {
 	OntologyMetrics: () => MOCK_METRICS_DATA,
 	ListDeployments: () => MOCK_DEPLOYMENTS_DATA,
 	ListMergeRequests: () => MOCK_MERGE_REQUESTS_DATA,
-	SparqlExecute: () => MOCK_SPARQL_RESULTS,
+
 	RunValidation: () => ({
 		runValidation: {
 			status: "ok",
