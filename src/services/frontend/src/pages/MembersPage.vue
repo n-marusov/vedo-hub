@@ -102,143 +102,143 @@
 </template>
 
 <script setup lang="ts">
-import { LIST_MEMBERS_QUERY } from "@/apollo/queries";
-import Dialog from "@/components/ui-kit/Dialog.vue";
-import { useQuery } from "@vue/apollo-composable";
-import { Folder, Pencil, Shield, Trash2, Users } from "lucide-vue-next";
-import { computed, ref, watch } from "vue";
-import { useRoute } from "vue-router";
+import { LIST_MEMBERS_QUERY } from '@/apollo/queries'
+import Dialog from '@/components/ui-kit/Dialog.vue'
+import { useQuery } from '@vue/apollo-composable'
+import { Folder, Pencil, Shield, Trash2, Users } from 'lucide-vue-next'
+import { computed, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
-const route = useRoute();
-const ontologyId = computed(() => String(route.params.id || ""));
+const route = useRoute()
+// Under the 1:1 Project ↔ Ontology model, members live on Project.
+// The route param `id` is the project ID (see ADR-DES.API.organization-rest-endpoints).
+const projectId = computed(() => String(route.params.id || ''))
 
 interface MemberRow {
-	name: string;
-	role: string;
-	mail: string;
+  name: string
+  role: string
+  mail: string
 }
 
 const { result, loading, error, refetch } = useQuery(
-	LIST_MEMBERS_QUERY,
-	() => ({
-		ontologyId: ontologyId.value,
-	}),
-	{
-		fetchPolicy: "cache-and-network",
-		enabled: computed(() => !!ontologyId.value),
-	},
-);
+  LIST_MEMBERS_QUERY,
+  () => ({
+    ontologyId: projectId.value
+  }),
+  {
+    fetchPolicy: 'cache-and-network',
+    enabled: computed(() => !!projectId.value)
+  }
+)
 
-const members = ref<MemberRow[]>([]);
+const members = ref<MemberRow[]>([])
 
 // Sync from Apollo data
 watch(
-	() => result.value?.members,
-	(items) => {
-		if (!items || items.length === 0) {
-			members.value = [];
-			return;
-		}
-		members.value = items.map((m: Record<string, unknown>) => ({
-			name: String(m.username || m.userId || ""),
-			role: String(m.role || "Viewer"),
-			mail: `${String(m.username || "").toLowerCase()}@vedo.local`,
-		}));
-	},
-	{ immediate: true },
-);
+  () => result.value?.members,
+  (items) => {
+    if (!items || items.length === 0) {
+      members.value = []
+      return
+    }
+    members.value = items.map((m: Record<string, unknown>) => ({
+      name: String(m.username || m.userId || ''),
+      role: String(m.role || 'Viewer'),
+      mail: `${String(m.username || '').toLowerCase()}@vedo.local`
+    }))
+  },
+  { immediate: true }
+)
 
 // ── @m4 Inline Edit State ─────────────────────────────────────────────────────
 
-const editingMemberName = ref<string | null>(null);
-const notifyMessage = ref<string | null>(null);
+const editingMemberName = ref<string | null>(null)
+const notifyMessage = ref<string | null>(null)
 
 function startEdit(member: MemberRow): void {
-	editingMemberName.value = member.name;
-	notifyMessage.value = null;
+  editingMemberName.value = member.name
+  notifyMessage.value = null
 }
 
 function onRoleChange(member: MemberRow, newRole: string): void {
-	member.role = newRole;
-	editingMemberName.value = null;
-	notifyMessage.value = "role updated";
-	setTimeout(() => {
-		notifyMessage.value = null;
-	}, 3000);
-	console.debug(
-		JSON.stringify({
-			level: "debug",
-			msg: "Members.edit",
-			member: member.name,
-			newRole,
-			ts: new Date().toISOString(),
-		}),
-	);
+  member.role = newRole
+  editingMemberName.value = null
+  notifyMessage.value = 'role updated'
+  setTimeout(() => {
+    notifyMessage.value = null
+  }, 3000)
+  console.debug(
+    JSON.stringify({
+      level: 'debug',
+      msg: 'Members.edit',
+      member: member.name,
+      newRole,
+      ts: new Date().toISOString()
+    })
+  )
 }
 
 function onRoleBlur(_member: MemberRow): void {
-	editingMemberName.value = null;
+  editingMemberName.value = null
 }
 
 // ── @m4 Remove Member ─────────────────────────────────────────────────────────
 
-const removeDialogOpen = ref(false);
-const removingMemberName = ref("");
+const removeDialogOpen = ref(false)
+const removingMemberName = ref('')
 
 function isLastOwner(name: string): boolean {
-	const owners = members.value.filter((m) => m.role.toLowerCase() === "owner");
-	return owners.length <= 1 && owners.some((m) => m.name === name);
+  const owners = members.value.filter((m) => m.role.toLowerCase() === 'owner')
+  return owners.length <= 1 && owners.some((m) => m.name === name)
 }
 
 function confirmRemove(member: MemberRow): void {
-	if (isLastOwner(member.name)) {
-		notifyMessage.value = "Cannot remove last owner";
-		setTimeout(() => {
-			notifyMessage.value = null;
-		}, 3000);
-		return;
-	}
-	removingMemberName.value = member.name;
-	removeDialogOpen.value = true;
+  if (isLastOwner(member.name)) {
+    notifyMessage.value = 'Cannot remove last owner'
+    setTimeout(() => {
+      notifyMessage.value = null
+    }, 3000)
+    return
+  }
+  removingMemberName.value = member.name
+  removeDialogOpen.value = true
 }
 
 function doRemoveMember(): void {
-	const idx = members.value.findIndex(
-		(m) => m.name === removingMemberName.value,
-	);
-	if (idx !== -1) {
-		members.value.splice(idx, 1);
-	}
-	removeDialogOpen.value = false;
-	removingMemberName.value = "";
-	notifyMessage.value = null;
+  const idx = members.value.findIndex((m) => m.name === removingMemberName.value)
+  if (idx !== -1) {
+    members.value.splice(idx, 1)
+  }
+  removeDialogOpen.value = false
+  removingMemberName.value = ''
+  notifyMessage.value = null
 }
 
 // ── Logging ─────────────────────────────────────────────────────────────────
 
 watch(members, (val) => {
-	console.debug(
-		JSON.stringify({
-			level: "debug",
-			msg: "members.list.loaded",
-			count: val.length,
-			ts: new Date().toISOString(),
-		}),
-	);
-});
+  console.debug(
+    JSON.stringify({
+      level: 'debug',
+      msg: 'members.list.loaded',
+      count: val.length,
+      ts: new Date().toISOString()
+    })
+  )
+})
 
 watch(error, (err) => {
-	if (err) {
-		console.error(
-			JSON.stringify({
-				level: "error",
-				msg: "members.query.error",
-				error: String(err),
-				ts: new Date().toISOString(),
-			}),
-		);
-	}
-});
+  if (err) {
+    console.error(
+      JSON.stringify({
+        level: 'error',
+        msg: 'members.query.error',
+        error: String(err),
+        ts: new Date().toISOString()
+      })
+    )
+  }
+})
 </script>
 
 <style scoped>

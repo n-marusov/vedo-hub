@@ -15,16 +15,16 @@ package handlers
 //   GET    /api/v1/projects/:id        → HandleGetProject
 //   PUT    /api/v1/projects/:id        → HandleUpdateProject
 //   DELETE /api/v1/projects/:id        → HandleDeleteProject
-//   GET    /api/v1/ontologies/:id/members         → HandleListMembers
-//   POST   /api/v1/ontologies/:id/members         → HandleAddMember
-//   PUT    /api/v1/ontologies/:id/members/:userId → HandleUpdateMemberRole
-//   DELETE /api/v1/ontologies/:id/members/:userId → HandleRemoveMember
+//   GET    /api/v1/projects/:id/members         → HandleListMembers
+//   POST   /api/v1/projects/:id/members         → HandleAddMember
+//   PUT    /api/v1/projects/:id/members/:userId → HandleUpdateMemberRole
+//   DELETE /api/v1/projects/:id/members/:userId → HandleRemoveMember
 //   GET    /api/v1/groups/:id/members             → HandleListMembers
-//   PUT    /api/v1/ontologies/:id/visibility      → HandleSetVisibility
-//   GET    /api/v1/ontologies/:id/visibility      → HandleGetVisibility
-//   GET    /api/v1/ontologies/:id/policies        → HandleListPolicies
-//   POST   /api/v1/ontologies/:id/policies        → HandleCreatePolicy
-//   DELETE /api/v1/ontologies/:id/policies/:policyId → HandleDeletePolicy
+//   PUT    /api/v1/projects/:id/visibility      → HandleSetVisibility
+//   GET    /api/v1/projects/:id/visibility      → HandleGetVisibility
+//   GET    /api/v1/projects/:id/policies        → HandleListPolicies
+//   POST   /api/v1/projects/:id/policies        → HandleCreatePolicy
+//   DELETE /api/v1/projects/:id/policies/:policyId → HandleDeletePolicy
 
 import (
 	"net/http"
@@ -74,7 +74,7 @@ func (h *OrgHandler) HandleCreateGroup(c *gin.Context) {
 	token := extractToken(c)
 
 	var req struct {
-		Name        string `json:"name"`
+		Label       string `json:"label"`
 		Description string `json:"description"`
 		ParentID    string `json:"parent_id"`
 	}
@@ -86,7 +86,7 @@ func (h *OrgHandler) HandleCreateGroup(c *gin.Context) {
 	}
 
 	resp, err := h.orgClient.CreateGroup(c.Request.Context(), &authv1.CreateGroupRequest{
-		Name:        req.Name,
+		Name:        req.Label,
 		Description: req.Description,
 		ParentId:    req.ParentID,
 	}, token)
@@ -96,7 +96,7 @@ func (h *OrgHandler) HandleCreateGroup(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusCreated, resp.GetGroup())
+	c.JSON(http.StatusCreated, gin.H{"data": resp.GetGroup()})
 }
 
 func (h *OrgHandler) HandleGetGroup(c *gin.Context) {
@@ -110,7 +110,7 @@ func (h *OrgHandler) HandleGetGroup(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusOK, resp.GetGroup())
+	c.JSON(http.StatusOK, gin.H{"data": resp.GetGroup()})
 }
 
 func (h *OrgHandler) HandleUpdateGroup(c *gin.Context) {
@@ -118,7 +118,7 @@ func (h *OrgHandler) HandleUpdateGroup(c *gin.Context) {
 	id := c.Param("id")
 
 	var req struct {
-		Name        string `json:"name"`
+		Label       string `json:"label"`
 		Description string `json:"description"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -130,7 +130,7 @@ func (h *OrgHandler) HandleUpdateGroup(c *gin.Context) {
 
 	resp, err := h.orgClient.UpdateGroup(c.Request.Context(), &authv1.UpdateGroupRequest{
 		Id:          id,
-		Name:        req.Name,
+		Name:        req.Label,
 		Description: req.Description,
 	}, token)
 	if err != nil {
@@ -139,7 +139,7 @@ func (h *OrgHandler) HandleUpdateGroup(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusOK, resp.GetGroup())
+	c.JSON(http.StatusOK, gin.H{"data": resp.GetGroup()})
 }
 
 func (h *OrgHandler) HandleDeleteGroup(c *gin.Context) {
@@ -197,7 +197,7 @@ func (h *OrgHandler) HandleCreateProject(c *gin.Context) {
 	token := extractToken(c)
 
 	var req struct {
-		Name        string `json:"name"`
+		Label       string `json:"label"`
 		Description string `json:"description"`
 		GroupID     string `json:"group_id"`
 	}
@@ -209,7 +209,7 @@ func (h *OrgHandler) HandleCreateProject(c *gin.Context) {
 	}
 
 	resp, err := h.orgClient.CreateProject(c.Request.Context(), &authv1.CreateProjectRequest{
-		Name:        req.Name,
+		Name:        req.Label,
 		Description: req.Description,
 		GroupId:     req.GroupID,
 	}, token)
@@ -219,7 +219,7 @@ func (h *OrgHandler) HandleCreateProject(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusCreated, resp.GetProject())
+	c.JSON(http.StatusCreated, gin.H{"data": resp.GetProject()})
 }
 
 func (h *OrgHandler) HandleGetProject(c *gin.Context) {
@@ -233,7 +233,7 @@ func (h *OrgHandler) HandleGetProject(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusOK, resp.GetProject())
+	c.JSON(http.StatusOK, gin.H{"data": resp.GetProject()})
 }
 
 func (h *OrgHandler) HandleUpdateProject(c *gin.Context) {
@@ -241,7 +241,7 @@ func (h *OrgHandler) HandleUpdateProject(c *gin.Context) {
 	id := c.Param("id")
 
 	var req struct {
-		Name        string `json:"name"`
+		Label       string `json:"label"`
 		Description string `json:"description"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -253,7 +253,7 @@ func (h *OrgHandler) HandleUpdateProject(c *gin.Context) {
 
 	resp, err := h.orgClient.UpdateProject(c.Request.Context(), &authv1.UpdateProjectRequest{
 		Id:          id,
-		Name:        req.Name,
+		Name:        req.Label,
 		Description: req.Description,
 	}, token)
 	if err != nil {
@@ -262,7 +262,7 @@ func (h *OrgHandler) HandleUpdateProject(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusOK, resp.GetProject())
+	c.JSON(http.StatusOK, gin.H{"data": resp.GetProject()})
 }
 
 func (h *OrgHandler) HandleDeleteProject(c *gin.Context) {
@@ -285,7 +285,7 @@ func (h *OrgHandler) HandleDeleteProject(c *gin.Context) {
 
 func (h *OrgHandler) HandleListMembers(c *gin.Context) {
 	token := extractToken(c)
-	scope := "ontology/" + c.Param("id")
+	scope := "project/" + c.Param("id")
 	if gid := c.Param("groupId"); gid != "" {
 		scope = "group/" + gid
 	}
@@ -302,7 +302,7 @@ func (h *OrgHandler) HandleListMembers(c *gin.Context) {
 
 func (h *OrgHandler) HandleAddMember(c *gin.Context) {
 	token := extractToken(c)
-	scope := "ontology/" + c.Param("id")
+	scope := "project/" + c.Param("id")
 
 	var req struct {
 		UserID string `json:"user_id"`
@@ -326,12 +326,12 @@ func (h *OrgHandler) HandleAddMember(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusCreated, resp.GetMember())
+	c.JSON(http.StatusCreated, gin.H{"data": resp.GetMember()})
 }
 
 func (h *OrgHandler) HandleUpdateMemberRole(c *gin.Context) {
 	token := extractToken(c)
-	scope := "ontology/" + c.Param("id")
+	scope := "project/" + c.Param("id")
 	userID := c.Param("userId")
 
 	var req struct {
@@ -355,12 +355,12 @@ func (h *OrgHandler) HandleUpdateMemberRole(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusOK, resp.GetMember())
+	c.JSON(http.StatusOK, gin.H{"data": resp.GetMember()})
 }
 
 func (h *OrgHandler) HandleRemoveMember(c *gin.Context) {
 	token := extractToken(c)
-	scope := "ontology/" + c.Param("id")
+	scope := "project/" + c.Param("id")
 	userID := c.Param("userId")
 
 	_, err := h.orgClient.RemoveMember(c.Request.Context(), &authv1.RemoveMemberRequest{
@@ -382,7 +382,7 @@ func (h *OrgHandler) HandleRemoveMember(c *gin.Context) {
 
 func (h *OrgHandler) HandleSetVisibility(c *gin.Context) {
 	token := extractToken(c)
-	scope := "ontology/" + c.Param("id")
+	scope := "project/" + c.Param("id")
 
 	var req struct {
 		Visibility string `json:"visibility"`
@@ -409,7 +409,7 @@ func (h *OrgHandler) HandleSetVisibility(c *gin.Context) {
 
 func (h *OrgHandler) HandleGetVisibility(c *gin.Context) {
 	token := extractToken(c)
-	scope := "ontology/" + c.Param("id")
+	scope := "project/" + c.Param("id")
 
 	resp, err := h.orgClient.GetVisibility(c.Request.Context(), scope, token)
 	if err != nil {
@@ -427,7 +427,7 @@ func (h *OrgHandler) HandleGetVisibility(c *gin.Context) {
 
 func (h *OrgHandler) HandleListPolicies(c *gin.Context) {
 	token := extractToken(c)
-	scope := "ontology/" + c.Param("id")
+	scope := "project/" + c.Param("id")
 
 	resp, err := h.orgClient.ListPolicies(c.Request.Context(), scope, token)
 	if err != nil {
@@ -441,7 +441,7 @@ func (h *OrgHandler) HandleListPolicies(c *gin.Context) {
 
 func (h *OrgHandler) HandleCreatePolicy(c *gin.Context) {
 	token := extractToken(c)
-	scope := "ontology/" + c.Param("id")
+	scope := "project/" + c.Param("id")
 
 	var req struct {
 		Pattern map[string]string `json:"pattern"`
@@ -470,7 +470,7 @@ func (h *OrgHandler) HandleCreatePolicy(c *gin.Context) {
 
 func (h *OrgHandler) HandleDeletePolicy(c *gin.Context) {
 	token := extractToken(c)
-	scope := "ontology/" + c.Param("id")
+	scope := "project/" + c.Param("id")
 	policyID := c.Param("policyId")
 
 	_, err := h.orgClient.DeletePolicy(c.Request.Context(), &authv1.DeletePolicyRequest{

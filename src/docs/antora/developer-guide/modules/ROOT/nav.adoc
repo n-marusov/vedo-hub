@@ -4,3 +4,4 @@
 * xref:configuration.adoc[Configuration]
 * xref:testing.adoc[Testing]
 * xref:organization-model.adoc[Organizational Model]
+* xref:project-ontology-model.adoc[Project ↔ Ontology Model]

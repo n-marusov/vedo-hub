@@ -220,19 +220,7 @@ async function handleGuiGraphql(route: Route) {
     return fulfillGraphql(route, { graphNeighborhood: MOCK_GRAPH_NEIGHBORHOOD }, 200);
   }
 
-  if (signature.includes('SparqlExecute') || signature.includes('sparqlQuery')) {
-    const sparql = String(body.variables?.query || '');
-    if (/invalid/i.test(sparql)) {
-      return route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ errors: [{ message: 'SPARQL syntax error near INVALID' }] }),
-      });
-    }
-    return fulfillGraphql(route, { sparqlQuery: MOCK_SPARQL_RESULTS }, 300);
-  }
-
-  if (signature.includes('RunValidation') || signature.includes('runValidation')) {
+  	if (signature.includes('RunValidation') || signature.includes('runValidation')) {
     return fulfillGraphql(route, { runValidation: MOCK_VALIDATION }, 300);
   }
 
@@ -252,6 +240,32 @@ async function handleGuiGraphql(route: Route) {
   return route.fallback();
 }
 
+async function handleSparqlRest(route: Route) {
+  const request = route.request();
+  let body: { query?: string } = {};
+  try {
+    body = request.postDataJSON();
+  } catch {
+    return route.fallback();
+  }
+
+  const query = body.query || '';
+  if (/invalid/i.test(query)) {
+    return route.fulfill({
+      status: 400,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: { code: 'SPARQL-SYNTAX-ERROR', message: 'SPARQL syntax error near INVALID' } }),
+    });
+  }
+
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  return route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify(MOCK_SPARQL_RESULTS),
+  });
+}
+
 export const test = base.extend({
   page: async ({ page }, use) => {
     const session = createMockSession();
@@ -268,6 +282,7 @@ export const test = base.extend({
 
     await page.route('**/api/v1/graphql', handleGuiGraphql);
     await page.route('**/graphql', handleGuiGraphql);
+    await page.route('**/api/v1/sparql', handleSparqlRest);
 
     await use(page);
   },

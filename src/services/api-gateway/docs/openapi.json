@@ -58,10 +58,11 @@
         }
       },
       "post": {
-        "summary": "Create ontology",
-        "description": "Creates a new ontology within a project.",
+        "summary": "Create ontology (deprecated)",
+        "description": "Deprecated: under the 1:1 Project ↔ Ontology model, an Ontology is created implicitly when its Project is created via POST /api/v1/projects. This endpoint is retained only for the legacy standalone-import flow and will be removed in a follow-up after the deprecation window.",
         "operationId": "createOntology",
         "tags": ["Ontologies"],
+        "x-vedo-status": "deprecated",
         "parameters": [
           { "$ref": "#/components/parameters/IdempotencyKey" }
         ],
@@ -1122,9 +1123,10 @@
       },
       "post": {
         "summary": "Create project",
-        "description": "Creates a new project within a group.",
+        "description": "Creates a new project within a group. Under the 1:1 Project ↔ Ontology model, this also creates the paired Ontology atomically.",
         "operationId": "createProject",
         "tags": ["Organization"],
+        "x-vedo-status": "canonical",
         "parameters": [
           { "$ref": "#/components/parameters/IdempotencyKey" }
         ],
@@ -1322,17 +1324,17 @@
         }
       }
     },
-    "/ontologies/{id}/members": {
+    "/projects/{id}/members": {
       "get": {
-        "summary": "List ontology members",
-        "description": "Returns a paginated list of members with access to an ontology.",
-        "operationId": "listOntologyMembers",
+        "summary": "List project members",
+        "description": "Returns a paginated list of members with access to a project.",
+        "operationId": "listProjectMembers",
         "tags": ["Organization"],
         "parameters": [
           {
             "name": "id",
             "in": "path",
-            "description": "Ontology ID",
+            "description": "Project ID",
             "required": true,
             "schema": { "type": "string" }
           },
@@ -1341,7 +1343,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Paginated list of ontology members",
+            "description": "Paginated list of project members",
             "content": {
               "application/json": {
                 "schema": {
@@ -1363,15 +1365,15 @@
         }
       },
       "post": {
-        "summary": "Add ontology member",
-        "description": "Adds a user as a member of an ontology with the specified role.",
-        "operationId": "addOntologyMember",
+        "summary": "Add project member",
+        "description": "Adds a user as a member of a project with the specified role.",
+        "operationId": "addProjectMember",
         "tags": ["Organization"],
         "parameters": [
           {
             "name": "id",
             "in": "path",
-            "description": "Ontology ID",
+            "description": "Project ID",
             "required": true,
             "schema": { "type": "string" }
           },
@@ -1408,17 +1410,17 @@
         }
       }
     },
-    "/ontologies/{id}/members/{userId}": {
+    "/projects/{id}/members/{userId}": {
       "put": {
         "summary": "Update member role",
-        "description": "Updates the role of an ontology member. Cannot remove the last Owner.",
-        "operationId": "updateOntologyMemberRole",
+        "description": "Updates the role of a project member. Cannot remove the last Owner.",
+        "operationId": "updateProjectMemberRole",
         "tags": ["Organization"],
         "parameters": [
           {
             "name": "id",
             "in": "path",
-            "description": "Ontology ID",
+            "description": "Project ID",
             "required": true,
             "schema": { "type": "string" }
           },
@@ -1462,15 +1464,15 @@
         }
       },
       "delete": {
-        "summary": "Remove ontology member",
-        "description": "Removes a member from an ontology. Cannot remove the last Owner.",
-        "operationId": "removeOntologyMember",
+        "summary": "Remove project member",
+        "description": "Removes a member from a project. Cannot remove the last Owner.",
+        "operationId": "removeProjectMember",
         "tags": ["Organization"],
         "parameters": [
           {
             "name": "id",
             "in": "path",
-            "description": "Ontology ID",
+            "description": "Project ID",
             "required": true,
             "schema": { "type": "string" }
           },
@@ -1495,17 +1497,17 @@
         }
       }
     },
-    "/ontologies/{id}/visibility": {
+    "/projects/{id}/visibility": {
       "get": {
         "summary": "Get visibility level",
-        "description": "Returns the current visibility level of an ontology.",
-        "operationId": "getOntologyVisibility",
+        "description": "Returns the current visibility level of a project.",
+        "operationId": "getProjectVisibility",
         "tags": ["Organization"],
         "parameters": [
           {
             "name": "id",
             "in": "path",
-            "description": "Ontology ID",
+            "description": "Project ID",
             "required": true,
             "schema": { "type": "string" }
           }
@@ -1531,14 +1533,14 @@
       },
       "put": {
         "summary": "Set visibility level",
-        "description": "Sets the visibility level of an ontology.",
-        "operationId": "setOntologyVisibility",
+        "description": "Sets the visibility level of a project.",
+        "operationId": "setProjectVisibility",
         "tags": ["Organization"],
         "parameters": [
           {
             "name": "id",
             "in": "path",
-            "description": "Ontology ID",
+            "description": "Project ID",
             "required": true,
             "schema": { "type": "string" }
           },
@@ -1574,17 +1576,17 @@
         }
       }
     },
-    "/ontologies/{id}/policies": {
+    "/projects/{id}/policies": {
       "get": {
         "summary": "List policies",
-        "description": "Returns a list of access policies for an ontology.",
-        "operationId": "listPolicies",
+        "description": "Returns a list of access policies for a project.",
+        "operationId": "listProjectPolicies",
         "tags": ["Organization"],
         "parameters": [
           {
             "name": "id",
             "in": "path",
-            "description": "Ontology ID",
+            "description": "Project ID",
             "required": true,
             "schema": { "type": "string" }
           }
@@ -1613,14 +1615,14 @@
       },
       "post": {
         "summary": "Create policy",
-        "description": "Creates a new access policy for an ontology.",
-        "operationId": "createPolicy",
+        "description": "Creates a new access policy for a project.",
+        "operationId": "createProjectPolicy",
         "tags": ["Organization"],
         "parameters": [
           {
             "name": "id",
             "in": "path",
-            "description": "Ontology ID",
+            "description": "Project ID",
             "required": true,
             "schema": { "type": "string" }
           },
@@ -1657,17 +1659,17 @@
         }
       }
     },
-    "/ontologies/{id}/policies/{policyId}": {
+    "/projects/{id}/policies/{policyId}": {
       "delete": {
         "summary": "Delete policy",
-        "description": "Deletes an access policy from an ontology.",
-        "operationId": "deletePolicy",
+        "description": "Deletes an access policy from a project.",
+        "operationId": "deleteProjectPolicy",
         "tags": ["Organization"],
         "parameters": [
           {
             "name": "id",
             "in": "path",
-            "description": "Ontology ID",
+            "description": "Project ID",
             "required": true,
             "schema": { "type": "string" }
           },
@@ -2756,8 +2758,7 @@
           "label": { "type": "string" },
           "description": { "type": "string" },
           "group_id": { "type": "string" },
-          "group_name": { "type": "string" },
-          "ontology_count": { "type": "integer" }
+          "group_name": { "type": "string" }
         }
       },
       "ProjectDetail": {
@@ -2768,6 +2769,7 @@
           "description": { "type": "string" },
           "group_id": { "type": "string" },
           "group_name": { "type": "string" },
+          "ontology_id": { "type": "string", "description": "ID of the 1:1 paired Ontology" },
           "created_at": { "type": "string", "format": "date-time" },
           "updated_at": { "type": "string", "format": "date-time" }
         }
@@ -2779,7 +2781,7 @@
           "role": { "$ref": "#/components/schemas/RoleEnum" },
           "scope": {
             "type": "string",
-            "description": "Scope of the membership: group or ontology"
+            "description": "Scope of the membership: group or project"
           },
           "added_at": { "type": "string", "format": "date-time" }
         }
@@ -2879,13 +2881,13 @@
       },
       "CreateOntologyRequest": {
         "type": "object",
+        "description": "Deprecated: under the 1:1 Project ↔ Ontology model, an Ontology is created implicitly when its Project is created via POST /api/v1/projects. This request is retained only for the legacy standalone-import flow.",
         "properties": {
           "label": { "type": "string", "description": "Ontology display name" },
           "description": { "type": "string", "description": "Optional ontology description" },
-          "project_id": { "type": "string", "description": "Parent project ID" },
           "iri": { "type": "string", "description": "Optional base IRI for the ontology" }
         },
-        "required": ["label", "project_id"]
+        "required": ["label"]
       },
       "UpdateOntologyRequest": {
         "type": "object",

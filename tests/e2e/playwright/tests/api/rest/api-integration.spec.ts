@@ -13,7 +13,7 @@ test.describe('REST API Integration E2E', () => {
   // Note: Ontology write REST endpoints proxy to ontology-service which currently
   // returns 404 for HTTP calls (gRPC migration in progress). Accept 404 as valid.
   const response = await page.request.post(`${API_BASE}/ontologies`, {
-    data: { name: 'ProductCatalog' },
+    data: { label: 'ProductCatalog' },
     headers: { Authorization: `Bearer ${OWNER_JWT}` },
   });
   expect([201, 404]).toContain(response.status());
@@ -30,7 +30,7 @@ test.describe('REST API Integration E2E', () => {
     expect([201, 404]).toContain(classResponse.status());
     if (classResponse.ok()) {
       const classBody = await classResponse.json();
-      expect(classBody.id).toBe('Product');
+      expect(classBody.data.id).toBe('Product');
     }
   }
 });
@@ -38,7 +38,7 @@ test.describe('REST API Integration E2E', () => {
   test('REST API rejects request without authentication', async ({ page }) => {
     // US-api.auth.jwt: Authentication required
     const response = await page.request.post(`${API_BASE}/ontologies`, {
-      data: { name: 'Test' },
+      data: { label: 'Test' },
     });
     expect(response.status()).toBe(401);
     const body = await response.json();

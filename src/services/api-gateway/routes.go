@@ -74,7 +74,7 @@ func RegisterRoutes(r *gin.Engine, grpcPool *proxy.GrpcClientPool) {
 	idemStore := middleware.NewMemIdempotencyStore()
 	idemMiddleware := middleware.Idempotency(&middleware.IdempotencyConfig{
 		Store:         idemStore,
-		CriticalPaths: []string{"/api/v1/ontologies/"}, // membership paths require Idempotency-Key
+		CriticalPaths: []string{"/api/v1/projects/"}, // membership/visibility/policy paths require Idempotency-Key
 	})
 
 	api.GET("/groups", orgHandler.HandleListGroups)
@@ -85,9 +85,9 @@ func RegisterRoutes(r *gin.Engine, grpcPool *proxy.GrpcClientPool) {
 	api.GET("/projects", orgHandler.HandleListProjects)
 	api.GET("/projects/:id", orgHandler.HandleGetProject)
 
-	api.GET("/ontologies/:id/members", orgHandler.HandleListMembers)
-	api.GET("/ontologies/:id/visibility", orgHandler.HandleGetVisibility)
-	api.GET("/ontologies/:id/policies", orgHandler.HandleListPolicies)
+	api.GET("/projects/:id/members", orgHandler.HandleListMembers)
+	api.GET("/projects/:id/visibility", orgHandler.HandleGetVisibility)
+	api.GET("/projects/:id/policies", orgHandler.HandleListPolicies)
 
 	// Org write endpoints with idempotency middleware
 	orgWrite := api.Group("")
@@ -101,13 +101,13 @@ func RegisterRoutes(r *gin.Engine, grpcPool *proxy.GrpcClientPool) {
 	orgWrite.PUT("/projects/:id", orgHandler.HandleUpdateProject)
 	orgWrite.DELETE("/projects/:id", orgHandler.HandleDeleteProject)
 
-	orgWrite.POST("/ontologies/:id/members", orgHandler.HandleAddMember)
-	orgWrite.PUT("/ontologies/:id/members/:userId", orgHandler.HandleUpdateMemberRole)
-	orgWrite.DELETE("/ontologies/:id/members/:userId", orgHandler.HandleRemoveMember)
+	orgWrite.POST("/projects/:id/members", orgHandler.HandleAddMember)
+	orgWrite.PUT("/projects/:id/members/:userId", orgHandler.HandleUpdateMemberRole)
+	orgWrite.DELETE("/projects/:id/members/:userId", orgHandler.HandleRemoveMember)
 
-	orgWrite.PUT("/ontologies/:id/visibility", orgHandler.HandleSetVisibility)
-	orgWrite.POST("/ontologies/:id/policies", orgHandler.HandleCreatePolicy)
-	orgWrite.DELETE("/ontologies/:id/policies/:policyId", orgHandler.HandleDeletePolicy)
+	orgWrite.PUT("/projects/:id/visibility", orgHandler.HandleSetVisibility)
+	orgWrite.POST("/projects/:id/policies", orgHandler.HandleCreatePolicy)
+	orgWrite.DELETE("/projects/:id/policies/:policyId", orgHandler.HandleDeletePolicy)
 
 	// Ontology REST read handlers — use gRPC.
 	ontologyHandler := handlers.NewOntologyHandler(ontologyProxy, ontologyGrpc)

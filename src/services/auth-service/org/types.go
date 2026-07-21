@@ -5,13 +5,29 @@ package org
 
 import "time"
 
-// ScopeType identifies whether a scope is a group or ontology.
+// ScopeType identifies whether a scope is a group, project, or legacy ontology.
+// Under the 1:1 Project ↔ Ontology model, 'project' is the canonical type for
+// the workspace container. 'ontology' is retained as a legacy alias during
+// the migration window and removed in the follow-up cleanup task.
 type ScopeType string
 
 const (
 	ScopeGroup    ScopeType = "group"
-	ScopeOntology ScopeType = "ontology"
+	ScopeProject  ScopeType = "project"  // canonical (GitLab-aligned)
+	ScopeOntology ScopeType = "ontology" // legacy alias — accepted during migration window
 )
+
+// Ontology represents the graph content (TBox/ABox, classes, properties,
+// individuals, axioms) of a Project. The 1:1 invariant is enforced at the
+// schema level: one Ontology row per project scope.
+// @hlv:sec [AUTH_BOUNDARY] — Ontology rows inherit access from their Project via 1:1.
+type Ontology struct {
+	ProjectScope string    `json:"project_scope"` // FK to scopes.id (PK = FK enforces 1:1)
+	OntologyID   string    `json:"ontology_id"`   // identifier used by ontology-service
+	IRI          string    `json:"iri"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+}
 
 // OrgMembership represents a user's role assignment within a scope.
 // @hlv:sec [AUTH_BOUNDARY] — Membership records control authorization decisions.
@@ -67,6 +83,9 @@ type OrgStore interface {
 	DeleteScope(id string) error
 	ListChildScopes(parentID string) ([]ScopeNode, error)
 	ListAllScopes() ([]ScopeNode, error)
+	// Ontology pairing (1:1 with project scopes)
+	CreateOntology(ont Ontology) error
+	GetOntologyByProjectScope(projectScope string) (*Ontology, error)
 	InvalidateCache(scope string)
 }
 

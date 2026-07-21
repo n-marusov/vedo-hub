@@ -1822,11 +1822,59 @@ base:adr/gitlab-like-org a vdo:ArchitectureDecisionRecord ;
     rdfs:comment "Architecture decision to implement GitLab-like organizational model for VEDO Core"@en ;
     vdo:filePath "specs/adr/ADR-DES.SECURITY.gitlab-like-organization-model.md" .
 
-# Code → ADR traceability
+# Project ↔ Ontology separation — new ADR for the canonical REST surface
+base:adr/org-rest-endpoints a vdo:ArchitectureDecisionRecord ;
+    rdfs:label "Organization REST Endpoints ADR"@en ;
+    rdfs:comment "Canonical REST contract for the organization model: /groups/:id/... and /projects/:id/... with members, visibility, and policies scoped to Project (1:1 with Ontology)."@en ;
+    vdo:filePath "specs/adr/ADR-DES.API.organization-rest-endpoints.md" .
+
+# Code → ADR traceability (organization-rest-endpoints)
+base:src/openapi-org a vdo:CodeArtifact ;
+    rdfs:label "OpenAPI Org Endpoints Contract"@en ;
+    vdo:filePath "src/services/api-gateway/docs/openapi.json" ;
+    vdo:implements base:adr/org-rest-endpoints .
+
+base:src/api-gateway-routes a vdo:CodeArtifact ;
+    rdfs:label "API Gateway Route Registrations"@en ;
+    vdo:filePath "src/services/api-gateway/routes.go" ;
+    vdo:implements base:adr/org-rest-endpoints .
+
+base:src/api-gateway-org-handler a vdo:CodeArtifact ;
+    rdfs:label "API Gateway Org Handler"@en ;
+    vdo:filePath "src/services/api-gateway/handlers/org_handler.go" ;
+    vdo:implements base:adr/org-rest-endpoints .
+
 base:src/auth-org-impl a vdo:CodeArtifact ;
     rdfs:label "Org Authorization Service Implementation"@en ;
     vdo:filePath "src/services/auth-service/org/org.go" ;
-    vdo:implements base:adr/gitlab-like-org .
+    vdo:implements base:adr/gitlab-like-org ;
+    vdo:implements base:adr/org-rest-endpoints .
+
+base:src/auth-migrations-007-009 a vdo:CodeArtifact ;
+    rdfs:label "Project ↔ Ontology Schema Migrations"@en ;
+    vdo:filePath "src/services/auth-service/migrations/007_rename_ontology_scope_to_project.sql" ;
+    vdo:implements base:adr/org-rest-endpoints .
+
+# Test suites — security and route registration
+base:test/org-access-control a vdo:TestContract ;
+    rdfs:label "Org Access Control BOLA/BFLA Tests"@en ;
+    rdfs:comment "Negative security tests for project-scoped org endpoints (members, visibility, policies)."@en ;
+    vdo:filePath "tests/security/org_access_control_test.go" ;
+    vdo:validates base:nfr/org-access-model ;
+    vdo:validates base:adr/org-rest-endpoints .
+
+base:test/org-handler-routes a vdo:TestContract ;
+    rdfs:label "Org Handler Route Registration Tests"@en ;
+    rdfs:comment "Route registration tests verifying old /ontologies/:id/... paths return 404 and new /projects/:id/... paths dispatch correctly."@en ;
+    vdo:filePath "src/services/api-gateway/handlers/org_handler_test.go" ;
+    vdo:validates base:adr/org-rest-endpoints .
+
+base:test/org-schema a vdo:TestContract ;
+    rdfs:label "Project ↔ Ontology Schema Tests"@en ;
+    rdfs:comment "PostgreSQL schema contract tests for the 1:1 Project ↔ Ontology invariant (migrations 007-009)."@en ;
+    vdo:filePath "src/services/auth-service/org/schema_test.go" ;
+    vdo:validates base:nfr/org-access-model ;
+    vdo:validates base:adr/org-rest-endpoints .
 
 # Test suites
 base:test/org-groups-wired a vdo:TestSuite ;

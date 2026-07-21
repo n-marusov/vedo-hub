@@ -6,8 +6,8 @@ import { type Page, expect } from '@playwright/test';
 export class MembersPage {
   constructor(public readonly page: Page) {}
 
-  async goto(ontologyId?: string) {
-    const path = ontologyId ? `/ontology/${ontologyId}/members` : '/ontology/test/members';
+  async goto(projectId?: string) {
+    const path = projectId ? `/project/${projectId}/members` : '/project/test/members';
     await this.page.goto(path);
   }
 

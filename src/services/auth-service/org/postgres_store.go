@@ -57,6 +57,11 @@ func NewPostgresOrgStore(ctx interface{}, databaseURL string) (*PostgresOrgStore
 }
 
 // runMigrations applies the migration SQL files in order.
+// The list is explicit (not alphabetical) so the Project ↔ Ontology separation
+// migrations can run in the logically correct order: 008 (create ontologies
+// table) → 009 (backfill from legacy scopes) → 007 (rename type='ontology'
+// to type='project'). Renaming 007 before backfilling would lose the legacy
+// type='ontology' rows that 009 reads.
 func (p *PostgresOrgStore) runMigrations() error {
 	migrations := []string{
 		"001_create_scopes.sql",
@@ -64,6 +69,14 @@ func (p *PostgresOrgStore) runMigrations() error {
 		"003_create_policies.sql",
 		"004_create_audit_events.sql",
 		"005_add_constraints.sql",
+		"006_add_mvp_roles.sql",
+		// Project ↔ Ontology separation (Phase 4). Order matters:
+		//   008 — create ontologies table
+		//   009 — backfill ontologies from legacy type='ontology' scopes
+		//   007 — rename scopes.type='ontology' → 'project'
+		"008_create_ontologies_table.sql",
+		"009_seed_ontologies_from_legacy.sql",
+		"007_rename_ontology_scope_to_project.sql",
 	}
 
 	for _, m := range migrations {
@@ -397,6 +410,42 @@ func (p *PostgresOrgStore) GetVisibility(scope string) (Visibility, error) {
 // InvalidateCache is a no-op for PostgresOrgStore (cache is managed by OrgService).
 func (p *PostgresOrgStore) InvalidateCache(scope string) {
 	// Cache is managed by OrgService layer, not the store.
+}
+
+// ============================================================================
+// Ontology Operations (1:1 with project scopes)
+// ============================================================================
+
+// CreateOntology inserts a 1:1 paired ontology row for a project scope.
+// The project scope must already exist in scopes (the FK constraint enforces this).
+// Returns an error if the scope does not exist or if the ontology_id is already taken.
+func (p *PostgresOrgStore) CreateOntology(ont Ontology) error {
+	_, err := p.db.Exec(`
+		INSERT INTO ontologies (project_scope, ontology_id, iri)
+		VALUES ($1, $2, $3)
+	`, ont.ProjectScope, ont.OntologyID, ont.IRI)
+	if err != nil {
+		log.Printf(`{"event":"store.error","operation":"CreateOntology","project_scope":"%s","error":"%v"}`, ont.ProjectScope, err)
+		return err
+	}
+	log.Printf(`{"event":"ontology.created","project_scope":"%s","ontology_id":"%s"}`, ont.ProjectScope, ont.OntologyID)
+	return nil
+}
+
+// GetOntologyByProjectScope returns the paired ontology for a project scope, or nil if none.
+func (p *PostgresOrgStore) GetOntologyByProjectScope(projectScope string) (*Ontology, error) {
+	var ont Ontology
+	err := p.db.QueryRow(`
+		SELECT project_scope, ontology_id, iri, created_at, updated_at
+		FROM ontologies WHERE project_scope = $1
+	`, projectScope).Scan(&ont.ProjectScope, &ont.OntologyID, &ont.IRI, &ont.CreatedAt, &ont.UpdatedAt)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &ont, nil
 }
 
 // ============================================================================

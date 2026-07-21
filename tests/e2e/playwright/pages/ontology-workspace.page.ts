@@ -11,7 +11,7 @@ export class OntologyWorkspacePage {
   }
 
   async openOntology(name: string) {
-    await this.page.goto(`/ontology/${name}`);
+    await this.page.goto(`/project/${name}/workspace`);
   }
 
   async createClass(label: string, parents: string[], comment?: string) {

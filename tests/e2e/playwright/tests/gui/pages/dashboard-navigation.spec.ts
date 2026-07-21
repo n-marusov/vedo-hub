@@ -12,7 +12,7 @@ test.describe('Dashboard Navigation', () => {
     const name = await firstOntology.locator('.onto-name').textContent()
     if (name) {
       await dashboard.clickOntology(name)
-      await expect(page).toHaveURL(/\/ontology\//)
+      await expect(page).toHaveURL(/\/project\//)
     }
   })
 

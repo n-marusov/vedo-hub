@@ -724,7 +724,10 @@ func hasRight(granted, required string) bool {
 	return rightHierarchy[granted] >= rightHierarchy[required]
 }
 
-// ParseScope splits "group/id" or "ontology/id" into type and ID.
+// ParseScope splits "group/id" or "project/id" into type and ID.
+// Under the 1:1 Project ↔ Ontology model, "project/" is the canonical prefix.
+// The legacy "ontology/" alias was removed in Task 7.4 of the
+// project-ontology-separation plan — use "project/" instead.
 func ParseScope(scope string) (ScopeType, string, error) {
 	// @hlv:sec [INPUT_VALIDATION] — Parse and validate scope format.
 	parts := strings.SplitN(scope, "/", 2)
@@ -732,7 +735,7 @@ func ParseScope(scope string) (ScopeType, string, error) {
 		return "", "", fmt.Errorf("invalid scope format")
 	}
 	st := ScopeType(parts[0])
-	if st != ScopeGroup && st != ScopeOntology {
+	if st != ScopeGroup && st != ScopeProject {
 		return "", "", fmt.Errorf("unknown scope type: %s", parts[0])
 	}
 	return st, parts[1], nil

@@ -36,7 +36,7 @@ export class DocumentUploadPage {
 
   async openDocumentUpload(ontologyName: string) {
     await this.setupBrowserAuth();
-    await this.page.goto(`/ontology/${ontologyName}/workspace`);
+    await this.page.goto(`/project/${ontologyName}/workspace`);
     await this.page.getByRole('button', { name: /ai import/i }).click();
     await this.page.getByRole('region', { name: /document upload zone|batch document upload/i }).waitFor({ state: 'visible' });
   }
@@ -193,7 +193,9 @@ export class DocumentUploadPage {
 
   async waitForApplyComplete(timeout = 30_000): Promise<boolean> {
     try {
-      await this.page.getByRole('button', { name: /import \d+ entit/i }).click();
+      // Click the modal's confirm button (not the .apply-btn which shares
+      // the same accessible name "Import N entities" via title attribute).
+      await this.page.locator('.modal__btn--primary').click();
       await this.page.waitForSelector('.modal__title--success', { timeout });
       return true;
     } catch {
@@ -218,9 +220,14 @@ export class DocumentUploadPage {
   }
 
   async getErrorMessage(): Promise<string | null> {
-    const confirm = this.page.getByRole('button', { name: /import \d+ entit/i });
-    if (await confirm.isVisible().catch(() => false)) {
-      await confirm.click();
+    // Click the modal's confirm button — wait for it to appear and be clickable.
+    // NOTE: Must NOT match the .apply-btn which has the same accessible name
+    // "Import N entities" (via title attribute). Use .modal__btn--primary instead.
+    const confirm = this.page.locator('.modal__btn--primary');
+    try {
+      await confirm.click({ timeout: 10_000 });
+    } catch {
+      // Modal may not be in confirming state — that's OK
     }
 
     const errorTitle = this.page.locator('.modal__title--error').first();

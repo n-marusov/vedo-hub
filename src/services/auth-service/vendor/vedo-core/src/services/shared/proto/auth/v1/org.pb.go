@@ -10,12 +10,13 @@
 package authv1
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
 	v1 "vedo-core/src/services/shared/proto/common/v1"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -25,18 +26,23 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Scope represents a group or ontology node in the hierarchy.
+// Scope represents a group, project, or legacy ontology node in the hierarchy.
+// Under the 1:1 Project ↔ Ontology model, 'project' is the canonical type for
+// the workspace container. 'ontology' is retained as a legacy alias during the
+// migration window. The ontology_id field carries the 1:1 paired Ontology
+// identifier for project scopes (empty for groups).
 type Scope struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Type          string                 `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"` // "group" or "ontology"
+	Type          string                 `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"` // "group" or "project" (legacy "ontology" accepted during migration)
 	ParentId      string                 `protobuf:"bytes,3,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
-	Name          string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	Name          string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"label,omitempty"`
 	Description   string                 `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
 	Visibility    string                 `protobuf:"bytes,6,opt,name=visibility,proto3" json:"visibility,omitempty"` // "Private", "Internal", "Public"
 	TenantId      string                 `protobuf:"bytes,7,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
 	ChildCount    int32                  `protobuf:"varint,8,opt,name=child_count,json=childCount,proto3" json:"child_count,omitempty"`
 	MemberCount   int32                  `protobuf:"varint,9,opt,name=member_count,json=memberCount,proto3" json:"member_count,omitempty"`
+	OntologyId    string                 `protobuf:"bytes,10,opt,name=ontology_id,json=ontologyId,proto3" json:"ontology_id,omitempty"` // 1:1 paired Ontology ID (set for projects, empty for groups)
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -132,6 +138,13 @@ func (x *Scope) GetMemberCount() int32 {
 		return x.MemberCount
 	}
 	return 0
+}
+
+func (x *Scope) GetOntologyId() string {
+	if x != nil {
+		return x.OntologyId
+	}
+	return ""
 }
 
 // Member represents a user's role assignment within a scope.
@@ -2676,7 +2689,7 @@ var File_auth_v1_org_proto protoreflect.FileDescriptor
 
 const file_auth_v1_org_proto_rawDesc = "" +
 	"\n" +
-	"\x11auth/v1/org.proto\x12\fvedo.auth.v1\x1a\x16common/v1/common.proto\"\xff\x01\n" +
+	"\x11auth/v1/org.proto\x12\fvedo.auth.v1\x1a\x16common/v1/common.proto\"\xa0\x02\n" +
 	"\x05Scope\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12\x1b\n" +
@@ -2689,7 +2702,10 @@ const file_auth_v1_org_proto_rawDesc = "" +
 	"\ttenant_id\x18\a \x01(\tR\btenantId\x12\x1f\n" +
 	"\vchild_count\x18\b \x01(\x05R\n" +
 	"childCount\x12!\n" +
-	"\fmember_count\x18\t \x01(\x05R\vmemberCount\"\xbf\x01\n" +
+	"\fmember_count\x18\t \x01(\x05R\vmemberCount\x12\x1f\n" +
+	"\vontology_id\x18\n" +
+	" \x01(\tR\n" +
+	"ontologyId\"\xbf\x01\n" +
 	"\x06Member\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x14\n" +
 	"\x05scope\x18\x02 \x01(\tR\x05scope\x12\x12\n" +
