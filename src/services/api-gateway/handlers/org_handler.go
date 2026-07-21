@@ -15,16 +15,16 @@ package handlers
 //   GET    /api/v1/projects/:id        → HandleGetProject
 //   PUT    /api/v1/projects/:id        → HandleUpdateProject
 //   DELETE /api/v1/projects/:id        → HandleDeleteProject
-//   GET    /api/v1/ontologies/:id/members         → HandleListMembers
-//   POST   /api/v1/ontologies/:id/members         → HandleAddMember
-//   PUT    /api/v1/ontologies/:id/members/:userId → HandleUpdateMemberRole
-//   DELETE /api/v1/ontologies/:id/members/:userId → HandleRemoveMember
+//   GET    /api/v1/projects/:id/members         → HandleListMembers
+//   POST   /api/v1/projects/:id/members         → HandleAddMember
+//   PUT    /api/v1/projects/:id/members/:userId → HandleUpdateMemberRole
+//   DELETE /api/v1/projects/:id/members/:userId → HandleRemoveMember
 //   GET    /api/v1/groups/:id/members             → HandleListMembers
-//   PUT    /api/v1/ontologies/:id/visibility      → HandleSetVisibility
-//   GET    /api/v1/ontologies/:id/visibility      → HandleGetVisibility
-//   GET    /api/v1/ontologies/:id/policies        → HandleListPolicies
-//   POST   /api/v1/ontologies/:id/policies        → HandleCreatePolicy
-//   DELETE /api/v1/ontologies/:id/policies/:policyId → HandleDeletePolicy
+//   PUT    /api/v1/projects/:id/visibility      → HandleSetVisibility
+//   GET    /api/v1/projects/:id/visibility      → HandleGetVisibility
+//   GET    /api/v1/projects/:id/policies        → HandleListPolicies
+//   POST   /api/v1/projects/:id/policies        → HandleCreatePolicy
+//   DELETE /api/v1/projects/:id/policies/:policyId → HandleDeletePolicy
 
 import (
 	"net/http"
@@ -285,7 +285,7 @@ func (h *OrgHandler) HandleDeleteProject(c *gin.Context) {
 
 func (h *OrgHandler) HandleListMembers(c *gin.Context) {
 	token := extractToken(c)
-	scope := "ontology/" + c.Param("id")
+	scope := "project/" + c.Param("id")
 	if gid := c.Param("groupId"); gid != "" {
 		scope = "group/" + gid
 	}
@@ -302,7 +302,7 @@ func (h *OrgHandler) HandleListMembers(c *gin.Context) {
 
 func (h *OrgHandler) HandleAddMember(c *gin.Context) {
 	token := extractToken(c)
-	scope := "ontology/" + c.Param("id")
+	scope := "project/" + c.Param("id")
 
 	var req struct {
 		UserID string `json:"user_id"`
@@ -331,7 +331,7 @@ func (h *OrgHandler) HandleAddMember(c *gin.Context) {
 
 func (h *OrgHandler) HandleUpdateMemberRole(c *gin.Context) {
 	token := extractToken(c)
-	scope := "ontology/" + c.Param("id")
+	scope := "project/" + c.Param("id")
 	userID := c.Param("userId")
 
 	var req struct {
@@ -360,7 +360,7 @@ func (h *OrgHandler) HandleUpdateMemberRole(c *gin.Context) {
 
 func (h *OrgHandler) HandleRemoveMember(c *gin.Context) {
 	token := extractToken(c)
-	scope := "ontology/" + c.Param("id")
+	scope := "project/" + c.Param("id")
 	userID := c.Param("userId")
 
 	_, err := h.orgClient.RemoveMember(c.Request.Context(), &authv1.RemoveMemberRequest{
@@ -382,7 +382,7 @@ func (h *OrgHandler) HandleRemoveMember(c *gin.Context) {
 
 func (h *OrgHandler) HandleSetVisibility(c *gin.Context) {
 	token := extractToken(c)
-	scope := "ontology/" + c.Param("id")
+	scope := "project/" + c.Param("id")
 
 	var req struct {
 		Visibility string `json:"visibility"`
@@ -409,7 +409,7 @@ func (h *OrgHandler) HandleSetVisibility(c *gin.Context) {
 
 func (h *OrgHandler) HandleGetVisibility(c *gin.Context) {
 	token := extractToken(c)
-	scope := "ontology/" + c.Param("id")
+	scope := "project/" + c.Param("id")
 
 	resp, err := h.orgClient.GetVisibility(c.Request.Context(), scope, token)
 	if err != nil {
@@ -427,7 +427,7 @@ func (h *OrgHandler) HandleGetVisibility(c *gin.Context) {
 
 func (h *OrgHandler) HandleListPolicies(c *gin.Context) {
 	token := extractToken(c)
-	scope := "ontology/" + c.Param("id")
+	scope := "project/" + c.Param("id")
 
 	resp, err := h.orgClient.ListPolicies(c.Request.Context(), scope, token)
 	if err != nil {
@@ -441,7 +441,7 @@ func (h *OrgHandler) HandleListPolicies(c *gin.Context) {
 
 func (h *OrgHandler) HandleCreatePolicy(c *gin.Context) {
 	token := extractToken(c)
-	scope := "ontology/" + c.Param("id")
+	scope := "project/" + c.Param("id")
 
 	var req struct {
 		Pattern map[string]string `json:"pattern"`
@@ -470,7 +470,7 @@ func (h *OrgHandler) HandleCreatePolicy(c *gin.Context) {
 
 func (h *OrgHandler) HandleDeletePolicy(c *gin.Context) {
 	token := extractToken(c)
-	scope := "ontology/" + c.Param("id")
+	scope := "project/" + c.Param("id")
 	policyID := c.Param("policyId")
 
 	_, err := h.orgClient.DeletePolicy(c.Request.Context(), &authv1.DeletePolicyRequest{

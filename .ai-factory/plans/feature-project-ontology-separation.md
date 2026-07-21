@@ -863,6 +863,8 @@ docs(antora): document Project ↔ Ontology 1:1 model
 
 #### Task 4.7 — Commit Phase 4
 
+> ✅ **Completed:** 2026-07-21 (main `307a9d4`)
+
 ```
 feat(auth-service): rename scopes.type='ontology' to 'project' and add ontologies table
 
@@ -881,6 +883,8 @@ feat(auth-service): rename scopes.type='ontology' to 'project' and add ontologie
 > Goal: align `routes.go` and `org_handler.go` with the renamed endpoints.
 
 #### Task 5.1 — Update `routes.go` endpoint registrations
+
+> ✅ **Completed:** 2026-07-21
 
 - **Files:** `src/services/api-gateway/routes.go` (L80-110)
 - **Deliverable:**
@@ -917,6 +921,8 @@ feat(auth-service): rename scopes.type='ontology' to 'project' and add ontologie
 
 #### Task 5.2 — Update `org_handler.go` scope strings
 
+> ✅ **Completed:** 2026-07-21
+
 - **Files:**
  `src/services/api-gateway/handlers/org_handler.go`
 - **Deliverable:**
@@ -937,6 +943,8 @@ feat(auth-service): rename scopes.type='ontology' to 'project' and add ontologie
   returns no matches outside of the legacy alias documentation comment.
 
 #### Task 5.3 — Update `org_handler_test.go` expectations
+
+> ✅ **Completed:** 2026-07-21 (new test file; go test ./handlers/ -run OrgHandler passes)
 
 - **Files:**
   `src/services/api-gateway/handlers/org_handler_test.go` (if present),
