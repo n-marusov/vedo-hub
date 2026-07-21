@@ -3,7 +3,7 @@
 - **Branch:** `feature/project-ontology-separation`
 - **Created:** 2026-07-21
 - **Mode:** full
-- **Status:** pending
+- **Status:** in-progress
 
 ## Summary
 
@@ -186,6 +186,8 @@ Synchronize glossary, ADR, REQ, Antora doc, OpenAPI, routes.go, org_handler.go.
 
 #### Task 0.1 — Update `specs/context.md` organization-model paragraph
 
+> ✅ **Completed:** 2026-07-21
+
 - **Files:** `specs/context.md` (L32–38)
 - **Deliverable:**
   - Replace `**Ontology** — аналог GitLab Project: базовая единица работы,
@@ -205,6 +207,8 @@ Synchronize glossary, ADR, REQ, Antora doc, OpenAPI, routes.go, org_handler.go.
   returns no matches.
 
 #### Task 0.2 — Update `ADR-DES.SECURITY.gitlab-like-organization-model`
+
+> ✅ **Completed:** 2026-07-21
 
 - **Files:**
   `specs/adr/ADR-DES.SECURITY.gitlab-like-organization-model.md`
@@ -232,6 +236,8 @@ Synchronize glossary, ADR, REQ, Antora doc, OpenAPI, routes.go, org_handler.go.
 
 #### Task 0.3 — Update `REQ-NFR.SECURITY.organization-access-model`
 
+> ✅ **Completed:** 2026-07-21
+
 - **Files:**
   `specs/requirements/REQ-NFR.SECURITY.organization-access-model.md`
 - **Deliverable:**
@@ -254,6 +260,8 @@ Synchronize glossary, ADR, REQ, Antora doc, OpenAPI, routes.go, org_handler.go.
   returns no matches.
 
 #### Task 0.4 — Update `REQ-FUN.DATA.ontology-visibility-levels`
+
+> ✅ **Completed:** 2026-07-21
 
 - **Files:**
   `specs/requirements/REQ-FUN.DATA.ontology-visibility-levels.md`
