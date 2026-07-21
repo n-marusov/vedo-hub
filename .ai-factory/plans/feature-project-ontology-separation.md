@@ -3,7 +3,7 @@
 - **Branch:** `feature/project-ontology-separation`
 - **Created:** 2026-07-21
 - **Mode:** full
-- **Status:** in-progress
+- **Status:** complete (2026-07-21)
 
 ## Summary
 
@@ -1028,6 +1028,8 @@ refactor(api-gateway): route org endpoints under /projects/{id}/...
 
 #### Task 6.3 — Commit Phase 6
 
+> ✅ **Completed:** 2026-07-21 (main `63a69ec`)
+
 ```
 refactor(frontend): use /projects/{id}/members|visibility|policies
 
@@ -1045,6 +1047,8 @@ refactor(frontend): use /projects/{id}/members|visibility|policies
 > keep `traceability.ttl` in sync per RULES.md § Traceability.
 
 #### Task 7.1 — Update `tests/security/` BOLA/BFLA negative tests
+
+> ✅ **Completed:** 2026-07-21 (6 new tests added; paths updated to /projects/:id/...)
 
 > BDD naming: `[Condition]_[Action]_[ExpectedResult]`
 > Security tests must dispatch a real HTTP request, not use mock
@@ -1071,6 +1075,8 @@ refactor(frontend): use /projects/{id}/members|visibility|policies
 
 #### Task 7.2 — Update `tests/e2e/playwright/` flows
 
+> ✅ **Completed:** 2026-07-21 (org-api.spec.ts paths updated; members.page.ts uses projectId; new 1:1 pairing test added)
+
 - **Files:** `tests/e2e/playwright/` (any spec that references the old
   endpoints)
 - **Deliverable:**
@@ -1084,6 +1090,8 @@ refactor(frontend): use /projects/{id}/members|visibility|policies
 - **Validation:** `npx playwright test` passes for the updated specs.
 
 #### Task 7.3 — Update `traceability.ttl`
+
+> ✅ **Completed:** 2026-07-21 (ADR, code artifacts, and test triples registered)
 
 - **Files:** `.ai-factory/traceability/traceability.ttl`
 - **Deliverable:**
@@ -1110,6 +1118,8 @@ refactor(frontend): use /projects/{id}/members|visibility|policies
 
 #### Task 7.4 — Remove the legacy `"ontology/" + id` scope shim
 
+> ✅ **Completed:** 2026-07-21 (shim removed from ParseScope; no legacy_alias references remain)
+
 - **Files:**
   - `src/services/auth-service/membership/*.go`
   - `src/services/auth-service/org/*.go`
@@ -1126,6 +1136,8 @@ refactor(frontend): use /projects/{id}/members|visibility|policies
   returns no matches.
 
 #### Task 7.5 — Final docs checkpoint (`$aif-docs`)
+
+> ✅ **Completed:** 2026-07-21 (manual verification: ADR in README, Antora nav updated, no stale refs in docs/README)
 
 - **Files:** docs (Antora + README + ADR index)
 - **Deliverable:**

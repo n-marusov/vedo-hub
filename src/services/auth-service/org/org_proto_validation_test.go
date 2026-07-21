@@ -12,7 +12,7 @@ import (
 )
 
 // TestParseScope_ValidInput validates that ParseScope correctly handles
-// valid "group/", "project/", and legacy "ontology/" scope strings.
+// valid "group/" and "project/" scope strings.
 func TestParseScope_ValidInput_ReturnsTypeAndID(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -21,7 +21,6 @@ func TestParseScope_ValidInput_ReturnsTypeAndID(t *testing.T) {
 	}{
 		{"group/my-group", ScopeGroup, "my-group"},
 		{"project/proj-1", ScopeProject, "proj-1"},
-		{"ontology/ont-123", ScopeProject, "ont-123"}, // legacy alias — rewritten to project
 		{"group/Root/TeamA", ScopeGroup, "Root/TeamA"},
 	}
 	for _, tc := range tests {
@@ -57,10 +56,12 @@ func TestParseScope_InvalidFormat_ReturnsError(t *testing.T) {
 }
 
 // TestParseScope_UnknownType validates that unknown scope types are rejected.
+// "ontology/" was a legacy alias that was removed in Task 7.4 — it is now rejected.
 func TestParseScope_UnknownType_ReturnsError(t *testing.T) {
 	unknown := []string{
 		"invalid-type/foo",
 		"user/user-123",
+		"ontology/ont-123", // legacy alias removed in Task 7.4
 		"team/alpha",
 	}
 	for _, input := range unknown {
