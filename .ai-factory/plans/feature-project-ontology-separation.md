@@ -1154,6 +1154,8 @@ refactor(frontend): use /projects/{id}/members|visibility|policies
 
 #### Task 7.6 — Commit Phase 7
 
+> ✅ **Completed:** 2026-07-21 (main `a0cb8db`)
+
 ```
 test(security): cover renamed /projects/{id}/... org endpoints
 
