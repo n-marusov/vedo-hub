@@ -58,10 +58,14 @@ describePage("MetricsPage", () => {
 	it("should show empty state when ontology has zero metrics", async () => {
 		setMockOperationResult("OntologyMetrics", {
 			ontologyMetrics: {
-				classes: 0,
-				properties: 0,
-				individuals: 0,
-				shapes: 0,
+				counters: {
+					classCount: 0,
+					propertyCount: 0,
+					individualCount: 0,
+					axiomCount: 0,
+					commentCount: 0,
+					mergeRequestCount: 0,
+				},
 				trends: [],
 			},
 		});

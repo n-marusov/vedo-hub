@@ -59,6 +59,8 @@ describe("CreateIndividualDialog", () => {
 		await nextTick();
 		const input = wrapper.find(".form-input");
 		await input.setValue("JohnDoe");
+		const classSelect = wrapper.find(".form-select");
+		await classSelect.setValue("owl:Thing");
 		const createBtn = wrapper.find(".btn--primary");
 		await createBtn.trigger("click");
 		await new Promise((resolve) => setTimeout(resolve, 600));

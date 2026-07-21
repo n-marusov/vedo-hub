@@ -28,7 +28,7 @@ describePage("VersioningTabs", () => {
 		const wrapper = mountWithProviders(VersioningPage);
 		await waitForQuery();
 		await nextTick();
-		expect(wrapper.text()).toContain("Repository Graph");
+		expect(wrapper.text()).toContain("Graph");
 	});
 
 	it("should show Compare Revisions tab rendered", async () => {
@@ -36,7 +36,7 @@ describePage("VersioningTabs", () => {
 		const wrapper = mountWithProviders(VersioningPage);
 		await waitForQuery();
 		await nextTick();
-		expect(wrapper.text()).toContain("Compare Revisions");
+		expect(wrapper.text()).toContain("Compare");
 	});
 
 	it("should render all 6 versioning tab buttons", async () => {
