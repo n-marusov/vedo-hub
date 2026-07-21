@@ -10,6 +10,7 @@ import (
 	"encoding/hex"
 	"log"
 	"log/slog"
+	"strings"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -459,9 +460,15 @@ func scopeNodeToProto(s *org.ScopeNode) *authv1.Scope {
 	if s == nil {
 		return nil
 	}
+	// Extract the name/label from the ID (e.g. "group/MyGroup" → "MyGroup").
+	name := s.ID
+	if idx := strings.Index(s.ID, "/"); idx >= 0 && idx+1 < len(s.ID) {
+		name = s.ID[idx+1:]
+	}
 	return &authv1.Scope{
 		Id:         s.ID,
 		Type:       string(s.Type),
+		Name:       name,
 		ParentId:   s.ParentID,
 		Visibility: string(s.Visibility),
 		TenantId:   s.TenantID,

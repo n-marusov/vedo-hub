@@ -74,7 +74,7 @@ func (h *OrgHandler) HandleCreateGroup(c *gin.Context) {
 	token := extractToken(c)
 
 	var req struct {
-		Name        string `json:"name"`
+		Label       string `json:"label"`
 		Description string `json:"description"`
 		ParentID    string `json:"parent_id"`
 	}
@@ -86,7 +86,7 @@ func (h *OrgHandler) HandleCreateGroup(c *gin.Context) {
 	}
 
 	resp, err := h.orgClient.CreateGroup(c.Request.Context(), &authv1.CreateGroupRequest{
-		Name:        req.Name,
+		Name:        req.Label,
 		Description: req.Description,
 		ParentId:    req.ParentID,
 	}, token)
@@ -96,7 +96,7 @@ func (h *OrgHandler) HandleCreateGroup(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusCreated, resp.GetGroup())
+	c.JSON(http.StatusCreated, gin.H{"data": resp.GetGroup()})
 }
 
 func (h *OrgHandler) HandleGetGroup(c *gin.Context) {
@@ -110,7 +110,7 @@ func (h *OrgHandler) HandleGetGroup(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusOK, resp.GetGroup())
+	c.JSON(http.StatusOK, gin.H{"data": resp.GetGroup()})
 }
 
 func (h *OrgHandler) HandleUpdateGroup(c *gin.Context) {
@@ -118,7 +118,7 @@ func (h *OrgHandler) HandleUpdateGroup(c *gin.Context) {
 	id := c.Param("id")
 
 	var req struct {
-		Name        string `json:"name"`
+		Label       string `json:"label"`
 		Description string `json:"description"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -130,7 +130,7 @@ func (h *OrgHandler) HandleUpdateGroup(c *gin.Context) {
 
 	resp, err := h.orgClient.UpdateGroup(c.Request.Context(), &authv1.UpdateGroupRequest{
 		Id:          id,
-		Name:        req.Name,
+		Name:        req.Label,
 		Description: req.Description,
 	}, token)
 	if err != nil {
@@ -139,7 +139,7 @@ func (h *OrgHandler) HandleUpdateGroup(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusOK, resp.GetGroup())
+	c.JSON(http.StatusOK, gin.H{"data": resp.GetGroup()})
 }
 
 func (h *OrgHandler) HandleDeleteGroup(c *gin.Context) {
@@ -197,7 +197,7 @@ func (h *OrgHandler) HandleCreateProject(c *gin.Context) {
 	token := extractToken(c)
 
 	var req struct {
-		Name        string `json:"name"`
+		Label       string `json:"label"`
 		Description string `json:"description"`
 		GroupID     string `json:"group_id"`
 	}
@@ -209,7 +209,7 @@ func (h *OrgHandler) HandleCreateProject(c *gin.Context) {
 	}
 
 	resp, err := h.orgClient.CreateProject(c.Request.Context(), &authv1.CreateProjectRequest{
-		Name:        req.Name,
+		Name:        req.Label,
 		Description: req.Description,
 		GroupId:     req.GroupID,
 	}, token)
@@ -219,7 +219,7 @@ func (h *OrgHandler) HandleCreateProject(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusCreated, resp.GetProject())
+	c.JSON(http.StatusCreated, gin.H{"data": resp.GetProject()})
 }
 
 func (h *OrgHandler) HandleGetProject(c *gin.Context) {
@@ -233,7 +233,7 @@ func (h *OrgHandler) HandleGetProject(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusOK, resp.GetProject())
+	c.JSON(http.StatusOK, gin.H{"data": resp.GetProject()})
 }
 
 func (h *OrgHandler) HandleUpdateProject(c *gin.Context) {
@@ -241,7 +241,7 @@ func (h *OrgHandler) HandleUpdateProject(c *gin.Context) {
 	id := c.Param("id")
 
 	var req struct {
-		Name        string `json:"name"`
+		Label       string `json:"label"`
 		Description string `json:"description"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -253,7 +253,7 @@ func (h *OrgHandler) HandleUpdateProject(c *gin.Context) {
 
 	resp, err := h.orgClient.UpdateProject(c.Request.Context(), &authv1.UpdateProjectRequest{
 		Id:          id,
-		Name:        req.Name,
+		Name:        req.Label,
 		Description: req.Description,
 	}, token)
 	if err != nil {
@@ -262,7 +262,7 @@ func (h *OrgHandler) HandleUpdateProject(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusOK, resp.GetProject())
+	c.JSON(http.StatusOK, gin.H{"data": resp.GetProject()})
 }
 
 func (h *OrgHandler) HandleDeleteProject(c *gin.Context) {
@@ -326,7 +326,7 @@ func (h *OrgHandler) HandleAddMember(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusCreated, resp.GetMember())
+	c.JSON(http.StatusCreated, gin.H{"data": resp.GetMember()})
 }
 
 func (h *OrgHandler) HandleUpdateMemberRole(c *gin.Context) {
@@ -355,7 +355,7 @@ func (h *OrgHandler) HandleUpdateMemberRole(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(http.StatusOK, resp.GetMember())
+	c.JSON(http.StatusOK, gin.H{"data": resp.GetMember()})
 }
 
 func (h *OrgHandler) HandleRemoveMember(c *gin.Context) {
