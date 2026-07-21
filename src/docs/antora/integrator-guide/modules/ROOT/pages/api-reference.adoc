@@ -61,7 +61,7 @@ All external requests go through the API Gateway. The frontend never accesses ba
 
 == Organization & Access Control
 
-Organizational model endpoints for group hierarchy, project catalog, membership management, visibility, and access policies.
+Organizational model endpoints for group hierarchy, project catalog, membership management, visibility, and access policies. The canonical REST contract is defined in `ADR-DES.API.organization-rest-endpoints` — see that ADR for the full endpoint list, RBAC rules, and audit semantics.
 
 === Groups
 
@@ -79,44 +79,53 @@ Organizational model endpoints for group hierarchy, project catalog, membership 
 
 === Projects
 
+Projects follow the 1:1 Project ↔ Ontology model: creating a Project atomically creates its paired Ontology (response includes `ontology_id`); deleting a Project cascades to the paired Ontology. Members, visibility, and policies live on the Project.
+
 |===
 |Method |Path |Description
 
 |`GET` |`/api/v1/projects` |List projects (paginated, searchable)
-|`POST` |`/api/v1/projects` |Create a project (Owner, idempotent)
-|`GET` |`/api/v1/projects/{id}` |Get project details
+|`POST` |`/api/v1/projects` |Create a project (Owner, idempotent; atomically creates paired Ontology)
+|`GET` |`/api/v1/projects/{id}` |Get project details (includes `ontology_id` for the 1:1 paired Ontology)
 |`PUT` |`/api/v1/projects/{id}` |Update project (Owner, idempotent)
-|`DELETE` |`/api/v1/projects/{id}` |Delete project (Owner, idempotent)
+|`DELETE` |`/api/v1/projects/{id}` |Delete project (Owner, idempotent; cascades to paired Ontology)
+|`PUT` |`/api/v1/projects/{id}/move` |Move project to another group (Owner, idempotent)
 |===
 
 === Members
 
+Members live on Project (not Ontology), matching GitLab `/projects/:id/members`.
+
 |===
 |Method |Path |Description
 
-|`GET` |`/api/v1/ontologies/{id}/members` |List ontology members
-|`POST` |`/api/v1/ontologies/{id}/members` |Add member (Owner, idempotent)
-|`PUT` |`/api/v1/ontologies/{id}/members/{userId}` |Update role (Owner, idempotent)
-|`DELETE` |`/api/v1/ontologies/{id}/members/{userId}` |Remove member (Owner, idempotent)
+|`GET` |`/api/v1/projects/{id}/members` |List project members
+|`POST` |`/api/v1/projects/{id}/members` |Add member (Owner, idempotent)
+|`PUT` |`/api/v1/projects/{id}/members/{userId}` |Update role (Owner, idempotent)
+|`DELETE` |`/api/v1/projects/{id}/members/{userId}` |Remove member (Owner, idempotent)
 |===
 
 === Visibility
 
+Visibility is a Project attribute; the paired Ontology inherits it via the 1:1 link.
+
 |===
 |Method |Path |Description
 
-|`GET` |`/api/v1/ontologies/{id}/visibility` |Get visibility level
-|`PUT` |`/api/v1/ontologies/{id}/visibility` |Set visibility (Owner, idempotent)
+|`GET` |`/api/v1/projects/{id}/visibility` |Get visibility level
+|`PUT` |`/api/v1/projects/{id}/visibility` |Set visibility (Owner, idempotent)
 |===
 
 === Access Policies
 
+ABAC policies live on Project.
+
 |===
 |Method |Path |Description
 
-|`GET` |`/api/v1/ontologies/{id}/policies` |List ABAC policies
-|`POST` |`/api/v1/ontologies/{id}/policies` |Create policy (Owner, idempotent)
-|`DELETE` |`/api/v1/ontologies/{id}/policies/{policyId}` |Delete policy (Owner, idempotent)
+|`GET` |`/api/v1/projects/{id}/policies` |List ABAC policies
+|`POST` |`/api/v1/projects/{id}/policies` |Create policy (Owner, idempotent)
+|`DELETE` |`/api/v1/projects/{id}/policies/{policyId}` |Delete policy (Owner, idempotent)
 |===
 
 Role values: `Guest`, `Reporter`, `Developer`, `Maintainer`, `Owner`. Legacy `Viewer`/`Editor` aliases accepted for backward compatibility.

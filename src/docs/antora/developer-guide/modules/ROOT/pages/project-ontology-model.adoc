@@ -1,0 +1,77 @@
+= Project ↔ Ontology Model
+:author: VEDO Core Team
+:revnumber: 0.2.0
+:description: The 1:1 Project ↔ Ontology model — Project is the workspace container, Ontology is the graph content.
+
+== Overview
+
+VEDO Core separates two concepts that were previously conflated:
+
+* **Project** — the platform container for collaborative work. A Project is the analogue of a GitLab Project: the unit of access, versioning, and membership. It has its own Git-like repository and carries members, visibility, and ABAC policies.
+* **Ontology** — the graph content of a Project (TBox/ABox, classes, properties, individuals, axioms). An Ontology does not exist outside a Project.
+
+The two are linked by a **1:1 invariant**: one Project contains exactly one Ontology, and one Ontology belongs to exactly one Project. Grouping multiple ontologies is done through the `Group` hierarchy, not by packing several ontologies into one Project.
+
+== Why 1:1
+
+The 1:1 invariant mirrors GitLab's «one repository = one Project» model. In GitLab, a Project *is* the repository. In VEDO, the Project is the workspace and the Ontology is the content — but the access/versioning boundary is the same: one Project, one unit of work.
+
+Allowing a Project to contain multiple ontologies would break the GitLab-aligned access model: membership, visibility, and policies are scoped to the Project, and a Project with multiple ontologies would have no clear answer for «which ontology does this member have access to?». The 1:1 invariant keeps the access boundary unambiguous.
+
+== Responsibility Split
+
+[cols="2,3"]
+|===
+| Concept | Responsibility
+
+| Project
+| Workspace container: members, visibility, ABAC policies, Git-like repository, audit events. Created/deleted/moved via `/api/v1/projects/...`. The unit of access and versioning.
+
+| Ontology
+| Graph content: TBox/ABox, classes, properties, individuals, axioms. Reached via `/api/v1/ontologies/{id}` where `{id}` is the ontology id. Inherits access/visibility from its Project via the 1:1 link.
+|===
+
+Creating a Project atomically creates the paired Ontology. Deleting a Project cascades to the paired Ontology. There is no «standalone Ontology» flow in the canonical API — the deprecated `POST /api/v1/ontologies` endpoint is retained only for the legacy standalone-import migration window.
+
+== REST Surface
+
+The canonical REST contract is documented in `ADR-DES.API.organization-rest-endpoints` and exposed via xref:integrator-guide:api-reference.adoc[]. The project-scoped endpoints are:
+
+* `POST /api/v1/projects` — create Project (atomically creates paired Ontology; response includes `ontology_id`)
+* `GET /api/v1/projects/{id}` — project details (includes `ontology_id`)
+* `GET /api/v1/projects/{id}/members` — list members
+* `PUT /api/v1/projects/{id}/members/{userId}` — update role
+* `DELETE /api/v1/projects/{id}/members/{userId}` — remove member
+* `GET /api/v1/projects/{id}/visibility` — get visibility
+* `PUT /api/v1/projects/{id}/visibility` — set visibility
+* `GET /api/v1/projects/{id}/policies` — list ABAC policies
+* `POST /api/v1/projects/{id}/policies` — create policy
+* `DELETE /api/v1/projects/{id}/policies/{policyId}` — delete policy
+
+The Ontology is reached separately via `GET /api/v1/ontologies/{id}` (where `{id}` is the ontology id, not the project id). The mapping is bidirectional: `ProjectDetail.ontology_id` and `OntologyDetail.project_id`.
+
+== PostgreSQL Schema
+
+The `vedo_org` database stores the organizational model:
+
+* `scopes` — hierarchy nodes. After migration 007, `type='project'` replaces the legacy `type='ontology'`. Group nodes keep `type='group'`.
+* `ontologies` — 1:1 content rows paired with project scopes (migration 008). Each row references its Project via a foreign key and carries ontology-level metadata (label, description, IRI).
+
+The 1:1 invariant is enforced at the schema level: the `ontologies` table has a unique foreign key to the project scope, so a Project cannot have more than one Ontology row.
+
+== Migration Story
+
+The Project ↔ Ontology separation is rolled out via three PostgreSQL migrations in `src/services/auth-service/migrations/`:
+
+. **009** — backfill `ontologies` rows from legacy `type='ontology'` scopes. Runs *before* the type rename so that no data is lost.
+. **007** — rename `scopes.type='ontology'` to `scopes.type='project'`.
+. **008** — create the `ontologies` table with FK to the project scope.
+
+During the migration window, the auth-service accepts the legacy `"ontology/" + id` scope string as an alias for `"project/" + id`. The alias is removed in a follow-up cleanup task after all clients have switched to the canonical project-scoped endpoints.
+
+== See Also
+
+* xref:organization-model.adoc[Organizational Model] — the full organization model (groups, projects, roles, inheritance).
+* xref:integrator-guide:api-reference.adoc[API Reference] — the complete REST contract.
+* `ADR-DES.SECURITY.gitlab-like-organization-model` — the GitLab-aligned organization model decision.
+* `ADR-DES.API.organization-rest-endpoints` — the canonical REST surface for the organization model.

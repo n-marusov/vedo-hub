@@ -604,6 +604,8 @@ project-scoped endpoints.
 
 #### Task 2.9 — Commit Phase 2
 
+> ✅ **Completed:** 2026-07-21 (main `3b93710`)
+
 ```
 docs(openapi): move org endpoints to /projects/{id}/...
 
@@ -622,6 +624,8 @@ POST /projects.
 > Goal: make the public docs consistent with the new model and the new ADR.
 
 #### Task 3.1 — Update `organization-model.adoc`
+
+> ✅ **Completed:** 2026-07-21
 
 - **Files:**
   `src/docs/antora/developer-guide/modules/ROOT/pages/organization-model.adoc`
@@ -648,6 +652,8 @@ POST /projects.
 
 #### Task 3.2 — Create `project-ontology-model.adoc`
 
+> ✅ **Completed:** 2026-07-21
+
 - **Files:**
   - `src/docs/antora/developer-guide/modules/ROOT/pages/project-ontology-model.adoc`
     — **NEW**
@@ -669,6 +675,8 @@ POST /projects.
   new page appears in the nav.
 
 #### Task 3.3 — Update `api-reference.adoc`
+
+> ✅ **Completed:** 2026-07-21
 
 - **Files:**
   `src/docs/antora/integrator-guide/modules/ROOT/pages/api-reference.adoc`
