@@ -99,8 +99,8 @@ func newTestEnv(t *testing.T) *testEnv {
 	// Auth middleware with the test RSA public key.
 	authCfg := &auth.Config{
 		KeyFunc:          testKeyFunc(privKey.Public().(*rsa.PublicKey)),
-		ExemptPrefixes:   append(auth.DefaultExemptPrefixes(), "/api/v1/public/"),
-		ExactExemptPaths: auth.DefaultExactExemptPaths(),
+		ExemptPrefixes:   append(auth.DefaultExemptPrefixes(), "/api/v1/public/", "/api/v1/docs/"),
+		ExactExemptPaths: append(auth.DefaultExactExemptPaths(), "/api/v1/docs", "/api/v1/openapi.json"),
 		AuditWriter:      &auth.SlogAuditWriter{},
 		AdminRoles:       auth.DefaultAdminRoles(),
 		RequiredRoleLevel: map[string]int{

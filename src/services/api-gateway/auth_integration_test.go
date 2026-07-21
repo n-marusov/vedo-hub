@@ -141,6 +141,95 @@ func TestAuth_AdminEndpointRequiresOwner(t *testing.T) {
 	}
 }
 
+// TestSwaggerUI_Dev_AccessibleWithoutAuth verifies that Swagger UI is
+// accessible without authentication when ENABLE_SWAGGER_UI=true (dev mode).
+// The raw OpenAPI spec must also be public without auth.
+// ADR-DES.API.swagger-ui-dev-only-strategy.
+func TestSwaggerUI_Dev_AccessibleWithoutAuth(t *testing.T) {
+	t.Setenv("ENABLE_SWAGGER_UI", "true")
+	env := newTestEnv(t)
+	t.Cleanup(env.cleanup)
+
+	// Docs index page — should return HTML without auth.
+	// Gin redirects /api/v1/docs → /api/v1/docs/ (301) when a *filepath
+	// catch-all route exists. Verify neither variant returns 401:
+	for _, path := range []string{"/api/v1/docs", "/api/v1/docs/"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		w := httptest.NewRecorder()
+		env.router.ServeHTTP(w, req)
+		if w.Code == http.StatusUnauthorized {
+			t.Fatalf("expected non-401 for %s (dev), got %d (body=%s)", path, w.Code, w.Body.String())
+		}
+	}
+
+	// Verify trailing-slash variant returns HTML
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/docs/", nil)
+	w := httptest.NewRecorder()
+	env.router.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200 for /api/v1/docs/ (dev), got %d (body=%s)", w.Code, w.Body.String())
+	}
+	ct := w.Header().Get("Content-Type")
+	if ct != "text/html; charset=utf-8" && ct != "text/html" {
+		t.Errorf("expected HTML content type for /api/v1/docs/, got %q", ct)
+	}
+
+	// Static asset — swagger-ui.css should be served without auth
+	req2 := httptest.NewRequest(http.MethodGet, "/api/v1/docs/swagger-ui.css", nil)
+	w2 := httptest.NewRecorder()
+	env.router.ServeHTTP(w2, req2)
+	if w2.Code != http.StatusOK {
+		t.Fatalf("expected 200 for /api/v1/docs/swagger-ui.css (dev), got %d", w2.Code)
+	}
+
+	// OpenAPI spec — always public without auth regardless of ENABLE_SWAGGER_UI
+	req3 := httptest.NewRequest(http.MethodGet, "/api/v1/openapi.json", nil)
+	w3 := httptest.NewRecorder()
+	env.router.ServeHTTP(w3, req3)
+	if w3.Code != http.StatusOK {
+		t.Fatalf("expected 200 for /api/v1/openapi.json (dev), got %d (body=%s)", w3.Code, w3.Body.String())
+	}
+}
+
+// TestSwaggerUI_StagingProd_Returns404 verifies that Swagger UI returns 404
+// when ENABLE_SWAGGER_UI is not set (staging/production). The raw OpenAPI
+// spec must remain public without auth in all environments.
+// ADR-DES.API.swagger-ui-dev-only-strategy.
+func TestSwaggerUI_StagingProd_Returns404(t *testing.T) {
+	env := newTestEnv(t)
+	t.Cleanup(env.cleanup)
+
+	// Docs index page — must return 404 without auth in staging/prod.
+	// Request both variants to ensure neither leaks through auth.
+	for _, path := range []string{"/api/v1/docs", "/api/v1/docs/"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		w := httptest.NewRecorder()
+		env.router.ServeHTTP(w, req)
+		if w.Code != http.StatusNotFound {
+			t.Fatalf("expected 404 for %s (staging/prod), got %d (body=%s)", path, w.Code, w.Body.String())
+		}
+		var body map[string]any
+		if err := json.Unmarshal(w.Body.Bytes(), &body); err != nil {
+			t.Fatalf("decode error body for %s: %v", path, err)
+		}
+		errObj, ok := body["error"].(map[string]any)
+		if !ok {
+			t.Fatalf("expected error object for %s, got %v", path, body)
+		}
+		if errObj["code"] != "SWAGGER-UI-DISABLED" {
+			t.Errorf("expected error code SWAGGER-UI-DISABLED for %s, got %v", path, errObj["code"])
+		}
+	}
+
+	// OpenAPI spec — still public without auth even in staging/prod
+	req2 := httptest.NewRequest(http.MethodGet, "/api/v1/openapi.json", nil)
+	w2 := httptest.NewRecorder()
+	env.router.ServeHTTP(w2, req2)
+	if w2.Code != http.StatusOK {
+		t.Fatalf("expected 200 for /api/v1/openapi.json (staging/prod), got %d (body=%s)", w2.Code, w2.Body.String())
+	}
+}
+
 // jsonBody builds a small JSON reader for test request bodies. We use
 // bytes.NewReader so net/http derives a Content-Length header automatically,
 // which lets httputil.ReverseProxy stream the body without surprising the

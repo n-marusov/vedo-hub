@@ -117,8 +117,8 @@ func main() {
 
 	authConfig := &auth.Config{
 		KeyFunc:           keyFunc,
-		ExemptPrefixes:    append(auth.DefaultExemptPrefixes(), "/api/v1/public/"),
-		ExactExemptPaths:  auth.DefaultExactExemptPaths(),
+		ExemptPrefixes:    append(auth.DefaultExemptPrefixes(), "/api/v1/public/", "/api/v1/docs/"),
+		ExactExemptPaths:  append(auth.DefaultExactExemptPaths(), "/api/v1/docs", "/api/v1/openapi.json"),
 		AuditWriter:       &auth.SlogAuditWriter{},
 		AdminRoles:        auth.DefaultAdminRoles(),
 		RequiredRoleLevel: requiredRoleLevel,
