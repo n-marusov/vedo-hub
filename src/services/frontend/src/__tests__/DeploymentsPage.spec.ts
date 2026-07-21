@@ -82,7 +82,7 @@ describePage("DeploymentsPage", () => {
 
 	it("should show empty state when no deployments exist", async () => {
 		setMockOperationResult("ListDeployments", {
-			listDeployments: [],
+			deployments: [],
 		});
 		const DeploymentsPage = (await import("@/pages/DeploymentsPage.vue"))
 			.default;

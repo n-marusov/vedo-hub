@@ -10,3 +10,4 @@ Available knowledge references for AI agents.
 | [uv](uv.md) | uv — Python package and project manager (pip/poetry/pipx/pyenv replacement) | docs.astral.sh/uv | 2026-07-16 |
 | [ruff](ruff.md) | Ruff — Python linter and formatter (Flake8/Black/isort replacement) | docs.astral.sh/ruff | 2026-07-16 |
 | [biome](biome.md) | Biome — Web toolchain: formatter and linter (Prettier/ESLint replacement) | biomejs.dev | 2026-07-16 |
+| [gitlab-projects-groups-api](gitlab-projects-groups-api.md) | GitLab REST API v4 — Projects & Groups management: CRUD, visibility, sharing, archiving, transfer, feature flags, pagination, access levels | docs.gitlab.com/api/groups, docs.gitlab.com/api/projects | 2026-07-21 |

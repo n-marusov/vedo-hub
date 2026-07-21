@@ -82,7 +82,7 @@ describePage("MergeRequestsPage", () => {
 
 	it("should show empty state when no merge requests exist", async () => {
 		setMockOperationResult("ListMergeRequests", {
-			listMergeRequests: { sections: [], total: 0 },
+			mergeRequests: [],
 		});
 		const MergeRequestsPage = (await import("@/pages/MergeRequestsPage.vue"))
 			.default;

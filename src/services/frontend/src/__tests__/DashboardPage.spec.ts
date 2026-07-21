@@ -75,7 +75,7 @@ describePage("DashboardPage", () => {
 
 	it("should not crash when dashboard has no data", async () => {
 		setMockOperationResult("DashboardAggregate", {
-			dashboardAggregate: {
+			dashboard: {
 				widgets: [],
 				attentionItems: [],
 				activityFeed: [],

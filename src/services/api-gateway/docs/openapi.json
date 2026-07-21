@@ -56,6 +56,43 @@
             }
           }
         }
+      },
+      "post": {
+        "summary": "Create ontology",
+        "description": "Creates a new ontology within a project.",
+        "operationId": "createOntology",
+        "tags": ["Ontologies"],
+        "parameters": [
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateOntologyRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Ontology created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/OntologyDetail" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/400Response" },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
       }
     },
     "/ontologies/{id}": {
@@ -95,6 +132,75 @@
               }
             }
           }
+        }
+      },
+      "put": {
+        "summary": "Update ontology",
+        "description": "Updates an existing ontology's label, description, or IRI.",
+        "operationId": "updateOntology",
+        "tags": ["Ontologies"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Ontology ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateOntologyRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ontology updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/OntologyDetail" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/400Response" },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      },
+      "delete": {
+        "summary": "Delete ontology",
+        "description": "Deletes an ontology and all associated classes, properties, and individuals.",
+        "operationId": "deleteOntology",
+        "tags": ["Ontologies"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Ontology ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "204": { "description": "Ontology deleted" },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
         }
       }
     },
@@ -156,6 +262,51 @@
             }
           }
         }
+      },
+      "post": {
+        "summary": "Create class",
+        "description": "Creates a new class in an ontology.",
+        "operationId": "createClass",
+        "tags": ["Classes"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Ontology ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateClassRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Class created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/ClassDetail" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/400Response" },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
       }
     },
     "/ontologies/{id}/classes/{classId}": {
@@ -202,6 +353,89 @@
               }
             }
           }
+        }
+      },
+      "put": {
+        "summary": "Update class",
+        "description": "Updates an existing class's label, comment, parent, or IRI.",
+        "operationId": "updateClass",
+        "tags": ["Classes"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Ontology ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "classId",
+            "in": "path",
+            "description": "Class ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateClassRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Class updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/ClassDetail" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/400Response" },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      },
+      "delete": {
+        "summary": "Delete class",
+        "description": "Deletes a class. Fails if the class still has subclasses or individuals.",
+        "operationId": "deleteClass",
+        "tags": ["Classes"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Ontology ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "classId",
+            "in": "path",
+            "description": "Class ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "204": { "description": "Class deleted" },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
         }
       }
     },
@@ -259,6 +493,51 @@
             }
           }
         }
+      },
+      "post": {
+        "summary": "Create property",
+        "description": "Creates a new property (object or datatype) in an ontology.",
+        "operationId": "createProperty",
+        "tags": ["Properties"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Ontology ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreatePropertyRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Property created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/PropertySummary" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/400Response" },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
       }
     },
     "/ontologies/{id}/individuals": {
@@ -311,6 +590,51 @@
               }
             }
           }
+        }
+      },
+      "post": {
+        "summary": "Create individual",
+        "description": "Creates a new individual of the specified class in an ontology.",
+        "operationId": "createIndividual",
+        "tags": ["Individuals"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Ontology ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateIndividualRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Individual created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/IndividualSummary" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/400Response" },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
         }
       }
     },
@@ -1366,6 +1690,844 @@
           "429": { "$ref": "#/components/responses/429RateLimit" }
         }
       }
+    },
+    "/ontologies/{id}/properties/{propertyId}": {
+      "get": {
+        "summary": "Get property details",
+        "description": "Returns full property details including domain, range, and functional flag.",
+        "operationId": "getProperty",
+        "tags": ["Properties"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Ontology ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "propertyId",
+            "in": "path",
+            "description": "Property ID",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Property details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/PropertySummary" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" }
+        }
+      },
+      "put": {
+        "summary": "Update property",
+        "description": "Updates an existing property's label, type, domain, range, or functional flag.",
+        "operationId": "updateProperty",
+        "tags": ["Properties"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Ontology ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "propertyId",
+            "in": "path",
+            "description": "Property ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdatePropertyRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Property updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/PropertySummary" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/400Response" },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      },
+      "delete": {
+        "summary": "Delete property",
+        "description": "Deletes a property. Fails if the property is still in use by any individual.",
+        "operationId": "deleteProperty",
+        "tags": ["Properties"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Ontology ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "propertyId",
+            "in": "path",
+            "description": "Property ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "204": { "description": "Property deleted" },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      }
+    },
+    "/ontologies/{id}/individuals/{individualId}": {
+      "get": {
+        "summary": "Get individual details",
+        "description": "Returns full individual details including class, properties, and relations.",
+        "operationId": "getIndividual",
+        "tags": ["Individuals"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Ontology ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "individualId",
+            "in": "path",
+            "description": "Individual ID",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Individual details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/IndividualSummary" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" }
+        }
+      },
+      "put": {
+        "summary": "Update individual",
+        "description": "Updates an existing individual's label, class, or IRI.",
+        "operationId": "updateIndividual",
+        "tags": ["Individuals"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Ontology ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "individualId",
+            "in": "path",
+            "description": "Individual ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateIndividualRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Individual updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/IndividualSummary" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/400Response" },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      },
+      "delete": {
+        "summary": "Delete individual",
+        "description": "Deletes an individual from an ontology.",
+        "operationId": "deleteIndividual",
+        "tags": ["Individuals"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Ontology ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "individualId",
+            "in": "path",
+            "description": "Individual ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "204": { "description": "Individual deleted" },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      }
+    },
+    "/ontologies/{id}/export": {
+      "get": {
+        "summary": "Export ontology",
+        "description": "Exports an ontology in a specified format (RDF/XML, Turtle, JSON-LD, OWL/XML).",
+        "operationId": "exportOntology",
+        "tags": ["Ontologies"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Ontology ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "description": "Export format (defaults to turtle)",
+            "schema": {
+              "type": "string",
+              "enum": ["rdf/xml", "turtle", "json-ld", "owl/xml"],
+              "default": "turtle"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ontology export",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ontology_id": { "type": "string" },
+                    "format": { "type": "string" },
+                    "content": { "type": "string", "description": "Serialized ontology in the requested format" },
+                    "triple_count": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      }
+    },
+    "/ontologies/{id}/import": {
+      "post": {
+        "summary": "Import ontology",
+        "description": "Imports an ontology from a file in a supported format (RDF/XML, Turtle, JSON-LD, OWL/XML). Merges into the existing ontology unless `replace=true`, which replaces all existing content.",
+        "operationId": "importOntology",
+        "tags": ["Ontologies"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Ontology ID to import into",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ImportOntologyRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Import summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/OntologyDetail" },
+                    "imported_classes": { "type": "integer" },
+                    "imported_properties": { "type": "integer" },
+                    "imported_individuals": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/400Response" },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      }
+    },
+    "/versioning/commits": {
+      "post": {
+        "summary": "Create commit",
+        "description": "Creates a new commit in the versioning graph, capturing all uncommitted changes to the ontology.",
+        "operationId": "createCommit",
+        "tags": ["Versioning"],
+        "parameters": [
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateCommitRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Commit created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/CommitSummary" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/400Response" },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      },
+      "get": {
+        "summary": "List commits",
+        "description": "Returns a paginated list of commits for an ontology, optionally filtered by branch.",
+        "operationId": "listCommits",
+        "tags": ["Versioning"],
+        "parameters": [
+          {
+            "name": "ontology_id",
+            "in": "query",
+            "description": "Filter by ontology ID",
+            "schema": { "type": "string" },
+            "required": false
+          },
+          {
+            "name": "branch_id",
+            "in": "query",
+            "description": "Filter by branch ID",
+            "schema": { "type": "string" },
+            "required": false
+          },
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/PerPage" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of commits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/CommitSummary" }
+                    },
+                    "meta": { "$ref": "#/components/schemas/PaginationMeta" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" }
+        }
+      }
+    },
+    "/versioning/commits/{id}": {
+      "get": {
+        "summary": "Get commit",
+        "description": "Returns commit details including parent SHA, message, and author.",
+        "operationId": "getCommit",
+        "tags": ["Versioning"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Commit ID or SHA",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Commit details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/CommitSummary" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" }
+        }
+      }
+    },
+    "/versioning/commits/{id}/delta": {
+      "get": {
+        "summary": "Get commit delta",
+        "description": "Returns the changes introduced by a commit (added/modified/removed axioms).",
+        "operationId": "getCommitDelta",
+        "tags": ["Versioning"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Commit ID or SHA",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Commit delta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "added": {
+                          "type": "array",
+                          "items": { "type": "object" },
+                          "description": "Axioms added in this commit"
+                        },
+                        "modified": {
+                          "type": "array",
+                          "items": { "type": "object" },
+                          "description": "Axioms modified in this commit"
+                        },
+                        "removed": {
+                          "type": "array",
+                          "items": { "type": "object" },
+                          "description": "Axioms removed in this commit"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" }
+        }
+      }
+    },
+    "/versioning/commits/{id}/checkout": {
+      "post": {
+        "summary": "Checkout commit",
+        "description": "Sets the active workspace to the state at the specified commit. Uncommitted changes are stashed.",
+        "operationId": "checkoutCommit",
+        "tags": ["Versioning"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Commit ID or SHA",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workspace checked out",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/CommitSummary" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      }
+    },
+    "/versioning/commits/{id}/rollback": {
+      "post": {
+        "summary": "Rollback to commit",
+        "description": "Creates a new commit that reverts the ontology to the state at the specified commit. Returns the new rollback commit.",
+        "operationId": "rollbackToCommit",
+        "tags": ["Versioning"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Commit ID or SHA to rollback to",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string",
+                    "description": "Optional rollback commit message"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Rollback commit created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/CommitSummary" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      }
+    },
+    "/versioning/branches": {
+      "post": {
+        "summary": "Create branch",
+        "description": "Creates a new branch from the specified commit or the current HEAD.",
+        "operationId": "createBranch",
+        "tags": ["Versioning"],
+        "parameters": [
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateBranchRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Branch created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/BranchSummary" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/400Response" },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      },
+      "get": {
+        "summary": "List branches",
+        "description": "Returns a paginated list of branches for an ontology.",
+        "operationId": "listBranches",
+        "tags": ["Versioning"],
+        "parameters": [
+          {
+            "name": "ontology_id",
+            "in": "query",
+            "description": "Filter by ontology ID",
+            "schema": { "type": "string" },
+            "required": false
+          },
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/PerPage" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of branches",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/BranchSummary" }
+                    },
+                    "meta": { "$ref": "#/components/schemas/PaginationMeta" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" }
+        }
+      }
+    },
+    "/versioning/branches/{id}": {
+      "get": {
+        "summary": "Get branch",
+        "description": "Returns branch details including head SHA.",
+        "operationId": "getBranch",
+        "tags": ["Versioning"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Branch ID",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Branch details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/BranchSummary" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" }
+        }
+      },
+      "delete": {
+        "summary": "Delete branch",
+        "description": "Deletes a branch. The default branch cannot be deleted.",
+        "operationId": "deleteBranch",
+        "tags": ["Versioning"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Branch ID",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "204": { "description": "Branch deleted" },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      }
+    },
+    "/versioning/branches/{id}/switch": {
+      "post": {
+        "summary": "Switch branch",
+        "description": "Makes the specified branch the active branch for the workspace.",
+        "operationId": "switchBranch",
+        "tags": ["Versioning"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Branch ID to switch to",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Branch switched",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/BranchSummary" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      }
+    },
+    "/versioning/branches/merge": {
+      "post": {
+        "summary": "Merge branches",
+        "description": "Merges the source branch into the target branch, producing a merge commit on the target.",
+        "operationId": "mergeBranches",
+        "tags": ["Versioning"],
+        "parameters": [
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/MergeBranchesRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Merge completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/CommitSummary" },
+                    "conflicts": {
+                      "type": "array",
+                      "items": { "type": "object" },
+                      "description": "Conflicts encountered during merge (empty array for clean merges)"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/400Response" },
+          "401": { "$ref": "#/components/responses/401Response" },
+          "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
+          "409": { "$ref": "#/components/responses/409Response" },
+          "429": { "$ref": "#/components/responses/429RateLimit" }
+        }
+      }
     }
   },
   "components": {
@@ -1714,6 +2876,155 @@
           }
         },
         "required": ["name", "effect", "actions", "subjects"]
+      },
+      "CreateOntologyRequest": {
+        "type": "object",
+        "properties": {
+          "label": { "type": "string", "description": "Ontology display name" },
+          "description": { "type": "string", "description": "Optional ontology description" },
+          "project_id": { "type": "string", "description": "Parent project ID" },
+          "iri": { "type": "string", "description": "Optional base IRI for the ontology" }
+        },
+        "required": ["label", "project_id"]
+      },
+      "UpdateOntologyRequest": {
+        "type": "object",
+        "properties": {
+          "label": { "type": "string" },
+          "description": { "type": "string" },
+          "iri": { "type": "string" }
+        }
+      },
+      "CreateClassRequest": {
+        "type": "object",
+        "properties": {
+          "label": { "type": "string", "description": "Class display name" },
+          "comment": { "type": "string", "description": "Optional class comment" },
+          "parent_id": { "type": "string", "description": "Optional parent class ID for taxonomy" },
+          "iri": { "type": "string", "description": "Optional class IRI" }
+        },
+        "required": ["label"]
+      },
+      "UpdateClassRequest": {
+        "type": "object",
+        "properties": {
+          "label": { "type": "string" },
+          "comment": { "type": "string" },
+          "parent_id": { "type": "string" },
+          "iri": { "type": "string" }
+        }
+      },
+      "CreatePropertyRequest": {
+        "type": "object",
+        "properties": {
+          "label": { "type": "string", "description": "Property display name" },
+          "type": {
+            "type": "string",
+            "enum": ["object", "datatype"],
+            "description": "Object properties link individuals to individuals; datatype properties link individuals to literals"
+          },
+          "domain": { "type": "string", "description": "Domain class ID (for object properties)" },
+          "range": { "type": "string", "description": "Range class ID (object) or XSD datatype (datatype)" },
+          "is_functional": { "type": "boolean", "description": "If true, the property is functional (max 1 value per subject)" }
+        },
+        "required": ["label", "type"]
+      },
+      "UpdatePropertyRequest": {
+        "type": "object",
+        "properties": {
+          "label": { "type": "string" },
+          "type": {
+            "type": "string",
+            "enum": ["object", "datatype"]
+          },
+          "domain": { "type": "string" },
+          "range": { "type": "string" },
+          "is_functional": { "type": "boolean" }
+        }
+      },
+      "CreateIndividualRequest": {
+        "type": "object",
+        "properties": {
+          "label": { "type": "string", "description": "Individual display name" },
+          "class_id": { "type": "string", "description": "Class ID for this individual" },
+          "iri": { "type": "string", "description": "Optional individual IRI" }
+        },
+        "required": ["label", "class_id"]
+      },
+      "UpdateIndividualRequest": {
+        "type": "object",
+        "properties": {
+          "label": { "type": "string" },
+          "class_id": { "type": "string" },
+          "iri": { "type": "string" }
+        }
+      },
+      "ImportOntologyRequest": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "type": "string",
+            "enum": ["rdf/xml", "turtle", "json-ld", "owl/xml"],
+            "description": "Source file format"
+          },
+          "content": { "type": "string", "description": "Ontology content in the specified format" },
+          "replace": { "type": "boolean", "description": "If true, replace all existing content; if false (default), merge" }
+        },
+        "required": ["format", "content"]
+      },
+      "CreateCommitRequest": {
+        "type": "object",
+        "properties": {
+          "ontology_id": { "type": "string", "description": "Ontology ID to commit" },
+          "message": { "type": "string", "description": "Commit message" },
+          "parent_sha": { "type": "string", "description": "Optional parent commit SHA; if omitted, uses current branch HEAD" }
+        },
+        "required": ["ontology_id", "message"]
+      },
+      "CommitSummary": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "sha": { "type": "string", "description": "Full commit SHA" },
+          "short_sha": { "type": "string", "description": "Abbreviated commit SHA (first 7 characters)" },
+          "message": { "type": "string" },
+          "author_id": { "type": "string" },
+          "author_name": { "type": "string" },
+          "parent_sha": { "type": "string", "description": "Parent commit SHA (empty for the initial commit)" },
+          "ontology_id": { "type": "string" },
+          "branch_id": { "type": "string" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "CreateBranchRequest": {
+        "type": "object",
+        "properties": {
+          "ontology_id": { "type": "string", "description": "Ontology ID" },
+          "name": { "type": "string", "description": "Branch name" },
+          "from_sha": { "type": "string", "description": "Optional starting commit SHA; defaults to current HEAD" }
+        },
+        "required": ["ontology_id", "name"]
+      },
+      "BranchSummary": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "ontology_id": { "type": "string" },
+          "head_sha": { "type": "string", "description": "SHA of the head commit" },
+          "is_default": { "type": "boolean", "description": "True if this is the default branch" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "MergeBranchesRequest": {
+        "type": "object",
+        "properties": {
+          "source_branch_id": { "type": "string", "description": "Source branch ID" },
+          "target_branch_id": { "type": "string", "description": "Target branch ID" },
+          "message": { "type": "string", "description": "Merge commit message (optional)" }
+        },
+        "required": ["source_branch_id", "target_branch_id"]
       }
     },
     "securitySchemes": {

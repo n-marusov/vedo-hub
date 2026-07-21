@@ -55,8 +55,11 @@
 </template>
 
 <script setup lang="ts">
-import { apolloClient } from "@/apollo/client";
-import { SPARQL_EXECUTE_QUERY } from "@/apollo/queries";
+// @aif — Migrated from Apollo GraphQL `SPARQL_EXECUTE_QUERY` (sparqlQuery resolver)
+// to REST `POST /api/v1/sparql`. Per ADR-DES.API.rest-graphql-mutation-boundary.md,
+// SPARQL execution is REST-only so it goes through the gateway DoS defenses
+// (CircuitBreakerMiddleware, rate limiting, query complexity checks).
+import { executeSparql } from "@/api/sparql";
 import SPARQLQueryEditor from "@/components/organisms/SPARQLQueryEditor.vue";
 import { useErrorPresentation } from "@/composables/useErrorPresentation";
 import { Folder, GitBranch, Search } from "lucide-vue-next";
@@ -76,7 +79,8 @@ const results = ref<{
 const loading = ref(false);
 const { addError } = useErrorPresentation();
 
-// Transform GraphQL columns/rows format → SPARQL JSON format (head.vars / results.bindings)
+// Transform REST columns/rows format → SPARQL JSON format (head.vars / results.bindings)
+// Same shape as the prior GraphQL path so SPARQLQueryEditor needs no changes.
 const resultsData = computed(() => {
 	if (!results.value) return undefined;
 	const r = results.value;
@@ -120,54 +124,20 @@ async function onRunQuery(q?: string): Promise<void> {
 	);
 
 	try {
-		const response = await apolloClient.query({
-			query: SPARQL_EXECUTE_QUERY,
-			variables: {
-				ontologyId: ontologyId.value,
-				query: sparqlQuery,
-				limit: 100,
-				offset: 0,
-			},
-			fetchPolicy: "network-only",
+		// REST call — goes through API Gateway DoS protection (CircuitBreakerMiddleware).
+		const data = await executeSparql({
+			ontologyId: ontologyId.value,
+			query: sparqlQuery,
+			limit: 100,
+			offset: 0,
 		});
 
-		const data = response.data?.sparqlQuery;
-
-		// Handle GraphQL errors (errorPolicy: 'all' does not reject on errors)
-		if (response.errors && response.errors.length > 0) {
-			const gqlError = response.errors[0]?.message || "Unknown GraphQL error";
-			error.value = gqlError;
-			addError("SPARQL_EXECUTION_ERROR", gqlError);
-			console.error(
-				JSON.stringify({
-					level: "error",
-					msg: "sparql.query.graphql_error",
-					ontologyId: ontologyId.value,
-					error: gqlError,
-					ts: new Date().toISOString(),
-				}),
-			);
-			return;
-		}
-
-		if (data) {
-			results.value = {
-				columns: data.columns || [],
-				rows: data.rows || [],
-				total: data.total || 0,
-				executionTimeMs: data.executionTimeMs || 0,
-			};
-			console.debug(
-				JSON.stringify({
-					level: "debug",
-					msg: "sparql.query.success",
-					ontologyId: ontologyId.value,
-					totalResults: data.total,
-					executionTimeMs: data.executionTimeMs,
-					ts: new Date().toISOString(),
-				}),
-			);
-		}
+		results.value = {
+			columns: data.columns || [],
+			rows: data.rows || [],
+			total: data.total || 0,
+			executionTimeMs: data.executionTimeMs || 0,
+		};
 	} catch (err) {
 		const message = err instanceof Error ? err.message : String(err);
 		error.value = message;

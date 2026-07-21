@@ -277,51 +277,6 @@ export const MOCK_MERGE_REQUESTS_DATA: ListMergeRequestsQuery = {
 	],
 };
 
-interface SparqlExecuteQuery {
-	sparqlQuery: {
-		columns: string[];
-		rows: string[][];
-		total: number;
-		executionTimeMs: number;
-	};
-}
-
-// @m4 — Mock SPARQL results — columns/rows matching SparqlExecute GraphQL response
-export const MOCK_SPARQL_RESULTS: SparqlExecuteQuery = {
-	sparqlQuery: {
-		columns: ["s", "p", "o"],
-		rows: [
-			[
-				"http://example.org/Product",
-				"http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
-				"http://www.w3.org/2002/07/owl#Class",
-			],
-			[
-				"http://example.org/Product",
-				"http://www.w3.org/2000/01/rdf-schema#label",
-				"Product",
-			],
-			[
-				"http://example.org/Product",
-				"http://www.w3.org/2000/01/rdf-schema#comment",
-				"A product in the catalog",
-			],
-			[
-				"http://example.org/Category",
-				"http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
-				"http://www.w3.org/2002/07/owl#Class",
-			],
-			[
-				"http://example.org/Category",
-				"http://www.w3.org/2000/01/rdf-schema#label",
-				"Category",
-			],
-		],
-		total: 5,
-		executionTimeMs: 42,
-	},
-};
-
 // @m4 — Helper: create a 200ms artificial delay to simulate network latency
 export function delay(ms = 200): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms));

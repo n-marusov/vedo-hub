@@ -1,27 +1,26 @@
-// @m4 — SPARQLPage vitest spec (GREEN: uses mountWithProviders)
-// Validates: REQ-USR.UI.gui-implementation
-// Tests: SPARQL query execution via Apollo GraphQL SPARQL_EXECUTE_QUERY
+// @aif — Updated SPARQLPage vitest spec after migrating SPARQL execution
+// from Apollo GraphQL (`SPARQL_EXECUTE_QUERY` / `sparqlQuery` resolver) to
+// REST `POST /api/v1/sparql` per ADR-DES.API.rest-graphql-mutation-boundary.md.
+// Tests: SPARQL page render, query execution via REST, error handling.
 import {
 	describePage,
 	mountWithProviders,
-	resetMockResults,
-	setMockOperationResult,
 	waitForQuery,
 } from "@/__tests__/setup/mock-providers";
 import { afterEach, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 
-// Mock the direct apolloClient import used by SPARQLPage (it avoids the injection pattern)
-vi.mock("@/apollo/client", () => {
-	const mockQuery = vi.fn();
+// Mock the REST API used by SPARQLPage — `executeSparql` from `@/api/sparql`.
+// Keep the mock permissive so individual tests can override its return value
+// with `mockResolvedValue` / `mockRejectedValue`.
+vi.mock("@/api/sparql", () => {
 	return {
-		apolloClient: { query: mockQuery },
+		executeSparql: vi.fn(),
 	};
 });
 
 describePage("SPARQLPage", () => {
 	afterEach(() => {
-		resetMockResults();
 		vi.clearAllMocks();
 	});
 
@@ -57,14 +56,11 @@ describePage("SPARQLPage", () => {
 		expect(wrapper.find(".spq-page").exists()).toBe(true);
 	});
 
-	it("should display GraphQL error message when server returns errors array", async () => {
-		// Simulate GraphQL errors (not thrown) — the new code path added for
-		// errorPolicy: 'all' which does not reject on GraphQL errors
-		const { apolloClient } = await import("@/apollo/client");
-		(apolloClient.query as ReturnType<typeof vi.fn>).mockResolvedValue({
-			data: {},
-			errors: [{ message: "Query syntax error at line 1" }],
-		});
+	it("should display REST error message when SPARQL execution fails", async () => {
+		const { executeSparql } = await import("@/api/sparql");
+		(executeSparql as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+			new Error("SPARQL syntax error at line 1"),
+		);
 
 		const SPARQLPage = (await import("@/pages/SPARQLPage.vue")).default;
 		const wrapper = mountWithProviders(SPARQLPage);
@@ -76,25 +72,24 @@ describePage("SPARQLPage", () => {
 		await textarea.setValue("SELECT INVALID");
 		await nextTick();
 
-		// Click the Run button — triggers onRunQuery which calls apolloClient.query()
+		// Click the Run button — triggers onRunQuery which calls executeSparql()
 		const buttons = wrapper.findAll("button");
 		const runBtn = buttons.find((b) => /run/i.test(b.text()));
 		if (!runBtn) throw new Error("Run button not found");
 		await runBtn.trigger("click");
 		await nextTick();
 
-		// Wait for the async query to resolve
+		// Wait for the async REST call to reject and the error message to render
 		await waitForQuery();
 		await nextTick();
 
-		// The component should display the error message from response.errors
-		expect(wrapper.text()).toContain("Query syntax error at line 1");
+		// The component should display the error message from the REST failure
+		expect(wrapper.text()).toContain("SPARQL syntax error at line 1");
 	});
 
 	it("should not crash when SPARQL query fails", async () => {
-		setMockOperationResult(
-			"SparqlExecute",
-			null,
+		const { executeSparql } = await import("@/api/sparql");
+		(executeSparql as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
 			new Error("SPARQL execution failed"),
 		);
 		const SPARQLPage = (await import("@/pages/SPARQLPage.vue")).default;

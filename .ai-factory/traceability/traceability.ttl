@@ -2033,3 +2033,72 @@ base:test/m1-fix-versioning-transactional a vdo:TestSuite ;
     rdfs:comment "Regression tests for atomic commit, branch deletion, merge correctness, and checkpoint validation"@en ;
     vdo:filePath "src/services/versioning-service/tests/transactional_integration_test.rs" ;
     vdo:validates base:nfr/performance-p95 .
+
+# =============================================================================
+# REST/GraphQL Mutation Boundary Fix — Traceability
+# =============================================================================
+# Added by $aif-implement for the feature/fix-rest-graphql-split branch.
+# Documents the strict REST/GraphQL boundary per ADR-DES.API.rest-graphql-mutation-boundary:
+# GraphQL = read-only navigation, REST = all writes + SPARQL/CYPHER.
+# No GraphQL mutation exceptions — updateDraft/updateMemberRole/removeMember
+# are deprecated placeholders pending frontend REST migration.
+# =============================================================================
+
+# --- ADRs ---
+
+base:adr/graphql-sparql-split-strategy a vdo:ArchitectureDecisionRecord ;
+    rdfs:label "GraphQL + SPARQL Split Strategy ADR"@en ;
+    rdfs:comment "GraphQL for navigation, SPARQL REST endpoint for analytics. Strict protocol boundary — no GraphQL mutation exceptions."@en ;
+    vdo:filePath "specs/adr/ADR-DES.API.graphql-sparql-split-strategy.md" .
+
+base:adr/protocol-stack-strategy a vdo:ArchitectureDecisionRecord ;
+    rdfs:label "Protocol Stack Strategy ADR"@en ;
+    rdfs:comment "gRPC for internal service-to-service, REST for external API + writes, GraphQL for read-only navigation. GraphQL mutations forbidden in principle."@en ;
+    vdo:filePath "specs/adr/ADR-DES.API.protocol-stack-strategy.md" .
+
+base:adr/rest-graphql-mutation-boundary a vdo:ArchitectureDecisionRecord ;
+    rdfs:label "REST/GraphQL Mutation Boundary ADR"@en ;
+    rdfs:comment "Hard boundary: GraphQL = EmptyMutation target, REST = all writes. Migration plan for updateDraft/updateMemberRole/removeMember to REST."@en ;
+    vdo:filePath "specs/adr/ADR-DES.API.rest-graphql-mutation-boundary.md" .
+
+# --- Code Artifacts (new) ---
+
+base:src/api-ontology-client a vdo:CodeArtifact ;
+    rdfs:label "Frontend REST API client — ontology entity CRUD"@en ;
+    rdfs:comment "axios wrappers for POST /ontologies/:id/classes, /properties, /individuals with Idempotency-Key header (crypto.randomUUID()). Replaces former GraphQL mutations."@en ;
+    vdo:filePath "src/services/frontend/src/api/ontology.ts" ;
+    vdo:implements base:adr/rest-graphql-mutation-boundary .
+
+base:src/api-sparql-client a vdo:CodeArtifact ;
+    rdfs:label "Frontend REST API client — SPARQL execution"@en ;
+    rdfs:comment "axios wrapper for POST /api/v1/sparql. Replaces former GraphQL SPARQL_EXECUTE_QUERY that bypassed API Gateway DoS protection."@en ;
+    vdo:filePath "src/services/frontend/src/api/sparql.ts" ;
+    vdo:implements base:adr/graphql-sparql-split-strategy .
+
+base:src/graphql-schema-docs a vdo:Documentation ;
+    rdfs:label "GraphQL Schema Documentation (read-only navigation)"@en ;
+    rdfs:comment "Documents the read-only GraphQL Query root (ontology/classes/properties/individuals/commits/branches/groups/projects/members), the deprecated MutationRoot placeholders, the forbidden operations invariant (sparqlQuery, entity CRUD, versioning writes), and DoS protection layers."@en ;
+    vdo:filePath "src/services/api-gateway/docs/graphql-schema.md" ;
+    vdo:implements base:adr/graphql-sparql-split-strategy ;
+    vdo:implements base:adr/rest-graphql-mutation-boundary .
+
+# --- Code Artifacts (modified — already tracked via directory-level vdo:Service entries) ---
+# Note: mutation.rs, schema.rs, queries.ts, mock-data.ts, mock-link.ts, vitest.setup.ts,
+# SPARQLPage.vue, CreateClassDialog.vue, CreatePropertyDialog.vue, CreateIndividualDialog.vue
+# are covered by existing vdo:Service entries for ontology-service and frontend.
+
+# --- Test Suites (new) ---
+
+base:test/rest-entity-crud-integration a vdo:TestSuite ;
+    rdfs:label "REST Entity CRUD Integration Tests"@en ;
+    rdfs:comment "Go integration tests verifying entity write endpoints (POST/PUT/DELETE on /ontologies, /classes, /properties, /individuals, /import, /export) require auth (401), enforce BFLA roles (Viewer=403, Editor/Maintainer=200), and reach the upstream proxy."@en ;
+    vdo:filePath "src/services/api-gateway/rest_entity_crud_integration_test.go" ;
+    vdo:validates base:adr/rest-graphql-mutation-boundary ;
+    vdo:validates base:nfr/security-bola-bfla .
+
+base:test/graphql-schema-boundary a vdo:TestSuite ;
+    rdfs:label "GraphQL Schema Boundary Tests"@en ;
+    rdfs:comment "Playwright introspection-based tests verifying GraphQL Query root exposes navigation fields, Query root does NOT expose sparqlQuery/cypherQuery, Mutation root does NOT expose entity CRUD mutations, Mutation root is absent or contains only deprecated placeholders (updateDraft/updateMemberRole/removeMember), and navigation queries execute without errors."@en ;
+    vdo:filePath "tests/e2e/playwright/tests/api/graphql/schema-boundary.spec.ts" ;
+    vdo:validates base:adr/graphql-sparql-split-strategy ;
+    vdo:validates base:adr/rest-graphql-mutation-boundary .

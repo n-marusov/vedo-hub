@@ -6,7 +6,6 @@ import {
 	MOCK_DEPLOYMENTS_DATA,
 	MOCK_MERGE_REQUESTS_DATA,
 	MOCK_METRICS_DATA,
-	MOCK_SPARQL_RESULTS,
 } from "@/apollo/mock-data";
 import type { FetchResult, Operation } from "@apollo/client/core";
 import {
@@ -59,7 +58,7 @@ const VITEST_MOCK_RESOLVERS: Record<string, () => unknown> = {
 	OntologyMetrics: () => MOCK_METRICS_DATA,
 	ListDeployments: () => MOCK_DEPLOYMENTS_DATA,
 	ListMergeRequests: () => MOCK_MERGE_REQUESTS_DATA,
-	SparqlExecute: () => MOCK_SPARQL_RESULTS,
+
 	RunValidation: () => ({
 		runValidation: {
 			status: "ok",
@@ -115,6 +114,41 @@ const VITEST_MOCK_RESOLVERS: Record<string, () => unknown> = {
 	}),
 	GraphNeighborhood: () => ({
 		graphNeighborhood: { nodes: [], edges: [] },
+	}),
+	CreateIndividual: () => ({
+		createIndividual: {
+			id: "new-individual-1",
+			label: "JohnDoe",
+			classId: "owl:Thing",
+			classLabel: "owl:Thing",
+		},
+	}),
+	CreateProperty: () => ({
+		createProperty: {
+			id: "new-property-1",
+			label: "hasName",
+			propertyType: "object",
+			domains: [],
+			ranges: [],
+		},
+	}),
+	ClassTree: () => ({
+		classTree: [
+			{
+				id: "cls-1",
+				label: "owl:Thing",
+				children: [{ id: "cls-2", label: "Person", children: [] }],
+			},
+		],
+	}),
+	CreateClass: () => ({
+		createClass: {
+			id: "new-class-1",
+			label: "Person",
+			comment: null,
+			parents: [],
+			children: [],
+		},
 	}),
 };
 
@@ -195,15 +229,15 @@ export function createMockRouter(initialRoute = "/dashboard/home") {
 	return router;
 }
 
-const mockApolloClient = createMockApolloClient();
-
 // @m4 — Mounts a component with common providers (router, Apollo client, stubs)
+// Creates a fresh Apollo client per mount to avoid cache cross-contamination between tests.
 // Deep-merges global options so user-provided stubs/plugins don't override defaults
 export function mountWithProviders(
 	component: Component,
 	options: Record<string, unknown> = {},
 ): VueWrapper {
 	const router = createMockRouter();
+	const apolloClient = createMockApolloClient();
 	const userGlobal = (options.global as Record<string, unknown>) || {};
 	const userStubs = (userGlobal.stubs as Record<string, unknown>) || {};
 	const userPlugins = (userGlobal.plugins as unknown[]) || [];
@@ -216,7 +250,7 @@ export function mountWithProviders(
 			// biome-ignore lint/suspicious/noExplicitAny: Vue Plugin union type mismatch between packages
 			plugins: [router, ...(userPlugins as any[])],
 			provide: {
-				[DefaultApolloClient as symbol]: mockApolloClient,
+				[DefaultApolloClient as symbol]: apolloClient,
 				...userProvide,
 			},
 			stubs: {

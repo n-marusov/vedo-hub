@@ -54,20 +54,19 @@
 </template>
 
 <script setup lang="ts">
+// @aif — Migrated from Apollo GraphQL `CREATE_CLASS_MUTATION` to REST
+// `POST /api/v1/ontologies/:id/classes` per ADR-DES.API.rest-graphql-mutation-boundary.md.
+import { createClass } from "@/api/ontology";
 import Dialog from "@/components/ui-kit/Dialog.vue";
 import GhostButton from "@/components/ui-kit/GhostButton.vue";
 import PrimaryButton from "@/components/ui-kit/PrimaryButton.vue";
 import { useErrorPresentation } from "@/composables/useErrorPresentation";
-import { useMutation } from "@vue/apollo-composable";
 import { reactive, ref } from "vue";
-import { CREATE_CLASS_MUTATION } from "../../apollo/queries";
 
 const props = defineProps<{ open: boolean; ontologyId: string }>();
 const emit = defineEmits<{ close: []; created: [className: string] }>();
 
 const { addError } = useErrorPresentation();
-
-const { mutate: createClass } = useMutation(CREATE_CLASS_MUTATION);
 
 const className = ref("");
 const parentClass = ref("");
@@ -105,24 +104,27 @@ async function submit(): Promise<void> {
 			parentId: parentClass.value || undefined,
 			description: description.value.trim() || undefined,
 			annotations:
-				annotations.length > 0 ? annotations.filter((a) => a.key) : undefined,
+				annotations.length > 0
+					? annotations
+							.filter((a) => a.key)
+							.map((a) => ({
+								propertyIri: a.key,
+								value: a.value,
+							}))
+					: undefined,
 		});
 
-		if (result?.data?.createClass) {
-			console.debug(
-				JSON.stringify({
-					level: "debug",
-					msg: "CreateClass.success",
-					className: className.value,
-					classId: result.data.createClass.id,
-					ts: new Date().toISOString(),
-				}),
-			);
-			emit("created", className.value);
-			reset();
-		} else {
-			throw new Error("No data returned from createClass mutation");
-		}
+		console.debug(
+			JSON.stringify({
+				level: "debug",
+				msg: "CreateClass.success",
+				className: className.value,
+				classId: result.id,
+				ts: new Date().toISOString(),
+			}),
+		);
+		emit("created", className.value);
+		reset();
 	} catch (e) {
 		const msg = e instanceof Error ? e.message : String(e);
 		addError("CREATE-CLASS-FAILED", msg);

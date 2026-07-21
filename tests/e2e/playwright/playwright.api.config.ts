@@ -8,6 +8,7 @@ import { defineConfig, devices } from '@playwright/test';
  *   pnpm exec playwright test --config=playwright.api.config.ts
  */
 export default defineConfig({
+  globalSetup: './global-setup',
   testDir: './tests/api',
   timeout: 30_000,
   retries: 2,
