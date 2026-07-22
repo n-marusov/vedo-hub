@@ -223,6 +223,9 @@ test.describe('Document Extraction — Preview and Apply', () => {
 
     await uploadPage.applySequence();
 
+    // Confirm the import to trigger the apply request (advance from confirming → applying)
+    await uploadPage.confirmImport();
+
     // Verify error message is shown
     const errorMsg = await uploadPage.getErrorMessage();
     expect(errorMsg).not.toBeNull();

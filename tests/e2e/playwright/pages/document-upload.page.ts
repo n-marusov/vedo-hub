@@ -174,6 +174,14 @@ export class DocumentUploadPage {
     await this.page.locator('.apply-flow .apply-btn').click();
   }
 
+  /// Explicitly confirm the import dialog (advance from 'confirming' to 'applying')
+  /// The commit message is pre-filled by the composable.
+  async confirmImport() {
+    await this.page.getByRole('dialog', { name: /apply import/i })
+      .locator('.modal__btn--primary')
+      .click();
+  }
+
   async getProgressBarValue(): Promise<number | null> {
     const progressBar = this.page.locator('.modal__progress-fill');
     if (await progressBar.isVisible()) {
@@ -193,9 +201,11 @@ export class DocumentUploadPage {
 
   async waitForApplyComplete(timeout = 30_000): Promise<boolean> {
     try {
-      // Click the modal's confirm button (not the .apply-btn which shares
-      // the same accessible name "Import N entities" via title attribute).
-      await this.page.locator('.modal__btn--primary').click();
+      // Click the modal's confirm button, scoped to the dialog context
+      // to avoid matching the Retry button in error state.
+      await this.page.getByRole('dialog', { name: /apply import/i })
+        .locator('.modal__btn--primary')
+        .click();
       await this.page.waitForSelector('.modal__title--success', { timeout });
       return true;
     } catch {
@@ -219,30 +229,27 @@ export class DocumentUploadPage {
     return null;
   }
 
+  /// Reads the error message from the apply modal.
+  /// NOTE: Does NOT have side effects — call confirmImport() first if the
+  /// dialog is still in 'confirming' state.
   async getErrorMessage(): Promise<string | null> {
-    // Click the modal's confirm button — wait for it to appear and be clickable.
-    // NOTE: Must NOT match the .apply-btn which has the same accessible name
-    // "Import N entities" (via title attribute). Use .modal__btn--primary instead.
-    const confirm = this.page.locator('.modal__btn--primary');
-    try {
-      await confirm.click({ timeout: 10_000 });
-    } catch {
-      // Modal may not be in confirming state — that's OK
-    }
-
     const errorTitle = this.page.locator('.modal__title--error').first();
-    if (await errorTitle.isVisible({ timeout: 10_000 }).catch(() => false)) {
+    if (await errorTitle.isVisible({ timeout: 15_000 }).catch(() => false)) {
       return errorTitle.textContent();
     }
-    const error = this.page.locator('.uploader__error-message').first();
-    if (await error.isVisible()) {
-      return error.textContent();
+    // Fallback: look inside the dialog for any error description text
+    const dialog = this.page.getByRole('dialog', { name: /apply import/i });
+    const desc = dialog.locator('.modal__desc').first();
+    if (await desc.isVisible().catch(() => false)) {
+      return desc.textContent();
     }
     return null;
   }
 
   async clickRetry() {
-    await this.page.getByRole('button', { name: /retry/i }).click();
+    await this.page.getByRole('dialog', { name: /apply import/i })
+      .getByRole('button', { name: /retry/i })
+      .click();
   }
 
   // ─── Error / Edge Cases ───────────────────────────────────────────
