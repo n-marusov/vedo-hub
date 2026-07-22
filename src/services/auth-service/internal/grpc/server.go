@@ -421,6 +421,63 @@ func (s *OrgGrpcServer) CheckAccess(ctx context.Context, req *authv1.CheckAccess
 }
 
 // ============================================================================
+// Fork Project RPC
+// ============================================================================
+
+func (s *OrgGrpcServer) ForkProject(ctx context.Context, req *authv1.ForkProjectRequest) (*authv1.ForkProjectResponse, error) {
+	requesterID := extractUserID(ctx)
+	sourceID := req.SourceProjectId
+
+	// Generate IDs for the new project
+	newProjectID := "project/" + newUUID()
+	ontologyID := newUUID()
+
+	// Create new project scope with upstream link
+	node := org.ScopeNode{
+		ID:                newProjectID,
+		Type:              org.ScopeProject,
+		TenantID:          req.OrganizationId,
+		UpstreamProjectID: sourceID, // link to source
+	}
+
+	if err := s.svc.CreateScope(requesterID, node); err != nil {
+		return nil, mapOrgError(err)
+	}
+
+	// Create paired Ontology
+	if err := s.svc.Store().CreateOntology(org.Ontology{
+		ProjectScope: newProjectID,
+		OntologyID:   ontologyID,
+	}); err != nil {
+		// Compensating action: delete new scope
+		s.svc.Store().DeleteScope(newProjectID)
+		return nil, status.Errorf(codes.Internal, "FORK_ONTOLOGY_PAIRING_FAILED: %v", err)
+	}
+
+	// Grant caller Owner role
+	mem := org.OrgMembership{
+		UserID: requesterID,
+		Scope:  newProjectID,
+		Role:   "Owner",
+	}
+	if err := s.svc.Store().UpsertMembership(mem); err != nil {
+		s.svc.Store().DeleteScope(newProjectID)
+		return nil, status.Errorf(codes.Internal, "FORK_MEMBERSHIP_FAILED: %v", err)
+	}
+
+	// Build response
+	scope, _ := s.svc.Store().GetScope(newProjectID)
+	proto := scopeNodeToProto(scope)
+	if proto != nil {
+		proto.OntologyId = ontologyID
+		proto.UpstreamProjectId = sourceID
+	}
+
+	slog.Info("fork.completed", "source", sourceID, "new_project", newProjectID, "ontology_id", ontologyID)
+	return &authv1.ForkProjectResponse{Project: proto}, nil
+}
+
+// ============================================================================
 // Error Mapping
 // ============================================================================
 
@@ -466,12 +523,13 @@ func scopeNodeToProto(s *org.ScopeNode) *authv1.Scope {
 		name = s.ID[idx+1:]
 	}
 	return &authv1.Scope{
-		Id:         s.ID,
-		Type:       string(s.Type),
-		Name:       name,
-		ParentId:   s.ParentID,
-		Visibility: string(s.Visibility),
-		TenantId:   s.TenantID,
+		Id:                s.ID,
+		Type:              string(s.Type),
+		Name:              name,
+		ParentId:          s.ParentID,
+		Visibility:        string(s.Visibility),
+		TenantId:          s.TenantID,
+		UpstreamProjectId: s.UpstreamProjectID,
 	}
 }
 

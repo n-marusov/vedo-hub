@@ -57,11 +57,12 @@ type AttributePolicy struct {
 
 // ScopeNode represents a group or ontology node in the hierarchy.
 type ScopeNode struct {
-	ID         string     `json:"id"`
-	Type       ScopeType  `json:"type"`
-	ParentID   string     `json:"parent_id,omitempty"`
-	Visibility Visibility `json:"visibility"`
-	TenantID   string     `json:"tenant_id"`
+	ID                string     `json:"id"`
+	Type              ScopeType  `json:"type"`
+	ParentID          string     `json:"parent_id,omitempty"`
+	Visibility        Visibility `json:"visibility"`
+	TenantID          string     `json:"tenant_id"`
+	UpstreamProjectID string     `json:"upstream_project_id,omitempty"`
 }
 
 // OrgStore is the storage interface for org data.

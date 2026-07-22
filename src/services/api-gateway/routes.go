@@ -109,6 +109,8 @@ func RegisterRoutes(r *gin.Engine, grpcPool *proxy.GrpcClientPool) {
 	orgWrite.POST("/projects/:id/policies", orgHandler.HandleCreatePolicy)
 	orgWrite.DELETE("/projects/:id/policies/:policyId", orgHandler.HandleDeletePolicy)
 
+	orgWrite.POST("/projects/:id/fork", orgHandler.HandleForkProject)
+
 	// Ontology REST read handlers — use gRPC.
 	ontologyHandler := handlers.NewOntologyHandler(ontologyProxy, ontologyGrpc)
 	api.GET("/ontologies", ontologyHandler.HandleListOntologies)

@@ -266,6 +266,21 @@ func (c *OrgServiceClient) ListPolicies(ctx context.Context, scope, token string
 	return stub.ListPolicies(ctx, &authv1.ListPoliciesRequest{Scope: scope})
 }
 
+// ============================================================================
+// Fork Project RPC
+// ============================================================================
+
+func (c *OrgServiceClient) ForkProject(ctx context.Context, req *authv1.ForkProjectRequest, token string) (*authv1.ForkProjectResponse, error) {
+	stub, err := c.getStub()
+	if err != nil {
+		return nil, err
+	}
+	ctx, cancel := context.WithTimeout(c.withAuth(ctx, token), 30*time.Second)
+	defer cancel()
+	slog.Debug("grpc.org.fork_project", "source", req.GetSourceProjectId())
+	return stub.ForkProject(ctx, req)
+}
+
 func (c *OrgServiceClient) DeletePolicy(ctx context.Context, req *authv1.DeletePolicyRequest, token string) (*authv1.DeletePolicyResponse, error) {
 	stub, err := c.getStub()
 	if err != nil {

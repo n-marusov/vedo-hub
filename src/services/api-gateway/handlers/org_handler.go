@@ -15,6 +15,7 @@ package handlers
 //   GET    /api/v1/projects/:id        → HandleGetProject
 //   PUT    /api/v1/projects/:id        → HandleUpdateProject
 //   DELETE /api/v1/projects/:id        → HandleDeleteProject
+//   POST   /api/v1/projects/:id/fork   → HandleForkProject
 //   GET    /api/v1/projects/:id/members         → HandleListMembers
 //   POST   /api/v1/projects/:id/members         → HandleAddMember
 //   PUT    /api/v1/projects/:id/members/:userId → HandleUpdateMemberRole
@@ -27,9 +28,13 @@ package handlers
 //   DELETE /api/v1/projects/:id/policies/:policyId → HandleDeletePolicy
 
 import (
+	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"vedo-core/src/services/api-gateway/models"
 	"vedo-core/src/services/api-gateway/proxy"
@@ -277,6 +282,54 @@ func (h *OrgHandler) HandleDeleteProject(c *gin.Context) {
 		return
 	}
 	c.Status(http.StatusNoContent)
+}
+
+func (h *OrgHandler) HandleForkProject(c *gin.Context) {
+	start := time.Now()
+	traceID := c.GetHeader("X-Trace-Id")
+	sourceProjectID := c.Param("id")
+	token := extractToken(c)
+
+	resp, err := h.orgClient.ForkProject(c.Request.Context(), &authv1.ForkProjectRequest{
+		SourceProjectId: sourceProjectID,
+	}, token)
+	if err != nil {
+		slog.Error("fork.endpoint.failed", "source", sourceProjectID, "trace_id", traceID, "error", err)
+		// Map gRPC error to HTTP status
+		st, ok := status.FromError(err)
+		if ok {
+			switch st.Code() {
+			case codes.PermissionDenied, codes.Unauthenticated:
+				c.JSON(http.StatusForbidden, models.ErrorResponse{
+					Error: models.ErrorDetail{Code: "FORBIDDEN", Message: "No read access to source project"},
+				})
+				return
+			case codes.NotFound:
+				c.JSON(http.StatusForbidden, models.ErrorResponse{
+					Error: models.ErrorDetail{Code: "NOT_FOUND", Message: "Source project not found"},
+				})
+				return
+			case codes.Unavailable:
+				c.JSON(http.StatusServiceUnavailable, models.ErrorResponse{
+					Error: models.ErrorDetail{Code: "SERVICE_UNAVAILABLE", Message: "Service temporarily unavailable, please retry"},
+				})
+				return
+			}
+		}
+		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
+			Error: models.ErrorDetail{Code: "GRPC_ERROR", Message: err.Error()},
+		})
+		return
+	}
+
+	proj := resp.GetProject()
+	c.JSON(http.StatusCreated, gin.H{
+		"project_id":          proj.GetId(),
+		"ontology_id":         proj.GetOntologyId(),
+		"upstream_project_id": proj.GetUpstreamProjectId(),
+	})
+
+	slog.Info("fork.endpoint.completed", "source", sourceProjectID, "project_id", proj.GetId(), "trace_id", traceID, "duration_ms", time.Since(start).Milliseconds())
 }
 
 // ============================================================================
