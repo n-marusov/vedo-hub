@@ -4,10 +4,10 @@
 //! repository layer, enabling the frontend Apollo Client to fetch
 //! ontology data via GraphQL queries through the API Gateway.
 //!
-//! Mutations are intentionally minimal (`updateDraft`) — write operations
-//! are served via REST endpoints proxied through the API Gateway.
+//! GraphQL in VEDO Core is **graph-only navigation**. All write operations
+//! and non-graph reads are served via REST endpoints proxied through the
+//! API Gateway.
 
-pub mod mutation;
 pub mod query;
 pub mod schema;
 pub mod types;

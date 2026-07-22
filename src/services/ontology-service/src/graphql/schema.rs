@@ -1,40 +1,31 @@
 //! GraphQL schema assembly.
 //!
-//! Combines the query and mutation roots into a single executable schema.
+//! Combines the query root into a single executable schema.
+//! GraphQL in VEDO Core is **graph-only navigation** — no Mutation root,
+//! no non-graph Query resolvers. All write operations and non-graph reads
+//! go through REST endpoints under `/api/v1/...`.
 
-use async_graphql::{EmptySubscription, Schema};
+use async_graphql::{EmptyMutation, EmptySubscription, Schema};
 
-use super::mutation::MutationRoot;
 use super::query::QueryRoot;
 
 /// The composed GraphQL schema type.
-pub type OntologySchema = Schema<QueryRoot, MutationRoot, EmptySubscription>;
+pub type OntologySchema = Schema<QueryRoot, EmptyMutation, EmptySubscription>;
 
 /// Builds the GraphQL schema with query root only.
 ///
-/// REST/GraphQL boundary (see ADR-DES.API.rest-graphql-mutation-boundary.md):
-///   - GraphQL exposes **navigation/read queries only** (Query root).
-///   - **Any GraphQL mutation is forbidden.** All write operations, including
-///     CRUD of classes/properties/individuals, draft-state coordination,
-///     membership management, validation, comments and versioning, MUST be
-///     performed through REST endpoints under `/api/v1/...` proxied by the
-///     API Gateway. REST enforces Idempotency-Key, auth middleware, audit log
-///     and CircuitBreakerMiddleware DoS protection — none of which apply to a
-///     GraphQL mutation path.
-///   - `sparqlQuery` is forbidden in GraphQL: SPARQL execution MUST go through
-///     `POST /api/v1/sparql` so the CircuitBreakerMiddleware DoS guard cannot
-///     be bypassed.
-///
-/// NOTE: `MutationRoot` below still holds `updateDraft`, `updateMemberRole`
-/// and `removeMember` as deprecated placeholders pending REST migration.
-/// They are NOT part of the public contract — see the ADR for the plan to
-/// remove `MutationRoot` entirely by switching to `EmptyMutation`.
+/// REST/GraphQL boundary (see ADR-DES.API.rest-graphql-mutation-boundary.md
+/// and ADR-DES.API.graphql-sparql-split-strategy.md):
+///   - GraphQL exposes **graph navigation queries only** (class, classes, classTree,
+///     classAncestors, classDescendants, graphNeighborhood, autocompleteClasses,
+///     property, properties, individual, individuals — 11 resolvers).
+///   - **Mutation root is empty** — all write operations go through REST.
+///   - **Non-graph Query resolvers removed** — ontology(id), commits, branch,
+///     branches, groups, projects, members are now served by REST endpoints.
+///   - REST enforces Idempotency-Key, auth middleware, audit log and
+///     CircuitBreakerMiddleware DoS protection.
 pub fn build_schema() -> OntologySchema {
-    Schema::build(
-        QueryRoot::default(),
-        MutationRoot::default(),
-        EmptySubscription,
-    )
-    .enable_federation()
-    .finish()
+    Schema::build(QueryRoot::default(), EmptyMutation, EmptySubscription)
+        .enable_federation()
+        .finish()
 }

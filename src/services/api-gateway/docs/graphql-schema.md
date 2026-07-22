@@ -12,35 +12,19 @@ GraphQL in VEDO Core is a **read-only navigation layer** for the 2D/3D ontology 
 |---|---|---|
 | Graph navigation (class tree, neighborhood, autocomplete, breadcrumb, descendants) | GraphQL Query | this schema |
 | Read individual class / property / individual | GraphQL Query | this schema |
-| Read commits and branches (version history) | GraphQL Query | this schema (proxied to versioning-service) |
-| Read org context (groups, projects, members) | GraphQL Query | this schema (proxied to auth-service) |
 | Create / update / delete ontology, classes, properties, individuals | **REST** | `openapi.json` — `/ontologies*` |
 | SPARQL and CYPHER execution | **REST** | `openapi.json` — `/sparql`, `/cypher` |
-| Versioning writes (commit, branch, switch, merge, rollback, checkout) | **REST** | `openapi.json` — `/versioning/*` |
-| Member management (add / update role / remove) | **REST** | `openapi.json` — `/ontologies/{id}/members*` |
+| Ontology metadata (branch, commit, dirty) | **REST** | `openapi.json` — `GET /ontologies/{id}` |
+| Versioning reads (commits, branches) and writes (commit, branch, switch, merge, rollback, checkout) | **REST** | `openapi.json` — `/versioning/*` |
+| Organization reads and writes (groups, projects, members, visibility, policies) | **REST** | `openapi.json` — `/groups`, `/projects`, `/projects/{id}/members`, etc. |
+| Member management (add / update role / remove) | **REST** | `openapi.json` — `/projects/{id}/members*` |
 | Draft state coordination | **REST** | `openapi.json` — `/ontologies/{id}/draft` (planned, see ADR) |
 
 ## 2. Query root
 
 All field names below are camelCased at the wire level (async-graphql converts Rust snake_case to GraphQL camelCase by default).
 
-### 2.1 Ontology
-
-| Field | Args | Returns | Notes |
-|---|---|---|---|
-| `ontology` | `id: String!` | `Ontology!` | Returns ontology metadata, current branch name, HEAD commit SHA, and `dirty` flag. Falls back to branch `main` with empty commit when the versioning-service is unreachable. |
-
-```graphql
-type Ontology {
-  id: String!
-  name: String!
-  branch: String!
-  commit: String!
-  dirty: Boolean!
-}
-```
-
-### 2.2 Classes
+### 2.1 Classes
 
 | Field | Args | Returns |
 |---|---|---|
@@ -104,7 +88,7 @@ type ClassConnection {
 }
 ```
 
-### 2.3 Properties
+### 2.2 Properties
 
 | Field | Args | Returns |
 |---|---|---|
@@ -145,7 +129,7 @@ type PropertyConnection {
 }
 ```
 
-### 2.4 Individuals
+### 2.3 Individuals
 
 | Field | Args | Returns |
 |---|---|---|
@@ -189,109 +173,7 @@ type IndividualConnection {
 
 User-defined class/property/individual fields are NOT exposed as static GraphQL fields. The dynamic ontology schema is returned through the `literalValues` / `referenceValues` / `properties` containers — see ADR-DES.API.graphql-sparql-split-strategy § "Динамическая регистрация пользовательских типов в GraphQL-схеме" (forbidden).
 
-### 2.5 Versioning (read-only)
-
-These resolvers proxy read calls to the versioning-service. Write operations on versions go through REST `/api/v1/versioning/*`.
-
-| Field | Args | Returns |
-|---|---|---|
-| `commits` | `ontologyId: String!`, `branchId: String`, `page: Int = 0`, `perPage: Int = 20` | `CommitConnection!` |
-| `branch` | `ontologyId: String!`, `branchId: String!` | `Branch` (nullable) |
-| `branches` | `ontologyId: String!`, `referenceBranchId: String` | `BranchConnection!` |
-
-```graphql
-type Commit {
-  id: String!
-  branchId: String!
-  parentCommitId: String
-  message: String!
-  authorId: String!
-  authorName: String!
-  totalChanges: Int!
-  createdAt: String!
-}
-
-type CommitConnection {
-  items: [Commit!]!
-  total: Int!
-  page: Int!
-  perPage: Int!
-}
-
-type Branch {
-  id: String!
-  name: String!
-  ontologyId: String!
-  headCommitId: String
-  createdAt: String!
-  isProtected: Boolean!
-  lastCommitMessage: String
-  lastCommitAuthor: String
-  aheadCount: Int
-  behindCount: Int
-}
-
-type BranchConnection {
-  items: [Branch!]!
-  total: Int!
-}
-```
-
-### 2.6 Organization (read-only)
-
-| Field | Args | Returns |
-|---|---|---|
-| `groups` | `q: String` | `[Group!]!` |
-| `projects` | `q: String`, `sortBy: String`, `sortDir: String`, `page: Int`, `perPage: Int` | `[Project!]!` |
-| `members` | `ontologyId: String!` | `[Member!]!` |
-
-```graphql
-type Group {
-  id: String!
-  name: String!
-  description: String
-  parentGroupId: String
-  visibility: String
-  memberCount: Int
-  projectCount: Int
-}
-
-type Project {
-  id: String!
-  name: String!
-  description: String
-  visibility: String
-  memberCount: Int
-  updatedAt: String
-}
-
-type Member {
-  userId: String!
-  scope: String!
-  role: String!
-  username: String
-  avatarUrl: String
-  addedAt: String
-}
-```
-
-## 3. Mutation root — DEPRECATED
-
-The target end-state of VEDO Core is **`EmptyMutation`** — no GraphQL `Mutation` type at all (see ADR-DES.API.rest-graphql-mutation-boundary.md § "Запрещено в GraphQL"). The current schema still exposes the following **deprecated placeholder** resolvers while the frontend migrates to REST. They emit a `#[deprecated]` warning at compile time of the ontology-service and will be removed once the frontend stops invoking them.
-
-| Mutation (still present) | Replaces | Migration target (REST) |
-|---|---|---|
-| `updateDraft(ontologyId, changes: DraftInput!)` | frontend `useDraftState` composable | `PUT /api/v1/ontologies/{id}/draft` (planned — see ADR) |
-| `updateMemberRole(ontologyId, userId, role)` | frontend `MembersPage` role editor | `PUT /api/v1/ontologies/{id}/members/{userId}` |
-| `removeMember(ontologyId, userId)` | frontend `MembersPage` remove action | `DELETE /api/v1/ontologies/{id}/members/{userId}` |
-
-Frontend Apollo client code that still calls these mutations should be migrated to `axios` (or another REST client) using the endpoints in `openapi.json`. After all call sites are migrated:
-
-1. Remove `MutationRoot` from `build_schema` in `src/services/ontology-service/src/graphql/schema.rs` and replace with `EmptyMutation`.
-2. Delete `src/services/ontology-service/src/graphql/mutation.rs`.
-3. Remove `UPDATE_DRAFT_MUTATION`, `UPDATE_MEMBER_ROLE_MUTATION`, `REMOVE_MEMBER_MUTATION` from `src/services/frontend/src/apollo/queries.ts` and update `useDraftState` / `MembersPage` consumers.
-
-## 4. Forbidden operations (architecture invariant)
+## 3. Forbidden operations (architecture invariant)
 
 The following GraphQL operations are strictly forbidden by ADR-DES.API.graphql-sparql-split-strategy and ADR-DES.API.rest-graphql-mutation-boundary. Any PR adding one of these is an architectural violation.
 
@@ -305,9 +187,12 @@ The following GraphQL operations are strictly forbidden by ADR-DES.API.graphql-s
 | `createOntology`, `updateOntology`, `deleteOntology` | Same | `POST/PUT/DELETE /api/v1/ontologies[/{id}]` |
 | `createCommit`, `createBranch`, `mergeBranches`, `switchBranch`, `deleteBranch`, `checkoutCommit`, `rollbackToCommit` | Same — versioning writes go through REST | `/api/v1/versioning/*` (see `openapi.json`) |
 | `addMember`, `importOntology`, `exportOntology` | Same | `/api/v1/ontologies/{id}/members`, `/import`, `/export` |
+| `commits`, `branch`, `branches`, `tags`, `compareRevisions` | Non-graph Query resolvers removed — versioning reads migrated to REST | `GET /api/v1/versioning/commits`, `/api/v1/versioning/branches`, `/api/v1/versioning/commits/{id}/delta` |
+| `groups`, `projects`, `members` | Non-graph Query resolvers removed — org reads migrated to REST | `GET /api/v1/groups`, `/api/v1/projects`, `/api/v1/projects/{id}/members` |
+| `ontology(id)` metadata query | Non-graph Query resolver removed — ontology metadata migrated to REST | `GET /api/v1/ontologies/{id}` |
 | Dynamic schema registration of user-defined class/property fields | User-defined ontology types are returned through containers (`literalValues`, `referenceValues`, `properties`), not as generated schema fields | N/A — use container fields |
 
-## 5. DoS protection
+## 4. DoS protection
 
 GraphQL itself is a DoS vector (recursive queries, expensive resolvers). The ontology-service applies the following SDL/runtime safeguards (see ADR-DES.API.graphql-sparql-split-strategy § "Решение"):
 
@@ -319,7 +204,7 @@ GraphQL itself is a DoS vector (recursive queries, expensive resolvers). The ont
 
 Each GraphQL request is logged with `operation_name`, `trace_id`, redacted variables summary, result count, and the security decision (allowed / blocked / rate-limited).
 
-## 6. Related documents
+## 5. Related documents
 
 - `openapi.json` — REST contract for all write operations and SPARQL/CYPHER execution.
 - `specs/adr/ADR-DES.API.graphql-sparql-split-strategy.md` — split rationale and protocol responsibility table.
