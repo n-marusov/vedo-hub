@@ -21,6 +21,30 @@ Open `http://localhost:3000` — the frontend is ready. The API Gateway is at `h
 
 ---
 
+## Docker Build
+
+`make docker-up` is all you need — it builds images **and** starts containers in one command. No separate build step required.
+
+`make docker-build` is only needed when you want images **without** starting containers (CI, registry push, pre-building):
+
+```bash
+# Build all service images
+cd src && make docker-build
+
+# By language
+make docker-build-rust       # ontology, versioning, publisher, public-browse
+make docker-build-go         # api-gateway, auth, commenting, tickets, AI
+make docker-build-python     # metrics, classifier, document-extractor
+make docker-build-typescript # frontend, publish-browse-ui
+```
+
+Images are tagged `vedo-core/<service>:latest`. The build uses the same context (project root) and same Dockerfiles as `docker compose build` — functionally identical.
+
+> **Go services** require a `vendor/` directory. Run `make vendor-go` to populate it. Services without `vendor/` are skipped with a notice.
+> **First run** of `make docker-up` or `make docker-build` builds all images from source — can take 20–40 minutes.
+
+---
+
 ## Environment Variables
 
 All variables in `deploy/docker-compose.yml` use `${VAR:-default}` syntax — every setting has a sensible default and can be overridden via shell environment or a `.env` file. **No `.env` file is required for development** — `make docker-up` works out of the box.
@@ -37,12 +61,20 @@ The project ships three pre-configured env files with non-overlapping ports, so 
 
 ```bash
 # Dev (default)
-cp .env.dev .env && docker compose -f deploy/docker-compose.yml up -d
+make docker-up
 
 # Test — runs alongside dev, no port conflicts
-docker compose --env-file .env.test -f deploy/docker-compose.yml up -d
+make docker-up ENV=test
 
 # Staging — runs alongside dev and test
+make docker-up ENV=staging
+```
+
+Or equivalently with raw Docker Compose from the project root:
+
+```bash
+cp .env.dev .env && docker compose -f deploy/docker-compose.yml up -d
+docker compose --env-file .env.test -f deploy/docker-compose.yml up -d
 docker compose --env-file .env.staging -f deploy/docker-compose.yml up -d
 ```
 
@@ -52,7 +84,7 @@ Each env file defines separate host ports while keeping container ports identica
 
 | Method | Example | Best for |
 |--------|---------|----------|
-| **Shell env** | `export API_GATEWAY_PORT=9090` then `docker compose up` | One-off overrides |
+| **Shell env** | `export API_GATEWAY_PORT=9090 && make docker-up` | One-off overrides |
 | **`.env` file** | Create `deploy/.env` with `API_GATEWAY_PORT=9090` | Persistent project config |
 | **Inline** | `API_GATEWAY_PORT=9090 make docker-up` | Temporary overrides |
 

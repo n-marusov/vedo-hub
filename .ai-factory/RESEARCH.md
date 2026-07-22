@@ -1,53 +1,53 @@
 # Research
 
-Updated: 2026-07-22 14:00
+Updated: 2026-07-22 18:00
 Status: active
 
 ## Active Summary (input for $aif-plan)
 <!-- aif:active-summary:start -->
-Topic: DDD Context Map для VEDO Hub + Templates-via-Forks решение
+Topic: DDD Context Map — Templates-via-Forks implemented; M5 Gap Closure next
 
-Goal: (1) Сформировать оптимальную карту Bounded Contexts на основе анализа specs/ (vision.md, ADR, C4, glossary, REQ). (2) Разрешить 5 открытых вопросов: Templates ownership, Audit BC, Search BC, MCP placement, Social Hub. (3) Решение пользователя: выпилить Templates как отдельный BC, заменить на Demos Group + Forks (F13.1 переносится в MVP).
+Goal:
+(1) DONE — Templates-via-Forks: 17 tasks, 8 commits, merged to main (d823d8e). Templates BC removed; replaced with VEDO Demos group + fork mechanism. F13.1 Forks in MVP.
+(2) DONE — Project-Ontology Separation: merged to main (164d02d). Project ≠ Ontology, 1:1, canonical paths /projects/{id}/....
+(3) Next: define M5 MVP Scope Gap Closure scope — what remains after Templates-via-Forks.
 
-Background — pending plan (не забыть):
-- project-ontology-separation: план для Project ≠ Ontology, 1:1, REST `/projects/{id}/...`, PostgreSQL `scopes.type='project'` + таблица `ontologies`. Решение принято 2026-07-21, план ещё не запущен. См. сессию 2026-07-21 18:45.
+Accomplished:
+- templates-via-forks: 17 tasks, fork endpoint POST /api/v1/projects/{id}/fork, Fork Saga in auth-service org.go, 5 demo projects (VEDO Demos), UI (ForkDemoDialog, DemoProjectCard), GUI tests, Antora fork flow docs, security tests, traceability
+- project-ontology-separation: PostgreSQL migration (scopes.type='project', ontologies table), OpenAPI update, Antora docs, negative auth tests
 
-DDD Context Map (12 BC + façade):
+DDD Context Map (12 BC + façade, from session 2026-07-22 14:00):
 - Core (3): Ontology/Knowledge Graph BC (ontology-service, Neo4j), Versioning BC (versioning-service, PostgreSQL), Organization/Access BC (auth-service, PostgreSQL scopes)
-- Supporting MVP (4, после выпиливания Templates): AI Orchestration BC (ai-orchestration-service), Document Extraction BC (document-extractor), Publishing BC (publisher+public-browse-api), Collaboration BC (commenting-service)
-- Supporting post-MVP (3): MCP BC (thin proxy), Search BC (cross-ontology, external index), Social BC (forks/stars/DOI/profile)
-- Generic (4): Identity BC (auth+Keycloak), Support/Ticketing BC (5 ticket services), Metrics & Observability BC (metrics-service+Grafana), Administration BC (vedo-cli)
+- Supporting MVP (4): AI Orchestration BC (ai-orchestration-service), Document Extraction BC (document-extractor), Publishing BC (publisher+public-browse-api), Collaboration BC (commenting-service)
+- Supporting post-MVP (3): MCP BC (thin proxy), Search BC (cross-ontology), Social BC (forks/stars/DOI/profile)
+- Generic (4): Identity BC, Support/Ticketing BC, Metrics & Observability BC, Administration BC
 - Façade: API Gateway (OHS+ACL), Frontend BC (BFF), Publish Browse UI
 
-Ключевые отношения:
-- Ontology ↔ Versioning: Partnership + Materialized Cache (active branch в Neo4j, deltas в PostgreSQL). Нужен формальный Published Language `OntologySnapshot`/`TripleDelta`.
-- Organization ↔ Ontology: Shared Kernel (project_id/ontology_id, 1:1 pairing)
-- AI ↔ External LLM: Anti-Corruption Layer (LLM Adapter Layer + LLM Policy Router). Router мигрирует из Gateway в ai-orchestration-service (Phase 7, в прогрессе).
-- Document Extraction → Ontology: Customer-Supplier + Published Language `OntologyBuildSequence` (JSON, JSON-schema validated, ApplySequence atomic в Neo4j).
-- Commenting → Ontology: Conformist (entity_type+entity_id без FK, orphaned comments expected).
-- API Gateway: OHS (OpenAPI=REST writes, GraphQL=read-only navigation, SPARQL=REST only с DoS-защитой per ADR rest-graphql-mutation-boundary).
+Resolved open questions (since 2026-07-22 14:00):
+- Templates/Fork Saga orchestrator → auth-service org.go (decided in plan, implemented)
+- Templates BC → removed (ADR-DES.PROCESS.templates-via-forks)
 
-Decisions (по результатам explore 2026-07-22):
-1. **Templates BC выпиливается.** Шаблоны = демо-проекты в группе `VEDO Demos` + fork mechanism. F13.1 Forks переезжает из post-MVP в MVP. Теряем: semver для шаблонов (git tags богаче), auto-deprecate по usage_count (premature automation для 5-20 проектов), personal-catalog-UX (через Group "My Templates"). Приобретаем: −1 BC, −1 cross-BC Saga (ApplyTemplate), −1 Published Language (OWL+metadata.json), F13.1 в MVP, community PR через MR flow, единая fork-mechanics для templates и social hub.
-2. **Fork model:** `upstream_project_id` на Project (nullable, ВАРИАНТ 1 — Git-модель). `forks_count` = count WHERE upstream_project_id=X (query или Redis cache). Endpoint: `POST /api/v1/projects/{id}/fork`.
-3. **Fork Saga:** Organization create Project + Versioning copy branch + Ontology materialize. Orchestrator — TBD (не API Gateway — anti-pattern "leaky gateway").
-4. **Audit: гибрид.** Shared library (`audit-rs`/`audit-go`/`audit-py`) для write path (каждый BC эмитит локально) + Audit Query BC (thin, Generic) для read path (RBAC, export, UI, masking на чтение). Published Language `AuditEvent` schema (versioned protobuf/JSON Schema). Store: Support DB (метаданные, 365 дней) + WORM S3 (critical ops, 7 лет) + S3 (полные ответы, 90 дней TTL). mcp-audit-strategy — хороший паттерн, но покрывает только MCP; нужно обобщить на все BC.
-5. **Search Level 1 (in-ontology)** — остаётся в Ontology BC (Neo4j fulltext index). **Search Level 2 (cross-ontology, F16.2)** — отложить до network effect (Social Hub + MCP, post-MVP). F16.2 не имеет ни одного REQ.
-6. **MCP — thin BC, post-MVP.** Transport (JSON-RPC/SSE) не подходит для API Gateway. Attack surface изоляция от internal AI. Делегирует CheckPolicy в AI Orchestration через gRPC. mcp-audit-strategy требует обновления (middleware в MCP service, не в Gateway).
-7. **Social Hub (F13):** не строить сейчас, но заложить hooks: `upstream_project_id` (MVP через Decision 1), `public_profile` опционально в User (Identity BC), `doi` опционально в Publication (Publishing BC). Issues (F13.4) ≠ Support Tickets — отдельный Ontology Issues BC (post-MVP). Social Hub priority #1 в vision.md, но 0 specs — нужен ADR "post-MVP defer".
+Carry-over open questions:
+- Audit: shared library ownership + audit_events table placement in Support DB
+- Social Hub: ADR "post-MVP defer" to formalize priority #1 vision-specs gap
+- MCP: should Phase 7 (M2 migration) include MCP contract design?
 
-Open questions (после deep dive):
-- Audit: кто владеет shared library? Не нарушает ли "no shared mutable state" из ARCHITECTURE.md? (Нет — library immutable, store shared через Published Language.)
-- Templates/Fork Saga: кто orchestrator? API Gateway (anti-pattern) или отдельный orchestration service?
-- Social Hub: нужен ли ADR "post-MVP defer" для формализации отсрочки priority #1?
-- MCP: M2 migration plan (Phase 7) не включает MCP. Должен ли включать хотя бы contract design?
-- Audit: `audit_events` таблица из ADR-DES.API.organization-rest-endpoints — где живёт? Должна быть в Support DB (изолировано от tenant).
+New open questions:
+- Should merged feature branches (feature/templates-via-forks, feature/project-ontology-separation) be deleted?
+- What exactly remains in M5 after F13.1 Forks is done? (TBox editor polish, ABox CRUD, class hierarchy/TBox/ABox views, basic Semantic Diff, merge blocking, comments, SPARQL limits)
+
+Decisions (from templates-via-forks plan, now implemented):
+1. Templates BC removed. Demo projects in VEDO Demos group + fork mechanism.
+2. Fork model: upstream_project_id on Project (nullable, Git-style). Endpoint: POST /api/v1/projects/{id}/fork.
+3. Fork Saga orchestrator: auth-service org.go (not API Gateway).
+4. Guest role can fork (read access to source is sufficient; fork creates new Project in user space).
 
 Success signals:
-- RESEARCH.md обновлён с DDD context map + 5 deep dives + Templates-via-Forks decision
-- Next: $aif-plan full templates-via-forks для реализации (12 действий: удалить 9 REQ-черновиков templates-*, обновить vision.md/glossary.md, добавить upstream_project_id + fork endpoint, 5 демо-проектов как seed data, F13.1 US/UC)
+- templates-via-forks: implemented, tested, merged
+- project-ontology-separation: implemented, merged
+- RESEARCH.md actualized
 
-Next step: $aif-plan full templates-via-forks — выпилить Templates BC, реализовать Demos + Forks (F13.1 в MVP). Параллельно pending: $aif-plan full project-ontology-separation (решение 2026-07-21, план не запущен).
+Next step: $aif-plan full m5-gap-closure — close MVP scope gaps after Templates-via-Forks. Or $aif-explore M5 scope to refine what remains.
 <!-- aif:active-summary:end -->
 
 ## Sessions
@@ -191,4 +191,31 @@ Links (paths):
 - specs/requirements/REQ-FUN.INTEGRATION.audit-*.md (3 файла — audit pattern)
 - specs/requirements/REQ-NFR.SECURITY.audit-*.md (3 файла — audit protection)
 - specs/requirements/REQ-NFR.DATA.audit-retention.md
+### 2026-07-22 18:00 — Templates-via-Forks & Project-Ontology Separation: implementation complete
+
+What changed:
+- templates-via-forks plan (17 tasks, 8 commits) fully implemented and merged to main.
+  - Removed: template handler, models, 9 REQ drafts templates-*.
+  - Added: fork endpoint POST /api/v1/projects/{id}/fork, Fork Saga (auth-service org.go), upstream_project_id, forks_count, 5 demo projects in VEDO Demos, UI (ForkDemoDialog, DemoProjectCard), GUI + security tests, Antora docs, Pencil designs.
+  - Last commit d823d8e: refactor ForkDemoDialog (dedup card template, server error fallback, export slug).
+- project-ontology-separation plan fully implemented and merged to main (164d02d).
+  - PostgreSQL migrations (scopes.type='project', ontologies table), OpenAPI update, /projects/{id}/... paths, Antora docs, negative auth tests.
+- Both branches (feature/templates-via-forks, feature/project-ontology-separation) still exist locally and in origin.
+
+Key notes:
+- Fork Saga orchestrator — auth-service org.go (decided in plan, implemented).
+- Guest role can fork (confirmed: read access to source, fork creates new Project in user space).
+- ROADMAP M5 now includes F13.1 Forks as part of MVP Gap Closure.
+- Carry-over open questions from session 2026-07-22 14:00: Audit, Social Hub, MCP.
+- F13.1 Forks was the Templates-via-Forks headline item; M5 still has TBox/ABox/class hierarchy/comments/SPARQL limits/Semantic Diff gaps.
+
+Links (paths):
+- .ai-factory/plans/feature-templates-via-forks.md (17 tasks, completed)
+- .ai-factory/plans/feature-project-ontology-separation.md (completed 2026-07-21)
+- src/services/auth-service/internal/org/org_handler.go (HandleForkProject)
+- src/services/frontend/src/components/projects/ForkDemoDialog.vue
+- src/services/frontend/src/api/fork.ts
+- deploy/seeds/vedo-demos/bootstrap.sh (5 demo projects)
+- specs/adr/ADR-DES.PROCESS.templates-via-forks.md
+- ROADMAP.md (M5 updated with F13.1)
 <!-- aif:sessions:end -->
