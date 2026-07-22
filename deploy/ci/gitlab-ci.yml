@@ -54,10 +54,13 @@ test-quality-gate:
 frontend-lint:
   stage: lint
   image: node:20-alpine
+  before_script:
+    - npm install -g pnpm@9
   script:
     - cd src/services/frontend
-    - npm ci
-    - npm run lint
+    - pnpm install --frozen-lockfile --ignore-scripts
+    - pnpm run lint
+    - pnpm run typecheck
   rules:
     - changes:
         - src/services/frontend/**/*
@@ -155,10 +158,12 @@ proto-breaking:
 contract-tests-frontend:
   stage: test
   image: node:20-alpine
+  before_script:
+    - npm install -g pnpm@9
   script:
     - cd src/services/frontend
-    - npm ci
-    - npm test -- --run
+    - pnpm install --frozen-lockfile --ignore-scripts
+    - pnpm test -- --run
   artifacts:
     reports:
       junit: src/services/frontend/junit.xml
@@ -325,10 +330,12 @@ document-extractor-build:
 integration-tests:
   stage: integration
   image: node:20-alpine
+  before_script:
+    - npm install -g pnpm@9
   script:
     - cd src/services/frontend
-    - npm ci
-    - npm test -- --run tests/api-compatibility/api-compatibility.spec.ts tests/backup-restore/backup-restore-integration.spec.ts tests/observability/observability.spec.ts tests/data-lifecycle/data-lifecycle.spec.ts tests/administration/administration.spec.ts tests/deployment/deployment-operations.spec.ts
+    - pnpm install --frozen-lockfile --ignore-scripts
+    - pnpm test -- --run tests/api-compatibility/api-compatibility.spec.ts tests/backup-restore/backup-restore-integration.spec.ts tests/observability/observability.spec.ts tests/data-lifecycle/data-lifecycle.spec.ts tests/administration/administration.spec.ts tests/deployment/deployment-operations.spec.ts
   needs:
     - contract-tests-frontend
     - contract-tests-rust
