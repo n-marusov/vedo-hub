@@ -4645,6 +4645,544 @@
           }
         }
       ]
+    },
+    {
+      "type": "frame",
+      "id": "ze4Nt",
+      "x": 50,
+      "y": 806,
+      "name": "Molecule/DemoProjectCard",
+      "reusable": true,
+      "width": 280,
+      "height": 150,
+      "fill": "$B:card",
+      "cornerRadius": 8,
+      "stroke": "$B:border",
+      "strokeWidth": 1,
+      "strokeAlignment": "inner",
+      "layout": "vertical",
+      "gap": 4,
+      "padding": 12,
+      "children": [
+        {
+          "type": "icon",
+          "id": "m8l0Zp",
+          "name": "cardIcon",
+          "width": 18,
+          "height": 18,
+          "icon": "folder",
+          "library": "lucide",
+          "fill": "$B:primary"
+        },
+        {
+          "type": "text",
+          "id": "L3t7i",
+          "name": "cardName",
+          "fill": "$B:foreground",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "Demo Name",
+          "fontFamily": "IBM Plex Mono",
+          "fontSize": 13,
+          "fontWeight": "600"
+        },
+        {
+          "type": "text",
+          "id": "y7bIJd",
+          "name": "cardDesc",
+          "fill": "$B:muted-foreground",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "Demo project description",
+          "fontFamily": "IBM Plex Mono",
+          "fontSize": 10,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "g84Agl",
+          "name": "metaRow",
+          "width": "fill_container",
+          "gap": 6,
+          "padding": [
+            0,
+            0,
+            8,
+            0
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "DegBE",
+              "name": "classBadge",
+              "fill": "$B:secondary",
+              "cornerRadius": 4,
+              "gap": 4,
+              "padding": [
+                4,
+                6
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "B6P73D",
+                  "name": "classIcon",
+                  "width": 10,
+                  "height": 10,
+                  "icon": "box",
+                  "library": "lucide",
+                  "fill": "$B:muted-foreground"
+                },
+                {
+                  "type": "text",
+                  "id": "w5HBj",
+                  "name": "classCount",
+                  "fill": "$B:muted-foreground",
+                  "content": "4 classes",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 9,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "d8NB2C",
+              "name": "propBadge",
+              "fill": "$B:secondary",
+              "cornerRadius": 4,
+              "gap": 4,
+              "padding": [
+                4,
+                6
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "S7vtg",
+                  "name": "propIcon",
+                  "width": 10,
+                  "height": 10,
+                  "icon": "pencil",
+                  "library": "lucide",
+                  "fill": "$B:muted-foreground"
+                },
+                {
+                  "type": "text",
+                  "id": "s5ARF",
+                  "name": "propCount",
+                  "fill": "$B:muted-foreground",
+                  "content": "3 properties",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 9,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "z9zS25",
+              "name": "domainBadge",
+              "fill": "$B:secondary",
+              "cornerRadius": 4,
+              "gap": 4,
+              "padding": [
+                4,
+                6
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "yglZJ",
+                  "name": "domainIcon",
+                  "width": 10,
+                  "height": 10,
+                  "icon": "tag",
+                  "library": "lucide",
+                  "fill": "$B:muted-foreground"
+                },
+                {
+                  "type": "text",
+                  "id": "haxm0",
+                  "name": "domainName",
+                  "fill": "$B:muted-foreground",
+                  "content": "Domain",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 9,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "RRNKb",
+          "name": "cardSep",
+          "width": "fill_container",
+          "height": 1,
+          "fill": "$B:border"
+        },
+        {
+          "type": "frame",
+          "id": "qEOSc",
+          "name": "forkButton",
+          "width": "fill_container",
+          "height": 28,
+          "fill": "$B:primary",
+          "cornerRadius": 6,
+          "gap": 4,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "A54FlC",
+              "name": "forkBtnText",
+              "fill": "$B:primary-foreground",
+              "content": "Fork",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "500"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tvBhd",
+      "type": "ref",
+      "ref": "ze4Nt",
+      "name": "Molecule/DemoProjectCard (Light)",
+      "x": 50,
+      "y": 566,
+      "theme": {
+        "B:mode": "light"
+      }
+    },
+    {
+      "type": "frame",
+      "id": "LgxGO",
+      "x": 50,
+      "y": -194,
+      "name": "Organism/ForkDemoDialog",
+      "reusable": true,
+      "width": 960,
+      "height": 660,
+      "fill": "#00000080",
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "XQmhp",
+          "x": 120,
+          "y": 60,
+          "name": "dialogBox",
+          "width": 720,
+          "fill": "$B:card",
+          "cornerRadius": 12,
+          "stroke": "$B:border",
+          "strokeWidth": 1,
+          "strokeAlignment": "inner",
+          "layout": "vertical",
+          "gap": 20,
+          "padding": 24,
+          "children": [
+            {
+              "type": "frame",
+              "id": "OBpnm",
+              "name": "dialogHeader",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "vPK7C",
+                  "name": "dialogTitle",
+                  "fill": "$B:foreground",
+                  "content": "Fork demo project",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 20,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "HZWHj",
+                  "name": "dialogDesc",
+                  "fill": "$B:muted-foreground",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Choose a demo project to fork into your workspace",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "icon",
+              "id": "ltYqY",
+              "layoutPosition": "absolute",
+              "x": 684,
+              "y": 24,
+              "name": "closeIcon",
+              "width": 16,
+              "height": 16,
+              "icon": "x",
+              "library": "lucide",
+              "fill": "$B:muted-foreground"
+            },
+            {
+              "type": "frame",
+              "id": "p6XI9S",
+              "name": "searchRow",
+              "width": "fill_container",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "RuMBa",
+                  "name": "searchInput",
+                  "width": "fill_container",
+                  "height": 36,
+                  "fill": "$B:card",
+                  "stroke": "$B:input",
+                  "strokeWidth": 1,
+                  "strokeAlignment": "inner",
+                  "padding": [
+                    4,
+                    12
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "k1tobX",
+                      "name": "searchText",
+                      "fill": "$B:muted-foreground",
+                      "content": "Search demo projects...",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "RH522",
+              "name": "cardGrid",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "J6hZF",
+                  "name": "row1",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "id": "KJImv",
+                      "type": "ref",
+                      "ref": "ze4Nt",
+                      "name": "cardOrganization",
+                      "width": "fill_container",
+                      "descendants": {
+                        "L3t7i": {
+                          "content": "Organization"
+                        },
+                        "y7bIJd": {
+                          "content": "Departments, roles, company structure"
+                        },
+                        "w5HBj": {
+                          "content": "5 classes"
+                        },
+                        "s5ARF": {
+                          "content": "4 properties"
+                        },
+                        "haxm0": {
+                          "content": "Enterprise"
+                        }
+                      }
+                    },
+                    {
+                      "id": "e8ryt",
+                      "type": "ref",
+                      "ref": "ze4Nt",
+                      "name": "cardProduct",
+                      "width": "fill_container",
+                      "descendants": {
+                        "L3t7i": {
+                          "content": "Product"
+                        },
+                        "y7bIJd": {
+                          "content": "Catalog, manufacturers, reviews"
+                        },
+                        "w5HBj": {
+                          "content": "4 classes"
+                        },
+                        "s5ARF": {
+                          "content": "5 properties"
+                        },
+                        "haxm0": {
+                          "content": "Commerce"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "mracD",
+                  "name": "row2",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "id": "UC4Lx",
+                      "type": "ref",
+                      "ref": "ze4Nt",
+                      "name": "cardProcess",
+                      "width": "fill_container",
+                      "descendants": {
+                        "L3t7i": {
+                          "content": "Process"
+                        },
+                        "y7bIJd": {
+                          "content": "Workflow steps, inputs, outputs"
+                        },
+                        "w5HBj": {
+                          "content": "5 classes"
+                        },
+                        "s5ARF": {
+                          "content": "3 properties"
+                        },
+                        "haxm0": {
+                          "content": "Operations"
+                        }
+                      }
+                    },
+                    {
+                      "id": "eDTYu",
+                      "type": "ref",
+                      "ref": "ze4Nt",
+                      "name": "cardGlossary",
+                      "width": "fill_container",
+                      "descendants": {
+                        "L3t7i": {
+                          "content": "Glossary"
+                        },
+                        "y7bIJd": {
+                          "content": "Terms, definitions, references"
+                        },
+                        "w5HBj": {
+                          "content": "4 classes"
+                        },
+                        "s5ARF": {
+                          "content": "3 properties"
+                        },
+                        "haxm0": {
+                          "content": "Knowledge"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "f3DOC",
+                  "name": "row3",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "id": "l9k4g",
+                      "type": "ref",
+                      "ref": "ze4Nt",
+                      "name": "cardEvent",
+                      "width": "fill_container",
+                      "descendants": {
+                        "L3t7i": {
+                          "content": "Event"
+                        },
+                        "y7bIJd": {
+                          "content": "Events, participants, locations and dates"
+                        },
+                        "w5HBj": {
+                          "content": "4 classes"
+                        },
+                        "s5ARF": {
+                          "content": "4 properties"
+                        },
+                        "haxm0": {
+                          "content": "Domain"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "q4QdW4",
+              "name": "dialogActions",
+              "width": "fill_container",
+              "gap": 8,
+              "justifyContent": "end",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "LfWBm",
+                  "name": "cancelButton",
+                  "stroke": "$B:border",
+                  "strokeWidth": 1,
+                  "strokeAlignment": "inner",
+                  "gap": 6,
+                  "padding": [
+                    8,
+                    16
+                  ],
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "YOETX",
+                      "name": "cancelText",
+                      "fill": "$B:foreground",
+                      "content": "Cancel",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 14,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qBrR4",
+      "type": "ref",
+      "ref": "LgxGO",
+      "name": "Organism/ForkDemoDialog (Light)",
+      "x": 50,
+      "y": -954,
+      "theme": {
+        "B:mode": "light"
+      }
     }
   ],
   "imports": {

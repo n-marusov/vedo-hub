@@ -114,15 +114,38 @@
                       ]
                     },
                     {
-                      "id": "M7i2xl",
-                      "type": "ref",
-                      "ref": "B:3CI7c",
-                      "name": "pNewBtn",
-                      "descendants": {
-                        "B:wMRLg": {
-                          "content": "New project"
+                      "type": "frame",
+                      "id": "pActionRow",
+                      "name": "pActionRow",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "justifyContent": "end",
+                      "children": [
+                        {
+                          "id": "pForkBtn",
+                          "type": "ref",
+                          "ref": "B:c8T4z",
+                          "name": "pForkBtn",
+                          "height": 36,
+                          "descendants": {
+                            "B:esH0z": {
+                              "content": "Fork demo project"
+                            }
+                          }
+                        },
+                        {
+                          "id": "M7i2xl",
+                          "type": "ref",
+                          "ref": "B:3CI7c",
+                          "name": "pNewBtn",
+                          "descendants": {
+                            "B:wMRLg": {
+                              "content": "New project"
+                            }
+                          }
                         }
-                      }
+                      ]
                     }
                   ]
                 },
@@ -173,6 +196,18 @@
               ]
             }
           ]
+        },
+        {
+          "id": "pForkOverlay",
+          "type": "ref",
+          "ref": "B:LgxGO",
+          "name": "pForkOverlay",
+          "enabled": false,
+          "width": "fill_container",
+          "height": "fill_container",
+          "layoutPosition": "absolute",
+          "x": 0,
+          "y": 0
         }
       ]
     }

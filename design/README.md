@@ -27,7 +27,7 @@ design/
 │   ├── repository-graph.pen
 │   ├── merge-requests.pen
 │   ├── projects.pen
-│   └── dialogs.pen            # 7 диалогов (Create Class, Create Property и др.)
+│   └── dialogs.pen            # 8 диалогов (Create Class, Create Property, ForkDemo и др.)
 │
 ├── ui-kit.lib.pen             # Единая библиотека: токены, атомы, молекулы, организмы
 └── README.md
@@ -41,7 +41,7 @@ design/
 |---|---|---|
 | **Design Tokens** | Цвета, типографика | `$background`, `$primary`, Status Colors, Priority Colors, шкала `text-4xs`…`text-6xl` |
 | **Atoms** | Базовые UI-элементы | Buttons, Badges, Input, Select, Checkbox, Avatar, Icon, Alert, Toast, Spinner |
-| **Molecules** | Составные паттерны | Card, Accordion, Tabs, Breadcrumbs, Pagination, DropdownMenu, SearchField |
+| **Molecules** | Составные паттерны | Card, Accordion, Tabs, Breadcrumbs, Pagination, DropdownMenu, SearchField, DemoProjectCard |
 | **Organisms** | Крупные составные блоки | Header, Sidebar, ClassTree, PropertyPanel, SPARQLQueryEditor и др. (см. ниже) |
 
 Страницы в папке `pages/` импортируют `ui-kit.lib.pen` и собирают интерфейс из молекул и организмов.
@@ -86,7 +86,11 @@ Querying & Validation
 ├── SPARQLQueryEditor
 ├── MetricsDashboard
 ├── SHACLRuleBuilder
-└── ValidationReport
+├── ValidationReport
+
+Project Lifecycle
+├── ForkDemoDialog
+└── DemoProjectCard
 ```
 
 > **Правило:** при добавлении нового организма создавайте его внутри `ui-kit.lib.pen` в соответствующей группе и помечайте `"reusable": true`.
@@ -151,7 +155,7 @@ Querying & Validation
 |---|---|
 | **login.pen** | Центрированная карточка, без Header и Sidebar |
 | **ontology-workspace.pen** | Кастомный сплит: ClassTree \| GraphVisualization \| PropertyPanel |
-| **dialogs.pen** | Модальные окна без общего лэйаута |
+| **dialogs.pen** | Модальные окна без общего лэйаута (включая ForkDemoDialog) |
 | **public-ontology.pen** | Публичный режим «только чтение» |
 
 ---
@@ -237,6 +241,18 @@ graph TD
         MR[merge-requests.pen]
         PROJ[projects.pen]
         DIALOGS[dialogs.pen]
+        DASHBOARD_P[\"dashboard.pen\"]
+        DASHBOARD --> FORK_DEMO
+        PROJ --> FORK_DEMO
+        DIALOGS --> FORK_DEMO
+
+    subgraph \"fork-flow\"
+        FORK_DEMO[ForkDemoDialog]
+        DEMO_CARD[DemoProjectCard]
+    end
+
+    FORK_DEMO --> DEMO_CARD
+    DEMO_CARD --> ATOMS
     end
 
     ATOMS --> TOKENS

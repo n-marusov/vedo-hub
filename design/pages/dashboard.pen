@@ -182,7 +182,129 @@
                 },
                 {
                   "type": "frame",
-                  "id": "dashWidgets",
+                  "id": "dashForkQuickStart",
+                "name": "dashForkQuickStart",
+                "width": "fill_container",
+                "fill": "$B:card",
+                "cornerRadius": 12,
+                "stroke": "$B:border",
+                "strokeWidth": 1,
+                "strokeAlignment": "inner",
+                "padding": 20,
+                "gap": 16,
+                "alignItems": "center",
+                "children": [
+                  {
+                    "type": "icon",
+                    "id": "dashForkIcon",
+                    "width": 24,
+                    "height": 24,
+                    "icon": "git-fork",
+                    "library": "lucide",
+                    "fill": "$B:primary"
+                  },
+                  {
+                    "type": "text",
+                    "id": "dashForkTitle",
+                    "fill": "$B:foreground",
+                    "content": "Quick start: Fork a demo project",
+                    "fontFamily": "IBM Plex Mono",
+                    "fontSize": 16,
+                    "fontWeight": "600"
+                  },
+                  {
+                    "type": "text",
+                    "id": "dashForkDesc",
+                    "fill": "$B:muted-foreground",
+                    "content": "Choose from 5 starter ontologies to fork into your workspace",
+                    "fontFamily": "IBM Plex Mono",
+                    "fontSize": 12,
+                    "fontWeight": "normal",
+                    "textGrowth": "fixed-width",
+                    "width": 500
+                  },
+                  {
+                    "type": "frame",
+                    "id": "dashForkCardRow",
+                    "width": "fill_container",
+                    "gap": 12,
+                    "children": [
+                      {
+                        "id": "dashForkCard1",
+                        "type": "ref",
+                        "ref": "B:ze4Nt",
+                        "width": "fill_container",
+                        "descendants": {
+                          "B:cardName": {
+                            "content": "Organization"
+                          },
+                          "B:cardDesc": {
+                            "content": "Departments, roles, structure"
+                          },
+                          "B:classCount": {
+                            "content": "5 classes"
+                          },
+                          "B:propCount": {
+                            "content": "4 properties"
+                          },
+                          "B:domainName": {
+                            "content": "Enterprise"
+                          }
+                        }
+                      },
+                      {
+                        "id": "dashForkCard2",
+                        "type": "ref",
+                        "ref": "B:ze4Nt",
+                        "width": "fill_container",
+                        "descendants": {
+                          "B:cardName": {
+                            "content": "Product"
+                          },
+                          "B:cardDesc": {
+                            "content": "Catalog, manufacturers"
+                          },
+                          "B:classCount": {
+                            "content": "4 classes"
+                          },
+                          "B:propCount": {
+                            "content": "5 properties"
+                          },
+                          "B:domainName": {
+                            "content": "Commerce"
+                          }
+                        }
+                      },
+                      {
+                        "id": "dashForkCard3",
+                        "type": "ref",
+                        "ref": "B:ze4Nt",
+                        "width": "fill_container",
+                        "descendants": {
+                          "B:cardName": {
+                            "content": "Glossary"
+                          },
+                          "B:cardDesc": {
+                            "content": "Terms, definitions"
+                          },
+                          "B:classCount": {
+                            "content": "4 classes"
+                          },
+                          "B:propCount": {
+                            "content": "3 properties"
+                          },
+                          "B:domainName": {
+                            "content": "Knowledge"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "frame",
+                "id": "dashWidgets",
                   "name": "Collaboration widgets",
                   "width": "fill_container",
                   "gap": 16,
@@ -1365,23 +1487,35 @@
                                   "id": "dashQuickOnto4Chevron",
                                   "width": 12,
                                   "height": 12,
-                                  "icon": "chevron-right",
-                                  "library": "lucide",
-                                  "fill": "$B:muted-foreground"
+                                                      "icon": "chevron-right",
+                                                      "library": "lucide",
+                                                      "fill": "$B:muted-foreground"
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
                                 }
                               ]
+                            },
+                            {
+                              "id": "dashForkOverlay",
+                              "type": "ref",
+                              "ref": "B:LgxGO",
+                              "name": "dashForkOverlay",
+                              "enabled": false,
+                              "width": "fill_container",
+                              "height": "fill_container",
+                              "layoutPosition": "absolute",
+                              "x": 0,
+                              "y": 0
                             }
                           ]
                         }
                       ]
                     }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}

@@ -24,6 +24,34 @@
         },
         {
           "type": "frame",
+          "id": "forkWsNotice",
+          "name": "forkWsNotice",
+          "width": "fill_container",
+          "gap": 8,
+          "alignItems": "center",
+          "justifyContent": "end",
+          "padding": [
+            8,
+            24
+          ],
+          "children": [
+            {
+              "id": "forkWsBtn",
+              "type": "ref",
+              "ref": "B:c8T4z",
+              "name": "forkWsBtn",
+              "height": 32,
+              "descendants": {
+                "B:esH0z": {
+                  "content": "Fork this project",
+                  "fontSize": 12
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "frame",
           "id": "e2FrA",
           "name": "Horizontal Split",
           "width": "fill_container",
@@ -1413,24 +1441,36 @@
                                           "icon": "trash",
                                           "library": "lucide",
                                           "fill": "#ef4444"
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
                                         }
-                                      ]
+                                      }
                                     }
                                   ]
                                 }
                               ]
                             }
                           ]
+                        },
+                        {
+                          "id": "ontoForkOverlay",
+                          "type": "ref",
+                          "ref": "B:LgxGO",
+                          "name": "ontoForkOverlay",
+                          "enabled": false,
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "layoutPosition": "absolute",
+                          "x": 0,
+                          "y": 0
                         }
-                      }
+                      ]
                     }
                   ]
                 }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}
