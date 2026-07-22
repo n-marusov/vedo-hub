@@ -9,9 +9,14 @@
                 </div>
                 <h1 class="pp-title">Projects</h1>
             </div>
-            <button class="pp-new-btn" type="button">
-                <Plus :size="14" />New project
-            </button>
+            <div class="pp-action-row">
+                <button class="pp-fork-btn" type="button" @click="showForkDialog = true">
+                    <GitFork :size="14" />Fork demo project
+                </button>
+                <button class="pp-new-btn" type="button">
+                    <Plus :size="14" />New project
+                </button>
+            </div>
         </section>
 
         <section class="pp-toolbar">
@@ -120,11 +125,13 @@
                 </div>
             </article>
         </section>
+        <ForkDemoDialog v-model="showForkDialog" />
     </div>
 </template>
 
 <script setup lang="ts">
 import { LIST_PROJECTS_QUERY } from "@/apollo/queries";
+import ForkDemoDialog from "@/components/projects/ForkDemoDialog.vue";
 import { useQuery } from "@vue/apollo-composable";
 import {
 	BadgeCheck,
@@ -144,6 +151,8 @@ import { computed, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
+
+const showForkDialog = ref(false);
 
 const searchQuery = ref("");
 const sortField = ref("Name");
@@ -311,6 +320,33 @@ watch(error, (err) => {
     align-items: center;
     gap: 6px;
     flex-shrink: 0;
+}
+
+.pp-action-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pp-fork-btn {
+    height: 36px;
+    border-radius: 6px;
+    padding: 0 14px;
+    background: transparent;
+    color: var(--foreground);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 14px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+    cursor: pointer;
+}
+
+.pp-fork-btn:hover {
+    background: var(--muted);
 }
 
 .pp-new-btn:hover {

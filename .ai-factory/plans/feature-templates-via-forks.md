@@ -472,7 +472,7 @@ Implement infrastructure that makes the API contract tests pass. Each task: writ
 
 ### Phase 8: GUI (TDD — GUI tests before frontend code)
 
-- [ ] **Task 18: GUI tests for fork UI (RED phase)**
+- [x] **Task 18: GUI tests for fork UI (RED phase)**
   Write frontend tests that define the fork UI contract, BEFORE implementing any Vue components. Tests must fail (RED) until implementation in Task 18.
 
   Create `src/services/frontend/src/__tests__/ForkDemoDialog.spec.ts`:
@@ -496,7 +496,7 @@ Implement infrastructure that makes the API contract tests pass. Each task: writ
 
 <!-- Commit checkpoint: task 18 -->
 
-- [ ] **Task 19: Frontend implementation (GREEN phase)**
+- [x] **Task 19: Frontend implementation (GREEN phase)**
   Make the GUI tests pass by implementing the fork UI components.
 
   - In `src/services/frontend/src/`:
