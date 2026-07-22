@@ -394,6 +394,27 @@ healthcheck:
 
 Compose waits for `condition: service_healthy` before starting dependent services.
 
+== Seed Data: VEDO Demos Bootstrap
+
+After deploying the stack, run the bootstrap script to create the `VEDO Demos` group with 5 demo projects:
+
+[source,bash]
+----
+cd deploy/seeds/vedo-demos
+bash bootstrap.sh
+----
+
+The bootstrap script:
+
+. Creates the `VEDO Demos` group (idempotent — checks by slug).
+. For each of the 5 demo projects (Organization, Product, Process, Glossary, Event):
+.. Creates a Project in the group.
+.. Applies the ontology sequence via the `ontology.ApplySequence` gRPC (reuses the Published Language `ApplySequenceRequest`).
+.. Sets visibility to `public`.
+. Logs completion with the count of created projects.
+
+Each demo project is a forkable starting point for users to explore the ontology editor without creating content from scratch. See xref:user-guide:ontology-editing.adoc[Fork Demo Projects] in the User Guide.
+
 == Organizational Database
 
 The `vedo_org` PostgreSQL database stores group/project hierarchy, role memberships, attribute policies, and audit events. It is created automatically via the init script at `deploy/postgres/init/01-create-org-db.sql`.

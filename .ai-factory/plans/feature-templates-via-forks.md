@@ -558,7 +558,7 @@ Implement infrastructure that makes the API contract tests pass. Each task: writ
 
   Files: `tests/traceability.ttl` (or equivalent location — verify by grep)
 
-- [ ] **Task 21: Antora docs — fork flow and demos**
+- [x] **Task 21: Antora docs — fork flow and demos**
   Update user guide, developer guide, and admin guide for the fork-based flow.
 
   - `src/docs/antora/user-guide/pages/ontology-creation.adoc` (or equivalent):

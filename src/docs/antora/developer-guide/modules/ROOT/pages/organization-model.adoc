@@ -63,12 +63,45 @@ Migrations: `src/services/auth-service/migrations/` (001-009). Migrations 007-00
 
 Migration 006 adds MVP role vocabulary (`Guest`, `Reporter`, `Developer`, `Maintainer`, `Owner`) to the memberships CHECK constraint while preserving legacy roles (`Viewer`, `Editor`) as backward-compatible aliases.
 
+== Project Lifecycle
+
+Projects follow a simple lifecycle:
+
+* *Create* — a new Project is created inside a Group with a paired Ontology (1:1).
+* *Fork* — copy a Project (with its Ontology) into the user's workspace. See <<Fork Model>> below.
+* *(post-MVP)* Merge upstream — incorporate changes from the source Project into the fork.
+
+=== Fork Model
+
+Forking creates a copy of a Project (with its paired Ontology) linked to the source via `upstream_project_id`. The fork is private by default; the user becomes Owner of the new Project.
+
+Fork mechanics:
+
+* *Endpoint:* `POST /api/v1/projects/{id}/fork`
+* *Request body:* empty (`Idempotency-Key` header required)
+* *Response:* `201 Created` with `{project_id, ontology_id, upstream_project_id}`
+* *RBAC:* any user with read access to the source Project can fork. Guest role can fork public/internal projects.
+* *Saga:* creates Project scope → paired Ontology → copies main branch via Versioning Service gRPC → emits `project.forked` audit event. On failure, compensating action deletes the new Project + Ontology.
+* *Idempotency:* `Idempotency-Key` header required (same as other write endpoints).
+
+=== `upstream_project_id` field
+
+The `upstream_project_id` field on Project (`scopes` table) is nullable:
+
+* When non-null: this Project is a fork of the referenced upstream Project.
+* When null: this is an original (non-forked) Project.
+
+Database constraints:
+
+* `ON DELETE SET NULL` — when the upstream Project is deleted, the fork remains as an orphan (consistent with the Git model).
+* Partial index: `idx_scopes_upstream` on `upstream_project_id WHERE upstream_project_id IS NOT NULL`.
+
 == Audit Events
 
 Structured audit events are emitted for the following organizational lifecycle operations:
 
 * Group create, delete, move
-* Project create, delete, move
+* Project create, delete, move, fork
 * Member add, remove, role change
 
 Each audit event includes:

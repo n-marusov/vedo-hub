@@ -69,6 +69,18 @@ The editor is designed to handle ontologies with up to 1 million axioms:
 * Incremental rendering — only visible nodes are rendered
 * Efficient diff updates via GraphQL subscriptions
 
+== Fork Demo Projects
+
+Instead of creating an ontology from scratch, you can fork one of the 5 demo projects in the `VEDO Demos` group:
+
+. Navigate to the *Projects* page.
+. Click *Fork demo project*.
+. Browse the available demo projects (Organization, Product, Process, Glossary, Event).
+. Click *Fork* on the project you want to use as a starting point.
+. A new private project is created in your personal workspace with a copy of the ontology.
+
+You can also fork any public or internal project by visiting the project page and clicking the *Fork* button.
+
 == See Also
 
 * xref:quick-start.adoc[Quick Start] — accessing the platform and creating your first ontology
