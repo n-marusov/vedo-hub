@@ -57,77 +57,13 @@
 				</div>
 
 				<div v-else class="fork-dialog-grid">
-					<div class="fork-dialog-row">
+					<div
+						v-for="(row, ri) in projectRows"
+						:key="ri"
+						class="fork-dialog-row"
+					>
 						<div
-							v-for="project in filteredProjects.slice(0, 2)"
-							:key="project.id"
-							class="fork-demo-card"
-						>
-							<Folder :size="18" class="fork-card-icon" />
-							<h3 class="fork-card-name">{{ project.name }}</h3>
-							<p class="fork-card-desc">{{ project.description }}</p>
-							<div class="fork-card-meta">
-								<span class="fork-card-badge">
-									<Box :size="10" />{{ project.classCount }} classes
-								</span>
-								<span class="fork-card-badge">
-									<Pencil :size="10" />{{ project.propertyCount }} properties
-								</span>
-								<span class="fork-card-badge">
-									<Tag :size="10" />{{ project.domain }}
-								</span>
-							</div>
-							<div class="fork-card-sep"></div>
-							<button
-								:data-testid="`fork-${project.id}`"
-								class="fork-card-btn"
-								type="button"
-								:disabled="forking === project.id"
-								@click="handleFork(project)"
-							>
-								<GitFork v-if="forking !== project.id" :size="12" />
-								<Loader v-else :size="12" class="fork-spin" />
-								{{ forking === project.id ? "Forking..." : "Fork" }}
-							</button>
-						</div>
-					</div>
-					<div class="fork-dialog-row">
-						<div
-							v-for="project in filteredProjects.slice(2, 4)"
-							:key="project.id"
-							class="fork-demo-card"
-						>
-							<Folder :size="18" class="fork-card-icon" />
-							<h3 class="fork-card-name">{{ project.name }}</h3>
-							<p class="fork-card-desc">{{ project.description }}</p>
-							<div class="fork-card-meta">
-								<span class="fork-card-badge">
-									<Box :size="10" />{{ project.classCount }} classes
-								</span>
-								<span class="fork-card-badge">
-									<Pencil :size="10" />{{ project.propertyCount }} properties
-								</span>
-								<span class="fork-card-badge">
-									<Tag :size="10" />{{ project.domain }}
-								</span>
-							</div>
-							<div class="fork-card-sep"></div>
-							<button
-								:data-testid="`fork-${project.id}`"
-								class="fork-card-btn"
-								type="button"
-								:disabled="forking === project.id"
-								@click="handleFork(project)"
-							>
-								<GitFork v-if="forking !== project.id" :size="12" />
-								<Loader v-else :size="12" class="fork-spin" />
-								{{ forking === project.id ? "Forking..." : "Fork" }}
-							</button>
-						</div>
-					</div>
-					<div v-if="filteredProjects.length >= 5" class="fork-dialog-row">
-						<div
-							v-for="project in filteredProjects.slice(4)"
+							v-for="project in row"
 							:key="project.id"
 							class="fork-demo-card"
 						>
@@ -212,6 +148,15 @@ const filteredProjects = computed(() => {
 	return demoProjects.value.filter((p) => p.name.toLowerCase().includes(query));
 });
 
+/** Split projects into rows of 2 for the card grid layout. */
+const projectRows = computed(() => {
+	const rows: DemoProject[][] = [];
+	for (let i = 0; i < filteredProjects.value.length; i += 2) {
+		rows.push(filteredProjects.value.slice(i, i + 2));
+	}
+	return rows;
+});
+
 async function loadProjects() {
 	loading.value = true;
 	error.value = null;
@@ -241,14 +186,19 @@ async function handleFork(project: DemoProject) {
 		);
 		window.location.href = `/projects/${result.project_id}/workspace`;
 	} catch (e) {
-		const axiosError = e as { response?: { status?: number } };
+		const axiosError = e as {
+			response?: { status?: number; data?: { error?: string } };
+		};
+		const serverMsg = axiosError.response?.data?.error;
 		if (axiosError.response?.status === 403) {
 			error.value =
+				serverMsg ||
 				"Access denied. You don't have permission to fork this project.";
 		} else if (axiosError.response?.status === 503) {
-			error.value = "Service unavailable, please retry.";
+			error.value = serverMsg || "Service unavailable, please retry.";
 		} else {
-			error.value = "An unexpected error occurred. Please try again.";
+			error.value =
+				serverMsg || "An unexpected error occurred. Please try again.";
 		}
 		console.info(
 			JSON.stringify({

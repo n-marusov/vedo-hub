@@ -3,6 +3,9 @@
 // Uses REST (not GraphQL) per ADR-DES.API.rest-graphql-mutation-boundary
 import axios from "axios";
 
+/** ID of the VEDO Demos group in the URL path. */
+export const VEDO_DEMOS_GROUP_SLUG = "vedo-demos";
+
 export interface ForkResponse {
 	project_id: string;
 	ontology_id: string;
@@ -37,9 +40,11 @@ export async function forkProject(
 
 /**
  * Fetch demo projects from the VEDO Demos group.
- * GET /api/v1/groups/{vedo-demos-id}/projects
+ * GET /api/v1/groups/{vedo-demos-slug}/projects
  */
 export async function fetchDemoProjects(): Promise<DemoProject[]> {
-	const res = await axios.get("/api/v1/groups/vedo-demos/projects");
+	const res = await axios.get(
+		`/api/v1/groups/${VEDO_DEMOS_GROUP_SLUG}/projects`,
+	);
 	return res.data.projects;
 }
