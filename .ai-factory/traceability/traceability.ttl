@@ -2169,3 +2169,54 @@ base:test/graphql-schema-boundary a vdo:TestSuite ;
     vdo:filePath "tests/e2e/playwright/tests/api/graphql/schema-boundary.spec.ts" ;
     vdo:validates base:adr/graphql-sparql-split-strategy ;
     vdo:validates base:adr/rest-graphql-mutation-boundary .
+
+# =============================================================================
+# INSTANCES — User Stories
+# =============================================================================
+
+base:user/US-auth.keycloak-login a vdo:UserStory ;
+    rdfs:label "US-auth.keycloak-login"@en ;
+    rdfs:comment "Keycloak OIDC authorization code + PKCE login flow — username/password authentication through Corporate SSO"@en ;
+    vdo:filePath "specs/user-stories/US-auth.keycloak-login.md" .
+
+base:user/US-api.auth.jwt a vdo:UserStory ;
+    rdfs:label "US-api.auth.jwt"@en ;
+    rdfs:comment "JWT token acquisition and validation for API calls via Keycloak"@en ;
+    vdo:filePath "specs/user-stories/US-api.auth.jwt.md" .
+
+base:user/US-a11y.auth.authentication a vdo:UserStory ;
+    rdfs:label "US-a11y.auth.authentication"@en ;
+    rdfs:comment "Keyboard-only OAuth authentication flow"@en ;
+    vdo:filePath "specs/user-stories/US-a11y.auth.authentication.md" .
+
+# =============================================================================
+# INSTANCES — E2E Test Suites (Keycloak Auth)
+# =============================================================================
+
+base:test/keycloak-login-e2e a vdo:TestSuite ;
+    rdfs:label "Keycloak Login E2E Tests"@en ;
+    rdfs:comment "Playwright E2E tests for full Keycloak OIDC authorization code + PKCE login flow: unauthenticated redirect, Corporate SSO initiation, credential entry, callback handling, role assertion, invalid credential rejection"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/keycloak-login.spec.ts" ;
+    vdo:validates base:user/US-auth.keycloak-login ;
+    vdo:validates base:user/US-api.auth.jwt ;
+    vdo:validates base:user/US-a11y.auth.authentication .
+
+# --- Keycloak auth code artifacts traceability ---
+
+base:gui/page/login vdo:implements base:user/US-auth.keycloak-login .
+base:gui/page/auth-callback vdo:implements base:user/US-auth.keycloak-login .
+base:auth/keycloak-module a vdo:CodeArtifact ;
+    rdfs:label "Keycloak OIDC Auth Module"@en ;
+    rdfs:comment "Keycloak OIDC client — authorization code flow with PKCE (initiateLogin, handleCallback, logout)"@en ;
+    vdo:language "TypeScript" ;
+    vdo:filePath "src/services/frontend/src/auth/keycloak.ts" ;
+    vdo:implements base:user/US-auth.keycloak-login .
+
+base:auth/session-module a vdo:CodeArtifact ;
+    rdfs:label "Auth Session Management Module"@en ;
+    rdfs:comment "JWT storage, role extraction, token validation in sessionStorage and localStorage"@en ;
+    vdo:language "TypeScript" ;
+    vdo:filePath "src/services/frontend/src/auth/session.ts" ;
+    vdo:implements base:user/US-auth.keycloak-login .
+
+base:security/auth-boundary vdo:constrains base:user/US-auth.keycloak-login .

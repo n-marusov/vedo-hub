@@ -4,7 +4,7 @@
   "displayName": "VEDO Core",
   "displayNameHtml": "<div class=\"kc-logo-text\"><span>VEDO Core</span></div>",
   "enabled": true,
-  "sslRequired": "external",
+  "sslRequired": "none",
   "registrationAllowed": false,
   "loginWithEmailAllowed": true,
   "bruteForceProtected": false,
