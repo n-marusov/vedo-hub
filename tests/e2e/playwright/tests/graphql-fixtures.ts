@@ -113,6 +113,32 @@ const MOCK_GRAPH_NEIGHBORHOOD = {
   ],
 };
 
+// Mock ontology workspace class tree data — used by workspace's CLASS_TREE_QUERY
+// The graph nodes are computed from the class tree, not from a separate graph query.
+const MOCK_CLASS_TREE = [
+  {
+    id: 'Person',
+    label: 'Person',
+    comment: 'A person',
+    children: [
+      { id: 'Student', label: 'Student', comment: 'A student', children: [] },
+      { id: 'Professor', label: 'Professor', comment: 'A professor', children: [] },
+    ],
+  },
+  { id: 'Organization', label: 'Organization', comment: 'An organization', children: [] },
+];
+
+// Mock individuals data — used for graph edge generation (individual → class links)
+const MOCK_INDIVIDUALS = {
+  items: [
+    { id: 'John', label: 'John', comment: '', classId: 'Professor', classLabel: 'Professor' },
+    { id: 'Alice', label: 'Alice', comment: '', classId: 'Student', classLabel: 'Student' },
+  ],
+  total: 2,
+  page: 0,
+  perPage: 50,
+};
+
 const MOCK_COMPARE_REVISIONS = {
   additions: 5,
   deletions: 3,
@@ -235,6 +261,14 @@ async function handleGuiGraphql(route: Route) {
 
   if (signature.includes('RemoveMember') || signature.includes('removeMember')) {
     return fulfillGraphql(route, { removeMember: { success: true } });
+  }
+
+  if (signature.includes('ClassTree') || signature.includes('classTree')) {
+    return fulfillGraphql(route, { classTree: MOCK_CLASS_TREE }, 200);
+  }
+
+  if (signature.includes('ListIndividuals') || signature.includes('listIndividuals')) {
+    return fulfillGraphql(route, { individuals: MOCK_INDIVIDUALS }, 200);
   }
 
   return route.fallback();

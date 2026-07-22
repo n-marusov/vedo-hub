@@ -28,12 +28,22 @@ export class OntologyWorkspacePage {
   }
 
   async getClassTree(): Promise<string[]> {
-    const treeItems = await this.page.locator('.class-tree-item').allTextContents();
+    // OntologyWorkspace.vue renders each class as a <button class="class-row">
+    // inside the .class-panel aside. Use role-based locators for resilience.
+    const treeItems = await this.page
+      .locator('.class-panel')
+      .getByRole('button')
+      .allTextContents();
     return treeItems;
   }
 
   async selectClass(label: string) {
-    await this.page.locator('.class-tree-item', { hasText: label }).click();
+    // Class rows are <button class="class-row"> scoped to .class-panel.
+    // Use exact name match to avoid selecting "Person" when "PersonProfile" exists.
+    await this.page
+      .locator('.class-panel')
+      .getByRole('button', { name: label, exact: true })
+      .click();
   }
 
   async createDatatypeProperty(label: string, domain: string, xsdType: string) {
@@ -93,10 +103,12 @@ export class OntologyWorkspacePage {
   }
 
   async getGraphNodes(): Promise<string[]> {
-    return this.page.locator('.graph-node').allTextContents();
+    // GraphVisualization.vue renders labels inside .graph-viz__flow-node-label spans
+    return this.page.locator('.graph-viz__flow-node-label').allTextContents();
   }
 
   async getGraphEdges(): Promise<number> {
-    return this.page.locator('.graph-edge').count();
+    // CustomEdge.vue renders each edge as a <path class="custom-edge"> element
+    return this.page.locator('.custom-edge').count();
   }
 }

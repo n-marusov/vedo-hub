@@ -129,12 +129,15 @@ export const CLASS_TREE_QUERY = gql`
     classTree(ontologyId: $ontologyId) {
       id
       label
+      comment
       children {
         id
         label
+        comment
         children {
           id
           label
+          comment
         }
       }
     }

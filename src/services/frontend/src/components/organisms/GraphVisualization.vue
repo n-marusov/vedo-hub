@@ -36,7 +36,7 @@
       <VueFlow
         :nodes="flowNodes"
         :edges="flowEdges"
-        :node-click="onNodeClick"
+        @node-click="onNodeClick"
         :fit-view-on-init="true"
         :min-zoom="0.1"
         :max-zoom="3"
@@ -246,7 +246,8 @@ function getEdgeCount(nodeId: string): number {
 		.length;
 }
 
-function onNodeClick(_event: MouseEvent, node: Node) {
+function onNodeClick(nodeMouseEvent: { node: Node }) {
+	const node = nodeMouseEvent.node;
 	const original = props.nodes.find((n) => n.id === node.id);
 	if (original) {
 		emit("node-click", original);

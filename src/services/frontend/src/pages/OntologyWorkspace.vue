@@ -279,6 +279,16 @@
                 @node-click="onGraphNodeClick"
               />
 
+              <!-- Detail panel overlay (visible when a class is selected) -->
+              <div v-if="selectedClass" class="detail-panel">
+                <div class="detail-panel__header">
+                  <span class="detail-panel__title">{{ selectedClass.label }}</span>
+                </div>
+                <div v-if="selectedClass.comment" class="detail-panel__comment">
+                  {{ selectedClass.comment }}
+                </div>
+              </div>
+
               <!-- Table view (existing) -->
               <template v-else>
                 <div class="graph-head">
@@ -350,8 +360,8 @@
 </template>
 
 <script setup lang="ts">
-import ApplySequenceButton from "@/components/ontology/ApplySequenceButton.vue";
 import AiSuggestionPanel from "@/components/ontology/AiSuggestionPanel.vue";
+import ApplySequenceButton from "@/components/ontology/ApplySequenceButton.vue";
 import BatchUploader from "@/components/ontology/BatchUploader.vue";
 import CreateClassDialog from "@/components/ontology/CreateClassDialog.vue";
 import CreateIndividualDialog from "@/components/ontology/CreateIndividualDialog.vue";
@@ -372,15 +382,19 @@ import {
 } from "lucide-vue-next";
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
+import { generateFromText, refineSequence } from "../api/ai";
+import type { AiGenerationResult } from "../api/ai";
 import {
 	CLASS_TREE_QUERY,
 	LIST_INDIVIDUALS_QUERY,
 	ONTOLOGY_QUERY,
 } from "../apollo/queries";
 import { useDraftState } from "../composables/useDraftState";
-import { generateFromText, refineSequence } from "../api/ai";
-import type { AiGenerationResult } from "../api/ai";
-import type { AiSuggestion, ExtractionPreview, SequenceStep } from "../types/extraction";
+import type {
+	AiSuggestion,
+	ExtractionPreview,
+	SequenceStep,
+} from "../types/extraction";
 
 const route = useRoute();
 const ontologyId = ref((route.params.id as string) || "default");
@@ -395,27 +409,27 @@ const saving = ref(false);
 
 // ── AI Import Panel state ──────────────────────────────────────────────────
 
-	const showAiPanel = ref(false);
-	const aiTab = ref<"document" | "nl-to-owl">("document");
-	const uploadMode = ref<"single" | "batch">("single");
+const showAiPanel = ref(false);
+const aiTab = ref<"document" | "nl-to-owl">("document");
+const uploadMode = ref<"single" | "batch">("single");
 
-	// ── NL→OWL Generation state ────────────────────────────────────────────────
+// ── NL→OWL Generation state ────────────────────────────────────────────────
 
-	const nlPrompt = ref("");
-	const isGenerating = ref(false);
-	const generationError = ref<string | null>(null);
-	const nlResult = ref<AiGenerationResult | null>(null);
+const nlPrompt = ref("");
+const isGenerating = ref(false);
+const generationError = ref<string | null>(null);
+const nlResult = ref<AiGenerationResult | null>(null);
 
-	// ── Iterative Refinement state ────────────────────────────────────────────
+// ── Iterative Refinement state ────────────────────────────────────────────
 
-	const refinementFeedback = ref("");
-	const isRefining = ref(false);
-	const refinementRound = ref(0);
-	const maxRefinementRounds = 5;
+const refinementFeedback = ref("");
+const isRefining = ref(false);
+const refinementRound = ref(0);
+const maxRefinementRounds = 5;
 
-	// ── Extraction / Preview state (shared) ───────────────────────────────────
+// ── Extraction / Preview state (shared) ───────────────────────────────────
 
-	const extractionSteps = ref<SequenceStep[]>([]);
+const extractionSteps = ref<SequenceStep[]>([]);
 const showApplyButton = ref(false);
 const extractionSourceFiles = computed(
 	() =>
@@ -424,43 +438,49 @@ const extractionSourceFiles = computed(
 				extractionSteps.value.map((step) => step.sourceFile).filter(Boolean),
 			),
 		) as string[],
-	);
+);
 
-	// ── Create Dialog state ───────────────────────────────────────────────────
+// ── Create Dialog state ───────────────────────────────────────────────────
 
-	const showCreateClass = ref(false);
-	const showCreateProperty = ref(false);
-	const showCreateIndividual = ref(false);
+const showCreateClass = ref(false);
+const showCreateProperty = ref(false);
+const showCreateIndividual = ref(false);
 
-	function openCreateClass() { showCreateClass.value = true; }
-	function openCreateProperty() { showCreateProperty.value = true; }
-	function openCreateIndividual() { showCreateIndividual.value = true; }
+function openCreateClass() {
+	showCreateClass.value = true;
+}
+function openCreateProperty() {
+	showCreateProperty.value = true;
+}
+function openCreateIndividual() {
+	showCreateIndividual.value = true;
+}
 
-	function onClassCreated(_name: string) {
-		showCreateClass.value = false;
-		draftState.trackChange("create:class", null, _name);
-	}
+function onClassCreated(_name: string) {
+	showCreateClass.value = false;
+	draftState.trackChange("create:class", null, _name);
+}
 
-	function onPropertyCreated(_name: string) {
-		showCreateProperty.value = false;
-		draftState.trackChange("create:property", null, _name);
-	}
+function onPropertyCreated(_name: string) {
+	showCreateProperty.value = false;
+	draftState.trackChange("create:property", null, _name);
+}
 
-	function onIndividualCreated(_name: string) {
-		showCreateIndividual.value = false;
-		draftState.trackChange("create:individual", null, _name);
-	}
+function onIndividualCreated(_name: string) {
+	showCreateIndividual.value = false;
+	draftState.trackChange("create:individual", null, _name);
+}
 
-	function onAiSuggestionAccepted(suggestion: AiSuggestion) {
-		console.info("[OntologyWorkspace] AI suggestion accepted", {
-			id: suggestion.id,
-			label: suggestion.label,
-			type: suggestion.type,
-		});
-		draftState.trackChange("ai:suggest", null, suggestion.label);
-	}
+function onAiSuggestionAccepted(suggestion: AiSuggestion) {
+	console.info("[OntologyWorkspace] AI suggestion accepted", {
+		id: suggestion.id,
+		label: suggestion.label,
+		type: suggestion.type,
+	});
+	draftState.trackChange("ai:suggest", null, suggestion.label);
+}
 
-	function normalizeExtractionStep(
+function normalizeExtractionStep(
 	step: SequenceStep,
 	index: number,
 ): SequenceStep {
@@ -573,7 +593,9 @@ async function handleGenerateFromText(): Promise<void> {
 	} catch (err) {
 		const msg = err instanceof Error ? err.message : String(err);
 		generationError.value = msg;
-		console.error("[OntologyWorkspace] NL→OWL generation failed", { error: msg });
+		console.error("[OntologyWorkspace] NL→OWL generation failed", {
+			error: msg,
+		});
 	} finally {
 		isGenerating.value = false;
 	}
@@ -633,6 +655,63 @@ async function handleRefine(): Promise<void> {
 
 // ── Graph visualization data ───────────────────────────────────────────────────────────
 
+// Recursively flatten the class tree so nested children appear as graph nodes.
+// CLASS_TREE_QUERY returns a recursive { id, label, comment, children } shape;
+// without flattening, only top-level classes would be visualized and subclass edges
+// (and any individual→child-class edges) would silently drop.
+function flattenClassTree(
+	nodes: ReadonlyArray<{
+		id: string;
+		label: string;
+		comment?: string | null;
+		children?: unknown[];
+	}>,
+): Array<{
+	id: string;
+	label: string;
+	comment?: string | null;
+	parentId?: string;
+}> {
+	const out: Array<{
+		id: string;
+		label: string;
+		comment?: string | null;
+		parentId?: string;
+	}> = [];
+	const walk = (
+		list: ReadonlyArray<{
+			id: string;
+			label: string;
+			comment?: string | null;
+			children?: unknown[];
+		}>,
+		parentId?: string,
+	) => {
+		for (const n of list) {
+			out.push({ id: n.id, label: n.label, comment: n.comment, parentId });
+			const kids = Array.isArray(n.children)
+				? (n.children as Array<{
+						id: string;
+						label: string;
+						comment?: string | null;
+						children?: unknown[];
+					}>)
+				: [];
+			if (kids.length) walk(kids, n.id);
+		}
+	};
+	walk(nodes);
+	return out;
+}
+
+// Flattened class list (all classes including nested children) for graph rendering
+const flatClasses = computed(() => flattenClassTree(classTree.value));
+
+// Currently selected class details (label + comment) for the detail panel
+const selectedClass = computed(
+	() => flatClasses.value.find((c) => c.id === selectedClassId.value) ?? null,
+);
+
 const graphNodes = computed(() => {
 	const nodes: Array<{
 		id: string;
@@ -642,8 +721,8 @@ const graphNodes = computed(() => {
 		y: number;
 	}> = [];
 	let idx = 0;
-	// Add classes as nodes
-	for (const cls of classTree.value) {
+	// Add classes as nodes (flattened — includes nested children)
+	for (const cls of flatClasses.value) {
 		nodes.push({
 			id: cls.id,
 			label: cls.label,
@@ -674,6 +753,13 @@ const graphEdges = computed(() => {
 		target: string;
 		type: "subclass_of" | "object_property" | "datatype_property";
 	}> = [];
+	// Subclass edges: child → parent (keeps hierarchy visible even with no individuals)
+	for (const cls of flatClasses.value) {
+		if (cls.parentId) {
+			edges.push({ source: cls.id, target: cls.parentId, type: "subclass_of" });
+		}
+	}
+	// Individual → class instance edges
 	for (const ind of individuals.value) {
 		if (ind.classId) {
 			edges.push({ source: ind.id, target: ind.classId, type: "subclass_of" });
@@ -990,6 +1076,39 @@ watch(selectedClassId, () => {
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+
+.detail-panel {
+  position: absolute;
+  top: 50px;
+  right: 12px;
+  z-index: 10;
+  min-width: 200px;
+  max-width: 300px;
+  padding: 12px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.15));
+}
+
+.detail-panel__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.detail-panel__title {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.detail-panel__comment {
+  font-size: 13px;
+  color: var(--muted-foreground, #666);
+  line-height: 1.4;
 }
 
 .graph-head,
