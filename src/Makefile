@@ -179,6 +179,7 @@ docker-build-%:
 	fi
 
 ##@ Docker — Compose Lifecycle
+ENV                 ?= dev
 COMPOSE_FILE        ?= ../deploy/docker-compose.yml
 COMPOSE_PROFILE     ?=
 
