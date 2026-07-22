@@ -16,6 +16,10 @@ test.describe('Ontology Lifecycle E2E', () => {
   test.beforeEach(async ({ page }) => {
     workspace = new OntologyWorkspacePage(page);
     await workspace.goto();
+    // Navigate into the project workspace before interacting with editor controls.
+    // goto() only loads the dashboard shell ('/'); the "Create class" / "Create property"
+    // / "Create individual" buttons live on the /project/:name/workspace route.
+    await workspace.openOntology(UNIVERSITY_ONTOLOGY.name);
   });
 
   test('full ontology lifecycle: classes -> properties -> individuals -> commit', async () => {

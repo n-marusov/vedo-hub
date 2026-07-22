@@ -1,4 +1,4 @@
-import { test, expect } from '../../fixtures';
+import { test, expect } from '../../graphql-fixtures';
 import { OntologyWorkspacePage } from '../../../pages/ontology-workspace.page';
 import { UNIVERSITY_ONTOLOGY } from '../../ontology-test-data';
 
@@ -19,9 +19,12 @@ test.describe('Graph Visualization E2E', () => {
     // Navigate to an existing ontology workspace
     await workspace.openOntology(UNIVERSITY_ONTOLOGY.name);
 
+    // Select a class to populate individuals (generates graph edges from classId links)
+    await workspace.selectClass('Person');
+
     // Open the graph view tab
-    await page.getByRole('tab', { name: /graph/i }).click();
-    await expect(page.locator('.graph-canvas')).toBeVisible();
+    await page.getByRole('button', { name: /graph/i }).click();
+    await expect(page.getByRole('img', { name: /ontology graph visualization/i })).toBeVisible();
 
     // Verify graph contains expected nodes
     const nodes = await workspace.getGraphNodes();
@@ -37,11 +40,11 @@ test.describe('Graph Visualization E2E', () => {
 
   test('zoom in on graph makes nodes larger', async ({ page }) => {
     await workspace.openOntology(UNIVERSITY_ONTOLOGY.name);
-    await page.getByRole('tab', { name: /graph/i }).click();
-    await expect(page.locator('.graph-canvas')).toBeVisible();
+    await page.getByRole('button', { name: /graph/i }).click();
+    await expect(page.getByRole('img', { name: /ontology graph visualization/i })).toBeVisible();
 
     // Capture initial node size
-    const initialNode = page.locator('.graph-node').first();
+    const initialNode = page.locator('.graph-viz__flow-node').first();
     const initialBox = await initialNode.boundingBox();
     expect(initialBox).not.toBeNull();
 
@@ -62,11 +65,11 @@ test.describe('Graph Visualization E2E', () => {
 
   test('click node opens detail panel with class information', async ({ page }) => {
     await workspace.openOntology(UNIVERSITY_ONTOLOGY.name);
-    await page.getByRole('tab', { name: /graph/i }).click();
-    await expect(page.locator('.graph-canvas')).toBeVisible();
+    await page.getByRole('button', { name: /graph/i }).click();
+    await expect(page.getByRole('img', { name: /ontology graph visualization/i })).toBeVisible();
 
     // Click on a node in the graph
-    const personNode = page.locator('.graph-node', { hasText: 'Person' });
+    const personNode = page.locator('.graph-viz__flow-node', { hasText: 'Person' });
     await personNode.click();
 
     // Verify detail panel opens with class information
@@ -79,8 +82,8 @@ test.describe('Graph Visualization E2E', () => {
 
   test('zoom out restores graph to original state', async ({ page }) => {
     await workspace.openOntology(UNIVERSITY_ONTOLOGY.name);
-    await page.getByRole('tab', { name: /graph/i }).click();
-    await expect(page.locator('.graph-canvas')).toBeVisible();
+    await page.getByRole('button', { name: /graph/i }).click();
+    await expect(page.getByRole('img', { name: /ontology graph visualization/i })).toBeVisible();
 
     // Zoom in then zoom out
     await page.getByRole('button', { name: /zoom in/i }).click();
@@ -89,24 +92,24 @@ test.describe('Graph Visualization E2E', () => {
     await page.waitForTimeout(200);
 
     // Graph should still render all nodes after zoom operations
-    const nodeCount = await page.locator('.graph-node').count();
+    const nodeCount = await page.locator('.graph-viz__flow-node').count();
     expect(nodeCount).toBeGreaterThanOrEqual(4);
   });
 
   test('clicking on an empty area of the graph canvas deselects the active node', async ({ page }) => {
     await workspace.openOntology(UNIVERSITY_ONTOLOGY.name);
-    await page.getByRole('tab', { name: /graph/i }).click();
-    await expect(page.locator('.graph-canvas')).toBeVisible();
+    await page.getByRole('button', { name: /graph/i }).click();
+    await expect(page.getByRole('img', { name: /ontology graph visualization/i })).toBeVisible();
 
     // Select a node first
-    const personNode = page.locator('.graph-node', { hasText: 'Person' });
+    const personNode = page.locator('.graph-viz__flow-node', { hasText: 'Person' });
     await personNode.click();
 
     // Verify detail panel is visible
     await expect(page.locator('.detail-panel')).toBeVisible();
 
     // Click on empty canvas area to deselect
-    await page.locator('.graph-canvas').click({ position: { x: 10, y: 10 } });
+    await page.getByRole('img', { name: /ontology graph visualization/i }).click({ position: { x: 10, y: 10 } });
 
     // Detail panel should close or show no selection
     // (actual behavior depends on implementation — allow flex)

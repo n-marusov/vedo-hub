@@ -96,10 +96,20 @@ export async function generateFromText(
 
 		return response.data;
 	} catch (error) {
+		let message: string;
+		if (axios.isAxiosError(error) && error.response?.data) {
+			// Extract human-readable error from the API response body
+			const body = error.response.data as Record<string, unknown>;
+			const errDetail = body.error as Record<string, unknown> | undefined;
+			message = (errDetail?.message as string) || error.message;
+		} else {
+			message = error instanceof Error ? error.message : String(error);
+		}
+
 		console.error("[ai] generate-from-text failed", {
-			error: error instanceof Error ? error.message : String(error),
+			error: message,
 		});
-		throw error;
+		throw new Error(message);
 	}
 }
 

@@ -41,6 +41,22 @@ export class DocumentUploadPage {
     await this.page.getByRole('region', { name: /document upload zone|batch document upload/i }).waitFor({ state: 'visible' });
   }
 
+  /// Opens the AI Import panel and switches to the "NL→OWL" sub-tab.
+  /// Required for natural-language tests — `openDocumentUpload` lands on
+  /// the "Document Import" sub-tab by default.
+  async openNLToOWLImport(ontologyName: string) {
+    await this.openDocumentUpload(ontologyName);
+    await this.page.getByRole('button', { name: /nl→owl/i }).click();
+    await this.nlInput().waitFor({ state: 'visible' });
+  }
+
+  /// Locator for the NL→OWL textarea. Uses role+name because the component
+  /// renders a labelled textbox without a stable `data-testid` or
+  /// `.nl-to-owl-input` wrapper — the accessible name is stable across themes.
+  nlInput() {
+    return this.page.getByRole('textbox', { name: /describe your ontology in natural language/i });
+  }
+
   // ─── File Upload ──────────────────────────────────────────────────
 
   async uploadFile(filePath: string) {

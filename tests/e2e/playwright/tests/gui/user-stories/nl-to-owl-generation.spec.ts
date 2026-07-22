@@ -8,41 +8,50 @@ import { DocumentUploadPage } from '../../../pages/document-upload.page';
 // - Enter NL text "a university with students, professors, and courses"
 //   → view generated sequence preview with classes and properties
 // - Edit generated steps → modify label → apply → verify entities in ontology
-// - Enter ambiguous NL → verify disambiguation prompt
+// - Enter ambiguous NL → verify error prompt (frontend surfaces backend error)
 //
-// Mocked routes:
-//   POST /api/v1/ai/generate — NL → SequenceStep[]
-//   POST /api/v1/ontologies/:name/apply — applies sequence
+// Mocked routes (match the real API contract in src/services/frontend/src/api/ai.ts
+// and src/services/frontend/src/api/extraction.ts):
+//   POST /api/v1/ontologies/:id/generate-from-text — NL → AiGenerationResult
+//   POST /api/v1/documents/apply — applies sequence → ApplyResult
 
 test.describe('NL→OWL Generation', () => {
   let uploadPage: DocumentUploadPage;
 
+  // AiGenerationResult shape per src/services/frontend/src/api/ai.ts.
+  // SequenceStep fields per src/services/frontend/src/types/extraction.ts:
+  //   id, operation, entityId, label, parentId?, domain?, range?, included.
   const MOCK_NL_GENERATE = {
+    id: 'gen-test-001',
+    ontologyId: 'TestOntology',
     steps: [
-      { operation: 'CREATE_CLASS', entityId: 'University', label: 'University', parentId: 'owl:Thing' },
-      { operation: 'CREATE_CLASS', entityId: 'Student', label: 'Student', parentId: 'owl:Thing' },
-      { operation: 'CREATE_CLASS', entityId: 'Professor', label: 'Professor', parentId: 'owl:Thing' },
-      { operation: 'CREATE_CLASS', entityId: 'Course', label: 'Course', parentId: 'owl:Thing' },
-      { operation: 'CREATE_OBJECT_PROPERTY', entityId: 'enrolledIn', label: 'enrolledIn', domainId: 'Student', rangeId: 'Course' },
-      { operation: 'CREATE_OBJECT_PROPERTY', entityId: 'teaches', label: 'teaches', domainId: 'Professor', rangeId: 'Course' },
-      { operation: 'CREATE_DATATYPE_PROPERTY', entityId: 'name', label: 'name', domainId: 'owl:Thing', rangeId: 'string' },
+      { id: 's1', operation: 'CREATE_CLASS', entityId: 'University', label: 'University', parentId: 'owl:Thing', included: true },
+      { id: 's2', operation: 'CREATE_CLASS', entityId: 'Student', label: 'Student', parentId: 'owl:Thing', included: true },
+      { id: 's3', operation: 'CREATE_CLASS', entityId: 'Professor', label: 'Professor', parentId: 'owl:Thing', included: true },
+      { id: 's4', operation: 'CREATE_CLASS', entityId: 'Course', label: 'Course', parentId: 'owl:Thing', included: true },
+      { id: 's5', operation: 'CREATE_OBJECT_PROPERTY', entityId: 'enrolledIn', label: 'enrolledIn', domain: 'Student', range: 'Course', included: true },
+      { id: 's6', operation: 'CREATE_OBJECT_PROPERTY', entityId: 'teaches', label: 'teaches', domain: 'Professor', range: 'Course', included: true },
+      { id: 's7', operation: 'CREATE_DATATYPE_PROPERTY', entityId: 'name', label: 'name', domain: 'owl:Thing', range: 'string', included: true },
     ],
-    promptTokens: 45,
-    completionTokens: 128,
-    model: 'gpt-4',
+    tokenUsage: { prompt: 45, completion: 128, total: 173 },
   };
 
-  const MOCK_COMMIT = {
+  // ApplyResult shape per src/services/frontend/src/types/extraction.ts.
+  const MOCK_APPLY = {
+    success: true,
+    appliedCount: 7,
     commitId: 'nl-owl-commit-001',
-    message: 'Created ontology from natural language description',
-    branchId: 'main',
-    entityCount: 7,
+    commitUrl: '/project/TestOntology/commits/nl-owl-commit-001',
+    errors: [],
+    timestamp: new Date().toISOString(),
   };
 
   test.beforeEach(async ({ page }) => {
     uploadPage = new DocumentUploadPage(page);
 
-    await page.route('**/api/v1/ai/generate', async (route) => {
+    // Real endpoint: POST /api/v1/ontologies/:id/generate-from-text
+    // (see src/services/frontend/src/api/ai.ts → generateFromText)
+    await page.route('**/api/v1/ontologies/*/generate-from-text', async (route) => {
       if (route.request().method() === 'POST') {
         await route.fulfill({
           status: 200,
@@ -54,12 +63,14 @@ test.describe('NL→OWL Generation', () => {
       }
     });
 
-    await page.route('**/api/v1/ontologies/**/apply', async (route) => {
+    // Real endpoint: POST /api/v1/documents/apply
+    // (see src/services/frontend/src/api/extraction.ts → applySequence)
+    await page.route('**/api/v1/documents/apply', async (route) => {
       if (route.request().method() === 'POST') {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify(MOCK_COMMIT),
+          body: JSON.stringify(MOCK_APPLY),
         });
       } else {
         await route.continue();
@@ -69,18 +80,18 @@ test.describe('NL→OWL Generation', () => {
 
   test('enter NL text and view generated sequence preview with classes and properties', async () => {
     // US-io.ontology.create-nl-to-owl: Generate ontology from NL
-    await uploadPage.openDocumentUpload('TestOntology');
+    await uploadPage.openNLToOWLImport('TestOntology');
 
     // Enter natural language description
-    const nlInput = uploadPage.page.locator('.nl-to-owl-input textarea, [data-testid="nl-input"]');
-    await nlInput.fill('a university with students, professors, and courses');
-    await uploadPage.page.getByRole('button', { name: /generate|create ontology/i }).click();
+    await uploadPage.nlInput().fill('a university with students, professors, and courses');
 
-    // Wait for generation to complete
-    await uploadPage.page.waitForResponse(
-      (resp) => resp.url().includes('/api/v1/ai/generate') && resp.status() === 200,
+    // Start waiting for the response BEFORE clicking (prevents race condition)
+    const genResponse = uploadPage.page.waitForResponse(
+      (resp) => resp.url().includes('/generate-from-text') && resp.status() === 200,
       { timeout: 15_000 }
     );
+    await uploadPage.page.getByRole('button', { name: /^Generate$/i }).click();
+    await genResponse;
 
     // Verify preview shows extracted steps
     const steps = await uploadPage.getPreviewSequence();
@@ -100,48 +111,48 @@ test.describe('NL→OWL Generation', () => {
 
   test('edit generated steps and apply sequence', async () => {
     // US-io.ontology.create-nl-to-owl: Edit and apply
-    await uploadPage.openDocumentUpload('TestOntology');
+    await uploadPage.openNLToOWLImport('TestOntology');
 
-    const nlInput = uploadPage.page.locator('.nl-to-owl-input textarea, [data-testid="nl-input"]');
-    await nlInput.fill('a library system with books, authors, and members');
-    await uploadPage.page.getByRole('button', { name: /generate|create ontology/i }).click();
+    await uploadPage.nlInput().fill('a library system with books, authors, and members');
 
-    await uploadPage.page.waitForResponse(
-      (resp) => resp.url().includes('/api/v1/ai/generate') && resp.status() === 200,
+    const genResponse = uploadPage.page.waitForResponse(
+      (resp) => resp.url().includes('/generate-from-text') && resp.status() === 200,
       { timeout: 15_000 }
     );
+    await uploadPage.page.getByRole('button', { name: /^Generate$/i }).click();
+    await genResponse;
+
+    // Wait for preview rows to render
+    await uploadPage.page.locator('.preview-row').first().waitFor({ state: 'visible' });
 
     // Edit a label
     await uploadPage.editStepLabel(0, 'Library');
 
-    // Apply the sequence
+    // Apply the sequence — opens the confirm modal
     await uploadPage.applySequence();
 
-    // Verify apply succeeded
+    // Verify apply succeeded (clicks confirm → waits for success title)
     const success = await uploadPage.waitForApplyComplete();
     expect(success).toBe(true);
   });
 
-  test('ambiguous natural language shows disambiguation prompt', async () => {
+  test('ambiguous natural language shows error prompt', async () => {
     // US-io.ontology.create-nl-to-owl: Ambiguity handling
-    await uploadPage.page.unroute('**/api/v1/ai/generate');
-    await uploadPage.page.route('**/api/v1/ai/generate', async (route) => {
+    await uploadPage.page.unroute('**/api/v1/ontologies/*/generate-from-text');
+    await uploadPage.page.route('**/api/v1/ontologies/*/generate-from-text', async (route) => {
       if (route.request().method() === 'POST') {
         await route.fulfill({
           status: 300,
           contentType: 'application/json',
           body: JSON.stringify({
-            ambiguities: [
-              {
-                term: 'course',
-                options: ['A unit of academic study', 'A direction or path', 'A sports field'],
-              },
-              {
-                term: 'staff',
-                options: ['Academic staff (professors)', 'Administrative staff', 'Both'],
-              },
-            ],
-            message: 'Some terms are ambiguous. Please clarify.',
+            error: {
+              code: 'AI-AMBIGUOUS-TERMS',
+              message: 'Some terms are ambiguous: course, staff. Please clarify.',
+              ambiguities: [
+                { term: 'course', options: ['A unit of academic study', 'A direction or path', 'A sports field'] },
+                { term: 'staff', options: ['Academic staff (professors)', 'Administrative staff', 'Both'] },
+              ],
+            },
           }),
         });
       } else {
@@ -149,18 +160,19 @@ test.describe('NL→OWL Generation', () => {
       }
     });
 
-    await uploadPage.openDocumentUpload('TestOntology');
+    await uploadPage.openNLToOWLImport('TestOntology');
 
-    const nlInput = uploadPage.page.locator('.nl-to-owl-input textarea, [data-testid="nl-input"]');
-    await nlInput.fill('a university with courses and staff');
-    await uploadPage.page.getByRole('button', { name: /generate|create ontology/i }).click();
+    await uploadPage.nlInput().fill('a university with courses and staff');
+    await uploadPage.page.getByRole('button', { name: /^Generate$/i }).click();
 
-    // Verify ambiguity resolution prompt is shown
-    const ambiguityPrompt = uploadPage.page.locator('.ambiguity-prompt, [data-testid="ambiguity-prompt"]');
-    await expect(ambiguityPrompt).toBeVisible({ timeout: 10_000 });
+    // Wait for error to appear
+    const errorPrompt = uploadPage.page.locator('.nl-error');
+    await expect(errorPrompt).toBeVisible({ timeout: 10_000 });
 
-    // Verify ambiguous terms are listed
-    await expect(ambiguityPrompt).toContainText('course');
-    await expect(ambiguityPrompt).toContainText('staff');
+    // Verify the error message mentions ambiguity
+    await expect(errorPrompt).toContainText('ambiguous');
+
+    // Verify the retry button is available
+    await expect(errorPrompt.locator('.nl-error__retry')).toBeVisible();
   });
 });

@@ -321,6 +321,30 @@ tests/
 
 GUI tests use `maxFailures: 1` — the run stops immediately on the first failure for fast feedback. API tests use `retries: 2` for robustness against transient issues.
 
+#### Running a single GUI test
+
+Use the Playwright `--grep` (`-g`) flag to filter by test name, or pass a file path to run a single spec file:
+
+```bash
+cd tests/e2e/playwright
+pnpm exec playwright test --config=playwright.gui.config.ts -g "Dashboard Navigation"
+
+# Or by a single test name within a suite
+pnpm exec playwright test --config=playwright.gui.config.ts -g "should navigate to ontology workspace"
+
+# Run a single file by path
+pnpm exec playwright test --config=playwright.gui.config.ts tests/gui/pages/dashboard-navigation.spec.ts
+
+# Run a single user story file
+pnpm exec playwright test --config=playwright.gui.config.ts tests/gui/user-stories/org-lifecycle.spec.ts
+```
+
+When grepping for a subset of tests (e.g., running all user-stories), override `maxFailures: 1` so the run doesn't stop at the first failure:
+
+```bash
+pnpm exec playwright test --config=playwright.gui.config.ts tests/gui/user-stories/ --max-failures=0
+```
+
 ### Security Tests (BOLA/BFLA)
 
 Requires **Docker** stack to be running. Validates authorization boundaries at the API Gateway level.
