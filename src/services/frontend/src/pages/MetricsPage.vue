@@ -78,7 +78,11 @@
 </template>
 
 <script setup lang="ts">
-import { getOntologyMetrics } from "@/api/metrics";
+import {
+	type MetricsTrendPoint,
+	type OntologyMetrics,
+	getOntologyMetrics,
+} from "@/api/metrics";
 import { Calendar, ChartColumn, Folder, GitBranch } from "lucide-vue-next";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
@@ -95,9 +99,16 @@ const ontologyId = computed(
 // @m4 — Metrics migrated from GraphQL to REST
 const loading = ref(false);
 const error = ref<string | null>(null);
-const metricsData = ref<any>(null);
-const counters = ref({ classCount: 0, propertyCount: 0, individualCount: 0, axiomCount: 0, commentCount: 0, mergeRequestCount: 0 });
-const trends = ref<any[]>([]);
+const metricsData = ref<OntologyMetrics | null>(null);
+const counters = ref({
+	classCount: 0,
+	propertyCount: 0,
+	individualCount: 0,
+	axiomCount: 0,
+	commentCount: 0,
+	mergeRequestCount: 0,
+});
+const trends = ref<MetricsTrendPoint[]>([]);
 
 async function fetchMetrics() {
 	loading.value = true;
@@ -107,23 +118,15 @@ async function fetchMetrics() {
 		metricsData.value = data;
 		counters.value = data.counters;
 		trends.value = data.trends;
-	} catch (e: any) {
-		error.value = e.message ?? String(e);
+	} catch (e: unknown) {
+		error.value = e instanceof Error ? e.message : String(e);
 	} finally {
 		loading.value = false;
 	}
 }
 
-onMounted(() => { fetchMetrics(); });
-
-const counters = computed(() => {
-	const c = metricsData.value?.counters;
-	return {
-		classCount: c?.classCount ?? 0,
-		propertyCount: c?.propertyCount ?? 0,
-		individualCount: c?.individualCount ?? 0,
-		axiomCount: c?.axiomCount ?? 0,
-	};
+onMounted(() => {
+	fetchMetrics();
 });
 
 const trendSummary = computed(() => {
