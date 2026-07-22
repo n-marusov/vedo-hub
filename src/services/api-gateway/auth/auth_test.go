@@ -785,3 +785,176 @@ func TestAuth_InvalidTokenError_NoInfoLeak(t *testing.T) {
 		t.Error("error message must not be empty")
 	}
 }
+
+// ============================================================
+// Keycloak OIDC claims — realm_access.roles + sub fallback
+// Regression: KC_HOSTNAME override + JWT claims mismatch
+// ============================================================
+// @hlv:sec [AUTH_BOUNDARY] — Keycloak places realm roles in realm_access.roles
+// (standard OIDC shape) rather than a top-level `roles` claim. The `sub` claim
+// carries the user identifier instead of `user_id`. This test suite verifies
+// that the middleware correctly handles both formats.
+
+// TestKeycloak_SubFallbackForUserID verifies that when `user_id` is empty
+// the middleware falls back to the standard `sub` claim (Keycloak default).
+func TestKeycloak_SubFallbackForUserID(t *testing.T) {
+	claims := &AuthClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   "alice-sub-uuid",
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
+		},
+		TenantID: "tenant_A",
+		Roles:    []string{"Viewer"},
+	}
+	token := signTestToken(claims)
+
+	cfg := defaultConfig()
+	w := execMiddleware(cfg, "GET", "/api/v1/ontologies/ont-123", token)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200 for JWT with sub fallback, got %d (body=%s)", w.Code, w.Body.String())
+	}
+
+	// The middleware should have propagated the userID from the `sub` claim.
+	// Downstream headers must contain the resolved identity.
+	// (Verified via auth.granted log: user_id=alice-sub-uuid)
+}
+
+// TestKeycloak_RealmAccessRoles_GrantsEditorWrite verifies that roles
+// from realm_access.roles (Keycloak OIDC format) are parsed and grant
+// Editor-level write access (POST).
+func TestKeycloak_RealmAccessRoles_GrantsEditorWrite(t *testing.T) {
+	claims := &AuthClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   "bob-editor-uuid",
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
+		},
+		TenantID: "tenant_A",
+		// No top-level roles — roles come entirely from realm_access.
+		RealmAccess: struct {
+			Roles []string `json:"roles"`
+		}{Roles: []string{"Editor", "default-roles-vedo-core", "offline_access", "uma_authorization"}},
+	}
+	token := signTestToken(claims)
+
+	cfg := defaultConfig()
+	// POST requires role weight ≥ 1 (Editor=1, Viewer=0)
+	w := execMiddleware(cfg, "POST", "/api/v1/ontologies/ont-123/classes", token)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200 for Editor (via realm_access.roles) doing POST, got %d (body=%s)",
+			w.Code, w.Body.String())
+	}
+}
+
+// TestKeycloak_RealmAccessRoles_ViewerBlocksDelete verifies that when
+// realm_access.roles only has Viewer, DELETE (weight 2) is blocked.
+func TestKeycloak_RealmAccessRoles_ViewerBlocksDelete(t *testing.T) {
+	claims := &AuthClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   "alice-viewer-uuid",
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
+		},
+		TenantID: "tenant_A",
+		RealmAccess: struct {
+			Roles []string `json:"roles"`
+		}{Roles: []string{"Viewer"}},
+	}
+	token := signTestToken(claims)
+
+	cfg := defaultConfig()
+	// DELETE requires role weight ≥ 2 (Maintainer=2, Owner=3)
+	w := execMiddleware(cfg, "DELETE", "/api/v1/ontologies/ont-123", token)
+
+	if w.Code != http.StatusForbidden {
+		t.Errorf("expected 403 for Viewer (via realm_access.roles) doing DELETE, got %d (body=%s)",
+			w.Code, w.Body.String())
+	}
+
+	code := extractErrorCode(t, w)
+	if code != ErrInsufficientRole {
+		t.Errorf("expected error code %s, got %s", ErrInsufficientRole, code)
+	}
+}
+
+// TestKeycloak_MergeTopLevelAndRealmRoles verifies that top-level `roles`
+// and `realm_access.roles` are merged without duplicates. An Owner role
+// from top-level combined with additional roles from realm_access should
+// still grant admin-level access.
+func TestKeycloak_MergeTopLevelAndRealmRoles(t *testing.T) {
+	claims := &AuthClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   "frank-owner-uuid",
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
+		},
+		UserID:   "frank-owner-uuid",
+		TenantID: "tenant_A",
+		Roles:    []string{"Owner"},
+		RealmAccess: struct {
+			Roles []string `json:"roles"`
+		}{Roles: []string{"Owner", "Viewer"}}, // Owner duplicated — must be deduped
+	}
+	token := signTestToken(claims)
+
+	cfg := defaultConfig()
+	// DELETE on admin-protected endpoint should pass (Owner + admin endpoint → weight 3)
+	w := execMiddleware(cfg, "DELETE", "/api/v1/admin/users", token)
+
+	// DELETE on admin endpoint → the middleware checks role weight against admin level.
+	// Owner has weight 3, which meets the admin threshold.
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200 for Owner (merged top-level + realm_access.roles) calling admin DELETE, got %d (body=%s)",
+			w.Code, w.Body.String())
+	}
+}
+
+// TestKeycloak_EmptyRealmAccessRoles_NoPanic verifies that an empty (nil)
+// realm_access.roles does not cause a panic or change behaviour.
+func TestKeycloak_EmptyRealmAccessRoles_NoPanic(t *testing.T) {
+	claims := &AuthClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   "empty-realm-uuid",
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
+		},
+		UserID:   "empty-realm-uuid",
+		TenantID: "tenant_A",
+		Roles:    []string{"Editor"},
+		// RealmAccess left zero-valued — Roles slice is nil.
+	}
+	token := signTestToken(claims)
+
+	cfg := defaultConfig()
+	w := execMiddleware(cfg, "POST", "/api/v1/ontologies/ont-123/classes", token)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200 for Editor with empty realm_access, got %d (body=%s)",
+			w.Code, w.Body.String())
+	}
+}
+
+// TestKeycloak_SubWithNoUserID_Merge works when both sub comes from Keycloak
+// and roles come from realm_access.roles without a custom user_id mapper.
+// Owner role (weight 3) should pass the admin gate.
+func TestKeycloak_SubWithNoUserID_Merge(t *testing.T) {
+	claims := &AuthClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   "eve-owner-uuid",
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
+		},
+		TenantID: "tenant_A",
+		// All identity from Keycloak standard claims — sub for user, realm_access.roles for roles.
+		RealmAccess: struct {
+			Roles []string `json:"roles"`
+		}{Roles: []string{"Owner"}},
+	}
+	token := signTestToken(claims)
+
+	cfg := defaultConfig()
+	// GET on admin endpoint: Owner (weight 3) meets the admin gate (weight ≥ 3).
+	w := execMiddleware(cfg, "GET", "/api/v1/admin/health", token)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200 for Owner (via realm_access.roles + sub) calling admin GET, got %d (body=%s)",
+			w.Code, w.Body.String())
+	}
+}

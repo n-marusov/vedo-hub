@@ -52,11 +52,17 @@ var roleWeight = map[AuthRole]int{
 }
 
 // @hlv:sec [AUTH_BOUNDARY] — JWT claims parsed from auth header
+// Keycloak OIDC places roles inside realm_access.roles (standard OIDC shape)
+// rather than a top-level `roles` claim. The UserID field falls back to the
+// standard `sub` claim when `user_id` is absent.
 type AuthClaims struct {
 	jwt.RegisteredClaims
-	UserID   string   `json:"user_id"`
-	TenantID string   `json:"tenant_id"`
-	Roles    []string `json:"roles"`
+	UserID      string   `json:"user_id"`
+	TenantID    string   `json:"tenant_id"`
+	Roles       []string `json:"roles"`
+	RealmAccess struct {
+		Roles []string `json:"roles"`
+	} `json:"realm_access"`
 }
 
 // @ctx: middleware configuration
@@ -191,10 +197,31 @@ func NewMiddleware(cfg *Config) gin.HandlerFunc {
 		}
 
 		userID := claims.UserID
+		if userID == "" {
+			// Keycloak uses the standard `sub` claim; fall back when
+			// `user_id` is missing (e.g., no custom protocol mapper).
+			if sub, err := token.Claims.GetSubject(); err == nil {
+				userID = sub
+			}
+		}
 		tenantID := claims.TenantID
 		roles := claims.Roles
 		if roles == nil {
 			roles = []string{}
+		}
+		// Keycloak places realm roles in realm_access.roles per OIDC.
+		// Merge with any top-level roles already present.
+		if len(claims.RealmAccess.Roles) > 0 {
+			seen := make(map[string]bool, len(roles)+len(claims.RealmAccess.Roles))
+			for _, r := range roles {
+				seen[r] = true
+			}
+			for _, r := range claims.RealmAccess.Roles {
+				if !seen[r] {
+					roles = append(roles, r)
+					seen[r] = true
+				}
+			}
 		}
 		effectiveRole := resolveEffectiveRole(roles)
 		_ = tokenHash
