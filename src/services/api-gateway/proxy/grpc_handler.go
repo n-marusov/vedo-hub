@@ -82,19 +82,6 @@ func WithOntologyID(paramName string) PathParamInjector {
 	}
 }
 
-// WithTemplateID returns a PathParamInjector for template_id.
-func WithTemplateID(paramName string) PathParamInjector {
-	return func(c *gin.Context, req interface{}) {
-		val := c.Param(paramName)
-		if val == "" {
-			return
-		}
-		if setter, ok := req.(interface{ SetTemplateId(string) }); ok {
-			setter.SetTemplateId(val)
-		}
-	}
-}
-
 // grpcErrToHTTP converts a gRPC status error to an HTTP JSON error response.
 func grpcErrToHTTP(c *gin.Context, err error) {
 	st, ok := status.FromError(err)

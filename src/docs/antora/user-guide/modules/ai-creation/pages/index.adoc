@@ -7,7 +7,6 @@ VEDO Core provides AI-assisted ontology creation tools that help you build knowl
 
 * xref:document-extraction.adoc[Document Extraction] — Extract ontology structures from documents (MD, TXT, PDF, DOCX, JSON, XML, CSV, XLSX)
 * xref:nl-generation.adoc[NL→OWL Generation] — Convert natural language descriptions into OWL ontology axioms
-* xref:templates.adoc[Domain Templates] — Start from pre-built ontology domain templates
 * xref:batch-upload.adoc[Batch Upload] — Upload and process multiple documents at once
 * xref:refinement.adoc[Iterative Refinement] — Refine generated ontologies with natural language feedback
 
@@ -25,7 +24,7 @@ To use AI-assisted features, you need:
 . Choose one of the available features:
    * *Upload Document* — to extract from an existing document
    * *NL to OWL* — to generate from natural language
-   * *Use Template* — to start from a domain template
+
 . Follow the on-screen instructions for each feature
 
 == Configuration

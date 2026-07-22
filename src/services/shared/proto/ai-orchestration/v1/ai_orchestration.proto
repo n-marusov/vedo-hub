@@ -1,6 +1,6 @@
 // AI Orchestration Service gRPC contract.
 // Central gateway for LLM-powered features: NL→OWL generation,
-// AI-assisted completion, refinement workflow, template management,
+// AI-assisted completion, refinement workflow,
 // LLM policy enforcement, and usage auditing.
 //
 // All AI business logic lives here — the API Gateway proxies to this service.
@@ -141,43 +141,6 @@ message SuggestionBatch {
 }
 
 // =============================================================================
-// Template Management — Ontology domain templates
-// =============================================================================
-
-message OntologyTemplate {
-  string id = 1;
-  string name = 2;
-  string description = 3;
-  string domain = 4;           // e.g., "healthcare", "finance", "education"
-  repeated SequenceStep steps = 5;
-  int32 class_count = 6;
-  int32 property_count = 7;
-  int32 individual_count = 8;
-  string created_at = 9;       // ISO 8601
-  string updated_at = 10;      // ISO 8601
-}
-
-message ListTemplatesRequest {
-  string domain_filter = 1;    // Optional domain filter
-  vedo.common.v1.PaginationRequest pagination = 2;
-}
-
-message ListTemplatesResponse {
-  repeated OntologyTemplate templates = 1;
-  vedo.common.v1.PaginationResponse pagination = 2;
-  vedo.common.v1.ErrorDetail error = 3;
-}
-
-message GetTemplateRequest {
-  string template_id = 1;
-}
-
-message GetTemplateResponse {
-  OntologyTemplate template = 1;
-  vedo.common.v1.ErrorDetail error = 2;
-}
-
-// =============================================================================
 // CheckPolicy — LLM usage policy check (used by document-extractor)
 // =============================================================================
 
@@ -235,10 +198,6 @@ service AIOrchestrationService {
 
   // Complete — AI-assisted completion with server-streaming tokens
   rpc Complete(CompleteRequest) returns (stream CompleteResponse);
-
-  // Template management
-  rpc ListTemplates(ListTemplatesRequest) returns (ListTemplatesResponse);
-  rpc GetTemplate(GetTemplateRequest) returns (GetTemplateResponse);
 
   // Policy check — Used by document-extractor (Hybrid Model)
   rpc CheckPolicy(CheckPolicyRequest) returns (CheckPolicyResponse);

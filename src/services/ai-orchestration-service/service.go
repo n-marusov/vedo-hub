@@ -215,30 +215,6 @@ func (s *AIOrchestrationService) Complete(req *ai_orchestrationv1.CompleteReques
 }
 
 // =============================================================================
-// ListTemplates — List available ontology templates
-// =============================================================================
-
-func (s *AIOrchestrationService) ListTemplates(ctx context.Context, req *ai_orchestrationv1.ListTemplatesRequest) (*ai_orchestrationv1.ListTemplatesResponse, error) {
-	slog.Debug("ai.list_templates",
-		"domain_filter", req.GetDomainFilter(),
-	)
-
-	return handler.ListTemplates(ctx, req)
-}
-
-// =============================================================================
-// GetTemplate — Get a single template by ID
-// =============================================================================
-
-func (s *AIOrchestrationService) GetTemplate(ctx context.Context, req *ai_orchestrationv1.GetTemplateRequest) (*ai_orchestrationv1.GetTemplateResponse, error) {
-	slog.Debug("ai.get_template",
-		"template_id", req.GetTemplateId(),
-	)
-
-	return handler.GetTemplate(ctx, req)
-}
-
-// =============================================================================
 // CheckPolicy — LLM policy check (used by document-extractor)
 // =============================================================================
 
