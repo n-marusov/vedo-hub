@@ -1,44 +1,53 @@
 # Research
 
-Updated: 2026-07-21 18:30
+Updated: 2026-07-22 14:00
 Status: active
 
 ## Active Summary (input for $aif-plan)
 <!-- aif:active-summary:start -->
-Topic: Концептуальное противоречие Project vs Ontology в модели организации VEDO Core
+Topic: DDD Context Map для VEDO Hub + Templates-via-Forks решение
 
-Goal: Разрешить тождество Project = Ontology, закреплённое в ADR/REQ/context.md, в пользу модели «Project — контейнер, Ontology — содержимое (граф понятий)». Синхронизировать glossary, ADR, REQ, Antora doc, OpenAPI, routes.go, org_handler.go.
+Goal: (1) Сформировать оптимальную карту Bounded Contexts на основе анализа specs/ (vision.md, ADR, C4, glossary, REQ). (2) Разрешить 5 открытых вопросов: Templates ownership, Audit BC, Search BC, MCP placement, Social Hub. (3) Решение пользователя: выпилить Templates как отдельный BC, заменить на Demos Group + Forks (F13.1 переносится в MVP).
 
-Constraints:
-- Не ломать миграционный путь ADR-DES.API.rest-graphql-mutation-boundary (2026-07-21) — он ссылается на `/ontologies/{id}/members/{userId}` как уже существующий
-- Сохранить GitLab-like идеологию (Group → Project → members/visibility/policies с наследованием)
-- Согласовать с PostgreSQL-схемой `scopes` (type=group | type=ontology) в auth-service — возможно потребуется ввести `type=project` или переосмыслить
+Background — pending plan (не забыть):
+- project-ontology-separation: план для Project ≠ Ontology, 1:1, REST `/projects/{id}/...`, PostgreSQL `scopes.type='project'` + таблица `ontologies`. Решение принято 2026-07-21, план ещё не запущен. См. сессию 2026-07-21 18:45.
 
-Decisions (по результатам explore):
-1. **Project ≠ Ontology.** Project — платформенная сущность для совместной работы: среда, в которой живёт онтология, с собственным Git-like репозиторием, участниками, ролями, visibility, policies. Ontology — содержимое Project: формальная спецификация концептуализации (TBox/ABox, классы, свойства, индивиды, аксиомы).
-2. Соответствие GitLab остаётся: **VEDO Project = GitLab Project** (единица доступа и версионирования). Ontology — дополнительный слой внутри Project.
-3. **1:1 (Project ↔ Ontology) — обязательно.** Один Project содержит ровно одну Ontology. Группировка нескольких онтологий — через Group (иерархия групп), не через упаковку в один Project. Project без Ontology не существует; Ontology вне Project не существует.
-4. Members/visibility/policies живут **на Project** (как в GitLab `/projects/:id/members|visibility`), не на Ontology. Текущие `/ontologies/{id}/members|visibility|policies` — последствие неверной идентификации Ontology с Project и подлежат переименованию в `/projects/{id}/...` (без aliases — при 1:1 алиасы только маскируют модель).
-5. `ProjectSummary.ontology_count` в OpenAPI — удалить (всегда 1 при 1:1).
+DDD Context Map (12 BC + façade):
+- Core (3): Ontology/Knowledge Graph BC (ontology-service, Neo4j), Versioning BC (versioning-service, PostgreSQL), Organization/Access BC (auth-service, PostgreSQL scopes)
+- Supporting MVP (4, после выпиливания Templates): AI Orchestration BC (ai-orchestration-service), Document Extraction BC (document-extractor), Publishing BC (publisher+public-browse-api), Collaboration BC (commenting-service)
+- Supporting post-MVP (3): MCP BC (thin proxy), Search BC (cross-ontology, external index), Social BC (forks/stars/DOI/profile)
+- Generic (4): Identity BC (auth+Keycloak), Support/Ticketing BC (5 ticket services), Metrics & Observability BC (metrics-service+Grafana), Administration BC (vedo-cli)
+- Façade: API Gateway (OHS+ACL), Frontend BC (BFF), Publish Browse UI
 
-Open questions:
-- ~~1:1 (один Project = одна Ontology) или 1:N (Project может содержать несколько онтологий)?~~ **РЕШЕНО 2026-07-21: 1:1.** Один Project содержит ровно одну Ontology. Группировка нескольких онтологий — через Group (иерархия групп), не через упаковку в один Project. Project без Ontology не существует; Ontology вне Project не существует.
-- Нужно ли переименовать `/ontologies/{id}/members` → `/projects/{id}/members`, или оставить как alias? → **РЕШЕНО: переименовать.** `ontology_count` в ProjectSummary — удалить (всегда 1). При 1:1 алиасы не нужны — они только маскируют модель.
-- Нужна ли visibility/policies на отдельных онтологиях внутри Project, или только на Project? → **РЕШЕНО: только на Project.** При 1:1 это эквивалентно, но канонический путь — `/projects/{id}/visibility|policies`, чтобы соответствовать GitLab-эталону `/projects/:id/visibility`.
-- Что делать с PostgreSQL `scopes.type`? Сейчас `group` | `ontology`. → **Предложение:** переименовать `type='ontology'` → `type='project'`, добавить отдельную таблицу `ontologies` с FK `project_id` (1:1). Либо — оставить `scopes` как есть и ввести `projects` как views/alias. Решение — в плане.
-- Текущая реализация `org_handler.go` уже передаёт scope как `"ontology/" + c.Param("id")` для members/visibility/policies — это «онтология как scope». При переходе к Project-контейнеру scope должен быть `"project/" + id`. → Будет покрыто планом.
+Ключевые отношения:
+- Ontology ↔ Versioning: Partnership + Materialized Cache (active branch в Neo4j, deltas в PostgreSQL). Нужен формальный Published Language `OntologySnapshot`/`TripleDelta`.
+- Organization ↔ Ontology: Shared Kernel (project_id/ontology_id, 1:1 pairing)
+- AI ↔ External LLM: Anti-Corruption Layer (LLM Adapter Layer + LLM Policy Router). Router мигрирует из Gateway в ai-orchestration-service (Phase 7, в прогрессе).
+- Document Extraction → Ontology: Customer-Supplier + Published Language `OntologyBuildSequence` (JSON, JSON-schema validated, ApplySequence atomic в Neo4j).
+- Commenting → Ontology: Conformist (entity_type+entity_id без FK, orphaned comments expected).
+- API Gateway: OHS (OpenAPI=REST writes, GraphQL=read-only navigation, SPARQL=REST only с DoS-защитой per ADR rest-graphql-mutation-boundary).
+
+Decisions (по результатам explore 2026-07-22):
+1. **Templates BC выпиливается.** Шаблоны = демо-проекты в группе `VEDO Demos` + fork mechanism. F13.1 Forks переезжает из post-MVP в MVP. Теряем: semver для шаблонов (git tags богаче), auto-deprecate по usage_count (premature automation для 5-20 проектов), personal-catalog-UX (через Group "My Templates"). Приобретаем: −1 BC, −1 cross-BC Saga (ApplyTemplate), −1 Published Language (OWL+metadata.json), F13.1 в MVP, community PR через MR flow, единая fork-mechanics для templates и social hub.
+2. **Fork model:** `upstream_project_id` на Project (nullable, ВАРИАНТ 1 — Git-модель). `forks_count` = count WHERE upstream_project_id=X (query или Redis cache). Endpoint: `POST /api/v1/projects/{id}/fork`.
+3. **Fork Saga:** Organization create Project + Versioning copy branch + Ontology materialize. Orchestrator — TBD (не API Gateway — anti-pattern "leaky gateway").
+4. **Audit: гибрид.** Shared library (`audit-rs`/`audit-go`/`audit-py`) для write path (каждый BC эмитит локально) + Audit Query BC (thin, Generic) для read path (RBAC, export, UI, masking на чтение). Published Language `AuditEvent` schema (versioned protobuf/JSON Schema). Store: Support DB (метаданные, 365 дней) + WORM S3 (critical ops, 7 лет) + S3 (полные ответы, 90 дней TTL). mcp-audit-strategy — хороший паттерн, но покрывает только MCP; нужно обобщить на все BC.
+5. **Search Level 1 (in-ontology)** — остаётся в Ontology BC (Neo4j fulltext index). **Search Level 2 (cross-ontology, F16.2)** — отложить до network effect (Social Hub + MCP, post-MVP). F16.2 не имеет ни одного REQ.
+6. **MCP — thin BC, post-MVP.** Transport (JSON-RPC/SSE) не подходит для API Gateway. Attack surface изоляция от internal AI. Делегирует CheckPolicy в AI Orchestration через gRPC. mcp-audit-strategy требует обновления (middleware в MCP service, не в Gateway).
+7. **Social Hub (F13):** не строить сейчас, но заложить hooks: `upstream_project_id` (MVP через Decision 1), `public_profile` опционально в User (Identity BC), `doi` опционально в Publication (Publishing BC). Issues (F13.4) ≠ Support Tickets — отдельный Ontology Issues BC (post-MVP). Social Hub priority #1 в vision.md, но 0 specs — нужен ADR "post-MVP defer".
+
+Open questions (после deep dive):
+- Audit: кто владеет shared library? Не нарушает ли "no shared mutable state" из ARCHITECTURE.md? (Нет — library immutable, store shared через Published Language.)
+- Templates/Fork Saga: кто orchestrator? API Gateway (anti-pattern) или отдельный orchestration service?
+- Social Hub: нужен ли ADR "post-MVP defer" для формализации отсрочки priority #1?
+- MCP: M2 migration plan (Phase 7) не включает MCP. Должен ли включать хотя бы contract design?
+- Audit: `audit_events` таблица из ADR-DES.API.organization-rest-endpoints — где живёт? Должна быть в Support DB (изолировано от tenant).
 
 Success signals:
-- glossary.md: чёткое разделение Project (платформенный контейнер) vs Ontology (graph content); устранены формулировки «онтологий (проектов)» как синонимы; 1:1 закреплено как обязательное — ✅ ВЫПОЛНЕНО 2026-07-21 в surgical-правке
-- ADR `gitlab-like-organization-model` обновлён: GitLab Project = VEDO Project, а не VEDO Ontology; 1:1 закреплено
-- REQ-NFR.SECURITY.organization-access-model: убрано «Ontology — аналог GitLab Project»; убрано «Идея "Project содержит несколько онтологий" не используется» (это решение было следствием неверной идентификации — теперь рассуждение меняется на противоположное при том же выводе 1:1)
-- context.md (L32): обновлено с «Ontology — аналог GitLab Project» на «Project — аналог GitLab Project, содержит одну Ontology»
-- Antora organization-model.adoc: обновлено (Project ≠ Ontology, 1:1)
-- OpenAPI: `ProjectSummary.ontology_count` удалён; `/ontologies/{id}/members|visibility|policies` → `/projects/{id}/members|visibility|policies`
-- routes.go + org_handler.go: эндпоинты и scope-строки консистентны с новой моделью (`scope = "project/" + id`)
-- PostgreSQL `scopes`: миграция `type='ontology'` → `type='project'` + новая таблица `ontologies` с FK `project_id` (или эквивалентный рефакторинг)
+- RESEARCH.md обновлён с DDD context map + 5 deep dives + Templates-via-Forks decision
+- Next: $aif-plan full templates-via-forks для реализации (12 действий: удалить 9 REQ-черновиков templates-*, обновить vision.md/glossary.md, добавить upstream_project_id + fork endpoint, 5 демо-проектов как seed data, F13.1 US/UC)
 
-Next step: Выйти из explore → $aif-plan full project-ontology-separation для согласованного изменения specs/glossary.md, specs/context.md, ADR, REQ, Antora doc, openapi.json, routes.go, org_handler.go, auth-service migrations.
+Next step: $aif-plan full templates-via-forks — выпилить Templates BC, реализовать Demos + Forks (F13.1 в MVP). Параллельно pending: $aif-plan full project-ontology-separation (решение 2026-07-21, план не запущен).
 <!-- aif:active-summary:end -->
 
 ## Sessions
@@ -104,4 +113,82 @@ Links (paths):
 - specs/glossary.md (L666-671 запись «Проект» — обновлена)
 - .ai-factory/RESEARCH.md (Active Summary — закрыты open questions, Decisions расширены)
 - Остальные артефакты — в плане $aif-plan full project-ontology-separation
+### 2026-07-22 14:00 — DDD Context Map + 5 Deep Dives + Templates-via-Forks
+
+What changed:
+- Проведён DDD-анализ specs/ (vision.md F1-F17, C4 context/container, 8 ключевых ADR, glossary ubiquitous language).
+- Сформирована карта: 12 Bounded Contexts (3 Core, 4 Supporting MVP после выпиливания Templates, 3 Supporting post-MVP, 4 Generic) + façade (API Gateway OHS, Frontend BFF).
+- Углублены 5 открытых вопросов: Templates, Audit, Search, MCP, Social Hub.
+- **Решение пользователя:** Templates BC выпиливается. Шаблоны = демо-проекты в группе `VEDO Demos` + fork mechanism. F13.1 Forks переносится из post-MVP в MVP.
+
+Key notes — DDD карта:
+- Core триада: Ontology BC (Neo4j), Versioning BC (PostgreSQL), Organization BC (PostgreSQL scopes). Partnership Ontology↔Versioning (Materialized Cache), Shared Kernel Organization↔Ontology (1:1 project_id).
+- AI Orchestration BC — Supporting; LLM Policy Router мигрирует из Gateway в ai-orchestration-service (Phase 7, в прогрессе per RESEARCH sess. 2026-07-16).
+- Document Extraction → Ontology: Customer-Supplier, Published Language `OntologyBuildSequence`.
+- Commenting → Ontology: Conformist (entity_type+entity_id без FK, orphaned comments expected).
+- API Gateway: OHS (OpenAPI=REST writes, GraphQL=read-only, SPARQL=REST с DoS-защитой per ADR rest-graphql-mutation-boundary).
+
+Key notes — Templates-via-Forks:
+- Templates BC выпилен. 5 MVP-шаблонов → 5 демо-проектов в group `VEDO Demos`. "Сохранить как шаблон" → `visibility=public`. Apply template → fork. Community PR → MR flow. `usage_count` → `forks_count`.
+- Теряем: semver (git tags богаче), auto-deprecate по usage (premature automation для 5-20 проектов), personal-catalog-UX (через Group "My Templates").
+- Приобретаем: −1 BC, −1 Saga (ApplyTemplate), −1 Published Language, F13.1 в MVP, единая fork-mechanics для templates и social hub.
+- Fork model: `upstream_project_id` на Project (nullable, ВАРИАНТ 1 Git-модель). Endpoint `POST /api/v1/projects/{id}/fork`. Forks_count = count query или Redis cache.
+- Fork Saga: Organization create Project + Versioning copy branch + Ontology materialize. Orchestrator TBD (не API Gateway).
+- Grep `template` в src/ = 0 совпадений — templates не реализованы в коде, выпиливание безопасно (только REQ-черновики).
+
+Key notes — Audit:
+- Гибрид: shared library (`audit-rs`/`audit-go`/`audit-py`) write path + Audit Query BC read path. Published Language `AuditEvent`.
+- Store: Support DB (метаданные 365 дней) + WORM S3 (critical ops 7 лет) + S3 (полные ответы 90 дней TTL).
+- mcp-audit-strategy (ПРЕДЛОЖЕНО) — паттерн для MCP, но не покрывает Ontology/Versioning/Auth/Admin gRPC-операции. Нужно обобщить.
+- Tension: `audit_events` из ADR organization-rest-endpoints — где живёт? Должна быть в Support DB.
+
+Key notes — Search:
+- Level 1 (in-ontology) — в Ontology BC (Neo4j fulltext index), не выделять.
+- Level 2 (cross-ontology, F16.2) — отложить до network effect (Social Hub + MCP). F16.2 не имеет ни одного REQ, US, UC, ADR. Grep semantic search|elasticsearch|meilisearch = 0 совпадений.
+
+Key notes — MCP:
+- Thin BC, post-MVP. Transport (JSON-RPC/SSE) не подходит для gin Gateway. Attack surface изоляция.
+- Делегирует CheckPolicy в AI Orchestration через gRPC. introspect-ontology → Ontology BC.
+- Tension: mcp-audit-strategy — middleware в Gateway, но если MCP separate service, audit должен быть в MCP service. ADR нужно обновить.
+
+Key notes — Social Hub:
+- F13 priority #1 в vision.md, но 0 specs (grep fork|star|DOI|sponsor|social = 0 совпадений). Огромный vision-specs gap.
+- Не строить сейчас. Hooks: `upstream_project_id` (MVP через Templates-via-Forks), `public_profile` в User (Identity BC, опц.), `doi` в Publication (Publishing BC, опц.).
+- Issues (F13.4) ≠ Support Tickets — разные BC. Issues → Ontology Issues BC (post-MVP), Tickets → Ticketing BC.
+- Нужен ADR "Social Hub post-MVP defer" для формализации отсрочки priority #1.
+
+5 главных инсайтов (severity):
+1. Templates — выпиливается per Decision 1 (Templates-via-Forks) — Medium
+2. Audit — гибрид library + Query BC; mcp-audit покрывает только MCP, остальные BC без formal audit — High (compliance risk)
+3. Search Level 2 — отложить; F16.2 vision-only — Low
+4. MCP — thin BC post-MVP; transport не подходит для Gateway — Medium
+5. Social Hub — priority #1 в vision, 0 specs; нужен ADR "post-MVP defer" — High (vision-specs alignment gap)
+
+Links (paths):
+- specs/vision.md (F1-F17, L150-619 функция decomposition, domain events L585-618)
+- specs/c4/context.md, specs/c4/container.md (14 контейнеров)
+- specs/adr/ADR-DES.INFRA.monolith-vs-microservices.md
+- specs/adr/ADR-IMPL.PROCESS.repository-layout-strategy.md
+- specs/adr/ADR-DES.SECURITY.gitlab-like-organization-model.md
+- specs/adr/ADR-DES.INFRA.ai-orchestration-service-strategy.md
+- specs/adr/ADR-DES.API.protocol-stack-strategy.md
+- specs/adr/ADR-DES.API.organization-rest-endpoints.md
+- specs/adr/ADR-DES.PROCESS.merge-request-strategy.md
+- specs/adr/ADR-IMPL.INTEGRATION.commenting-service-architecture.md
+- specs/adr/ADR-IMPL.OPS.ticket-management-system-architecture.md
+- specs/adr/ADR-DES.API.llm-policy-router-strategy.md
+- specs/adr/ADR-DES.INFRA.control-plane-isolation-strategy.md
+- specs/adr/ADR-DES.API.rest-graphql-mutation-boundary.md
+- specs/adr/ADR-DES.DATA.mcp-audit-strategy.md (ПРЕДЛОЖЕНО)
+- specs/adr/ADR-DES.INFRA.support-metadata-isolation-strategy.md
+- specs/adr/ADR-DES.INTEGRATION.mcp-server-query-adoption.md
+- specs/glossary.md (L631-1133 VEDO platform terms)
+- specs/requirements/REQ-FUN.OPS.templates-*.md (3 файла — под удаление)
+- specs/requirements/REQ-FUN.API.templates-*.md (4 файла — под удаление)
+- specs/requirements/REQ-FUN.DATA.templates-metadata.md (под удаление)
+- specs/requirements/REQ-USR.UI.templates-*.md (4 файла — под удаление)
+- specs/requirements/REQ-NFR.OPS.templates-analytics.md (под удаление)
+- specs/requirements/REQ-FUN.INTEGRATION.audit-*.md (3 файла — audit pattern)
+- specs/requirements/REQ-NFR.SECURITY.audit-*.md (3 файла — audit protection)
+- specs/requirements/REQ-NFR.DATA.audit-retention.md
 <!-- aif:sessions:end -->
