@@ -1,4 +1,7 @@
-// Apollo Client setup — single GraphQL client for all frontend data operations
+// Apollo Client setup — single GraphQL client for graph navigation queries.
+// After GraphQL tightening, only graph navigation queries remain.
+// Non-graph reads (versioning, org, comments, metrics, dashboard,
+// deployments, merge requests) migrated to REST.
 
 import {
 	ApolloClient,
@@ -115,6 +118,30 @@ export const apolloClient = new ApolloClient({
 		},
 	},
 });
+
+// Clear stale Apollo cache entries on startup.
+// After GraphQL tightening, non-graph queries (groups, projects, members,
+// commits, dashboard, metrics, deployments, merge_requests, etc.)
+// migrated to REST. Cached Apollo entries from previous sessions must
+// be evicted so the client does not auto-refetch them.
+apolloClient.cache.evict({ fieldName: "groups" });
+apolloClient.cache.evict({ fieldName: "projects" });
+apolloClient.cache.evict({ fieldName: "members" });
+apolloClient.cache.evict({ fieldName: "commits" });
+apolloClient.cache.evict({ fieldName: "branch" });
+apolloClient.cache.evict({ fieldName: "branches" });
+apolloClient.cache.evict({ fieldName: "tags" });
+apolloClient.cache.evict({ fieldName: "compareRevisions" });
+apolloClient.cache.evict({ fieldName: "dashboard" });
+apolloClient.cache.evict({ fieldName: "ontologyMetrics" });
+apolloClient.cache.evict({ fieldName: "deployments" });
+apolloClient.cache.evict({ fieldName: "mergeRequests" });
+apolloClient.cache.evict({ fieldName: "comments" });
+apolloClient.cache.evict({ fieldName: "commentFeed" });
+apolloClient.cache.evict({ fieldName: "runValidation" });
+apolloClient.cache.evict({ fieldName: "userPreferences" });
+apolloClient.cache.evict({ fieldName: "ontology" });
+apolloClient.cache.gc();
 
 log.info("apollo.client.initialized", {
 	endpoint: import.meta.env.VITE_GRAPHQL_ENDPOINT || "/api/v1/graphql",
