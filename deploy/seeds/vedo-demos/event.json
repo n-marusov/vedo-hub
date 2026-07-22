@@ -1,0 +1,12 @@
+[
+  {"operation": "CREATE_CLASS", "entity_id": "Event", "label": "Event"},
+  {"operation": "CREATE_CLASS", "entity_id": "Participant", "label": "Participant"},
+  {"operation": "CREATE_CLASS", "entity_id": "Location", "label": "Location"},
+  {"operation": "CREATE_CLASS", "entity_id": "DateTime", "label": "Date time"},
+  {"operation": "CREATE_OBJECT_PROPERTY", "entity_id": "hasParticipant", "label": "has participant", "domain": "Event", "range": "Participant"},
+  {"operation": "CREATE_OBJECT_PROPERTY", "entity_id": "takesPlaceAt", "label": "takes place at", "domain": "Event", "range": "Location"},
+  {"operation": "CREATE_OBJECT_PROPERTY", "entity_id": "occursOn", "label": "occurs on", "domain": "Event", "range": "DateTime"},
+  {"operation": "CREATE_DATATYPE_PROPERTY", "entity_id": "eventName", "label": "event name", "domain": "Event", "range": "xsd:string"},
+  {"operation": "CREATE_DATATYPE_PROPERTY", "entity_id": "description", "label": "description", "domain": "Event", "range": "xsd:string"},
+  {"operation": "ADD_ANNOTATION", "entity_id": "Event", "annotations": ["rdfs:comment=An occurrence or happening at a specific time and place"]}
+]

@@ -1,0 +1,12 @@
+[
+  {"operation": "CREATE_CLASS", "entity_id": "Term", "label": "Term"},
+  {"operation": "CREATE_CLASS", "entity_id": "Definition", "label": "Definition"},
+  {"operation": "CREATE_CLASS", "entity_id": "RelatedTerm", "label": "Related term"},
+  {"operation": "CREATE_CLASS", "entity_id": "Source", "label": "Source"},
+  {"operation": "CREATE_OBJECT_PROPERTY", "entity_id": "hasDefinition", "label": "has definition", "domain": "Term", "range": "Definition"},
+  {"operation": "CREATE_OBJECT_PROPERTY", "entity_id": "relatedTo", "label": "related to", "domain": "Term", "range": "RelatedTerm"},
+  {"operation": "CREATE_OBJECT_PROPERTY", "entity_id": "fromSource", "label": "from source", "domain": "Definition", "range": "Source"},
+  {"operation": "CREATE_DATATYPE_PROPERTY", "entity_id": "termName", "label": "term name", "domain": "Term", "range": "xsd:string"},
+  {"operation": "CREATE_DATATYPE_PROPERTY", "entity_id": "definitionText", "label": "definition text", "domain": "Definition", "range": "xsd:string"},
+  {"operation": "ADD_ANNOTATION", "entity_id": "Term", "annotations": ["rdfs:comment=A word or phrase used to describe a concept in a specific domain"]}
+]

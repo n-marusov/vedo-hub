@@ -1,0 +1,14 @@
+[
+  {"operation": "CREATE_CLASS", "entity_id": "Organization", "label": "Organization"},
+  {"operation": "CREATE_CLASS", "entity_id": "Department", "label": "Department", "parent_id": "Organization"},
+  {"operation": "CREATE_CLASS", "entity_id": "Employee", "label": "Employee"},
+  {"operation": "CREATE_CLASS", "entity_id": "Position", "label": "Position"},
+  {"operation": "CREATE_OBJECT_PROPERTY", "entity_id": "hasDepartment", "label": "has department", "domain": "Organization", "range": "Department"},
+  {"operation": "CREATE_OBJECT_PROPERTY", "entity_id": "employs", "label": "employs", "domain": "Organization", "range": "Employee"},
+  {"operation": "CREATE_OBJECT_PROPERTY", "entity_id": "worksIn", "label": "works in", "domain": "Employee", "range": "Department"},
+  {"operation": "CREATE_OBJECT_PROPERTY", "entity_id": "hasPosition", "label": "has position", "domain": "Employee", "range": "Position"},
+  {"operation": "CREATE_DATATYPE_PROPERTY", "entity_id": "employeeName", "label": "employee name", "domain": "Employee", "range": "xsd:string"},
+  {"operation": "CREATE_DATATYPE_PROPERTY", "entity_id": "foundedYear", "label": "founded year", "domain": "Organization", "range": "xsd:integer"},
+  {"operation": "ADD_ANNOTATION", "entity_id": "Organization", "annotations": ["rdfs:comment=A collective group of people with a common purpose"]},
+  {"operation": "ADD_ANNOTATION", "entity_id": "Employee", "annotations": ["rdfs:comment=A person employed for wages or salary"]}
+]

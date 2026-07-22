@@ -1323,6 +1323,56 @@
           "429": { "$ref": "#/components/responses/429RateLimit" }
         }
       }
+      }
+    },
+    "/projects/{id}/fork": {
+      "post": {
+        "summary": "Fork a project",
+        "description": "Creates a copy of the project (with its paired Ontology) in the user's workspace. The new project gets an upstream_project_id link to the source. Fork is private by default; the caller becomes Owner.",
+        "tags": ["Organization"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Source project ID to fork"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "description": "Empty body — source ID is in the path. Use Idempotency-Key header."
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Fork created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "project_id": { "type": "string" },
+                    "ontology_id": { "type": "string" },
+                    "upstream_project_id": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/Error" },
+          "403": { "$ref": "#/components/responses/Error" },
+          "503": { "$ref": "#/components/responses/Error" }
+        }
+      }
     },
     "/projects/{id}/members": {
       "get": {
@@ -2770,6 +2820,8 @@
           "group_id": { "type": "string" },
           "group_name": { "type": "string" },
           "ontology_id": { "type": "string", "description": "ID of the 1:1 paired Ontology" },
+          "upstream_project_id": { "type": "string", "nullable": true, "description": "ID of the upstream Project if this is a fork, null otherwise" },
+          "forks_count": { "type": "integer", "description": "Number of forks created from this Project" },
           "created_at": { "type": "string", "format": "date-time" },
           "updated_at": { "type": "string", "format": "date-time" }
         }

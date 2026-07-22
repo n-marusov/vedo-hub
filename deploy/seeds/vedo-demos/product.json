@@ -1,0 +1,13 @@
+[
+  {"operation": "CREATE_CLASS", "entity_id": "Product", "label": "Product"},
+  {"operation": "CREATE_CLASS", "entity_id": "Category", "label": "Category"},
+  {"operation": "CREATE_CLASS", "entity_id": "Manufacturer", "label": "Manufacturer"},
+  {"operation": "CREATE_CLASS", "entity_id": "Review", "label": "Review"},
+  {"operation": "CREATE_OBJECT_PROPERTY", "entity_id": "hasCategory", "label": "has category", "domain": "Product", "range": "Category"},
+  {"operation": "CREATE_OBJECT_PROPERTY", "entity_id": "manufacturedBy", "label": "manufactured by", "domain": "Product", "range": "Manufacturer"},
+  {"operation": "CREATE_OBJECT_PROPERTY", "entity_id": "hasReview", "label": "has review", "domain": "Product", "range": "Review"},
+  {"operation": "CREATE_DATATYPE_PROPERTY", "entity_id": "productName", "label": "product name", "domain": "Product", "range": "xsd:string"},
+  {"operation": "CREATE_DATATYPE_PROPERTY", "entity_id": "price", "label": "price", "domain": "Product", "range": "xsd:decimal"},
+  {"operation": "CREATE_DATATYPE_PROPERTY", "entity_id": "rating", "label": "rating", "domain": "Review", "range": "xsd:integer"},
+  {"operation": "ADD_ANNOTATION", "entity_id": "Product", "annotations": ["rdfs:comment=An item or service offered for sale"]}
+]

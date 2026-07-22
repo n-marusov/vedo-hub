@@ -1,0 +1,12 @@
+[
+  {"operation": "CREATE_CLASS", "entity_id": "Process", "label": "Process"},
+  {"operation": "CREATE_CLASS", "entity_id": "Step", "label": "Step"},
+  {"operation": "CREATE_CLASS", "entity_id": "Input", "label": "Input"},
+  {"operation": "CREATE_CLASS", "entity_id": "Output", "label": "Output"},
+  {"operation": "CREATE_CLASS", "entity_id": "Agent", "label": "Agent"},
+  {"operation": "CREATE_OBJECT_PROPERTY", "entity_id": "hasStep", "label": "has step", "domain": "Process", "range": "Step"},
+  {"operation": "CREATE_OBJECT_PROPERTY", "entity_id": "consumes", "label": "consumes", "domain": "Step", "range": "Input"},
+  {"operation": "CREATE_OBJECT_PROPERTY", "entity_id": "produces", "label": "produces", "domain": "Step", "range": "Output"},
+  {"operation": "CREATE_OBJECT_PROPERTY", "entity_id": "performedBy", "label": "performed by", "domain": "Step", "range": "Agent"},
+  {"operation": "ADD_ANNOTATION", "entity_id": "Process", "annotations": ["rdfs:comment=A series of actions or steps to achieve a particular goal"]}
+]
