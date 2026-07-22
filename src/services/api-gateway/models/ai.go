@@ -99,29 +99,7 @@ type RefinementChangeResult struct {
 	Rationale    string `json:"rationale"`
 }
 
-// TemplateSummary is a compact representation of an ontology template.
-type TemplateSummary struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Domain      string `json:"domain"`
-	ClassCount  int    `json:"class_count"`
-	PropCount   int    `json:"property_count"`
-}
-
-// ApplyTemplateRequest requests applying a template to an ontology.
-type ApplyTemplateRequest struct {
-	TemplateID string `json:"template_id" binding:"required"`
-}
-
-// ApplyTemplateResponse shows the result of applying a template.
-type ApplyTemplateResponse struct {
-	TemplateID   string `json:"template_id"`
-	OntologyID   string `json:"ontology_id"`
-	StepsApplied int    `json:"steps_applied"`
-	CommitID     string `json:"commit_id,omitempty"`
-}
-
+// SuggestionItem
 // SequenceStepHistory holds conversation history for refinement iterations.
 type SequenceStepHistory struct {
 	SequenceID   string          `json:"sequence_id"`

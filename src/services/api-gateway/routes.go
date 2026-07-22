@@ -186,10 +186,6 @@ func RegisterRoutes(r *gin.Engine, grpcPool *proxy.GrpcClientPool) {
 	api.POST("/ontologies/:id/documents/extract", withOntologyHeader(documentExtractorProxy))
 	api.POST("/ontologies/:id/documents/extract/batch", withOntologyHeader(documentExtractorProxy))
 
-	// Ontology template routes — proxied to ai-orchestration-service
-	api.GET("/templates/ontologies", aiOrchProxy.HandleListTemplates)
-	api.POST("/ontologies/:id/apply-template", aiOrchProxy.HandleApplyTemplate)
-
 	// OpenAPI spec — served locally from embedded spec
 	api.GET("/openapi.json", func(c *gin.Context) {
 		c.Data(http.StatusOK, "application/json", openAPISpec)
