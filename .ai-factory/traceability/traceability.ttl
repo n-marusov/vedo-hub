@@ -1258,9 +1258,28 @@ base:test/m2-llm-integration a vdo:TestSuite ;
     rdfs:comment "Go integration tests for LLM provider interfaces: real HTTP calls, streaming, timeout handling, token counting. Build tag: integration. Enable with LLM_INTEGRATION_TESTS=1"@en ;
     vdo:filePath "src/services/shared/llm/integration_test.go" .
 
-# --- M2.5 GUI Wiring Phase 2 — Vitest Test Suites ---
+# --- Templates-via-Forks (templates-via-forks plan) ---
 
-base:test/m2.5/sparql-page a vdo:TestSuite ;
+base:test/fork-bola a vdo:TestSuite ;
+    rdfs:label "Fork BOLA/BFLA Security Tests"@en ;
+    rdfs:comment "Real-HTTP authorization negative tests for fork endpoint: cross-tenant BOLA, cross-object BOLA, BFLA, IDOR"@en ;
+    vdo:filePath "tests/security/fork_bola_test.go" ;
+    vdo:validates base:nfr/security-bola-bfla .
+
+base:test/fork-acceptance a vdo:TestSuite ;
+    rdfs:label "Fork Endpoint Acceptance Tests"@en ;
+    rdfs:comment "Handler-level tests for fork route registration and old template path cleanup"@en ;
+    vdo:filePath "src/services/api-gateway/handlers/org_handler_test.go" ;
+    vdo:validates base:adr/ADR-DES.API.organization-rest-endpoints .
+
+base:test/fork-migration a vdo:TestSuite ;
+    rdfs:label "Fork Migration Tests"@en ;
+    rdfs:comment "Unit tests for upstream_project_id migration 010"@en ;
+    vdo:filePath "src/services/auth-service/org/fork_test.go" ;
+    vdo:validates base:adr/ADR-DES.PROCESS.templates-via-forks .
+
+# Stale: base:m2-ontology-templates — removed per ADR-DES.PROCESS.templates-via-forks
+
     rdfs:label "M2.5 SPARQLPage Vitest Spec"@en ;
     rdfs:comment "Vitest component tests for SPARQLPage: query execution via Apollo GraphQL SPARQL_EXECUTE_QUERY, results display, error handling, format button"@en ;
     vdo:filePath "src/services/frontend/src/__tests__/SPARQLPage.spec.ts" .
