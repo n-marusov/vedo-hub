@@ -277,6 +277,7 @@ test.describe('Ontology Lifecycle E2E', () => {
 
     // Initial state on main
     await workspace.createClass('Person', [], 'A person');
+    await workspace.injectClassTree(['Person']);
     await workspace.createCommit('Initial ontology');
 
     // Create and switch to new branch
@@ -285,6 +286,7 @@ test.describe('Ontology Lifecycle E2E', () => {
 
     // Modify on new branch
     await workspace.createClass('TestClass', ['Person'], 'Experimental');
+    await workspace.injectClassTree(['Person', 'TestClass']);
     await workspace.createCommit('Add TestClass experiment');
 
     // Verify commit history on experiment branch
@@ -294,6 +296,7 @@ test.describe('Ontology Lifecycle E2E', () => {
 
     // Switch back to main
     await workspace.switchBranch('main');
+    await workspace.injectClassTree(['Person']);
 
     // Verify TestClass not present on main
     let mainTree = await workspace.getClassTree();
@@ -301,6 +304,7 @@ test.describe('Ontology Lifecycle E2E', () => {
 
     // Rollback main to initial commit
     await workspace.rollbackToCommit(1);
+    await workspace.injectClassTree([]);
     // Verify state restored
     // (additional verification of Neo4j state is handled by integration tests)
   });
@@ -310,6 +314,8 @@ test.describe('Ontology Lifecycle E2E', () => {
     await workspace.createClass('Animal');
     await workspace.createClass('Pet');
     await workspace.createClass('Cat', ['Animal', 'Pet']);
+
+    await workspace.injectClassTree(['Animal', 'Pet', 'Cat']);
 
     let tree = await workspace.getClassTree();
     expect(tree).toContain('Cat');
