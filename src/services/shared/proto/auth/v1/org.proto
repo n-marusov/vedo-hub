@@ -30,6 +30,7 @@ message Scope {
   int32 child_count = 8;
   int32 member_count = 9;
   string ontology_id = 10;  // 1:1 paired Ontology ID (set for projects, empty for groups)
+  string upstream_project_id = 11;  // Set for forks — references the source Project
 }
 
 // Member represents a user's role assignment within a scope.
@@ -309,6 +310,20 @@ message CheckAccessResponse {
   vedo.common.v1.ErrorDetail error = 3;
 }
 
+// Fork RPCs — templates-via-forks
+// =============================================================================
+
+message ForkProjectRequest {
+  string source_project_id = 1;
+  string user_id = 2;
+  string organization_id = 3;
+}
+
+message ForkProjectResponse {
+  Scope project = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
 // =============================================================================
 // Org Service
 // =============================================================================
@@ -346,4 +361,7 @@ service OrgService {
 
   // Access check
   rpc CheckAccess(CheckAccessRequest) returns (CheckAccessResponse);
+
+  // Fork (templates-via-forks)
+  rpc ForkProject(ForkProjectRequest) returns (ForkProjectResponse);
 }

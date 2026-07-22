@@ -77,6 +77,8 @@ func (p *PostgresOrgStore) runMigrations() error {
 		"008_create_ontologies_table.sql",
 		"009_seed_ontologies_from_legacy.sql",
 		"007_rename_ontology_scope_to_project.sql",
+		// Fork infrastructure — upstream tracking
+		"010_add_upstream_project_id.sql",
 	}
 
 	for _, m := range migrations {
