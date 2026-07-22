@@ -42,6 +42,9 @@ func setupOrgTestRouter() *gin.Engine {
 	api.POST("/projects/:id/policies", handler.HandleCreatePolicy)
 	api.DELETE("/projects/:id/policies/:policyId", handler.HandleDeletePolicy)
 
+	// Fork endpoint — required for contract tests
+	api.POST("/projects/:id/fork", handler.HandleForkProject)
+
 	return r
 }
 
@@ -123,6 +126,49 @@ func TestOrgHandler_ProjectVisibilityAndPolicies_RouteRegistered(t *testing.T) {
 		router.ServeHTTP(w, req)
 		if w.Code == http.StatusNotFound {
 			t.Errorf("%s %s: expected non-404 (route should be registered), got 404", tc.method, tc.path)
+		}
+	}
+}
+
+// TestOrgHandler_ProjectFork_RouteRegistered validates that the new
+// /api/v1/projects/:id/fork route is registered and dispatches to
+// HandleForkProject. With nil orgClient, the handler panics on gRPC call
+// — recovery returns 500. The key assertion: route is NOT 404.
+//
+// Validates: ADR-DES.API.organization-rest-endpoints (fork endpoint)
+func TestOrgHandler_ProjectFork_RouteRegistered(t *testing.T) {
+	router := setupOrgTestRouter()
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", "/api/v1/projects/test-id/fork", nil)
+	router.ServeHTTP(w, req)
+
+	if w.Code == http.StatusNotFound {
+		t.Fatal("expected non-404 for /projects/:id/fork (route should be registered), got 404")
+	}
+}
+
+// TestOrgHandler_ProjectFork_OldTemplatePaths_Return404 validates that the old
+// template-related paths are no longer registered (removed per templates-via-forks).
+//
+// Validates: ADR-DES.PROCESS.templates-via-forks
+func TestOrgHandler_ProjectFork_OldTemplatePaths_Return404(t *testing.T) {
+	router := setupOrgTestRouter()
+
+	oldTemplatePaths := []struct {
+		method string
+		path   string
+	}{
+		{"GET", "/api/v1/templates/ontologies"},
+		{"POST", "/api/v1/ontologies/test-id/apply-template"},
+	}
+
+	for _, tc := range oldTemplatePaths {
+		w := httptest.NewRecorder()
+		req, _ := http.NewRequest(tc.method, tc.path, nil)
+		router.ServeHTTP(w, req)
+		if w.Code != http.StatusNotFound {
+			t.Errorf("%s %s: expected 404 (old template path removed), got %d", tc.method, tc.path, w.Code)
 		}
 	}
 }
