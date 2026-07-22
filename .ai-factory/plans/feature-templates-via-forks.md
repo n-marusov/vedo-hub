@@ -408,7 +408,7 @@ Implement infrastructure that makes the API contract tests pass. Each task: writ
 
 ### Phase 7: Design Sync (Pencil.dev)
 
-- [ ] **Task 17: Sync Pencil.dev design files for fork flow**
+- [x] **Task 17: Sync Pencil.dev design files for fork flow**
   Update `design/` Pencil files to reflect the fork-based template replacement BEFORE any frontend code changes. The frontend implementation (Task 16) will use these designs as source of truth.
 
   **Step 1: New organism `ForkDemoDialog` in `design/ui-kit.lib.pen`**
