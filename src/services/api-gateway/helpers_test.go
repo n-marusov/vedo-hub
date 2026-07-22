@@ -90,6 +90,8 @@ func newTestEnv(t *testing.T) *testEnv {
 	// Point the gateway at the mock upstreams.
 	_ = os.Setenv("ONTOLOGY_SERVICE_URL", ontologyUpstream.URL)
 	_ = os.Setenv("VERSIONING_SERVICE_URL", versioningUpstream.URL)
+	_ = os.Setenv("METRICS_SERVICE_URL", ontologyUpstream.URL)
+	_ = os.Setenv("COMMENTING_SERVICE_URL", ontologyUpstream.URL)
 	_ = os.Setenv("UPSTREAM_TIMEOUT", "2")
 
 	r := gin.New()

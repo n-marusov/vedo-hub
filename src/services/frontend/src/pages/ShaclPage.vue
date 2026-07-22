@@ -52,16 +52,14 @@
 </template>
 
 <script setup lang="ts">
-import { RUN_VALIDATION_MUTATION } from "@/apollo/queries";
+import { runValidation as apiRunValidation } from "@/api/validation";
 import SHACLRuleBuilder from "@/components/organisms/SHACLRuleBuilder.vue";
 import PrimaryButton from "@/components/ui-kit/PrimaryButton.vue";
 import { useErrorPresentation } from "@/composables/useErrorPresentation";
-import { gql } from "@apollo/client/core";
-import { useQuery } from "@vue/apollo-composable";
-import { useMutation } from "@vue/apollo-composable";
 import { AlertTriangle, ChevronRight, FileText, Shield } from "lucide-vue-next";
-import { computed } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
+import { useQuery } from "@vue/apollo-composable";
 
 const route = useRoute();
 const ontologyId = computed(() => (route.params.id as string) || "");
@@ -111,49 +109,34 @@ const error = computed(() => {
 });
 
 // ── Validation handler ───────────────────────────────────────────────────────
-const { mutate: runValidationMutate } = useMutation(RUN_VALIDATION_MUTATION);
+
+const validating = ref(false);
 
 async function runValidation(): Promise<void> {
-	console.debug(
-		JSON.stringify({
-			level: "debug",
-			msg: "Shacl.page.validation_triggered",
-			ontologyId: ontologyId.value,
-			ts: new Date().toISOString(),
-		}),
-	);
+	if (validating.value) return;
+	validating.value = true;
 	try {
-		const res = await runValidationMutate({
-			ontologyId: ontologyId.value || "default",
-		});
-		if (res?.data?.runValidation) {
-			const { status, validatedAt, violations } = res.data.runValidation as {
-				status: string;
-				validatedAt: string;
-				violations: Array<Record<string, unknown>>;
-			};
-			console.debug(
-				JSON.stringify({
-					level: "debug",
-					msg: "Shacl.page.validation_completed",
-					status,
-					validatedAt,
-					violationsCount: violations?.length || 0,
-					ts: new Date().toISOString(),
-				}),
-			);
+		const report = await apiRunValidation(ontologyId.value || "default");
+		const { status, validatedAt, violations } = report;
+		console.debug(JSON.stringify({
+			level: "debug", msg: "Shacl.page.validation_completed",
+			status, validatedAt, violationsCount: violations?.length || 0,
+			ts: new Date().toISOString(),
+		}));
+		if (status === "ok" && (!violations || violations.length === 0)) {
+			validationResult.value = { status: "ok", violations: [], validatedAt: validatedAt ?? new Date().toISOString() };
+		} else {
+			validationResult.value = { status: status ?? "error", violations: violations ?? [], validatedAt: validatedAt ?? new Date().toISOString() };
 		}
 	} catch (e) {
 		const msg = e instanceof Error ? e.message : String(e);
 		addError("SHACL-VALIDATION-FAILED", msg);
-		console.error(
-			JSON.stringify({
-				level: "error",
-				msg: "Shacl.page.validation_failed",
-				error: msg,
-				ts: new Date().toISOString(),
-			}),
-		);
+		console.error(JSON.stringify({
+			level: "error", msg: "Shacl.page.validation_failed",
+			error: msg, ts: new Date().toISOString(),
+		}));
+	} finally {
+		validating.value = false;
 	}
 }
 

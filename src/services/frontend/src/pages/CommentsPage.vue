@@ -32,28 +32,38 @@
 </template>
 
 <script setup lang="ts">
-import {
-	CREATE_COMMENT_MUTATION,
-	GET_COMMENT_FEED_QUERY,
-} from "@/apollo/queries";
+import { createComment as apiCreateComment, listComments as apiListComments } from "@/api/comments";
 import Comments from "@/components/organisms/Comments.vue";
-import { useMutation, useQuery } from "@vue/apollo-composable";
 import { ChevronRight } from "lucide-vue-next";
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
 const ontologyId = (route.params.ontologyId as string) || "default";
 
-const { result, loading, error, refetch } = useQuery(GET_COMMENT_FEED_QUERY, {
-	ontologyId,
-	page: 0,
-	perPage: 50,
-});
+// ── REST Data ────────────────────────────────────────────────────────────────────
 
-const commentItems = computed(() => {
-	if (!result.value?.commentFeed?.items) return [];
-	return result.value.commentFeed.items.map(
+const loading = ref(false);
+const error = ref<string | null>(null);
+const feedData = ref<any[]>([]);
+
+async function fetchFeed() {
+	loading.value = true;
+	error.value = null;
+	try {
+		const result = await apiListComments(ontologyId, ontologyId, 1, 50);
+		feedData.value = result.comments;
+	} catch (e: any) {
+		error.value = e.message ?? String(e);
+	} finally {
+		loading.value = false;
+	}
+}
+
+onMounted(() => { fetchFeed(); });
+
+const commentItems = computed(() =>
+	feedData.value.map(
 		(c: {
 			authorName?: string;
 			author?: string;
@@ -70,30 +80,22 @@ const commentItems = computed(() => {
 			action: `commented on entity ${c.entityId}`,
 			text: c.text,
 		}),
-	);
-});
+	),
+);
 
 const mutationError = ref<string | null>(null);
 const newCommentText = ref("");
 
-function submitComment() {
+async function submitComment() {
 	if (!newCommentText.value.trim()) return;
-	const { mutate } = useMutation(CREATE_COMMENT_MUTATION, {
-		variables: {
-			ontologyId,
-			entityId: ontologyId, // Project-level comment
-			text: newCommentText.value.trim(),
-		},
-	});
-	mutate()
-		.then(() => {
-			newCommentText.value = "";
-			refetch();
-		})
-		.catch((err: unknown) => {
-			const message = err instanceof Error ? err.message : "Unknown error";
-			mutationError.value = message;
-		});
+	try {
+		await apiCreateComment(ontologyId, ontologyId, newCommentText.value.trim());
+		newCommentText.value = "";
+		await fetchFeed();
+	} catch (err: unknown) {
+		const message = err instanceof Error ? err.message : "Unknown error";
+		mutationError.value = message;
+	}
 }
 
 function formatRelativeTime(dateStr: string): string {

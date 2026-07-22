@@ -128,34 +128,35 @@
 </template>
 
 <script setup lang="ts">
-import { DASHBOARD_QUERY } from "@/apollo/queries";
+import { getDashboard, type DashboardData } from "@/api/dashboard";
 import { getUserRole } from "@/auth/session";
 import { useCurrentUser } from "@/composables/useCurrentUser";
-import { useQuery } from "@vue/apollo-composable";
 import {
-	AlertCircle,
-	ChevronDown,
-	ChevronRight,
-	FileText,
-	GitMerge,
-	MessageSquare,
-	Settings,
-	Smile,
-	User,
+	AlertCircle, ChevronDown, ChevronRight, FileText,
+	GitMerge, MessageSquare, Settings, Smile, User,
 } from "lucide-vue-next";
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
 const { displayName, displayInitials } = useCurrentUser();
 const userRole = computed(() => getUserRole() || "Knowledge Engineer");
-
 const activityFilter = ref("All team");
 
-// @m4 — Wire dashboard to DASHBOARD_QUERY (GraphQL)
-const { result, loading, error, refetch } = useQuery(DASHBOARD_QUERY);
+// @m4 — Dashboard migrated from GraphQL DASHBOARD_QUERY to REST
+const loading = ref(false);
+const error = ref<string | null>(null);
+const dashData = ref<DashboardData | null>(null);
 
-// ── Resolvers: map GQL data to UI shapes ──
+async function fetchDashboard() {
+	loading.value = true; error.value = null;
+	try { dashData.value = await getDashboard(); }
+	catch (e: any) { error.value = e.message ?? String(e); }
+	finally { loading.value = false; }
+}
+onMounted(() => { fetchDashboard(); });
+
+// ── Resolvers: map REST data to UI shapes ──
 
 interface WidgetItem {
 	title: string;
@@ -176,7 +177,7 @@ function mapWidgetIcon(iconName: string): typeof GitMerge {
 }
 
 const resolvedWidgets = computed<WidgetItem[]>(() => {
-	const widgets = result.value?.dashboard?.widgets;
+	const widgets = dashData.value?.widgets;
 	if (!widgets) return [];
 	return widgets.map(
 		(w: { title: string; count: number; icon: string; route: string }) => ({
@@ -198,7 +199,7 @@ interface AttentionItem {
 }
 
 const resolvedAttentionItems = computed<AttentionItem[]>(() => {
-	const items = result.value?.dashboard?.attentionItems;
+	const items = dashData.value?.attentionItems;
 	if (!items) return [];
 	return items.map(
 		(a: { id: string; text: string; severity: string; count: number }) => ({
@@ -251,7 +252,7 @@ function mapActivityColor(type: string): string {
 }
 
 const resolvedActivityGroups = computed<ActivityGroup[]>(() => {
-	const feed = result.value?.dashboard?.activityFeed;
+	const feed = dashData.value?.activityFeed;
 	if (!feed) return [];
 	const items = feed.map(
 		(a: {
@@ -281,7 +282,7 @@ interface RecentOntology {
 }
 
 const resolvedRecentOntologies = computed<RecentOntology[]>(() => {
-	const ontos = result.value?.dashboard?.recentOntologies;
+	const ontos = dashData.value?.recentOntologies;
 	if (!ontos) return [];
 	return ontos.map(
 		(o: {

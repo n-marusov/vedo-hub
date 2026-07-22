@@ -332,6 +332,53 @@ func (h *OrgHandler) HandleForkProject(c *gin.Context) {
 	slog.Info("fork.endpoint.completed", "source", sourceProjectID, "project_id", proj.GetId(), "trace_id", traceID, "duration_ms", time.Since(start).Milliseconds())
 }
 
+// HandleMoveProject transfers a Project from one Group to another.
+//
+// PUT /api/v1/projects/:id/move  { target_group_id: "..." }
+//
+// Idempotency-Key is required (enforced by middleware).
+// RBAC: Only Owner of both source and target groups can move.
+// Audit: emits project.moved event with object_id, target_group_id.
+//
+// TODO (Task 3.1): Uncomment gRPC path once `buf generate` regenerates
+// protobuf Go types for MoveProjectRequest/Response. For now, returns 501
+// Not Implemented.
+func (h *OrgHandler) HandleMoveProject(c *gin.Context) {
+	traceID := c.GetHeader("X-Trace-Id")
+	projectID := c.Param("id")
+
+	slog.Warn("move.endpoint.not_implemented",
+		"project_id", projectID,
+		"trace_id", traceID,
+		"hint", "awaiting buf generate for MoveProject proto types",
+	)
+
+	c.JSON(http.StatusNotImplemented, models.ErrorResponse{
+		Error: models.ErrorDetail{
+			Code:    "NOT_IMPLEMENTED",
+			Message: "Project move endpoint is pending protobuf code generation. Run `buf generate` and wire the gRPC path.",
+		},
+	})
+
+	// TODO: gRPC path (uncomment after buf generate):
+	// token := extractToken(c)
+	// var req struct {
+	// 	TargetGroupID string `json:"target_group_id"`
+	// }
+	// if err := c.ShouldBindJSON(&req); err != nil {
+	// 	c.JSON(http.StatusBadRequest, models.ErrorResponse{
+	// 		Error: models.ErrorDetail{Code: "INVALID_REQUEST", Message: err.Error()},
+	// 	})
+	// 	return
+	// }
+	// resp, err := h.orgClient.MoveProject(c.Request.Context(), &authv1.MoveProjectRequest{
+	// 	ProjectId:     projectID,
+	// 	TargetGroupId: req.TargetGroupID,
+	// }, token)
+	// ... (map gRPC error codes to HTTP, same pattern as ForkProject)
+	// c.JSON(http.StatusOK, gin.H{"project": resp.GetProject()})
+}
+
 // ============================================================================
 // Member Handlers
 // ============================================================================

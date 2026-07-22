@@ -1,59 +1,111 @@
 // @hlv:artifact code-frontend implements spec-gui-ow-001
-// @ctx: Version context composable — exposes branch, commit, dirty state via Apollo cache
-// @hlv version_context_exposed — branch, commit, dirty state available to all components
+// @ctx: Version context composable — exposes branch, commit, dirty state via REST.
+// After GraphQL tightening: ontology metadata migrated from VERSION_CONTEXT_QUERY
+// (GraphQL) to GET /api/v1/ontologies/{id} (REST).
 
-import { useQuery } from '@vue/apollo-composable'
-import { computed, ref } from 'vue'
-import { VERSION_CONTEXT_QUERY } from '../apollo/queries'
+import { computed, ref } from "vue";
+import axios from "axios";
+
+const api = axios.create({
+  baseURL: "/api/v1",
+  headers: { "X-Requested-With": "XMLHttpRequest" },
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("vedo-jwt-token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 interface VersionContext {
-  branch: string | null
-  commit: string | null
-  dirty: boolean
-  ontologyId: string | null
+  branch: string | null;
+  commit: string | null;
+  dirty: boolean;
+  ontologyId: string | null;
 }
 
 const context = ref<VersionContext>({
   branch: null,
   commit: null,
   dirty: false,
-  ontologyId: null
-})
+  ontologyId: null,
+});
 
 export function useVersionContext() {
-  const branch = computed(() => context.value.branch)
-  const commit = computed(() => context.value.commit)
-  const dirty = computed(() => context.value.dirty)
-  const isInitialized = computed(() => context.value.ontologyId !== null)
+  const branch = computed(() => context.value.branch);
+  const commit = computed(() => context.value.commit);
+  const dirty = computed(() => context.value.dirty);
+  const isInitialized = computed(() => context.value.ontologyId !== null);
+
+  // Loading/error for REST fetch
+  const loading = ref(false);
+  const error = ref<string | null>(null);
 
   function setContext(ontologyId: string, branch: string, commit: string, dirty: boolean) {
-    context.value = { ontologyId, branch, commit, dirty }
+    context.value = { ontologyId, branch, commit, dirty };
   }
 
-  function loadFromApollo(ontologyId: string) {
-    context.value.ontologyId = ontologyId
-    // Uses Apollo Client cache — data fetched via VERSION_CONTEXT_QUERY
-    const { result, loading, error } = useQuery(VERSION_CONTEXT_QUERY, { id: ontologyId })
+  /** Fetch ontology metadata via REST (replaces Apollo VERSION_CONTEXT_QUERY). */
+  async function loadFromRest(ontologyId: string) {
+    context.value.ontologyId = ontologyId;
+    loading.value = true;
+    error.value = null;
 
-    if (result.value?.ontology) {
-      context.value.branch = result.value.ontology.branch
-      context.value.commit = result.value.ontology.commit
-      context.value.dirty = result.value.ontology.dirty
+    try {
+      const { data } = await api.get(`/ontologies/${ontologyId}`);
+      context.value.branch = data.branch ?? "main";
+      context.value.commit = data.commit ?? "";
+      context.value.dirty = data.dirty ?? false;
+
+      console.info(
+        JSON.stringify({
+          level: "info",
+          msg: "versioncontext.load.success",
+          ontologyId,
+          branch: context.value.branch,
+          commit: context.value.commit,
+          dirty: context.value.dirty,
+          ts: new Date().toISOString(),
+        }),
+      );
+    } catch (err: any) {
+      const msg =
+        err.response?.data?.error?.message ?? err.message ?? "Failed to load ontology metadata";
+      error.value = msg;
+      console.error(
+        JSON.stringify({
+          level: "error",
+          msg: "versioncontext.load.failed",
+          ontologyId,
+          error: msg,
+          ts: new Date().toISOString(),
+        }),
+      );
+      // Fall back to defaults so the workspace still loads.
+      context.value.branch = "main";
+      context.value.commit = "";
+      context.value.dirty = false;
+    } finally {
+      loading.value = false;
     }
 
-    return { loading, error }
+    return { loading, error };
   }
 
   function markDirty() {
-    context.value.dirty = true
+    context.value.dirty = true;
   }
 
   function markClean() {
-    context.value.dirty = false
+    context.value.dirty = false;
   }
 
   function reset() {
-    context.value = { branch: null, commit: null, dirty: false, ontologyId: null }
+    context.value = { branch: null, commit: null, dirty: false, ontologyId: null };
+    loading.value = false;
+    error.value = null;
   }
 
   return {
@@ -62,9 +114,9 @@ export function useVersionContext() {
     dirty,
     isInitialized,
     setContext,
-    loadFromApollo,
+    loadFromRest,
     markDirty,
     markClean,
-    reset
-  }
+    reset,
+  };
 }

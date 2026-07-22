@@ -2220,3 +2220,87 @@ base:auth/session-module a vdo:CodeArtifact ;
     vdo:implements base:user/US-auth.keycloak-login .
 
 base:security/auth-boundary vdo:constrains base:user/US-auth.keycloak-login .
+
+# =============================================================================
+# GraphQL Tightening — GraphQL to Graph-Only Boundary
+# =============================================================================
+# Added by $aif-implement for feature/graphql-graph-only-boundary branch.
+# Documents artifacts modified/created during the GraphQL scope restriction:
+# GraphQL = only graph navigation (class/property/individual queries).
+# All non-graph reads and all mutations migrated to REST.
+# =============================================================================
+
+# --- New REST Client Modules (frontend) ---
+
+base:src/api-versioning-client a vdo:CodeArtifact ;
+    rdfs:label "Frontend REST Client — Versioning"@en ;
+    rdfs:comment "axios wrapper for GET /versioning/commits, /branches, /tags, /commits/:id/delta. Replaces former GraphQL commits/branch/branches queries."@en ;
+    vdo:filePath "src/services/frontend/src/api/versioning.ts" ;
+    vdo:implements base:adr/protocol-stack-strategy .
+
+base:src/api-org-client a vdo:CodeArtifact ;
+    rdfs:label "Frontend REST Client — Organization"@en ;
+    rdfs:comment "axios wrapper for GET /groups, /projects, /projects/:id/members. Replaces former GraphQL groups/projects/members queries."@en ;
+    vdo:filePath "src/services/frontend/src/api/org.ts" ;
+    vdo:implements base:adr/org-rest-endpoints .
+
+base:src/api-comments-client a vdo:CodeArtifact ;
+    rdfs:label "Frontend REST Client — Comments"@en ;
+    rdfs:comment "axios wrapper for GET/POST /ontologies/:id/comments. Replaces former GraphQL comments/commentFeed queries and createComment mutation."@en ;
+    vdo:filePath "src/services/frontend/src/api/comments.ts" ;
+    vdo:implements base:adr/rest-graphql-mutation-boundary .
+
+base:src/api-metrics-client a vdo:CodeArtifact ;
+    rdfs:label "Frontend REST Client — Metrics"@en ;
+    rdfs:comment "axios wrapper for GET /metrics/ontologies/:id. Replaces former GraphQL ontologyMetrics query."@en ;
+    vdo:filePath "src/services/frontend/src/api/metrics.ts" .
+
+base:src/api-dashboard-client a vdo:CodeArtifact ;
+    rdfs:label "Frontend REST Client — Dashboard"@en ;
+    rdfs:comment "Mock dashboard client returning stub data. Replaces former GraphQL DASHBOARD_QUERY."@en ;
+    vdo:filePath "src/services/frontend/src/api/dashboard.ts" .
+
+base:src/api-deployments-client a vdo:CodeArtifact ;
+    rdfs:label "Frontend REST Client — Deployments"@en ;
+    rdfs:comment "Mock deployments client. Replaces former GraphQL LIST_DEPLOYMENTS_QUERY."@en ;
+    vdo:filePath "src/services/frontend/src/api/deployments.ts" .
+
+base:src/api-merge-requests-client a vdo:CodeArtifact ;
+    rdfs:label "Frontend REST Client — Merge Requests"@en ;
+    rdfs:comment "Mock merge requests client. Replaces former GraphQL LIST_MERGE_REQUESTS_QUERY."@en ;
+    vdo:filePath "src/services/frontend/src/api/merge-requests.ts" .
+
+base:src/api-validation-client a vdo:CodeArtifact ;
+    rdfs:label "Frontend REST Client — SHACL Validation"@en ;
+    rdfs:comment "axios wrapper for POST /ontologies/:id/validate. Replaces former GraphQL RUN_VALIDATION_MUTATION."@en ;
+    vdo:filePath "src/services/frontend/src/api/validation.ts" ;
+    vdo:implements base:adr/rest-graphql-mutation-boundary .
+
+base:src/api-preferences-client a vdo:CodeArtifact ;
+    rdfs:label "Frontend REST Client — User Preferences"@en ;
+    rdfs:comment "localStorage-based preferences client. Replaces former GraphQL NAVIGATION_STATE_QUERY."@en ;
+    vdo:filePath "src/services/frontend/src/api/preferences.ts" .
+
+# --- Modified Backend Artifacts ---
+
+base:graphql/query-resolver vdo:implements base:adr/protocol-stack-strategy .
+base:graphql/query-resolver vdo:implements base:adr/graphql-sparql-split-strategy .
+base:graphql/frontend-queries vdo:implements base:adr/graphql-sparql-split-strategy .
+
+# --- Modified Composables ---
+
+base:src/use-version-context a vdo:CodeArtifact ;
+    rdfs:label "useVersionContext Composable (REST)"@en ;
+    rdfs:comment "Migrated from Apollo VERSION_CONTEXT_QUERY to GET /api/v1/ontologies/:id REST fetch."@en ;
+    vdo:filePath "src/services/frontend/src/composables/useVersionContext.ts" .
+
+base:src/use-draft-state a vdo:CodeArtifact ;
+    rdfs:label "useDraftState Composable (REST)"@en ;
+    rdfs:comment "Migrated from Apollo UPDATE_DRAFT_MUTATION to PUT /api/v1/ontologies/:id/draft REST with Idempotency-Key."@en ;
+    vdo:filePath "src/services/frontend/src/composables/useDraftState.ts" ;
+    vdo:implements base:adr/rest-graphql-mutation-boundary .
+
+# --- Deleted Artifacts ---
+# mutation.rs — MutationRoot removed, replaced with EmptyMutation
+# GqlOntology, GqlCommit, GqlCommitConnection, GqlBranch, GqlBranchConnection,
+# GqlDraftUpdateResult, GqlGroup, GqlProject, GqlMember — types removed from types.rs

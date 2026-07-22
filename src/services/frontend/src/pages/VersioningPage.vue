@@ -69,13 +69,17 @@
 </template>
 
 <script setup lang="ts">
+import { GRAPH_NEIGHBORHOOD_QUERY } from "@/apollo/queries";
 import {
-	COMPARE_REVISIONS_QUERY,
-	GET_BRANCHES_QUERY,
-	GET_COMMIT_HISTORY_QUERY,
-	GET_TAGS_QUERY,
-	GRAPH_NEIGHBORHOOD_QUERY,
-} from "@/apollo/queries";
+	listCommits,
+	listBranches,
+	listTags,
+	compareRevisions,
+	type CommitSummary,
+	type BranchInfo,
+	type TagInfo,
+	type CompareRevisionsResult,
+} from "@/api/versioning";
 import BranchList from "@/components/organisms/BranchList.vue";
 import CommitHistory from "@/components/organisms/CommitHistory.vue";
 import DiffView from "@/components/organisms/DiffView.vue";
@@ -83,7 +87,7 @@ import RepositoryGraph from "@/components/organisms/RepositoryGraph.vue";
 import TagList from "@/components/organisms/TagList.vue";
 import { useQuery } from "@vue/apollo-composable";
 import { GitBranch, Search, User } from "lucide-vue-next";
-import { computed, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 const route = useRoute();
@@ -101,16 +105,13 @@ const tabs = [
 	{ id: "merge_requests", label: "Merge Requests" },
 ];
 
-// Keyboard arrow navigation for tabs
 function onArrowRight(e: KeyboardEvent) {
 	const target = e.target as HTMLElement;
 	const parent = target?.closest(".ver-tabs");
 	if (!parent) return;
 	const buttons = Array.from(parent.querySelectorAll("button"));
 	const idx = buttons.indexOf(target as HTMLButtonElement);
-	if (idx < buttons.length - 1) {
-		buttons[idx + 1]?.focus();
-	}
+	if (idx < buttons.length - 1) buttons[idx + 1]?.focus();
 }
 
 function onArrowLeft(e: KeyboardEvent) {
@@ -119,9 +120,7 @@ function onArrowLeft(e: KeyboardEvent) {
 	if (!parent) return;
 	const buttons = Array.from(parent.querySelectorAll("button"));
 	const idx = buttons.indexOf(target as HTMLButtonElement);
-	if (idx > 0) {
-		buttons[idx - 1]?.focus();
-	}
+	if (idx > 0) buttons[idx - 1]?.focus();
 }
 
 const titles: Record<string, string> = {
@@ -133,66 +132,77 @@ const titles: Record<string, string> = {
 	merge_requests: "Merge Requests",
 };
 
-// ── Apollo Queries ──────────────────────────────────────────────────────────────────
+// ── REST Data (migrated from Apollo) ─────────────────────────────────────────────
 
-const {
-	result: commitResult,
-	loading: commitsLoading,
-	error: commitsError,
-	refetch: refetchCommits,
-} = useQuery(
-	GET_COMMIT_HISTORY_QUERY,
-	() => ({
-		ontologyId: ontologyId.value,
-		page: 1,
-		perPage: 50,
-	}),
-	{ fetchPolicy: "cache-and-network" },
-);
+const commitsLoading = ref(false);
+const commitsError = ref<string | null>(null);
+const commitsData = ref<CommitSummary[]>([]);
 
-const {
-	result: branchesResult,
-	loading: branchesLoading,
-	error: branchesError,
-	refetch: refetchBranches,
-} = useQuery(
-	GET_BRANCHES_QUERY,
-	() => ({
-		ontologyId: ontologyId.value,
-	}),
-	{ fetchPolicy: "cache-and-network" },
-);
+const branchesLoading = ref(false);
+const branchesError = ref<string | null>(null);
+const branchesData = ref<BranchInfo[]>([]);
 
-const {
-	result: tagsResult,
-	loading: tagsLoading,
-	error: tagsError,
-	refetch: refetchTags,
-} = useQuery(
-	GET_TAGS_QUERY,
-	() => ({
-		ontologyId: ontologyId.value,
-	}),
-	{ fetchPolicy: "cache-and-network" },
-);
+const tagsLoading = ref(false);
+const tagsError = ref<string | null>(null);
+const tagsData = ref<TagInfo[]>([]);
 
-const {
-	result: compareResult,
-	loading: compareLoading,
-	error: compareError,
-	refetch: refetchCompare,
-} = useQuery(
-	COMPARE_REVISIONS_QUERY,
-	() => ({
-		ontologyId: ontologyId.value,
-		fromRevision: "",
-		toRevision: "",
-	}),
-	{
-		fetchPolicy: "cache-and-network",
-		enabled: computed(() => view.value === "compare"),
-	},
-);
+const compareLoading = ref(false);
+const compareError = ref<string | null>(null);
+const compareData = ref<CompareRevisionsResult | null>(null);
+
+async function fetchCommits() {
+	commitsLoading.value = true;
+	commitsError.value = null;
+	try {
+		const result = await listCommits(ontologyId.value, undefined, 0, 50);
+		commitsData.value = result.items;
+	} catch (e: any) {
+		commitsError.value = e.message ?? String(e);
+	} finally {
+		commitsLoading.value = false;
+	}
+}
+
+async function fetchBranches() {
+	branchesLoading.value = true;
+	branchesError.value = null;
+	try {
+		const result = await listBranches(ontologyId.value);
+		branchesData.value = result.items;
+	} catch (e: any) {
+		branchesError.value = e.message ?? String(e);
+	} finally {
+		branchesLoading.value = false;
+	}
+}
+
+async function fetchTags() {
+	tagsLoading.value = true;
+	tagsError.value = null;
+	try {
+		tagsData.value = await listTags(ontologyId.value);
+	} catch (e: any) {
+		tagsError.value = e.message ?? String(e);
+	} finally {
+		tagsLoading.value = false;
+	}
+}
+
+async function fetchCompare() {
+	compareLoading.value = true;
+	compareError.value = null;
+	// Compare requires from/to revisions — fetched on demand when tab active.
+	// For now, return empty data until user selects revisions.
+	compareLoading.value = false;
+}
+
+onMounted(() => {
+	fetchCommits();
+	fetchBranches();
+	fetchTags();
+});
+
+// ── GraphQL (graph navigation — kept as-is) ────────────────────────────────────
 
 const {
 	result: graphResult,
@@ -212,74 +222,54 @@ const {
 	},
 );
 
-// ── Computed Data ───────────────────────────────────────────────────────────────────
+// ── Computed Data ───────────────────────────────────────────────────────────────
 
-const commits = computed(() => {
-	const items = commitResult.value?.commits?.items;
-	if (!items) return [];
-	return items.map((c: Record<string, unknown>) => ({
+const commits = computed(() =>
+	commitsData.value.map((c) => ({
 		author: c.authorName,
 		message: c.message,
 		sha: c.id,
 		date: c.createdAt,
 		branch: c.branchId,
-	}));
-});
+	})),
+);
 
-const branches = computed(() => {
-	const items = branchesResult.value?.branches?.items;
-	if (!items) return [];
-	return items.map((b: Record<string, unknown>) => ({
+const branches = computed(() =>
+	branchesData.value.map((b) => ({
 		name: b.name,
-		status: b.isProtected ? "active" : "default",
+		status: b.isProtected ? "active" as const : "default" as const,
 		lastCommit: b.headCommitId,
-	}));
-});
+	})),
+);
 
-const tags = computed(() => {
-	const items = tagsResult.value?.tags;
-	if (!items) return [];
-	return items.map((t: Record<string, unknown>) => ({
+const tags = computed(() =>
+	tagsData.value.map((t) => ({
 		name: t.name,
 		commit: t.commitId,
 		description: t.message,
 		updated: t.createdAt,
-	}));
-});
+	})),
+);
 
 const currentBranch = computed(() => {
-	if (branchesResult.value?.branches?.items?.length) {
-		const active = branchesResult.value.branches.items.find(
-			(b: Record<string, unknown>) => b.isProtected,
-		);
-		return (active?.name as string) || "main";
+	if (branchesData.value.length) {
+		const active = branchesData.value.find((b) => b.isProtected);
+		return active?.name || "main";
 	}
 	return "main";
 });
 
-// Compare view — computed from Apollo compareResult
 const changes = computed(() => {
-	const data = compareResult.value?.compareRevisions;
-	if (!data?.changes?.length) {
-		return [];
-	}
-	return data.changes.map((c: Record<string, unknown>) => ({
+	const data = compareData.value;
+	if (!data?.changes?.length) return [];
+	return data.changes.map((c) => ({
 		path: String(c.entityLabel || c.entityId || ""),
-		type: (c.changeType === "added"
-			? "added"
-			: c.changeType === "removed"
-				? "removed"
-				: "modified") as "added" | "removed" | "modified",
-		diff: `@@ ${c.field || ""}: ${String(c.oldValue ?? "")} → ${String(c.newValue ?? "")} @@`,
+		type: (c.changeType === "added" ? "added" : c.changeType === "removed" ? "removed" : "modified") as "added" | "removed" | "modified",
+		diff: `@@ ${c.field || ""}: ${String(c.oldValue ?? "")} ➔ ${String(c.newValue ?? "")} @@`,
 	}));
 });
 
-const commitOptions = computed(() => {
-	const data = compareResult.value?.compareRevisions;
-	if (!data) return [];
-	// Derive commit options from comparison metadata if available
-	return [];
-});
+const commitOptions = computed(() => []);
 
 const graphNodes = computed(() => {
 	const data = graphResult.value?.graphNeighborhood;
@@ -293,7 +283,7 @@ const graphNodes = computed(() => {
 	}));
 });
 
-// ── Combined Loading / Error ────────────────────────────────────────────────────────
+// ── Combined Loading / Error ────────────────────────────────────────────────────
 
 const loading = computed(() => {
 	if (view.value === "commits") return commitsLoading.value;
@@ -314,14 +304,13 @@ const error = computed(() => {
 });
 
 function refetchAll(): void {
-	refetchCommits();
-	refetchBranches();
-	refetchTags();
-	refetchCompare();
+	fetchCommits();
+	fetchBranches();
+	fetchTags();
 	refetchGraph();
 }
 
-// ── Navigation ───────────────────────────────────────────────────────────────────────
+// ── Navigation ───────────────────────────────────────────────────────────────────
 
 function go(next: string): void {
 	router.replace({
@@ -330,51 +319,35 @@ function go(next: string): void {
 	});
 }
 
-// ── Logging ──────────────────────────────────────────────────────────────────────────
+// ── Logging ──────────────────────────────────────────────────────────────────────
 
 watch(commits, (val) => {
-	console.debug(
-		JSON.stringify({
-			level: "debug",
-			msg: "versioning.commits.loaded",
-			count: val.length,
-			ts: new Date().toISOString(),
-		}),
-	);
+	console.debug(JSON.stringify({
+		level: "debug", msg: "versioning.commits.loaded",
+		count: val.length, ts: new Date().toISOString(),
+	}));
 });
 
 watch(tags, (val) => {
-	console.debug(
-		JSON.stringify({
-			level: "debug",
-			msg: "versioning.tags.loaded",
-			count: val.length,
-			ts: new Date().toISOString(),
-		}),
-	);
+	console.debug(JSON.stringify({
+		level: "debug", msg: "versioning.tags.loaded",
+		count: val.length, ts: new Date().toISOString(),
+	}));
 });
 
 watch(changes, (val) => {
-	console.debug(
-		JSON.stringify({
-			level: "debug",
-			msg: "versioning.compare.loaded",
-			count: val.length,
-			ts: new Date().toISOString(),
-		}),
-	);
+	console.debug(JSON.stringify({
+		level: "debug", msg: "versioning.compare.loaded",
+		count: val.length, ts: new Date().toISOString(),
+	}));
 });
 
 watch(error, (err) => {
 	if (err) {
-		console.error(
-			JSON.stringify({
-				level: "error",
-				msg: "versioning.query.error",
-				error: String(err),
-				ts: new Date().toISOString(),
-			}),
-		);
+		console.error(JSON.stringify({
+			level: "error", msg: "versioning.query.error",
+			error: String(err), ts: new Date().toISOString(),
+		}));
 	}
 });
 </script>

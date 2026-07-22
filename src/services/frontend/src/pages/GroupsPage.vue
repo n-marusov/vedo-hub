@@ -41,7 +41,7 @@
     <!-- Error state -->
     <div v-else-if="error" class="gp-error" role="alert">
       <span>Failed to load groups</span>
-      <button class="retry-btn" type="button" @click="() => refetch()">Retry</button>
+      <button class="retry-btn" type="button" @click="fetchGroups">Retry</button>
     </div>
 
     <!-- Empty state -->
@@ -100,8 +100,7 @@
 </template>
 
 <script setup lang="ts">
-import { LIST_GROUPS_QUERY } from "@/apollo/queries";
-import { useQuery } from "@vue/apollo-composable";
+import { listGroups } from "@/api/org";
 import {
 	ChevronDown,
 	ChevronRight,
@@ -116,7 +115,7 @@ import {
 	Users,
 } from "lucide-vue-next";
 import type { Component } from "vue";
-import { computed, reactive, ref, watch } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 
 const searchQuery = ref("");
 
@@ -157,16 +156,26 @@ interface GroupRow {
 	isChild: boolean;
 }
 
-const { result, loading, error, refetch } = useQuery(
-	LIST_GROUPS_QUERY,
-	() => ({
-		q: searchQuery.value || undefined,
-	}),
-	{ fetchPolicy: "cache-and-network" },
-);
+const loading = ref(false);
+const error = ref<string | null>(null);
+const groupsData = ref<any[]>([]);
+
+async function fetchGroups() {
+	loading.value = true;
+	error.value = null;
+	try {
+		groupsData.value = await listGroups(searchQuery.value || undefined);
+	} catch (e: any) {
+		error.value = e.message ?? String(e);
+	} finally {
+		loading.value = false;
+	}
+}
+
+onMounted(() => { fetchGroups(); });
 
 const groupRows = computed<GroupRow[]>(() => {
-	const items = result.value?.groups?.items;
+	const items = groupsData.value;
 	if (!items || items.length === 0) {
 		return [];
 	}

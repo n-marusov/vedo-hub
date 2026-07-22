@@ -85,6 +85,39 @@ func main() {
 		})
 	})
 
+	// Initialize CommentStore from DATABASE_URL (PostgreSQL).
+	// Falls back gracefully when no database is configured — comment
+	// CRUD handlers return 503 STORE_UNAVAILABLE in that case.
+	var store *CommentStore
+	if dsn := os.Getenv("DATABASE_URL"); dsn != "" {
+		var err error
+		store, err = NewCommentStore(dsn)
+		if err != nil {
+			slog.Warn("commenting.store.init_failed", "error", err)
+		}
+	} else {
+		slog.Warn("commenting.store.no_database_url",
+			"hint", "set DATABASE_URL to enable comments persistence")
+	}
+
+	// Initialize EventBus for real-time comment notifications.
+	bus := newEventBus()
+
+	// Register comment HTTP routes on a ServeMux (Go 1.22+ pattern matching).
+	commentMux := http.NewServeMux()
+	cmtHandlers := newCommentHandlers(store, bus)
+	registerCommentRoutes(commentMux, cmtHandlers)
+
+	// Mount comment routes under /api/v1/ on the Gin engine.
+	r.Any("/api/v1/ontologies/:ontology_id/comments", gin.WrapH(commentMux))
+	r.Any("/api/v1/ontologies/:ontology_id/comments/*path", gin.WrapH(commentMux))
+	r.Any("/api/v1/ontologies/:ontology_id/comment-feed", gin.WrapH(commentMux))
+	r.Any("/api/v1/comments", gin.WrapH(commentMux))
+	r.Any("/api/v1/comments/*path", gin.WrapH(commentMux))
+
+	slog.Info("comment.routes.registered",
+		"note", "comments served at /api/v1/ontologies/:ontology_id/comments")
+
 	// ---- gRPC Server ----
 	grpcOpts := grpcServerOptions()
 	grpcSrv := grpc.NewServer(grpcOpts...)
@@ -122,8 +155,7 @@ func main() {
 		}
 	}()
 
-	slog.Info("commenting-service running", "http_port", httpPort, "grpc_port", grpcPort,
-		"note", "gRPC CommentingService RPCs not yet registered; run 'make proto-generate' to enable")
+	slog.Info("commenting-service running", "http_port", httpPort, "grpc_port", grpcPort)
 
 	// Graceful shutdown
 	quit := make(chan os.Signal, 1)

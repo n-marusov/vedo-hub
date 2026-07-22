@@ -39,18 +39,12 @@
 </template>
 
 <script setup lang="ts">
-import { RUN_VALIDATION_MUTATION } from "@/apollo/queries";
+import { runValidation as apiRunValidation } from "@/api/validation";
 import ValidationReport from "@/components/organisms/ValidationReport.vue";
-import { useMutation } from "@vue/apollo-composable";
 import {
-	Calendar,
-	Folder,
-	GitBranch,
-	Loader,
-	Play,
-	Shield,
+	Calendar, Folder, GitBranch, Loader, Play, Shield,
 } from "lucide-vue-next";
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
@@ -61,8 +55,8 @@ const ontologyId = computed(
 		"",
 );
 
-// @m4 — Wire validation to RUN_VALIDATION_MUTATION
-const { mutate, loading } = useMutation(RUN_VALIDATION_MUTATION);
+// @m4 — Validation migrated from GraphQL to REST
+const loading = ref(false);
 
 const validationResult = ref<{
 	status: string;
@@ -111,8 +105,8 @@ async function runValidation(): Promise<void> {
 		}),
 	);
 	try {
-		const res = await mutate({ ontologyId: ontologyId.value || "default" });
-		validationResult.value = res?.data?.runValidation || {
+		const res = await apiRunValidation(ontologyId.value || "default");
+		validationResult.value = res || {
 			status: "ok",
 			violations: [],
 			validatedAt: new Date().toISOString(),

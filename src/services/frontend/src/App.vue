@@ -107,9 +107,8 @@
 </template>
 
 <script setup lang="ts">
-import { DASHBOARD_QUERY } from "@/apollo/queries";
+import { getDashboard } from "@/api/dashboard";
 import { useCurrentUser } from "@/composables/useCurrentUser";
-import { useQuery } from "@vue/apollo-composable";
 import {
 	ChevronDown,
 	CircleHelp,
@@ -147,42 +146,23 @@ const showShell = computed(() => {
 	);
 });
 
-// @m4 — Sidebar navigation items with badge counts from DASHBOARD_QUERY
-const { result: navResult } = useQuery(DASHBOARD_QUERY, undefined, {
-	enabled: showShell,
-});
+// @m4 — Sidebar nav badge counts from dashboard REST endpoint
+const navCounts = reactive({ mr: "0", commits: "0", comments: "0", deployments: "0" });
 
-// @m4 — Reactive nav badge counts from dashboard aggregate query
-const navCounts = reactive({
-	mr: "0",
-	commits: "0",
-	comments: "0",
-	deployments: "0",
+onMounted(async () => {
+  if (!showShell.value) return;
+  try {
+    const dash = await getDashboard();
+    const mrWidget = dash.widgets?.find((w) => w.title === "Merge Requests");
+    if (mrWidget) navCounts.mr = String(mrWidget.count || 0);
+    const attMR = dash.attentionItems?.filter((a) => a.text.includes("merge request"));
+    if (attMR?.length)
+      navCounts.mr = String(attMR.reduce((sum, a) => sum + (a.count || 0), 0));
+    navCounts.comments = String(dash.activityFeed?.length || 0);
+  } catch {
+    // Dashboard not available — keep defaults
+  }
 });
-
-watch(
-	() => navResult.value?.dashboard,
-	(dash) => {
-		if (!dash) return;
-		const mrWidget = dash.widgets?.find(
-			(w: { title: string }) => w.title === "Merge Requests",
-		);
-		if (mrWidget) navCounts.mr = String(mrWidget.count || 0);
-		const attMR = dash.attentionItems?.filter((a: { text: string }) =>
-			a.text.includes("merge request"),
-		);
-		if (attMR?.length)
-			navCounts.mr = String(
-				attMR.reduce(
-					(sum: number, a: { count: number }) => sum + (a.count || 0),
-					0,
-				),
-			);
-		// Approximate comments from activity feed
-		navCounts.comments = String(dash.activityFeed?.length || 0);
-	},
-	{ immediate: false },
-);
 
 type SidebarItem = {
 	label: string;

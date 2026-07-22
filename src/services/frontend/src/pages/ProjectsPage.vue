@@ -58,7 +58,7 @@
         <!-- Error state -->
         <div v-else-if="error" class="pp-error" role="alert">
             <span>Failed to load projects</span>
-            <button class="retry-btn" type="button" @click="() => refetch()">Retry</button>
+            <button class="retry-btn" type="button" @click="fetchProjects">Retry</button>
         </div>
 
         <!-- Empty state -->
@@ -130,9 +130,8 @@
 </template>
 
 <script setup lang="ts">
-import { LIST_PROJECTS_QUERY } from "@/apollo/queries";
+import { listProjects } from "@/api/org";
 import ForkDemoDialog from "@/components/projects/ForkDemoDialog.vue";
-import { useQuery } from "@vue/apollo-composable";
 import {
 	BadgeCheck,
 	ChevronDown,
@@ -147,7 +146,7 @@ import {
 	Search,
 	Star,
 } from "lucide-vue-next";
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
@@ -203,20 +202,33 @@ interface ProjectRow {
 	logoBg: string;
 }
 
-const { result, loading, error, refetch } = useQuery(
-	LIST_PROJECTS_QUERY,
-	() => ({
-		q: searchQuery.value || undefined,
-		sortBy: sortByMap[sortField.value] || "name",
-		sortDir: sortDir.value,
-		page: 1,
-		perPage: 50,
-	}),
-	{ fetchPolicy: "cache-and-network" },
-);
+const loading = ref(false);
+const error = ref<string | null>(null);
+const projectsData = ref<any[]>([]);
+
+async function fetchProjects() {
+	loading.value = true;
+	error.value = null;
+	try {
+		const result = await listProjects({
+			q: searchQuery.value || undefined,
+			sortBy: sortByMap[sortField.value] || "name",
+			sortDir: sortDir.value,
+			page: 1,
+			perPage: 50,
+		});
+		projectsData.value = result.items;
+	} catch (e: any) {
+		error.value = e.message ?? String(e);
+	} finally {
+		loading.value = false;
+	}
+}
+
+onMounted(() => { fetchProjects(); });
 
 const projects = computed<ProjectRow[]>(() => {
-	const items = result.value?.projects?.items;
+	const items = projectsData.value;
 	if (!items || items.length === 0) {
 		// Fallback to empty when no data from API
 		return [];

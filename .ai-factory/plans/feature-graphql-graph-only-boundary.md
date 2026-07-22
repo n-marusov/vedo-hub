@@ -115,7 +115,7 @@ Source: `.ai-factory/RESEARCH.md` explore session 2026-07-22
 
 ### Phase 3: Backend — Gateway REST for Existing Service Endpoints (Org + Metrics)
 
-- [ ] **Task 3.1: Verify and document Organization REST API (groups, projects, members)**
+- [x] **Task 3.1: Verify and document Organization REST API (groups, projects, members)**
   The org REST endpoints already exist in `routes.go` (lines 80–110) via `orgHandler` backed by auth-service gRPC. Before frontend can migrate from GraphQL to REST, we must verify these endpoints work end-to-end:
   - **Groups read:** `GET /api/v1/groups`, `GET /api/v1/groups/:id`, `GET /api/v1/groups/:id/subgroups`, `GET /api/v1/groups/:id/members`
   - **Groups write:** `POST /api/v1/groups`, `PUT /api/v1/groups/:id`, `DELETE /api/v1/groups/:id`
@@ -134,7 +134,7 @@ Source: `.ai-factory/RESEARCH.md` explore session 2026-07-22
 
   LOGGING: INFO on org endpoint verification with endpoint path and response status. WARN on any endpoint returning non-200 for valid input. ERROR on RBAC bypass.
 
-- [ ] **Task 3.2: Add Gateway proxy routes for metrics-service REST endpoints**
+- [x] **Task 3.2: Add Gateway proxy routes for metrics-service REST endpoints**
   The metrics-service (Python FastAPI, port 8084) already exposes:
   - `GET /api/v1/metrics/ontologies` — list all ontology metrics
   - `GET /api/v1/metrics/ontologies/{ontology_id}` — specific ontology metrics
@@ -158,7 +158,7 @@ Source: `.ai-factory/RESEARCH.md` explore session 2026-07-22
 
 ### Phase 4: Backend — New REST Endpoints
 
-- [ ] **Task 4.1: Add commenting-service HTTP handlers + Gateway proxy**
+- [x] **Task 4.1: Add commenting-service HTTP handlers + Gateway proxy**
   **Backend (commenting-service):**
   - Register HTTP routes in `src/services/commenting-service/main.go`:
     - `GET /api/v1/ontologies/:id/comments` — list comments for ontology entity
@@ -184,7 +184,7 @@ Source: `.ai-factory/RESEARCH.md` explore session 2026-07-22
 
   LOGGING: INFO on comment CRUD with ontology_id, user_id, and result count. ERROR on store failure with trace_id.
 
-- [ ] **Task 4.2: Add SHACL validation REST endpoint + Gateway proxy**
+- [x] **Task 4.2: Add SHACL validation REST endpoint + Gateway proxy**
   The SHACL validation currently uses a GraphQL mutation (`RUN_VALIDATION_MUTATION`). There is no SHACL validation backend yet — the mutation returns stub data.
 
   **Backend (ontology-service or new route):**
@@ -203,7 +203,7 @@ Source: `.ai-factory/RESEARCH.md` explore session 2026-07-22
 
   LOGGING: INFO on validation request with ontology_id. WARN on stub response (until real SHACL engine is wired). ERROR on validation engine failure.
 
-- [ ] **Task 4.3: Add draft-state REST endpoint + Gateway proxy**
+- [x] **Task 4.3: Add draft-state REST endpoint + Gateway proxy**
   Per ADR-DES.API.rest-graphql-mutation-boundary.md, draft-state coordination should be `PUT /api/v1/ontologies/{id}/draft`.
 
   **Backend (ontology-service proxy or gRPC):**
@@ -225,7 +225,7 @@ Source: `.ai-factory/RESEARCH.md` explore session 2026-07-22
 
 ### Phase 5: Frontend — Clean queries.ts & Add REST Clients
 
-- [ ] **Task 5.1: Strip queries.ts to graph-only queries**
+- [x] **Task 5.1: Strip queries.ts to graph-only queries**
   In `src/services/frontend/src/apollo/queries.ts`:
 
   **KEEP (graph navigation — 15 exports):**
@@ -256,7 +256,7 @@ Source: `.ai-factory/RESEARCH.md` explore session 2026-07-22
 
   LOGGING: No runtime logging — build-time change. Verify with `vitest` that no import breaks compile.
 
-- [ ] **Task 5.2: Create axios REST client modules for migrated domains**
+- [x] **Task 5.2: Create axios REST client modules for migrated domains**
   Create REST client files following the pattern in `src/services/frontend/src/api/ontology.ts` (axios instance + JWT interceptor + `Idempotency-Key` + structured logging):
 
   - `src/services/frontend/src/api/versioning.ts` — commits list, branch list, branch detail, tags, compareRevisions
@@ -285,7 +285,7 @@ Source: `.ai-factory/RESEARCH.md` explore session 2026-07-22
 
 ### Phase 6: Frontend — Migrate Pages to REST
 
-- [ ] **Task 6.1: Migrate VersioningPage to REST**
+- [x] **Task 6.1: Migrate VersioningPage to REST**
   In `src/services/frontend/src/pages/VersioningPage.vue`:
   - Remove imports: `GET_COMMIT_HISTORY_QUERY`, `GET_BRANCHES_QUERY`, `GET_TAGS_QUERY`, `COMPARE_REVISIONS_QUERY` from `@/apollo/queries`
   - KEEP: `GRAPH_NEIGHBORHOOD_QUERY` (graph navigation — stays in GraphQL)
@@ -301,7 +301,7 @@ Source: `.ai-factory/RESEARCH.md` explore session 2026-07-22
 
   LOGGING: INFO on page mount with ontology_id and branch. ERROR on API failure with endpoint URL and status.
 
-- [ ] **Task 6.2: Migrate ProjectsPage, GroupsPage, MembersPage to REST**
+- [x] **Task 6.2: Migrate ProjectsPage, GroupsPage, MembersPage to REST**
   **ProjectsPage:**
   - Remove `LIST_PROJECTS_QUERY` import from `@/apollo/queries`
   - Replace `useQuery(LIST_PROJECTS_QUERY, ...)` with `GET /api/v1/projects` via `api/org.ts`
@@ -325,7 +325,7 @@ Source: `.ai-factory/RESEARCH.md` explore session 2026-07-22
 
   LOGGING: INFO on page mount with entity type and query params. ERROR on API failure.
 
-- [ ] **Task 6.3: Migrate OntologyWorkspace ontology metadata to REST**
+- [x] **Task 6.3: Migrate OntologyWorkspace ontology metadata to REST**
   In `src/services/frontend/src/pages/OntologyWorkspace.vue`:
   - Remove `ONTOLOGY_QUERY` import from `../apollo/queries`
   - KEEP: `CLASS_TREE_QUERY`, `LIST_INDIVIDUALS_QUERY` (graph navigation — stays in GraphQL)
@@ -343,7 +343,7 @@ Source: `.ai-factory/RESEARCH.md` explore session 2026-07-22
 
   LOGGING: INFO on workspace mount with ontology_id. INFO on draft state changes. ERROR on metadata fetch failure.
 
-- [ ] **Task 6.4: Migrate CommentsPage, DashboardPage, MetricsPage, DeploymentsPage, MergeRequestsPage, ShaclPage, ValidationPage to REST**
+- [x] **Task 6.4: Migrate CommentsPage, DashboardPage, MetricsPage, DeploymentsPage, MergeRequestsPage, ShaclPage, ValidationPage to REST**
   **CommentsPage:**
   - Remove `CREATE_COMMENT_MUTATION`, `GET_COMMENT_FEED_QUERY` from `@/apollo/queries`
   - Replace with `GET/POST /api/v1/ontologies/{id}/comments` via `api/comments.ts`
@@ -385,7 +385,7 @@ Source: `.ai-factory/RESEARCH.md` explore session 2026-07-22
 
 ### Phase 7: Tests & Traceability
 
-- [ ] **Task 7.1: Update frontend test fixtures and mock providers**
+- [x] **Task 7.1: Update frontend test fixtures and mock providers**
   Update test infrastructure to match REST migration:
   - `src/services/frontend/src/__tests__/setup/mock-providers.ts`:
     - Add mock axios instances for new REST client modules
@@ -409,7 +409,7 @@ Source: `.ai-factory/RESEARCH.md` explore session 2026-07-22
 
   LOGGING: No runtime logging (test infrastructure). Verify with `vitest run`.
 
-- [ ] **Task 7.2: Add backend integration tests for new REST endpoints**
+- [x] **Task 7.2: Add backend integration tests for new REST endpoints**
   Add or update integration tests in `src/services/api-gateway/`:
   - Metrics proxy: test `GET /api/v1/metrics/ontologies` returns 200 + JSON
   - Comments: test `POST /api/v1/ontologies/:id/comments` requires auth, returns 201
@@ -431,7 +431,7 @@ Source: `.ai-factory/RESEARCH.md` explore session 2026-07-22
 
   LOGGING: INFO on test setup with service URLs. ERROR on unexpected responses with full request/response.
 
-- [ ] **Task 7.3: Update traceability.ttl**
+- [x] **Task 7.3: Update traceability.ttl**
   - Add `vdo:TestSuite` entry for each new test file created in Tasks 7.1-7.2
   - Add `vdo:validates` triples for each `// Validates: REQ-...` annotation in new test code
   - Remove stale triples for deleted test files (if any)
@@ -444,7 +444,7 @@ Source: `.ai-factory/RESEARCH.md` explore session 2026-07-22
 
 ### Phase 8: Cleanup & Documentation
 
-- [ ] **Task 8.1: Remove dead code, update Antora docs**
+- [x] **Task 8.1: Remove dead code, update Antora docs**
   **Dead code removal:**
   - Remove `UPDATE_MEMBER_ROLE_MUTATION` and `REMOVE_MEMBER_MUTATION` from `queries.ts` if they survive Task 5.1 (these are already covered in that task)
   - Verify no remaining imports reference deleted exports — run `vitest run` and `vue-tsc --noEmit` to catch compile errors

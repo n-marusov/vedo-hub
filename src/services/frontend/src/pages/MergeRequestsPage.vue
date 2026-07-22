@@ -32,7 +32,7 @@
         <div v-else-if="error" class="mr-section">
             <div class="error-state">
                 <p>Failed to load merge requests.</p>
-                <button class="retry-btn" type="button" @click="refetch()">Retry</button>
+                <button class="retry-btn" type="button" @click="fetchMRs">Retry</button>
             </div>
         </div>
 
@@ -42,12 +42,11 @@
 </template>
 
 <script setup lang="ts">
-import { LIST_MERGE_REQUESTS_QUERY } from "@/apollo/queries";
+import { listMergeRequests } from "@/api/merge-requests";
 import MergeRequests from "@/components/organisms/MergeRequests.vue";
 import Tab from "@/components/ui-kit/Tab.vue";
-import { useQuery } from "@vue/apollo-composable";
 import { ChevronDown, ChevronRight } from "lucide-vue-next";
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 
 const tabs = [
 	{ value: "active", label: "Active" },
@@ -57,13 +56,27 @@ const tabs = [
 
 const activeTab = ref("active");
 
-// @m4 — Wire merge requests to LIST_MERGE_REQUESTS_QUERY
-const { result, loading, error, refetch } = useQuery(
-	LIST_MERGE_REQUESTS_QUERY,
-	() => ({
-		status: activeTab.value === "all" ? undefined : activeTab.value,
-	}),
-);
+const loading = ref(false);
+const error = ref<string | null>(null);
+const mrData = ref<any[]>([]);
+
+async function fetchMRs() {
+	loading.value = true;
+	error.value = null;
+	try {
+		mrData.value = await listMergeRequests(
+			activeTab.value === "all" ? undefined : activeTab.value,
+		);
+	} catch (e: any) {
+		error.value = e.message ?? String(e);
+	} finally {
+		loading.value = false;
+	}
+}
+
+onMounted(() => { fetchMRs(); });
+
+watch(activeTab, () => { fetchMRs(); });
 
 interface MREntry {
 	id: string;
@@ -79,7 +92,7 @@ interface MREntry {
 }
 
 const filteredMRs = computed<MREntry[]>(() => {
-	const mrs = result.value?.mergeRequests;
+	const mrs = mrData.value;
 	if (!mrs) return [];
 	if (activeTab.value === "all") return mrs;
 	return mrs.filter((mr: MREntry) => mr.status === activeTab.value);

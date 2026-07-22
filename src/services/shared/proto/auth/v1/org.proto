@@ -324,6 +324,20 @@ message ForkProjectResponse {
   vedo.common.v1.ErrorDetail error = 2;
 }
 
+// Move/Transfer RPCs — project relocation between groups
+// =============================================================================
+
+message MoveProjectRequest {
+  string project_id = 1;
+  string target_group_id = 2;  // Destination group ID
+  string organization_id = 3;
+}
+
+message MoveProjectResponse {
+  Scope project = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
 // =============================================================================
 // Org Service
 // =============================================================================
@@ -364,4 +378,7 @@ service OrgService {
 
   // Fork (templates-via-forks)
   rpc ForkProject(ForkProjectRequest) returns (ForkProjectResponse);
+
+  // Move/Transfer project between groups
+  rpc MoveProject(MoveProjectRequest) returns (MoveProjectResponse);
 }

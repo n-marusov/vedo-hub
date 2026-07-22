@@ -74,7 +74,7 @@ func RegisterRoutes(r *gin.Engine, grpcPool *proxy.GrpcClientPool) {
 	idemStore := middleware.NewMemIdempotencyStore()
 	idemMiddleware := middleware.Idempotency(&middleware.IdempotencyConfig{
 		Store:         idemStore,
-		CriticalPaths: []string{"/api/v1/projects/"}, // membership/visibility/policy paths require Idempotency-Key
+		CriticalPaths: []string{"/api/v1/projects/", "/api/v1/ontologies/"}, // org + draft write paths require Idempotency-Key
 	})
 
 	api.GET("/groups", orgHandler.HandleListGroups)
@@ -110,6 +110,10 @@ func RegisterRoutes(r *gin.Engine, grpcPool *proxy.GrpcClientPool) {
 	orgWrite.DELETE("/projects/:id/policies/:policyId", orgHandler.HandleDeletePolicy)
 
 	orgWrite.POST("/projects/:id/fork", orgHandler.HandleForkProject)
+	orgWrite.PUT("/projects/:id/move", orgHandler.HandleMoveProject)
+	// TODO (Task 3.1): after `buf generate` regenerates protobuf Go types for
+	// MoveProjectRequest/Response, uncomment the gRPC path in HandleMoveProject
+	// and wire the auth-service implementation.
 
 	// Ontology REST read handlers — use gRPC.
 	ontologyHandler := handlers.NewOntologyHandler(ontologyProxy, ontologyGrpc)
@@ -135,6 +139,10 @@ func RegisterRoutes(r *gin.Engine, grpcPool *proxy.GrpcClientPool) {
 	api.DELETE("/ontologies/:id/individuals/:individualId", gin.WrapH(ontologyProxy))
 	api.GET("/ontologies/:id/export", gin.WrapH(ontologyProxy))
 	api.POST("/ontologies/:id/import", gin.WrapH(ontologyProxy))
+	api.POST("/ontologies/:id/validate", gin.WrapH(ontologyProxy))
+
+	// Draft-state coordination — requires Idempotency-Key (under orgWrite).
+	orgWrite.PUT("/ontologies/:id/draft", gin.WrapH(ontologyProxy))
 
 	// Versioning service proxy.
 	api.POST("/versioning/commits", gin.WrapH(versioningProxy))
@@ -162,10 +170,26 @@ func RegisterRoutes(r *gin.Engine, grpcPool *proxy.GrpcClientPool) {
 	api.POST("/sparql", queryHandler.HandleSPARQL)
 	api.POST("/cypher", queryHandler.HandleCYPHER)
 
+	// Metrics-service proxy — ontology metrics read endpoints (Python FastAPI, port 8084).
+	metricsProxy := mustNewProxy(
+		getEnv("METRICS_SERVICE_URL", "http://localhost:8084"),
+		"metrics-service",
+	)
+	api.GET("/metrics/ontologies", gin.WrapH(metricsProxy))
+	api.GET("/metrics/ontologies/:ontology_id", gin.WrapH(metricsProxy))
+
 	// GraphQL endpoint — proxy to ontology-service
 	api.Any("/graphql", gin.WrapH(ontologyProxy))
 
-	// Create AI orchestration proxy — thin HTTP→gRPC bridge. All AI business
+	// Commenting-service proxy — comment CRUD and feed endpoints.
+	commentingProxy := mustNewProxy(
+		getEnv("COMMENTING_SERVICE_URL", "http://localhost:8087"),
+		"commenting-service",
+	)
+	api.GET("/ontologies/:id/comments", gin.WrapH(commentingProxy))
+	api.POST("/ontologies/:id/comments", gin.WrapH(commentingProxy))
+
+	// Create AI orchestration proxy — thin HTTP to gRPC bridge. All AI business
 	// logic now lives in the ai-orchestration-service.
 	aiOrchProxy := handlers.NewAIOrchProxy(aiOrchGrpc, ontologyGrpc)
 

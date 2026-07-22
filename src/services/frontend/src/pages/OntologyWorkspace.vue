@@ -380,15 +380,15 @@ import {
 	Search,
 	Zap,
 } from "lucide-vue-next";
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { generateFromText, refineSequence } from "../api/ai";
 import type { AiGenerationResult } from "../api/ai";
 import {
 	CLASS_TREE_QUERY,
 	LIST_INDIVIDUALS_QUERY,
-	ONTOLOGY_QUERY,
 } from "../apollo/queries";
+import axios from "axios";
 import { useDraftState } from "../composables/useDraftState";
 import type {
 	AiSuggestion,
@@ -776,17 +776,29 @@ function onGraphNodeClick(node: { id: string; label: string; type: string }) {
 	}
 }
 
-// ── Ontology metadata ────────────────────────────────────────────────────────────────
+// ── Ontology metadata (REST — migrated from ONTOLOGY_QUERY) ────────────────────
 
-const {
-	result: ontologyResult,
-	loading,
-	error,
-} = useQuery(ONTOLOGY_QUERY, () => ({ id: ontologyId.value }), {
-	fetchPolicy: "cache-and-network",
-});
+const loading = ref(false);
+const error = ref<string | null>(null);
+const ontologyData = ref<any>(null);
 
-const ontologyData = computed(() => ontologyResult.value?.ontology);
+async function fetchOntologyMeta() {
+	loading.value = true;
+	error.value = null;
+	try {
+		const token = localStorage.getItem("vedo-jwt-token");
+		const { data } = await axios.get(`/api/v1/ontologies/${ontologyId.value}`, {
+			headers: token ? { Authorization: `Bearer ${token}` } : {},
+		});
+		ontologyData.value = data;
+	} catch (e: any) {
+		error.value = e.response?.data?.error?.message ?? e.message ?? "Failed to load ontology";
+	} finally {
+		loading.value = false;
+	}
+}
+
+onMounted(() => { fetchOntologyMeta(); });
 
 // Set ontology context when metadata loads for draft state
 watch(ontologyData, (data) => {

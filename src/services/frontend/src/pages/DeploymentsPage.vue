@@ -34,19 +34,29 @@
 </template>
 
 <script setup lang="ts">
-import { LIST_DEPLOYMENTS_QUERY } from "@/apollo/queries";
+import { listDeployments, type DeploymentInfo } from "@/api/deployments";
 import Deployments from "@/components/organisms/Deployments.vue";
-import { useQuery } from "@vue/apollo-composable";
 import { ChevronRight } from "lucide-vue-next";
-import { computed } from "vue";
+import { computed, onMounted, ref } from "vue";
 
-// @m4 — Wire deployments to LIST_DEPLOYMENTS_QUERY
-const { result, loading, error, refetch } = useQuery(
-	LIST_DEPLOYMENTS_QUERY,
-	() => ({
-		includeStopped: true,
-	}),
-);
+// @m4 — Wire deployments via REST client
+const loading = ref(false);
+const error = ref<string | null>(null);
+const depsData = ref<DeploymentInfo[]>([]);
+
+async function fetchDeployments() {
+	loading.value = true;
+	error.value = null;
+	try {
+		depsData.value = await listDeployments(true);
+	} catch (e: unknown) {
+		error.value = e instanceof Error ? e.message : "Failed to load deployments";
+	} finally {
+		loading.value = false;
+	}
+}
+
+onMounted(fetchDeployments);
 
 interface DeploymentEntry {
 	id: string;
@@ -61,9 +71,7 @@ interface DeploymentEntry {
 }
 
 const resolvedDeployments = computed<DeploymentEntry[]>(() => {
-	const deps = result.value?.deployments;
-	if (!deps) return [];
-	return deps.map((d: DeploymentEntry) => ({
+	return depsData.value.map((d) => ({
 		...d,
 		stopped: d.status === "stopped",
 	}));
@@ -78,9 +86,9 @@ function handleDelete(deploymentId: string): void {
 			ts: new Date().toISOString(),
 		}),
 	);
-	// In a full implementation, this would call a DELETE_DEPLOYMENT_MUTATION
+	// In a full implementation, this would call a DELETE endpoint
 	// For now, refetch the list to reflect the deletion
-	refetch();
+	fetchDeployments();
 }
 </script>
 

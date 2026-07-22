@@ -34,7 +34,7 @@
     <section v-else-if="error" class="metrics-content card">
       <div class="error-state">
         <p>Failed to load metrics data.</p>
-        <button class="retry-btn" type="button" @click="refetch()">Retry</button>
+        <button class="retry-btn" type="button" @click="fetchMetrics">Retry</button>
       </div>
     </section>
 
@@ -78,10 +78,9 @@
 </template>
 
 <script setup lang="ts">
-import { ONTOLOGY_METRICS_QUERY } from "@/apollo/queries";
-import { useQuery } from "@vue/apollo-composable";
+import { getOntologyMetrics } from "@/api/metrics";
 import { Calendar, ChartColumn, Folder, GitBranch } from "lucide-vue-next";
-import { computed, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
@@ -93,16 +92,32 @@ const ontologyId = computed(
 );
 
 // @m4 — Wire metrics to ONTOLOGY_METRICS_QUERY
-const { result, loading, error, refetch } = useQuery(
-	ONTOLOGY_METRICS_QUERY,
-	() => ({
-		ontologyId: ontologyId.value || "default",
-	}),
-	{ enabled: true },
-);
+// @m4 — Metrics migrated from GraphQL to REST
+const loading = ref(false);
+const error = ref<string | null>(null);
+const metricsData = ref<any>(null);
+const counters = ref({ classCount: 0, propertyCount: 0, individualCount: 0, axiomCount: 0, commentCount: 0, mergeRequestCount: 0 });
+const trends = ref<any[]>([]);
+
+async function fetchMetrics() {
+	loading.value = true;
+	error.value = null;
+	try {
+		const data = await getOntologyMetrics(ontologyId.value || "default");
+		metricsData.value = data;
+		counters.value = data.counters;
+		trends.value = data.trends;
+	} catch (e: any) {
+		error.value = e.message ?? String(e);
+	} finally {
+		loading.value = false;
+	}
+}
+
+onMounted(() => { fetchMetrics(); });
 
 const counters = computed(() => {
-	const c = result.value?.ontologyMetrics?.counters;
+	const c = metricsData.value?.counters;
 	return {
 		classCount: c?.classCount ?? 0,
 		propertyCount: c?.propertyCount ?? 0,
@@ -112,7 +127,7 @@ const counters = computed(() => {
 });
 
 const trendSummary = computed(() => {
-	const trends = result.value?.ontologyMetrics?.trends;
+	const trends = metricsData.value?.trends;
 	if (!trends || trends.length < 2) {
 		return { classCount: "", propertyCount: "", individualCount: "" };
 	}
@@ -130,7 +145,7 @@ const trendSummary = computed(() => {
 });
 
 const lastUpdated = computed(() => {
-	const trends = result.value?.ontologyMetrics?.trends;
+	const trends = metricsData.value?.trends;
 	if (!trends?.length) return "N/A";
 	return new Date(trends[trends.length - 1].date).toLocaleDateString("en-US", {
 		month: "short",

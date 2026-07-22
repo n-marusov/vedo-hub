@@ -17,7 +17,7 @@
     <!-- Error state -->
     <div v-else-if="error" class="members-error" role="alert">
       <span>Failed to load members</span>
-      <button class="retry-btn" type="button" @click="() => refetch()">Retry</button>
+      <button class="retry-btn" type="button" @click="fetchMembers">Retry</button>
     </div>
 
     <!-- Empty state -->
@@ -102,52 +102,52 @@
 </template>
 
 <script setup lang="ts">
-import { LIST_MEMBERS_QUERY } from '@/apollo/queries'
+import { listMembers } from '@/api/org'
 import Dialog from '@/components/ui-kit/Dialog.vue'
-import { useQuery } from '@vue/apollo-composable'
 import { Folder, Pencil, Shield, Trash2, Users } from 'lucide-vue-next'
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
-// Under the 1:1 Project ↔ Ontology model, members live on Project.
-// The route param `id` is the project ID (see ADR-DES.API.organization-rest-endpoints).
 const projectId = computed(() => String(route.params.id || ''))
 
-interface MemberRow {
-  name: string
-  role: string
-  mail: string
+const loading = ref(false);
+const error = ref<string | null>(null);
+const members = ref<any[]>([]);
+
+async function fetchMembers() {
+  if (!projectId.value) return;
+  loading.value = true;
+  error.value = null;
+  try {
+    members.value = await listMembers(projectId.value);
+  } catch (e: any) {
+    error.value = e.message ?? String(e);
+  } finally {
+    loading.value = false;
+  }
 }
 
-const { result, loading, error, refetch } = useQuery(
-  LIST_MEMBERS_QUERY,
-  () => ({
-    ontologyId: projectId.value
-  }),
-  {
-    fetchPolicy: 'cache-and-network',
-    enabled: computed(() => !!projectId.value)
-  }
-)
+onMounted(() => { fetchMembers(); });
 
-const members = ref<MemberRow[]>([])
+watch(projectId, () => { fetchMembers(); });
 
-// Sync from Apollo data
+// Map REST data to display format
 watch(
-  () => result.value?.members,
+  () => members.value,
   (items) => {
     if (!items || items.length === 0) {
-      members.value = []
-      return
+      members.value = [];
+      return;
     }
-    members.value = items.map((m: Record<string, unknown>) => ({
+    members.value = items.map((m: any) => ({
       name: String(m.username || m.userId || ''),
       role: String(m.role || 'Viewer'),
       mail: `${String(m.username || '').toLowerCase()}@vedo.local`
-    }))
+    }));
   },
   { immediate: true }
+);
 )
 
 // ── @m4 Inline Edit State ─────────────────────────────────────────────────────
