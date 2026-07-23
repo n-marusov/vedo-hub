@@ -227,13 +227,6 @@ const mainItems: SidebarItem[] = [
 		matches: ["/dashboard/deployments"],
 		badge: navCounts.deployments,
 	},
-	// @m4 — Add matches for M2.5 page routes (Metrics, Validation, Versioning, SPARQL)
-	{
-		label: "Metrics",
-		icon: LayoutDashboard,
-		to: "/metrics",
-		matches: ["/metrics", "/ontology/"],
-	},
 ];
 
 // @m4 — Reactive badge updates from navCounts
