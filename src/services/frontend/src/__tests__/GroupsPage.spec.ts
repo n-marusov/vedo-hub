@@ -1,22 +1,30 @@
 // @m4 — GroupsPage vitest spec (GREEN: uses mountWithProviders)
 // Validates: REQ-USR.UI.gui-implementation
-// Tests: groups hierarchy from LIST_GROUPS_QUERY via Apollo
+// Tests: groups hierarchy from REST API
 import {
 	describePage,
 	mountWithProviders,
-	resetMockResults,
-	setMockOperationResult,
 	waitForQuery,
 } from "@/__tests__/setup/mock-providers";
-import { afterEach, expect, it } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
+
+// GroupsPage uses REST listGroups from @/api/org — mock for test control
+vi.mock("@/api/org", () => ({
+	listGroups: vi.fn(),
+	listProjects: vi.fn(),
+}));
+
+const mockGroups = [{ id: "group-1", name: "Test Group", type: "group", description: "A test group" }];
 
 describePage("GroupsPage", () => {
 	afterEach(() => {
-		resetMockResults();
+		vi.clearAllMocks();
 	});
 
 	it("should render groups page title", async () => {
+		const { listGroups } = await import("@/api/org");
+		vi.mocked(listGroups).mockResolvedValue(mockGroups);
 		const GroupsPage = (await import("@/pages/GroupsPage.vue")).default;
 		const wrapper = mountWithProviders(GroupsPage);
 		await waitForQuery();
@@ -25,6 +33,8 @@ describePage("GroupsPage", () => {
 	});
 
 	it("should show search input for filtering groups", async () => {
+		const { listGroups } = await import("@/api/org");
+		vi.mocked(listGroups).mockResolvedValue(mockGroups);
 		const GroupsPage = (await import("@/pages/GroupsPage.vue")).default;
 		const wrapper = mountWithProviders(GroupsPage);
 		await waitForQuery();
@@ -34,6 +44,8 @@ describePage("GroupsPage", () => {
 	});
 
 	it("should render groups section after API data loads", async () => {
+		const { listGroups } = await import("@/api/org");
+		vi.mocked(listGroups).mockResolvedValue(mockGroups);
 		const GroupsPage = (await import("@/pages/GroupsPage.vue")).default;
 		const wrapper = mountWithProviders(GroupsPage);
 		await waitForQuery();
@@ -44,6 +56,8 @@ describePage("GroupsPage", () => {
 	});
 
 	it("should render page layout with toolbar", async () => {
+		const { listGroups } = await import("@/api/org");
+		vi.mocked(listGroups).mockResolvedValue(mockGroups);
 		const GroupsPage = (await import("@/pages/GroupsPage.vue")).default;
 		const wrapper = mountWithProviders(GroupsPage);
 		await waitForQuery();
@@ -52,6 +66,8 @@ describePage("GroupsPage", () => {
 	});
 
 	it("should display sort controls for group listing", async () => {
+		const { listGroups } = await import("@/api/org");
+		vi.mocked(listGroups).mockResolvedValue(mockGroups);
 		const GroupsPage = (await import("@/pages/GroupsPage.vue")).default;
 		const wrapper = mountWithProviders(GroupsPage);
 		await waitForQuery();
@@ -60,6 +76,8 @@ describePage("GroupsPage", () => {
 	});
 
 	it("should render expand/collapse toggles for hierarchy", async () => {
+		const { listGroups } = await import("@/api/org");
+		vi.mocked(listGroups).mockResolvedValue(mockGroups);
 		const GroupsPage = (await import("@/pages/GroupsPage.vue")).default;
 		const wrapper = mountWithProviders(GroupsPage);
 		await waitForQuery();
@@ -68,16 +86,12 @@ describePage("GroupsPage", () => {
 	});
 
 	it("should not crash when groups API fails", async () => {
-		setMockOperationResult(
-			"ListGroups",
-			null,
-			new Error("Failed to load groups"),
-		);
+		const { listGroups } = await import("@/api/org");
+		vi.mocked(listGroups).mockRejectedValue(new Error("Failed to load groups"));
 		const GroupsPage = (await import("@/pages/GroupsPage.vue")).default;
 		const wrapper = mountWithProviders(GroupsPage);
-		await waitForQuery();
+		await new Promise((resolve) => setTimeout(resolve, 200));
 		await nextTick();
-		// Component should render without crashing on API failure
 		expect(
 			wrapper.find(".gp-top").exists() || wrapper.find(".gp-page").exists(),
 		).toBe(true);

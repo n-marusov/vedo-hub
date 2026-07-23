@@ -1,22 +1,30 @@
 // @m4 — ProjectsPage vitest spec (GREEN: uses mountWithProviders)
 // Validates: REQ-USR.UI.gui-implementation
-// Tests: projects list from LIST_PROJECTS_QUERY via Apollo
+// Tests: projects list from REST API
 import {
 	describePage,
 	mountWithProviders,
-	resetMockResults,
-	setMockOperationResult,
 	waitForQuery,
 } from "@/__tests__/setup/mock-providers";
-import { afterEach, expect, it } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
+
+// ProjectsPage uses REST listProjects from @/api/org — mock for test control
+vi.mock("@/api/org", () => ({
+	listProjects: vi.fn(),
+	listGroups: vi.fn(),
+}));
+
+const mockProjects = { items: [{ id: "proj-1", name: "Test Project", description: "A test", visibility: "private", ownerId: "user-1" }], total: 1 };
 
 describePage("ProjectsPage", () => {
 	afterEach(() => {
-		resetMockResults();
+		vi.clearAllMocks();
 	});
 
 	it("should render projects list page title", async () => {
+		const { listProjects } = await import("@/api/org");
+		vi.mocked(listProjects).mockResolvedValue(mockProjects);
 		const ProjectsPage = (await import("@/pages/ProjectsPage.vue")).default;
 		const wrapper = mountWithProviders(ProjectsPage);
 		await waitForQuery();
@@ -25,6 +33,8 @@ describePage("ProjectsPage", () => {
 	});
 
 	it("should show search input for filtering projects", async () => {
+		const { listProjects } = await import("@/api/org");
+		vi.mocked(listProjects).mockResolvedValue(mockProjects);
 		const ProjectsPage = (await import("@/pages/ProjectsPage.vue")).default;
 		const wrapper = mountWithProviders(ProjectsPage);
 		await waitForQuery();
@@ -34,6 +44,8 @@ describePage("ProjectsPage", () => {
 	});
 
 	it("should display sort controls for name and direction", async () => {
+		const { listProjects } = await import("@/api/org");
+		vi.mocked(listProjects).mockResolvedValue(mockProjects);
 		const ProjectsPage = (await import("@/pages/ProjectsPage.vue")).default;
 		const wrapper = mountWithProviders(ProjectsPage);
 		await waitForQuery();
@@ -42,17 +54,20 @@ describePage("ProjectsPage", () => {
 	});
 
 	it("should render projects section after API data loads", async () => {
+		const { listProjects } = await import("@/api/org");
+		vi.mocked(listProjects).mockResolvedValue(mockProjects);
 		const ProjectsPage = (await import("@/pages/ProjectsPage.vue")).default;
 		const wrapper = mountWithProviders(ProjectsPage);
 		await waitForQuery();
 		await nextTick();
-		// Page renders with either project rows or empty state — both valid
 		expect(
 			wrapper.find(".pp-list").exists() || wrapper.find(".pp-empty").exists(),
 		).toBe(true);
 	});
 
 	it("should render page layout with toolbar", async () => {
+		const { listProjects } = await import("@/api/org");
+		vi.mocked(listProjects).mockResolvedValue(mockProjects);
 		const ProjectsPage = (await import("@/pages/ProjectsPage.vue")).default;
 		const wrapper = mountWithProviders(ProjectsPage);
 		await waitForQuery();
@@ -61,6 +76,8 @@ describePage("ProjectsPage", () => {
 	});
 
 	it('should show "New project" button', async () => {
+		const { listProjects } = await import("@/api/org");
+		vi.mocked(listProjects).mockResolvedValue(mockProjects);
 		const ProjectsPage = (await import("@/pages/ProjectsPage.vue")).default;
 		const wrapper = mountWithProviders(ProjectsPage);
 		await waitForQuery();
@@ -71,16 +88,12 @@ describePage("ProjectsPage", () => {
 	});
 
 	it("should not crash when projects API fails", async () => {
-		setMockOperationResult(
-			"ListProjects",
-			null,
-			new Error("Failed to load projects"),
-		);
+		const { listProjects } = await import("@/api/org");
+		vi.mocked(listProjects).mockRejectedValue(new Error("Failed to load projects"));
 		const ProjectsPage = (await import("@/pages/ProjectsPage.vue")).default;
 		const wrapper = mountWithProviders(ProjectsPage);
-		await waitForQuery();
+		await new Promise((resolve) => setTimeout(resolve, 200));
 		await nextTick();
-		// Component should render without crashing on API failure
 		expect(
 			wrapper.find(".pp-top").exists() || wrapper.find(".pp-page").exists(),
 		).toBe(true);
