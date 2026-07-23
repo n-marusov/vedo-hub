@@ -14,7 +14,9 @@ use tower::ServiceExt;
 
 #[tokio::test]
 async fn test_merge_branches_endpoint() {
-    common::skip_if_no_pg();
+    if !common::skip_if_no_pg() {
+        return;
+    }
     let pool = common::connect_test_pg().await;
     let app = common::build_test_app(pool);
 

@@ -22,7 +22,9 @@ fn post_empty(uri: &str) -> Request<Body> {
 
 #[tokio::test]
 async fn test_checkout_commit_endpoint() {
-    common::skip_if_no_pg();
+    if !common::skip_if_no_pg() {
+        return;
+    }
     let pool = common::connect_test_pg().await;
     let app = common::build_test_app(pool);
 
@@ -36,7 +38,9 @@ async fn test_checkout_commit_endpoint() {
 
 #[tokio::test]
 async fn test_switch_branch_endpoint() {
-    common::skip_if_no_pg();
+    if !common::skip_if_no_pg() {
+        return;
+    }
     let pool = common::connect_test_pg().await;
     let app = common::build_test_app(pool);
 

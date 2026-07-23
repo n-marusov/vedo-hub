@@ -56,7 +56,9 @@ async fn create_branch(app: &axum::Router, ontology_id: &Uuid, name: &str) -> Uu
 /// Creates a branch and a commit, then fetches its delta to verify the response
 /// contains the expected delta structure.
 async fn test_commit_delta_endpoint() {
-    common::skip_if_no_pg();
+    if !common::skip_if_no_pg() {
+        return;
+    }
     let pool = common::connect_test_pg().await;
     let app = common::build_test_app(pool);
 
@@ -136,7 +138,9 @@ async fn test_commit_delta_endpoint() {
 #[tokio::test]
 /// Edge case: fetching delta for a nonexistent commit returns 404.
 async fn test_delta_nonexistent_commit_returns_404() {
-    common::skip_if_no_pg();
+    if !common::skip_if_no_pg() {
+        return;
+    }
     let pool = common::connect_test_pg().await;
     let app = common::build_test_app(pool);
 
@@ -159,7 +163,9 @@ async fn test_delta_nonexistent_commit_returns_404() {
 #[tokio::test]
 /// Edge case: fetching semantic-diff for a nonexistent commit returns 404.
 async fn test_semantic_diff_nonexistent_commit_returns_404() {
-    common::skip_if_no_pg();
+    if !common::skip_if_no_pg() {
+        return;
+    }
     let pool = common::connect_test_pg().await;
     let app = common::build_test_app(pool);
 

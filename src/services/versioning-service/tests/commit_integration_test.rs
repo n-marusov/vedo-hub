@@ -24,7 +24,9 @@ fn req(method: Method, uri: &str, body: Option<&str>) -> Request<Body> {
 
 #[tokio::test]
 async fn test_create_commit_via_api() {
-    common::skip_if_no_pg();
+    if !common::skip_if_no_pg() {
+        return;
+    }
     let pool = common::connect_test_pg().await;
     let app = common::build_test_app(pool.clone());
 
@@ -50,7 +52,9 @@ async fn test_create_commit_via_api() {
 
 #[tokio::test]
 async fn test_list_commits_works() {
-    common::skip_if_no_pg();
+    if !common::skip_if_no_pg() {
+        return;
+    }
     let pool = common::connect_test_pg().await;
     let app = common::build_test_app(pool);
 
@@ -64,7 +68,9 @@ async fn test_list_commits_works() {
 
 #[tokio::test]
 async fn test_get_commit_returns_data() {
-    common::skip_if_no_pg();
+    if !common::skip_if_no_pg() {
+        return;
+    }
     let pool = common::connect_test_pg().await;
     let app = common::build_test_app(pool);
 
@@ -90,7 +96,9 @@ async fn test_get_commit_returns_data() {
 
 #[tokio::test]
 async fn test_rollback_commit_endpoint() {
-    common::skip_if_no_pg();
+    if !common::skip_if_no_pg() {
+        return;
+    }
     let pool = common::connect_test_pg().await;
     let app = common::build_test_app(pool);
 

@@ -43,7 +43,9 @@ async fn test_commit_insert_and_branch_head_consistency() {
     // Regression: commit INSERT and branch head UPDATE must be consistent.
     // After creating a commit, the branch's head_commit_id must match the
     // latest commit's ID on that branch. Requires PG.
-    common::skip_if_no_pg();
+    if !common::skip_if_no_pg() {
+        return;
+    }
     let pool = common::connect_test_pg().await;
     let app = common::build_test_app(pool.clone());
 
@@ -115,7 +117,9 @@ async fn test_commit_orphaned_on_branch_head_update_failure() {
     // commit becomes orphaned (exists in commits table but no branch points
     // to it). This test documents the current non-atomic behavior.
     // Requires PG.
-    common::skip_if_no_pg();
+    if !common::skip_if_no_pg() {
+        return;
+    }
     let pool = common::connect_test_pg().await;
     let app = common::build_test_app(pool.clone());
 
@@ -168,7 +172,9 @@ async fn test_branch_delete_removes_associated_commits() {
     // Regression: deleting a branch must also remove all its commits.
     // If commits are left orphaned (branch_id pointing to a deleted branch),
     // the data model is inconsistent. Requires PG.
-    common::skip_if_no_pg();
+    if !common::skip_if_no_pg() {
+        return;
+    }
     let pool = common::connect_test_pg().await;
     let app = common::build_test_app(pool.clone());
 
@@ -254,7 +260,9 @@ async fn test_merge_branches_with_no_diff_produces_empty_delta() {
     // Regression: current MVP merge creates an empty delta (merge_note only).
     // A real merge should compute the diff between source and target branches.
     // Requires PG.
-    common::skip_if_no_pg();
+    if !common::skip_if_no_pg() {
+        return;
+    }
     let pool = common::connect_test_pg().await;
     let app = common::build_test_app(pool.clone());
 
@@ -313,7 +321,9 @@ async fn test_checkout_rejects_unreachable_commit() {
     // from the branch (via parent_commit_id chain). Currently (M1) it does
     // not check this, so a commit from an unrelated branch passes validation.
     // Requires PG.
-    common::skip_if_no_pg();
+    if !common::skip_if_no_pg() {
+        return;
+    }
     let pool = common::connect_test_pg().await;
     let app = common::build_test_app(pool.clone());
 
