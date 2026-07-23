@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// Validates: REQ-FUN.INTEGRATION.ticket-management
 // @ctx: SUPPORT-META-001 WORM contract and property tests
 
 func TestWORMAuditTrailIncludesChecksums(t *testing.T) {

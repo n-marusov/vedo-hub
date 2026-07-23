@@ -1,5 +1,8 @@
 package handlers
 
+// Validates: REQ-FUN.API.class-hierarchy-accuracy
+// Validates: REQ-FUN.API.properties-accuracy
+
 import (
 	"bytes"
 	"encoding/json"

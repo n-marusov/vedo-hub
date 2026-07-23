@@ -1,4 +1,7 @@
-"""Tests for metrics-service main — FastAPI endpoints and event handling."""
+"""Tests for metrics-service main — FastAPI endpoints and event handling.
+
+Validates: REQ-FUN.INTEGRATION.collaboration-quality-metrics
+"""
 
 from __future__ import annotations
 

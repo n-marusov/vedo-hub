@@ -3431,6 +3431,245 @@ base:ts/document-extractor.parsers.xlsx a vdo:TestSuite ;
 
 
 # =============================================================================
+# TEST SUITES — Remaining Services (added by aif-test-quality sync)
+# =============================================================================
+
+# --- Shared/LLM Tests (13 files) ---
+
+base:ts/shared.llm.config a vdo:TestSuite ;
+    rdfs:label "SHARED LLM CONFIG TESTS"@en ;
+    rdfs:comment "Tests for LLM configuration loading and defaults"@en ;
+    vdo:filePath "src/services/shared/llm/config_test.go" .
+
+base:ts/shared.llm.engine a vdo:TestSuite ;
+    rdfs:label "SHARED LLM ENGINE TESTS"@en ;
+    rdfs:comment "Tests for LLM engine operations"@en ;
+    vdo:filePath "src/services/shared/llm/engine_test.go" .
+
+base:ts/shared.llm.errors a vdo:TestSuite ;
+    rdfs:label "SHARED LLM ERROR TESTS"@en ;
+    rdfs:comment "Tests for LLM error types and wrapping"@en ;
+    vdo:filePath "src/services/shared/llm/errors_test.go" .
+
+base:ts/shared.llm.helpers a vdo:TestSuite ;
+    rdfs:label "SHARED LLM HELPER TESTS"@en ;
+    rdfs:comment "Tests for LLM helper utilities"@en ;
+    vdo:filePath "src/services/shared/llm/helpers_test.go" .
+
+base:ts/shared.llm.integration a vdo:TestSuite ;
+    rdfs:label "SHARED LLM INTEGRATION TESTS"@en ;
+    rdfs:comment "Integration tests for LLM provider calls"@en ;
+    vdo:filePath "src/services/shared/llm/integration_test.go" .
+
+base:ts/shared.llm.metrics a vdo:TestSuite ;
+    rdfs:label "SHARED LLM METRICS TESTS"@en ;
+    rdfs:comment "Tests for LLM observability and metrics collection"@en ;
+    vdo:filePath "src/services/shared/llm/metrics_test.go" .
+
+base:ts/shared.llm.observability a vdo:TestSuite ;
+    rdfs:label "SHARED LLM OBSERVABILITY TESTS"@en ;
+    rdfs:comment "Tests for LLM tracing and logging instrumentation"@en ;
+    vdo:filePath "src/services/shared/llm/observability_test.go" .
+
+base:ts/shared.llm.provider a vdo:TestSuite ;
+    rdfs:label "SHARED LLM PROVIDER TESTS"@en ;
+    rdfs:comment "Tests for LLM provider interface abstraction"@en ;
+    vdo:filePath "src/services/shared/llm/provider_test.go" .
+
+base:ts/shared.llm.providers.anthropic a vdo:TestSuite ;
+    rdfs:label "SHARED LLM ANTHROPIC PROVIDER TESTS"@en ;
+    rdfs:comment "Tests for Anthropic provider adapter"@en ;
+    vdo:filePath "src/services/shared/llm/providers/anthropic_test.go" .
+
+base:ts/shared.llm.providers.openai_compatible a vdo:TestSuite ;
+    rdfs:label "SHARED LLM OPENAI PROVIDER TESTS"@en ;
+    rdfs:comment "Tests for OpenAI-compatible provider adapter"@en ;
+    vdo:filePath "src/services/shared/llm/providers/openai_compatible_test.go" .
+
+base:ts/shared.llm.registry a vdo:TestSuite ;
+    rdfs:label "SHARED LLM REGISTRY TESTS"@en ;
+    rdfs:comment "Tests for LLM provider registry and lookup"@en ;
+    vdo:filePath "src/services/shared/llm/registry_test.go" .
+
+base:ts/shared.llm.retry a vdo:TestSuite ;
+    rdfs:label "SHARED LLM RETRY TESTS"@en ;
+    rdfs:comment "Tests for LLM retry logic with backoff"@en ;
+    vdo:filePath "src/services/shared/llm/retry_test.go" .
+
+base:ts/shared.llm.types a vdo:TestSuite ;
+    rdfs:label "SHARED LLM TYPE TESTS"@en ;
+    rdfs:comment "Tests for LLM type definitions and serialization"@en ;
+    vdo:filePath "src/services/shared/llm/types_test.go" .
+
+# --- Ticket API Tests ---
+
+base:ts/ticket-api.ticketapi.handlers a vdo:TestSuite ;
+    rdfs:label "TICKET API HANDLER TESTS"@en ;
+    rdfs:comment "HTTP handler contract tests for ticket CRUD operations"@en ;
+    vdo:filePath "src/services/ticket-api/ticketapi/handlers_test.go" .
+
+base:ts/ticket-api.ticketapi.store a vdo:TestSuite ;
+    rdfs:label "TICKET API STORE TESTS"@en ;
+    rdfs:comment "Tests for in-memory ticket store and audit log"@en ;
+    vdo:filePath "src/services/ticket-api/ticketapi/store_test.go" .
+
+# --- Commenting Service Tests ---
+
+base:ts/commenting-service.comment_integration a vdo:TestSuite ;
+    rdfs:label "COMMENTING SERVICE INTEGRATION TESTS"@en ;
+    rdfs:comment "Integration tests for commenting with PostgreSQL"@en ;
+    vdo:filePath "src/services/commenting-service/comment_integration_test.go" .
+
+base:ts/commenting-service.handlers a vdo:TestSuite ;
+    rdfs:label "COMMENTING SERVICE HANDLER TESTS"@en ;
+    rdfs:comment "Tests for HTTP comment handlers with mock store"@en ;
+    vdo:filePath "src/services/commenting-service/handlers_test.go" .
+
+# --- Support Service Tests ---
+
+base:ts/support-service.infra_ctrl a vdo:TestSuite ;
+    rdfs:label "SUPPORT SERVICE INFRA CONTROL TESTS"@en ;
+    rdfs:comment "Tests for infrastructure control operations"@en ;
+    vdo:filePath "src/services/support-service/infra_ctrl_test.go" .
+
+base:ts/support-service.schema a vdo:TestSuite ;
+    rdfs:label "SUPPORT SERVICE SCHEMA TESTS"@en ;
+    rdfs:comment "Tests for database schema and migration operations"@en ;
+    vdo:filePath "src/services/support-service/schema_test.go" .
+
+base:ts/support-service.worm a vdo:TestSuite ;
+    rdfs:label "SUPPORT SERVICE WORM TESTS"@en ;
+    rdfs:comment "Tests for Write-Once-Read-Many storage operations"@en ;
+    vdo:filePath "src/services/support-service/worm_test.go" .
+
+# --- Metrics Service Tests ---
+
+base:ts/metrics-service.test_analytics a vdo:TestSuite ;
+    rdfs:label "METRICS SERVICE ANALYTICS TESTS"@en ;
+    rdfs:comment "Tests for analytics aggregation and computation"@en ;
+    vdo:filePath "src/services/metrics-service/test_analytics.py" .
+
+base:ts/metrics-service.test_collectors a vdo:TestSuite ;
+    rdfs:label "METRICS SERVICE COLLECTOR TESTS"@en ;
+    rdfs:comment "Tests for metric collectors and data sources"@en ;
+    vdo:filePath "src/services/metrics-service/test_collectors.py" .
+
+base:ts/metrics-service.test_main a vdo:TestSuite ;
+    rdfs:label "METRICS SERVICE MAIN TESTS"@en ;
+    rdfs:comment "Tests for FastAPI application entry point"@en ;
+    vdo:filePath "src/services/metrics-service/test_main.py" .
+
+base:ts/metrics-service.test_prometheus_exporter a vdo:TestSuite ;
+    rdfs:label "METRICS SERVICE PROMETHEUS EXPORTER TESTS"@en ;
+    rdfs:comment "Tests for Prometheus metrics exporter"@en ;
+    vdo:filePath "src/services/metrics-service/test_prometheus_exporter.py" .
+
+# --- Publisher Service Tests ---
+
+base:ts/publisher-service.tests.publish_integration a vdo:TestSuite ;
+    rdfs:label "PUBLISHER SERVICE INTEGRATION TESTS"@en ;
+    rdfs:comment "Integration tests for ontology publishing pipeline"@en ;
+    vdo:filePath "src/services/publisher-service/tests/publish_integration_test.rs" .
+
+# --- Ticket Classifier Tests ---
+
+base:ts/ticket-classifier.test_main a vdo:TestSuite ;
+    rdfs:label "TICKET CLASSIFIER MAIN TESTS"@en ;
+    rdfs:comment "Tests for ticket classification ML pipeline"@en ;
+    vdo:filePath "src/services/ticket-classifier/test_main.py" .
+
+# --- Ticket Notifier Tests ---
+
+base:ts/ticket-notifier.handler a vdo:TestSuite ;
+    rdfs:label "TICKET NOTIFIER HANDLER TESTS"@en ;
+    rdfs:comment "Tests for ticket notification handler"@en ;
+    vdo:filePath "src/services/ticket-notifier/handler_test.go" .
+
+# --- Ticket Sync Tests ---
+
+base:ts/ticket-sync.handler a vdo:TestSuite ;
+    rdfs:label "TICKET SYNC HANDLER TESTS"@en ;
+    rdfs:comment "Tests for ticket synchronization handler"@en ;
+    vdo:filePath "src/services/ticket-sync/handler_test.go" .
+
+# --- Ticket Telemetry Listener Tests ---
+
+base:ts/ticket-telemetry-listener.handler a vdo:TestSuite ;
+    rdfs:label "TICKET TELEMETRY LISTENER HANDLER TESTS"@en ;
+    rdfs:comment "Tests for telemetry ingestion handler"@en ;
+    vdo:filePath "src/services/ticket-telemetry-listener/handler_test.go" .
+
+# --- Additional CLI Tests ---
+
+base:ts/cli.command a vdo:TestSuite ;
+    rdfs:label "CLI COMMAND TESTS"@en ;
+    rdfs:comment "Tests for CLI command framework and dispatch"@en ;
+    vdo:filePath "src/cli/command_test.go" .
+
+base:ts/cli.commands.ticket.commands a vdo:TestSuite ;
+    rdfs:label "CLI TICKET COMMAND TESTS"@en ;
+    rdfs:comment "Tests for CLI ticket management commands"@en ;
+    vdo:filePath "src/cli/commands/ticket/commands_test.go" .
+
+base:ts/cli.internal.auth.credential_provider a vdo:TestSuite ;
+    rdfs:label "CLI CREDENTIAL PROVIDER TESTS"@en ;
+    rdfs:comment "Tests for CLI credential provider and token storage"@en ;
+    vdo:filePath "src/cli/internal/auth/credential_provider_test.go" .
+
+base:ts/cli.output a vdo:TestSuite ;
+    rdfs:label "CLI OUTPUT TESTS"@en ;
+    rdfs:comment "Tests for CLI output formatters"@en ;
+    vdo:filePath "src/cli/output_test.go" .
+
+base:ts/cli.pam a vdo:TestSuite ;
+    rdfs:label "CLI PAM TESTS"@en ;
+    rdfs:comment "Tests for Privileged Access Management operations"@en ;
+    vdo:filePath "src/cli/pam_test.go" .
+
+base:ts/cli.support_commands a vdo:TestSuite ;
+    rdfs:label "CLI SUPPORT COMMAND TESTS"@en ;
+    rdfs:comment "Tests for CLI support operations commands"@en ;
+    vdo:filePath "src/cli/support_commands_test.go" .
+
+# --- Remaining API Gateway Tests ---
+
+base:ts/api-gateway.handlers.nl_to_owl_handler a vdo:TestSuite ;
+    rdfs:label "API GATEWAY NL-TO-OWL HANDLER TESTS"@en ;
+    rdfs:comment "Tests for natural language to OWL generation endpoint"@en ;
+    vdo:filePath "src/services/api-gateway/handlers/nl_to_owl_handler_test.go" .
+
+base:ts/api-gateway.handlers.ai_completion_handler a vdo:TestSuite ;
+    rdfs:label "API GATEWAY AI COMPLETION HANDLER TESTS"@en ;
+    rdfs:comment "Tests for AI completion streaming endpoint"@en ;
+    vdo:filePath "src/services/api-gateway/handlers/ai_completion_handler_test.go" .
+
+base:ts/api-gateway.handlers.refinement_handler a vdo:TestSuite ;
+    rdfs:label "API GATEWAY REFINEMENT HANDLER TESTS"@en ;
+    rdfs:comment "Tests for iterative refinement endpoint"@en ;
+    vdo:filePath "src/services/api-gateway/handlers/refinement_handler_test.go" .
+
+base:ts/api-gateway.handlers.prompt_injection a vdo:TestSuite ;
+    rdfs:label "API GATEWAY PROMPT INJECTION TESTS"@en ;
+    rdfs:comment "Tests for prompt injection detection and prevention"@en ;
+    vdo:filePath "src/services/api-gateway/handlers/prompt_injection_test.go" .
+
+base:ts/api-gateway.services.query_service a vdo:TestSuite ;
+    rdfs:label "API GATEWAY QUERY SERVICE TESTS"@en ;
+    rdfs:comment "Tests for SPARQL/graph query service integration"@en ;
+    vdo:filePath "src/services/api-gateway/services/query_service_test.go" .
+
+base:ts/api-gateway.middleware.idempotency a vdo:TestSuite ;
+    rdfs:label "API GATEWAY IDEMPOTENCY MIDDLEWARE TESTS"@en ;
+    rdfs:comment "Tests for idempotency key middleware"@en ;
+    vdo:filePath "src/services/api-gateway/middleware/idempotency_test.go" .
+
+base:ts/api-gateway.middleware.llm_policy_router a vdo:TestSuite ;
+    rdfs:label "API GATEWAY LLM POLICY ROUTER TESTS"@en ;
+    rdfs:comment "Tests for LLM policy-based request routing"@en ;
+    vdo:filePath "src/services/api-gateway/middleware/llm_policy_router_test.go" .
+
+
+# =============================================================================
 # VALIDATION LINKS — Test-to-Requirement (from // Validates: annotations)
 # =============================================================================
 # 99 validates links connecting test suites to requirements.
@@ -3698,6 +3937,66 @@ base:ts/frontend.p0_ui_system vdo:validates base:req/REQ-USR.UI.credits-dashboar
 base:ts/frontend.p0_ui_system vdo:validates base:req/REQ-USR.UI.status-page-deprecation .
 base:ts/frontend.p0_ui_system vdo:validates base:req/REQ-USR.UI.ux-review-process .
 
+# --- Shared LLM validation links (from // Validates: annotations) ---
+base:ts/shared.llm.config vdo:validates base:req/REQ-FUN.API.llm-policy .
+base:ts/shared.llm.engine vdo:validates base:req/REQ-FUN.API.llm-policy .
+base:ts/shared.llm.errors vdo:validates base:req/REQ-FUN.API.llm-policy .
+base:ts/shared.llm.helpers vdo:validates base:req/REQ-FUN.API.llm-policy .
+base:ts/shared.llm.integration vdo:validates base:req/REQ-FUN.API.llm-policy .
+base:ts/shared.llm.provider vdo:validates base:req/REQ-FUN.API.llm-policy .
+base:ts/shared.llm.providers.anthropic vdo:validates base:req/REQ-FUN.API.llm-policy .
+base:ts/shared.llm.providers.openai_compatible vdo:validates base:req/REQ-FUN.API.llm-policy .
+base:ts/shared.llm.registry vdo:validates base:req/REQ-FUN.API.llm-policy .
+base:ts/shared.llm.retry vdo:validates base:req/REQ-FUN.API.llm-policy .
+base:ts/shared.llm.types vdo:validates base:req/REQ-FUN.API.llm-policy .
+base:ts/shared.llm.metrics vdo:validates base:req/REQ-NFR.SECURITY.llm-content-screening .
+base:ts/shared.llm.observability vdo:validates base:req/REQ-NFR.SECURITY.llm-content-screening .
+
+# --- API Gateway additional validation links ---
+base:ts/api-gateway.handlers.nl_to_owl_handler vdo:validates base:req/REQ-FUN.API.class-hierarchy-accuracy .
+base:ts/api-gateway.handlers.nl_to_owl_handler vdo:validates base:req/REQ-FUN.API.properties-accuracy .
+base:ts/api-gateway.handlers.ai_completion_handler vdo:validates base:req/REQ-FUN.API.llm-policy .
+base:ts/api-gateway.handlers.refinement_handler vdo:validates base:req/REQ-FUN.API.iterative-refinement-context .
+base:ts/api-gateway.handlers.prompt_injection vdo:validates base:req/REQ-NFR.SECURITY.prompt-structure-detection .
+base:ts/api-gateway.handlers.prompt_injection vdo:validates base:req/REQ-NFR.SECURITY.system-prompt-hardening .
+base:ts/api-gateway.handlers.ontology_handler vdo:validates base:req/REQ-USR.UI.tbox-editor .
+base:ts/api-gateway.middleware.idempotency vdo:validates base:req/REQ-FUN.API.write-idempotency .
+base:ts/api-gateway.middleware.llm_policy_router vdo:validates base:req/REQ-FUN.API.llm-policy .
+base:ts/api-gateway.middleware.llm_policy_router vdo:validates base:req/REQ-NFR.SECURITY.llm-tool-least-privilege .
+
+# --- Commenting-service validation links ---
+base:ts/commenting-service.comment_integration vdo:validates base:req/REQ-FUN.INTEGRATION.collaboration .
+base:ts/commenting-service.handlers vdo:validates base:req/REQ-FUN.INTEGRATION.collaboration .
+
+# --- Auth-service additional validation links ---
+base:ts/auth-service.keycloak.realm vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
+base:ts/auth-service.membership.resolver vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
+base:ts/auth-service.membership.seed vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
+
+# --- Support-service validation links ---
+base:ts/support-service.infra_ctrl vdo:validates base:req/REQ-FUN.INTEGRATION.ticket-management .
+base:ts/support-service.schema vdo:validates base:req/REQ-FUN.INTEGRATION.ticket-management .
+base:ts/support-service.worm vdo:validates base:req/REQ-FUN.INTEGRATION.ticket-management .
+
+# --- Ticket-API validation links ---
+base:ts/ticket-api.ticketapi.handlers vdo:validates base:req/REQ-FUN.INTEGRATION.ticket-management .
+base:ts/ticket-api.ticketapi.store vdo:validates base:req/REQ-FUN.INTEGRATION.ticket-management .
+
+# --- Ticket services validation links ---
+base:ts/ticket-notifier.handler vdo:validates base:req/REQ-FUN.INTEGRATION.ticket-management .
+base:ts/ticket-sync.handler vdo:validates base:req/REQ-FUN.INTEGRATION.ticket-management .
+base:ts/ticket-telemetry-listener.handler vdo:validates base:req/REQ-FUN.INTEGRATION.ticket-management .
+base:ts/ticket-classifier.test_main vdo:validates base:req/REQ-FUN.INTEGRATION.ticket-management .
+
+# --- Metrics-service validation links ---
+base:ts/metrics-service.test_analytics vdo:validates base:req/REQ-FUN.INTEGRATION.collaboration-quality-metrics .
+base:ts/metrics-service.test_collectors vdo:validates base:req/REQ-FUN.INTEGRATION.collaboration-quality-metrics .
+base:ts/metrics-service.test_main vdo:validates base:req/REQ-FUN.INTEGRATION.collaboration-quality-metrics .
+base:ts/metrics-service.test_prometheus_exporter vdo:validates base:req/REQ-FUN.INTEGRATION.collaboration-quality-metrics .
+
+# --- API Gateway additional validation links ---
+base:ts/api-gateway.services.query_service vdo:validates base:req/REQ-FUN.API.graphql-sparql .
+
 # --- Non-testable P0 requirements ---
 # These P0 requirements describe constraints, process policies, or business rules
 # that cannot be verified through automated tests. They are excluded from RCS
@@ -3728,6 +4027,200 @@ base:ts/frontend.p0_ui_system vdo:validates base:req/REQ-USR.UI.ux-review-proces
 
 base:nfr/security-bola-bfla vdo:verifiedBy base:test/bola-bfla-gate .
 base:service/api-gateway vdo:verifiedBy base:test/cli-contracts, base:test/docker-build .
+# =============================================================================
+# REVERSE LINKS: vdo:verifiedBy (auto-generated from vdo:validates)
+# =============================================================================
+
+base:req/REQ-USR.UI.decommission-usability vdo:verifiedBy base:ts/frontend.p0_ui_system .
+base:req/REQ-FUN.API.excel-error-threshold vdo:verifiedBy base:ts/document-extractor.parsers.xlsx .
+base:req/REQ-USR.UI.delight-features vdo:verifiedBy base:ts/frontend.p0_ui_system .
+base:req/REQ-USR.UI.graph-navigation vdo:verifiedBy base:ts/frontend.p0_ui_graph_search .
+base:req/REQ-NFR.SECURITY.incident-secret-rotation vdo:verifiedBy base:ts/cli.secret_rotation .
+base:req/REQ-USR.UI.query-export-localization vdo:verifiedBy base:ts/frontend.p0_ui_import_export .
+base:req/REQ-USR.UI.external-llm-override vdo:verifiedBy base:ts/frontend.p0_ui_suggestions .
+base:req/REQ-FUN.API.no-cyclic-hierarchy vdo:verifiedBy base:ts/ontology-service.tests.class_integration .
+base:req/REQ-NFR.SECURITY.prompt-structure-detection vdo:verifiedBy base:ts/ai-orchestration-service.internal.handler.handler .
+base:req/REQ-FUN.API.sparql-compatibility vdo:verifiedBy base:ts/ontology-service.tests.query_integration .
+base:req/REQ-USR.UI.nl-language-support vdo:verifiedBy base:ts/frontend.p0_ui_suggestions .
+base:req/REQ-NFR.SECURITY.doc-extract-security vdo:verifiedBy base:ts/document-extractor.security_p0 .
+base:req/REQ-USR.UI.doc-extract-upload vdo:verifiedBy base:ts/frontend.p0_ui_import_export .
+base:req/REQ-NFR.SECURITY.prompt-filter-blacklist vdo:verifiedBy base:ts/security.authorization.p0_llm_security_placeholder .
+base:req/REQ-FUN.DATA.versioning vdo:verifiedBy base:ts/versioning-service.tests.delta_integration,
+    base:ts/versioning-service.tests.branch_integration,
+    base:ts/versioning-service.tests.checkout_integration,
+    base:ts/versioning-service.tests.commit_integration,
+    base:ts/versioning-service.tests.merge_integration,
+    base:ts/versioning-service.tests.transactional_integration .
+base:req/REQ-USR.UI.cost-transparency vdo:verifiedBy base:ts/frontend.p0_ui_system .
+base:req/REQ-USR.UI.suggestion-interaction vdo:verifiedBy base:ts/frontend.p0_ui_suggestions .
+base:req/REQ-USR.UI.customization vdo:verifiedBy base:ts/frontend.p0_ui_system .
+base:req/REQ-NFR.SECURITY.security-integration vdo:verifiedBy base:ts/security.authorization.p0_security_placeholder .
+base:req/REQ-USR.UI.query-export-availability vdo:verifiedBy base:ts/frontend.p0_ui_import_export .
+base:req/REQ-USR.UI.tbox-editor vdo:verifiedBy base:ts/ontology-service.tests.class_integration .
+base:req/REQ-FUN.API.owl-reference-integrity vdo:verifiedBy base:ts/ontology-service.tests.property_integration .
+base:req/REQ-USR.UI.ux-review-process vdo:verifiedBy base:ts/frontend.p0_ui_system .
+base:req/REQ-USR.UI.ontology-mental-model vdo:verifiedBy base:ts/frontend.p0_ui_graph_search .
+base:req/REQ-USR.UI.model-cost-awareness vdo:verifiedBy base:ts/frontend.p0_ui_suggestions .
+base:req/REQ-USR.UI.max-suggestions vdo:verifiedBy base:ts/frontend.p0_ui_suggestions .
+base:req/REQ-FUN.PROCESS.e2e-testing vdo:verifiedBy base:ts/e2e.playwright.tests.api.rest.api-gateway-full,
+    base:ts/e2e.playwright.tests.api.rest.jwt-auth,
+    base:ts/e2e.playwright.tests.gui.pages.dashboard-navigation,
+    base:ts/e2e.playwright.tests.gui.pages.dashboard-wiring,
+    base:ts/e2e.playwright.tests.gui.pages.deployments-page,
+    base:ts/e2e.playwright.tests.gui.pages.groups-page,
+    base:ts/e2e.playwright.tests.gui.pages.members-page,
+    base:ts/e2e.playwright.tests.gui.pages.merge-requests-page,
+    base:ts/e2e.playwright.tests.gui.pages.metrics-page,
+    base:ts/e2e.playwright.tests.gui.pages.projects-page,
+    base:ts/e2e.playwright.tests.gui.pages.sparql-gui,
+    base:ts/e2e.playwright.tests.gui.pages.validation-page,
+    base:ts/e2e.playwright.tests.gui.pages.versioning-tabs .
+base:req/REQ-NFR.SECURITY.llm-write-human-approval vdo:verifiedBy base:ts/security.authorization.p0_llm_security_placeholder .
+base:req/REQ-NFR.SECURITY.emergency-policy-disable vdo:verifiedBy base:ts/cli.emergency_policy_disable .
+base:req/REQ-NFR.SECURITY.jwt-key-mismatch vdo:verifiedBy base:ts/e2e.playwright.tests.api.rest.jwt-auth .
+base:req/REQ-NFR.SECURITY.audit-encryption vdo:verifiedBy base:ts/security.authorization.p0_security_placeholder .
+base:req/REQ-FUN.API.route-registration vdo:verifiedBy base:ts/ontology-service.tests.route_registration, base:ts/versioning-service.tests.route_registration .
+base:req/REQ-FUN.API.iterative-refinement-context vdo:verifiedBy base:ts/api-gateway.handlers.rollback_p0 .
+base:req/REQ-USR.UI.validation-feedback vdo:verifiedBy base:ts/frontend.p0_ui_system .
+base:req/REQ-USR.UI.provider-change-notification vdo:verifiedBy base:ts/frontend.p0_ui_system .
+base:req/REQ-USR.UI.llm-selector vdo:verifiedBy base:ts/frontend.p0_ui_suggestions .
+base:req/REQ-FUN.API.excel-supported-formats vdo:verifiedBy base:ts/document-extractor.parsers .
+base:req/REQ-USR.UI.graceful-degradation vdo:verifiedBy base:ts/frontend.p0_ui_system .
+base:req/REQ-NFR.SECURITY.excel-import-security vdo:verifiedBy base:ts/document-extractor.security_p0 .
+base:req/REQ-FUN.API.doc-extract-supported-formats vdo:verifiedBy base:ts/document-extractor.parsers .
+base:req/REQ-USR.UI.gui-implementation vdo:verifiedBy base:ts/e2e.playwright.tests.gui.pages.dashboard-navigation,
+    base:ts/e2e.playwright.tests.gui.pages.dashboard-wiring,
+    base:ts/e2e.playwright.tests.gui.pages.deployments-page,
+    base:ts/e2e.playwright.tests.gui.pages.groups-page,
+    base:ts/e2e.playwright.tests.gui.pages.members-page,
+    base:ts/e2e.playwright.tests.gui.pages.merge-requests-page,
+    base:ts/e2e.playwright.tests.gui.pages.metrics-page,
+    base:ts/e2e.playwright.tests.gui.pages.projects-page,
+    base:ts/e2e.playwright.tests.gui.pages.sparql-gui,
+    base:ts/e2e.playwright.tests.gui.pages.validation-page,
+    base:ts/e2e.playwright.tests.gui.pages.versioning-tabs,
+    base:ts/frontend.__tests__.AnnotationDialog,
+    base:ts/frontend.__tests__.CreateClassDialog,
+    base:ts/frontend.__tests__.CreateIndividualDialog,
+    base:ts/frontend.__tests__.CreatePropertyDialog,
+    base:ts/frontend.__tests__.DashboardPage,
+    base:ts/frontend.__tests__.DeploymentsPage,
+    base:ts/frontend.__tests__.ForkDemoDialog,
+    base:ts/frontend.__tests__.GroupsPage,
+    base:ts/frontend.__tests__.MembersPage,
+    base:ts/frontend.__tests__.MergeRequestsPage,
+    base:ts/frontend.__tests__.MetricsPage,
+    base:ts/frontend.__tests__.MfaChallengeDialog,
+    base:ts/frontend.__tests__.Navigation,
+    base:ts/frontend.__tests__.OntologyWorkspaceSave,
+    base:ts/frontend.__tests__.ProjectsPage,
+    base:ts/frontend.__tests__.PublishSnapshotDialog,
+    base:ts/frontend.__tests__.ValidationPage,
+    base:ts/frontend.__tests__.VersioningPage,
+    base:ts/frontend.components.ontology.ApplySequenceButton,
+    base:ts/frontend.components.ontology.DocumentUploader,
+    base:ts/frontend.components.ontology.SequencePreview,
+    base:ts/frontend.composables.useBatchUpload,
+    base:ts/publish-browse-ui.__tests__.setup .
+base:req/REQ-FUN.DATA.ontology-import-export vdo:verifiedBy base:ts/ontology-service.tests.import_export_integration .
+base:req/REQ-FUN.API.pre-save-validation vdo:verifiedBy base:ts/ontology-service.tests.validation_integration .
+base:req/REQ-NFR.SECURITY.audit-access-audit vdo:verifiedBy base:ts/cli.internal.audit.audit_log .
+base:req/REQ-USR.UI.abox-editor vdo:verifiedBy base:ts/ontology-service.tests.individual_integration .
+base:req/REQ-NFR.API.doc-extract-performance vdo:verifiedBy base:ts/document-extractor.api.routes .
+base:req/REQ-FUN.API.owl-unique-iri vdo:verifiedBy base:ts/ontology-service.tests.validation_integration .
+base:req/REQ-FUN.API.validation-pr vdo:verifiedBy base:ts/ontology-service.tests.validation_p0 .
+base:req/REQ-NFR.SECURITY.bola-bfla-negative-tests vdo:verifiedBy base:ts/api-gateway.auth.auth,
+    base:ts/api-gateway.auth_integration,
+    base:ts/api-gateway.main,
+    base:ts/api-gateway.proxy.proxy,
+    base:ts/api-gateway.proxy_integration,
+    base:ts/api-gateway.query_integration,
+    base:ts/api-gateway.rate_limit_integration,
+    base:ts/e2e.playwright.tests.api.rest.api-gateway-full .
+base:req/REQ-NFR.SECURITY.privileged-access-control vdo:verifiedBy base:ts/auth-service.org.org_roles .
+base:req/REQ-USR.UI.consent-withdrawal vdo:verifiedBy base:ts/frontend.p0_ui_system .
+base:req/REQ-FUN.API.gradual-rollback vdo:verifiedBy base:ts/api-gateway.handlers.rollback_p0 .
+base:req/REQ-FUN.API.llm-policy vdo:verifiedBy base:ts/ai-orchestration-service.internal.handler.handler,
+    base:ts/ai-orchestration-service.internal.middleware.middleware,
+    base:ts/ai-orchestration-service.service .
+base:req/REQ-USR.UI.excel-progress vdo:verifiedBy base:ts/frontend.p0_ui_import_export .
+base:req/REQ-FUN.DATA.query-export-validation vdo:verifiedBy base:ts/api-gateway.query_integration .
+base:req/REQ-USR.UI.circuit-breaker-feedback vdo:verifiedBy base:ts/frontend.p0_ui_system .
+base:req/REQ-FUN.API.owl-syntax-validity vdo:verifiedBy base:ts/ontology-service.tests.validation_integration .
+base:req/REQ-FUN.API.excel-import-block vdo:verifiedBy base:ts/document-extractor.parsers.xlsx .
+base:req/REQ-FUN.API.unified-root-endpoint vdo:verifiedBy base:ts/api-gateway.main .
+base:req/REQ-FUN.DATA.query-export-content vdo:verifiedBy base:ts/api-gateway.query_integration .
+base:req/REQ-FUN.DATA.query-export-format vdo:verifiedBy base:ts/api-gateway.query_integration .
+base:req/REQ-USR.UI.visibility-indicator vdo:verifiedBy base:ts/frontend.p0_ui_system .
+base:req/REQ-USR.UI.query-export-notifications vdo:verifiedBy base:ts/frontend.p0_ui_import_export .
+base:req/REQ-CON.STACK.frontend-stack vdo:verifiedBy base:ts/frontend.__tests__.setup .
+base:req/REQ-USR.UI.critical-errors vdo:verifiedBy base:ts/frontend.p0_ui_system .
+base:req/REQ-USR.UI.generation-progress vdo:verifiedBy base:ts/frontend.p0_ui_suggestions .
+base:req/REQ-USR.UI.suggestion-ranking vdo:verifiedBy base:ts/frontend.p0_ui_suggestions .
+base:req/REQ-FUN.API.class-hierarchy-accuracy vdo:verifiedBy base:ts/ontology-service.tests.class_integration, base:ts/ontology-service.tests.graph_query_integration .
+base:req/REQ-FUN.API.suggestion-recalculation vdo:verifiedBy base:ts/ai-orchestration-service.suggestion_p0 .
+base:req/REQ-NFR.SECURITY.llm-tool-least-privilege vdo:verifiedBy base:ts/ai-orchestration-service.internal.middleware.middleware .
+base:req/REQ-USR.UI.prompt-block-feedback vdo:verifiedBy base:ts/frontend.p0_ui_system .
+base:req/REQ-NFR.SECURITY.parser-query-fuzz-gates vdo:verifiedBy base:ts/security.authorization.p0_llm_security_placeholder .
+base:req/REQ-FUN.API.graphql-sparql vdo:verifiedBy base:ts/api-gateway.rest_entity_crud_integration, base:ts/e2e.playwright.tests.api.graphql.schema-boundary .
+base:req/REQ-NFR.SECURITY.organization-access-model vdo:verifiedBy base:ts/auth-service.auth_service,
+    base:ts/auth-service.keycloak_introspect,
+    base:ts/auth-service.membership.membership,
+    base:ts/auth-service.org.org,
+    base:ts/auth-service.org.org_grpc,
+    base:ts/auth-service.org.org_hierarchy,
+    base:ts/auth-service.org.org_proto_validation,
+    base:ts/auth-service.org.org_remove_member,
+    base:ts/auth-service.org.org_roles,
+    base:ts/auth-service.org.postgres_store,
+    base:ts/auth-service.org.schema,
+    base:ts/auth-service.org_proto_generate,
+    base:ts/e2e.playwright.tests.api.rest.org-api,
+    base:ts/e2e.playwright.tests.gui.pages.groups-page-wired,
+    base:ts/e2e.playwright.tests.gui.pages.members-page-wired,
+    base:ts/e2e.playwright.tests.gui.pages.projects-page-wired,
+    base:ts/e2e.playwright.tests.gui.user-stories.org-lifecycle,
+    base:ts/org-api.org_api_integration,
+    base:ts/security.org_access_control .
+base:req/REQ-USR.UI.provider-status-indicator vdo:verifiedBy base:ts/frontend.p0_ui_system .
+base:req/REQ-USR.UI.audit-access vdo:verifiedBy base:ts/frontend.p0_ui_system .
+base:req/REQ-NFR.SECURITY.audit-masking vdo:verifiedBy base:ts/security.authorization.p0_security_placeholder .
+base:req/REQ-FUN.API.property-crud vdo:verifiedBy base:ts/ontology-service.tests.property_integration .
+base:req/REQ-USR.UI.credits-notifications vdo:verifiedBy base:ts/frontend.p0_ui_system .
+base:req/REQ-NFR.SECURITY.authorization-regression-gates vdo:verifiedBy base:ts/security.org_access_control .
+base:req/REQ-NFR.SECURITY.prompt-audit vdo:verifiedBy base:ts/security.authorization.p0_llm_security_placeholder .
+base:req/REQ-USR.UI.usability-metrics vdo:verifiedBy base:ts/frontend.p0_ui_system .
+base:req/REQ-USR.UI.import-export vdo:verifiedBy base:ts/frontend.p0_ui_import_export .
+base:req/REQ-USR.UI.external-llm-consent vdo:verifiedBy base:ts/frontend.p0_ui_suggestions .
+base:req/REQ-FUN.API.validation-import vdo:verifiedBy base:ts/ontology-service.tests.validation_p0 .
+base:req/REQ-NFR.SECURITY.suggestion-privacy vdo:verifiedBy base:ts/security.authorization.p0_llm_security_placeholder .
+base:req/REQ-FUN.API.graphql-deprecation-policy vdo:verifiedBy base:ts/e2e.playwright.tests.api.graphql.schema-boundary .
+base:req/REQ-USR.UI.confidence-indicator vdo:verifiedBy base:ts/frontend.p0_ui_suggestions .
+base:req/REQ-USR.UI.sparql-gui-search vdo:verifiedBy base:ts/frontend.p0_ui_graph_search .
+base:req/REQ-NFR.SECURITY.llm-content-screening vdo:verifiedBy base:ts/ai-orchestration-service.internal.handler.handler .
+base:req/REQ-USR.UI.status-page-deprecation vdo:verifiedBy base:ts/frontend.p0_ui_system .
+base:req/REQ-NFR.SECURITY.security-requirements vdo:verifiedBy base:ts/e2e.playwright.tests.gui.user-stories.keycloak-login .
+base:req/REQ-USR.UI.excel-templates vdo:verifiedBy base:ts/frontend.p0_ui_import_export .
+base:req/REQ-USR.UI.suggestion-confirmation vdo:verifiedBy base:ts/frontend.p0_ui_suggestions .
+base:req/REQ-FUN.API.rest-versioning vdo:verifiedBy base:ts/api-gateway.rest_entity_crud_integration .
+base:req/REQ-FUN.API.excel-validation vdo:verifiedBy base:ts/document-extractor.parsers.xlsx .
+base:req/REQ-FUN.API.doc-extract-sequence-schema vdo:verifiedBy base:ts/document-extractor.sequence.validator .
+base:req/REQ-FUN.API.write-idempotency vdo:verifiedBy base:ts/api-gateway.rest_entity_crud_integration .
+base:req/REQ-USR.UI.excel-error-report vdo:verifiedBy base:ts/frontend.p0_ui_import_export .
+base:req/REQ-FUN.DATA.ontology-visibility-levels vdo:verifiedBy base:ts/ai-orchestration-service.internal.middleware.middleware .
+base:req/REQ-USR.UI.validation-fix vdo:verifiedBy base:ts/frontend.p0_ui_system .
+base:req/REQ-NFR.SECURITY.enforced-in-code vdo:verifiedBy base:ts/security.authorization.p0_security_placeholder .
+base:req/REQ-USR.UI.degraded-mode-ux vdo:verifiedBy base:ts/frontend.p0_ui_system .
+base:req/REQ-FUN.API.swagger-ui-dev-only vdo:verifiedBy base:ts/api-gateway.auth_integration .
+base:req/REQ-FUN.API.excel-duplicate-handling vdo:verifiedBy base:ts/document-extractor.parsers.xlsx .
+base:req/REQ-NFR.SECURITY.system-prompt-hardening vdo:verifiedBy base:ts/ai-orchestration-service.internal.handler.handler .
+base:req/REQ-USR.UI.quality-report vdo:verifiedBy base:ts/frontend.p0_ui_system .
+base:req/REQ-FUN.API.suggestion-confidence-threshold vdo:verifiedBy base:ts/ai-orchestration-service.suggestion_p0 .
+base:req/REQ-USR.UI.credits-dashboard vdo:verifiedBy base:ts/frontend.p0_ui_system .
+base:req/REQ-FUN.API.properties-accuracy vdo:verifiedBy base:ts/ontology-service.tests.property_integration .
+base:req/REQ-USR.UI.dangerous-actions-recovery vdo:verifiedBy base:ts/frontend.p0_ui_system .
+
+# End of auto-generated verifiedBy links
 
 # Changing base:spec/cli-ticket-ops-001 affects:
 base:spec/cli-ticket-ops-001 vdo:affectedBy base:cli/close-ticket, base:cli/comment-ticket, base:cli/list-tickets, base:cli/reopen-ticket, base:cli/show-ticket .

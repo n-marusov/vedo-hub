@@ -1,4 +1,7 @@
-"""Tests for MetricsComputer — core ontology metric computation."""
+"""Tests for MetricsComputer — core ontology metric computation.
+
+Validates: REQ-FUN.INTEGRATION.collaboration-quality-metrics
+"""
 
 from __future__ import annotations
 

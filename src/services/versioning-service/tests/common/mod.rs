@@ -9,17 +9,21 @@ pub fn is_integration_enabled() -> bool {
     std::env::var("PG_TEST_DATABASE_URL").is_ok()
 }
 
-/// Skips the test if PostgreSQL integration is not configured.
+/// Panics with a clear message if PostgreSQL integration is not configured.
 ///
-/// When `PG_TEST_DATABASE_URL` is not set, the test binary exits
-/// successfully so `cargo test --workspace` stays green in any developer
-/// environment without a test database. The previous implementation only
-/// logged a message and returned — tests then proceeded into DB-backed
-/// code and panicked when the database was unreachable.
+/// Call this at the beginning of every integration test. When `PG_TEST_DATABASE_URL`
+/// is not set, the test panics so the developer knows the test was skipped,
+/// rather than silently exiting the binary (which violates B4 of the TQS).
+///
+/// Use `PG_TEST_DATABASE_URL=postgres://... cargo test` to run PostgreSQL-backed
+/// integration tests.
 pub fn skip_if_no_pg() {
     if !is_integration_enabled() {
-        eprintln!("Skipping PostgreSQL integration tests: set PG_TEST_DATABASE_URL to run them");
-        std::process::exit(0);
+        panic!(
+            "PostgreSQL integration tests require PG_TEST_DATABASE_URL environment variable. \
+             Set it to run these tests, e.g.: \
+             PG_TEST_DATABASE_URL=postgres://postgres:password@localhost:5432/vedo_test cargo test --workspace"
+        );
     }
 }
 

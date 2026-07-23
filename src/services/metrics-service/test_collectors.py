@@ -1,4 +1,7 @@
-"""Tests for EventCollector — domain event collection and dispatch."""
+"""Tests for EventCollector — domain event collection and dispatch.
+
+Validates: REQ-FUN.INTEGRATION.collaboration-quality-metrics
+"""
 
 from __future__ import annotations
 

@@ -1,3 +1,5 @@
+// Validates: REQ-FUN.INTEGRATION.collaboration
+//
 //go:build integration
 // +build integration
 

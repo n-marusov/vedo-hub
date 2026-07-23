@@ -1,5 +1,7 @@
 package llm
 
+// Validates: REQ-FUN.API.llm-policy
+
 // containsStr reports whether substr is within s.
 func containsStr(s, substr string) bool {
 	if len(substr) > len(s) {

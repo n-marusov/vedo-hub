@@ -1,5 +1,7 @@
 package middleware
 
+// Validates: REQ-FUN.API.write-idempotency
+//
 // Idempotency contract tests.
 // BDD: [Condition]_[Action]_[ExpectedResult]
 //

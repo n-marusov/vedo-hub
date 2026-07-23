@@ -1,3 +1,4 @@
+// Validates: REQ-FUN.INTEGRATION.ticket-management
 // @ctx: unit tests for ticket store and priority derivation
 // @hlv:artifact tests-ticket-api verifies TICKET-CORE-001
 

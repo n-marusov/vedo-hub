@@ -1,5 +1,8 @@
 package handlers
 
+// Validates: REQ-NFR.SECURITY.prompt-structure-detection
+// Validates: REQ-NFR.SECURITY.system-prompt-hardening
+
 import (
 	"testing"
 )

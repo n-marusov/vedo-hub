@@ -1,5 +1,7 @@
 package handlers
 
+// Validates: REQ-FUN.API.iterative-refinement-context
+
 import (
 	"bytes"
 	"encoding/json"

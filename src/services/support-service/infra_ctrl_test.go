@@ -1,5 +1,7 @@
 package supportservice
 
+// Validates: REQ-FUN.INTEGRATION.ticket-management
+
 import (
 	"encoding/json"
 	"fmt"

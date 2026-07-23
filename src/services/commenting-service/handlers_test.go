@@ -1,3 +1,5 @@
+// Validates: REQ-FUN.INTEGRATION.collaboration
+//
 // Package main — HTTP handler tests for commenting-service CRUD endpoints.
 package main
 

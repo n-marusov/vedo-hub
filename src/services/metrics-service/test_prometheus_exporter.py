@@ -1,4 +1,7 @@
-"""Tests for prometheus_exporter — Prometheus metric recording and generation."""
+"""Tests for prometheus_exporter — Prometheus metric recording and generation.
+
+Validates: REQ-FUN.INTEGRATION.collaboration-quality-metrics
+"""
 
 from __future__ import annotations
 

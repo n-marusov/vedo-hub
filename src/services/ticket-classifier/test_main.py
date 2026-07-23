@@ -1,4 +1,7 @@
-"""Tests for ticket-classifier — HTTP handler and utility functions."""
+"""Tests for ticket-classifier — HTTP handler and utility functions.
+
+Validates: REQ-FUN.INTEGRATION.ticket-management
+"""
 
 from __future__ import annotations
 

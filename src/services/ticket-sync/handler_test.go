@@ -1,3 +1,4 @@
+// Validates: REQ-FUN.INTEGRATION.ticket-management
 // @ctx: HTTP handler tests — contract test scenarios from TICKET-SYNC-001 test spec
 // @hlv:artifact tests-ticket-sync verifies TICKET-SYNC-001
 

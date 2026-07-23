@@ -1,5 +1,7 @@
 package handlers
 
+// Validates: REQ-USR.UI.tbox-editor
+
 import (
 	"encoding/json"
 	"fmt"

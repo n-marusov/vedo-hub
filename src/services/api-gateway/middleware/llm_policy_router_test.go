@@ -1,5 +1,8 @@
 package middleware
 
+// Validates: REQ-FUN.API.llm-policy
+// Validates: REQ-NFR.SECURITY.llm-tool-least-privilege
+
 import (
 	"encoding/json"
 	"net/http"

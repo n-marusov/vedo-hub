@@ -2,6 +2,8 @@
 
 package llm
 
+// Validates: REQ-FUN.API.llm-policy
+
 import (
 	"context"
 	"os"

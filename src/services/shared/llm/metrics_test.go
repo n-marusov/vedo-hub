@@ -1,5 +1,7 @@
 package llm
 
+// Validates: REQ-NFR.SECURITY.llm-content-screening
+
 import (
 	"strings"
 	"testing"

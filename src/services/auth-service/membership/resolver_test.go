@@ -1,5 +1,7 @@
 package membership
 
+// Validates: REQ-NFR.SECURITY.organization-access-model
+
 import "testing"
 
 func TestResolveEffectiveRole_ReturnsMax(t *testing.T) {

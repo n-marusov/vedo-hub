@@ -1,3 +1,4 @@
+// Validates: REQ-FUN.INTEGRATION.ticket-management
 // @ctx: HTTP handler tests for ticket-notifier — contract tests from TICKET-NOTIFY-001 test spec
 // @hlv:artifact tests-ticket-notifier verifies TICKET-NOTIFY-001
 // @hlv All ticket lifecycle events trigger notifications

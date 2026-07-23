@@ -1,3 +1,4 @@
+// Validates: REQ-FUN.INTEGRATION.ticket-management
 // @ctx: unit tests for automatic ticket handler — contract tests CT-TICKET-AUTO-001-001 through -005
 // @hlv:artifact tests-ticket-telemetry-listener verifies TICKET-AUTO-001
 

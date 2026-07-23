@@ -1,5 +1,7 @@
 package keycloak
 
+// Validates: REQ-NFR.SECURITY.organization-access-model
+
 import (
 	"encoding/json"
 	"os"
