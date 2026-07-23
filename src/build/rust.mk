@@ -29,6 +29,16 @@ test-rust:
 	done; \
 	if [ -n "$$failed" ]; then echo "TEST_FAILED: cargo test failed in:$$failed"; exit 1; fi
 
+.PHONY: test-rust-unit
+test-rust-unit:
+	@if [ -z "$(RUST_DIRS)" ]; then echo "No Rust services found"; exit 0; fi
+	@failed=""; \
+	for dir in $(RUST_DIRS); do \
+		echo "[Rust] unit testing $$(basename $$dir)"; \
+		cd $$dir && cargo test --lib 2>&1 || failed="$$failed $$(basename $$dir)"; \
+	done; \
+	if [ -n "$$failed" ]; then echo "TEST_FAILED: rust unit tests failed in:$$failed"; exit 1; fi
+
 .PHONY: clean-rust
 clean-rust:
 	@if [ -z "$(RUST_DIRS)" ]; then exit 0; fi

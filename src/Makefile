@@ -146,7 +146,9 @@ fmt-typescript:
 fmt: fmt-rust fmt-go fmt-python fmt-typescript ## Format all source code
 
 ##@ Test
-test: test-rust test-go test-python test-typescript ## Run all tests
+test: test-rust-unit test-go test-python test-typescript ## Run all unit tests (T0)
+
+test-all: test-rust test-go test-python test-typescript ## Run all tests including integration (T0+T1)
 
 .PHONY: coverage
 coverage: ## Run tests with coverage
