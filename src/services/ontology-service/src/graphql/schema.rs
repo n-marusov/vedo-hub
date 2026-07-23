@@ -23,9 +23,9 @@ pub type OntologySchema = Schema<QueryRoot, EmptyMutation, EmptySubscription>;
 ///   - **Non-graph Query resolvers removed** — ontology(id), commits, branch,
 ///     branches, groups, projects, members are now served by REST endpoints.
 ///   - REST enforces Idempotency-Key, auth middleware, audit log and
-///     CircuitBreakerMiddleware DoS protection.
+///     `CircuitBreakerMiddleware` `DoS` protection.
 pub fn build_schema() -> OntologySchema {
-    Schema::build(QueryRoot::default(), EmptyMutation, EmptySubscription)
+    Schema::build(QueryRoot, EmptyMutation, EmptySubscription)
         .enable_federation()
         .finish()
 }

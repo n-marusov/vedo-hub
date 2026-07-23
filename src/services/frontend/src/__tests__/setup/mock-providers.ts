@@ -19,7 +19,11 @@ import { createMemoryHistory, createRouter } from "vue-router";
 // Per-test result overrides for edge-case simulation.
 const overrideResults: Map<
 	string,
-	() => { data?: Record<string, unknown>; error?: Error }
+	() => {
+		data?: Record<string, unknown>;
+		error?: Error;
+		graphQLErrors?: Array<{ message: string }>;
+	}
 > = new Map();
 
 export function setMockOperationResult(
@@ -143,7 +147,7 @@ export function mountWithProviders(
 		...options,
 		global: {
 			...userGlobal,
-			plugins: [router, ...(userPlugins as any[])],
+			plugins: [router, ...userPlugins],
 			provide: {
 				[DefaultApolloClient as symbol]: apolloClient,
 				...userProvide,

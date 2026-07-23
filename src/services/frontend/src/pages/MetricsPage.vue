@@ -129,17 +129,18 @@ onMounted(() => {
 	fetchMetrics();
 });
 
-const trendSummary = computed(() => {
-	const trends = metricsData.value?.trends;
-	if (!trends || trends.length < 2) {
-		return { classCount: "", propertyCount: "", individualCount: "" };
-	}
-	const latest = trends[trends.length - 1];
-	const previous = trends[trends.length - 2];
-	const diff = (field: string) => {
-		const d = (latest[field] || 0) - (previous[field] || 0);
-		return d >= 0 ? `+${d} this period` : `${d} this period`;
-	};
+	const trendSummary = computed(() => {
+		const trends = metricsData.value?.trends;
+		if (!trends || trends.length < 2) {
+			return { classCount: "", propertyCount: "", individualCount: "" };
+		}
+		const latest = trends[trends.length - 1];
+		const previous = trends[trends.length - 2];
+		type TrendField = "classCount" | "propertyCount" | "individualCount";
+		const diff = (field: TrendField) => {
+			const d = (latest[field] || 0) - (previous[field] || 0);
+			return d >= 0 ? `+${d} this period` : `${d} this period`;
+		};
 	return {
 		classCount: diff("classCount"),
 		propertyCount: diff("propertyCount"),

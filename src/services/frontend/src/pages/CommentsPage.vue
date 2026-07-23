@@ -13,7 +13,7 @@
         </div>
 
         <div v-if="loading" class="cm-loading">Loading comments...</div>
-        <div v-else-if="error" class="cm-error">Failed to load comments: {{ error.message }}</div>
+        <div v-else-if="error" class="cm-error">Failed to load comments: {{ error }}</div>
         <div v-else-if="mutationError" class="cm-error">Failed to send comment: {{ mutationError }}</div>
         <Comments v-else :comments="commentItems" class="cm-section" />
 
@@ -32,7 +32,11 @@
 </template>
 
 <script setup lang="ts">
-import { createComment as apiCreateComment, listComments as apiListComments } from "@/api/comments";
+import {
+	createComment as apiCreateComment,
+	listComments as apiListComments,
+	type CommentInfo,
+} from "@/api/comments";
 import Comments from "@/components/organisms/Comments.vue";
 import { ChevronRight } from "lucide-vue-next";
 import { computed, onMounted, ref, watch } from "vue";
@@ -45,7 +49,7 @@ const ontologyId = (route.params.ontologyId as string) || "default";
 
 const loading = ref(false);
 const error = ref<string | null>(null);
-const feedData = ref<any[]>([]);
+const feedData = ref<CommentInfo[]>([]);
 
 async function fetchFeed() {
 	loading.value = true;
@@ -53,14 +57,16 @@ async function fetchFeed() {
 	try {
 		const result = await apiListComments(ontologyId, ontologyId, 1, 50);
 		feedData.value = result.comments;
-	} catch (e: any) {
-		error.value = e.message ?? String(e);
+	} catch (e: unknown) {
+		error.value = e instanceof Error ? e.message : String(e);
 	} finally {
 		loading.value = false;
 	}
 }
 
-onMounted(() => { fetchFeed(); });
+onMounted(() => {
+	fetchFeed();
+});
 
 const commentItems = computed(() =>
 	feedData.value.map(
@@ -74,11 +80,11 @@ const commentItems = computed(() =>
 			updatedAt?: string;
 			parentCommentId?: string;
 		}) => ({
-			author: c.authorName ?? c.author,
-			handle: `@${c.author}`,
+			author: c.authorName ?? c.author ?? "",
+			handle: `@${c.author ?? ""}`,
 			timestamp: formatRelativeTime(c.createdAt ?? ""),
 			action: `commented on entity ${c.entityId}`,
-			text: c.text,
+			text: c.text ?? "",
 		}),
 	),
 );

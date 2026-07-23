@@ -5,7 +5,7 @@
 
 use async_graphql::{Enum, SimpleObject};
 
-/// A class in the ontology hierarchy (TBox).
+/// A class in the ontology hierarchy (`TBox`).
 #[derive(SimpleObject)]
 #[graphql(name = "Class")]
 pub struct GqlClass {
@@ -80,9 +80,10 @@ impl From<GqlPropertyType> for crate::properties::PropertyType {
     }
 }
 
-/// ObjectProperty characteristics (functional, transitive, etc.).
+/// `ObjectProperty` characteristics (functional, transitive, etc.).
 #[derive(SimpleObject)]
 #[graphql(name = "PropertyCharacteristics")]
+#[allow(clippy::struct_excessive_bools)]
 pub struct GqlPropertyCharacteristics {
     pub functional: bool,
     pub inverse_functional: bool,
@@ -118,7 +119,7 @@ impl From<crate::properties::Annotation> for GqlAnnotation {
     }
 }
 
-/// A property in the ontology (ObjectProperty or DatatypeProperty).
+/// A property in the ontology (`ObjectProperty` or `DatatypeProperty`).
 #[derive(SimpleObject)]
 #[graphql(name = "Property")]
 pub struct GqlProperty {
@@ -176,7 +177,7 @@ pub struct GqlReferenceValue {
     pub edge_id: Option<String>,
 }
 
-/// An OWL individual (ABox instance).
+/// An OWL individual (`ABox` instance).
 #[derive(SimpleObject)]
 #[graphql(name = "Individual")]
 pub struct GqlIndividual {

@@ -24,7 +24,7 @@
         <div v-else-if="error" class="dp-section">
             <div class="error-state">
                 <p>Failed to load deployments.</p>
-                <button class="retry-btn" type="button" @click="refetch()">Retry</button>
+                <button class="retry-btn" type="button" @click="fetchDeployments()">Retry</button>
             </div>
         </div>
 

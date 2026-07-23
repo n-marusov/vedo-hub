@@ -69,17 +69,15 @@
 </template>
 
 <script setup lang="ts">
-import { GRAPH_NEIGHBORHOOD_QUERY } from "@/apollo/queries";
 import {
-	listCommits,
-	listBranches,
-	listTags,
-	compareRevisions,
-	type CommitSummary,
 	type BranchInfo,
+	type CommitSummary,
 	type TagInfo,
-	type CompareRevisionsResult,
+	listBranches,
+	listCommits,
+	listTags,
 } from "@/api/versioning";
+import { GRAPH_NEIGHBORHOOD_QUERY } from "@/apollo/queries";
 import BranchList from "@/components/organisms/BranchList.vue";
 import CommitHistory from "@/components/organisms/CommitHistory.vue";
 import DiffView from "@/components/organisms/DiffView.vue";
@@ -148,7 +146,16 @@ const tagsData = ref<TagInfo[]>([]);
 
 const compareLoading = ref(false);
 const compareError = ref<string | null>(null);
-const compareData = ref<CompareRevisionsResult | null>(null);
+const compareData = ref<{
+	changes: Array<{
+		entityLabel?: string;
+		entityId?: string;
+		changeType: string;
+		field?: string;
+		oldValue?: string | null;
+		newValue?: string | null;
+	}>;
+} | null>(null);
 
 async function fetchCommits() {
 	commitsLoading.value = true;
@@ -156,8 +163,8 @@ async function fetchCommits() {
 	try {
 		const result = await listCommits(ontologyId.value, undefined, 0, 50);
 		commitsData.value = result.items;
-	} catch (e: any) {
-		commitsError.value = e.message ?? String(e);
+	} catch (e: unknown) {
+			commitsError.value = e instanceof Error ? e.message : String(e);
 	} finally {
 		commitsLoading.value = false;
 	}
@@ -169,8 +176,8 @@ async function fetchBranches() {
 	try {
 		const result = await listBranches(ontologyId.value);
 		branchesData.value = result.items;
-	} catch (e: any) {
-		branchesError.value = e.message ?? String(e);
+	} catch (e: unknown) {
+			branchesError.value = e instanceof Error ? e.message : String(e);
 	} finally {
 		branchesLoading.value = false;
 	}
@@ -181,19 +188,11 @@ async function fetchTags() {
 	tagsError.value = null;
 	try {
 		tagsData.value = await listTags(ontologyId.value);
-	} catch (e: any) {
-		tagsError.value = e.message ?? String(e);
+	} catch (e: unknown) {
+			tagsError.value = e instanceof Error ? e.message : String(e);
 	} finally {
 		tagsLoading.value = false;
 	}
-}
-
-async function fetchCompare() {
-	compareLoading.value = true;
-	compareError.value = null;
-	// Compare requires from/to revisions — fetched on demand when tab active.
-	// For now, return empty data until user selects revisions.
-	compareLoading.value = false;
 }
 
 onMounted(() => {
@@ -237,8 +236,8 @@ const commits = computed(() =>
 const branches = computed(() =>
 	branchesData.value.map((b) => ({
 		name: b.name,
-		status: b.isProtected ? "active" as const : "default" as const,
-		lastCommit: b.headCommitId,
+		status: b.isProtected ? ("active" as const) : ("default" as const),
+		lastCommit: b.headCommitId ?? "",
 	})),
 );
 
@@ -262,11 +261,24 @@ const currentBranch = computed(() => {
 const changes = computed(() => {
 	const data = compareData.value;
 	if (!data?.changes?.length) return [];
-	return data.changes.map((c) => ({
-		path: String(c.entityLabel || c.entityId || ""),
-		type: (c.changeType === "added" ? "added" : c.changeType === "removed" ? "removed" : "modified") as "added" | "removed" | "modified",
-		diff: `@@ ${c.field || ""}: ${String(c.oldValue ?? "")} ➔ ${String(c.newValue ?? "")} @@`,
-	}));
+	return data.changes.map(
+		(c: {
+			entityLabel?: string;
+			entityId?: string;
+			changeType: string;
+			field?: string;
+			oldValue?: string | null;
+			newValue?: string | null;
+		}) => ({
+			path: String(c.entityLabel || c.entityId || ""),
+			type: (c.changeType === "added"
+				? "added"
+				: c.changeType === "removed"
+					? "removed"
+					: "modified") as "added" | "removed" | "modified",
+			diff: `@@ ${c.field || ""}: ${String(c.oldValue ?? "")} ➔ ${String(c.newValue ?? "")} @@`,
+		}),
+	);
 });
 
 const commitOptions = computed(() => []);
@@ -322,32 +334,48 @@ function go(next: string): void {
 // ── Logging ──────────────────────────────────────────────────────────────────────
 
 watch(commits, (val) => {
-	console.debug(JSON.stringify({
-		level: "debug", msg: "versioning.commits.loaded",
-		count: val.length, ts: new Date().toISOString(),
-	}));
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "versioning.commits.loaded",
+			count: val.length,
+			ts: new Date().toISOString(),
+		}),
+	);
 });
 
 watch(tags, (val) => {
-	console.debug(JSON.stringify({
-		level: "debug", msg: "versioning.tags.loaded",
-		count: val.length, ts: new Date().toISOString(),
-	}));
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "versioning.tags.loaded",
+			count: val.length,
+			ts: new Date().toISOString(),
+		}),
+	);
 });
 
 watch(changes, (val) => {
-	console.debug(JSON.stringify({
-		level: "debug", msg: "versioning.compare.loaded",
-		count: val.length, ts: new Date().toISOString(),
-	}));
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "versioning.compare.loaded",
+			count: val.length,
+			ts: new Date().toISOString(),
+		}),
+	);
 });
 
 watch(error, (err) => {
 	if (err) {
-		console.error(JSON.stringify({
-			level: "error", msg: "versioning.query.error",
-			error: String(err), ts: new Date().toISOString(),
-		}));
+		console.error(
+			JSON.stringify({
+				level: "error",
+				msg: "versioning.query.error",
+				error: String(err),
+				ts: new Date().toISOString(),
+			}),
+		);
 	}
 });
 </script>

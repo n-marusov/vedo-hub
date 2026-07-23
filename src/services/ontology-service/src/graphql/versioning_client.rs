@@ -13,6 +13,7 @@
 use chrono::{DateTime, Utc};
 use reqwest::Client;
 use serde::Deserialize;
+use std::fmt::Write as _;
 use uuid::Uuid;
 
 /// Default versioning-service URL (matches `ADR-IMPL.STACK.port-mapping-strategy`).
@@ -102,14 +103,10 @@ impl VersioningClient {
         let mut url = format!("{}/api/v1/versioning/commits", self.base());
         let mut sep = '?';
         if let Some(b) = branch_id {
-            url.push_str(&format!("{sep}branch_id={b}"));
+            let _ = write!(url, "{sep}branch_id={b}");
             sep = '&';
         }
-        url.push_str(&format!(
-            "{sep}page={page}&per_page={per_page}",
-            page = page,
-            per_page = per_page
-        ));
+        let _ = write!(url, "{sep}page={page}&per_page={per_page}");
 
         tracing::debug!(url = %url, "[FIX] listing commits via versioning-service");
 
@@ -149,7 +146,7 @@ impl VersioningClient {
             ontology_id = ontology_id
         );
         if let Some(r) = reference_branch_id {
-            url.push_str(&format!("&reference_branch_id={r}"));
+            let _ = write!(url, "&reference_branch_id={r}");
         }
 
         tracing::debug!(url = %url, "[FIX] listing branches via versioning-service");

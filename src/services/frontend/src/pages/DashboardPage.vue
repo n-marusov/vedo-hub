@@ -30,7 +30,7 @@
     <section v-else-if="error" class="dash-widgets" aria-label="Widgets error">
       <div class="error-state card">
         <p>Failed to load dashboard data.</p>
-        <button class="retry-btn" type="button" @click="refetch()">Retry</button>
+        <button class="retry-btn" type="button" @click="fetchDashboard()">Retry</button>
       </div>
     </section>
     <section v-else class="dash-widgets" aria-label="Collaboration widgets">
@@ -128,12 +128,19 @@
 </template>
 
 <script setup lang="ts">
-import { getDashboard, type DashboardData } from "@/api/dashboard";
+import { type DashboardData, getDashboard } from "@/api/dashboard";
 import { getUserRole } from "@/auth/session";
 import { useCurrentUser } from "@/composables/useCurrentUser";
 import {
-	AlertCircle, ChevronDown, ChevronRight, FileText,
-	GitMerge, MessageSquare, Settings, Smile, User,
+	AlertCircle,
+	ChevronDown,
+	ChevronRight,
+	FileText,
+	GitMerge,
+	MessageSquare,
+	Settings,
+	Smile,
+	User,
 } from "lucide-vue-next";
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
@@ -149,12 +156,19 @@ const error = ref<string | null>(null);
 const dashData = ref<DashboardData | null>(null);
 
 async function fetchDashboard() {
-	loading.value = true; error.value = null;
-	try { dashData.value = await getDashboard(); }
-	catch (e: any) { error.value = e.message ?? String(e); }
-	finally { loading.value = false; }
+	loading.value = true;
+	error.value = null;
+	try {
+		dashData.value = await getDashboard();
+	} catch (e: unknown) {
+			error.value = e instanceof Error ? e.message : String(e);
+	} finally {
+		loading.value = false;
+	}
 }
-onMounted(() => { fetchDashboard(); });
+onMounted(() => {
+	fetchDashboard();
+});
 
 // ── Resolvers: map REST data to UI shapes ──
 
@@ -288,7 +302,7 @@ const resolvedRecentOntologies = computed<RecentOntology[]>(() => {
 		(o: {
 			id: string;
 			name: string;
-			description: string;
+			description: string | null;
 			visibility: string;
 		}) => ({
 			id: o.id,
@@ -309,7 +323,7 @@ function navigateToOntology(ontologyId: string): void {
 			ts: new Date().toISOString(),
 		}),
 	);
-	router.push(`/project/${ontologyId}/workspace`)
+	router.push(`/project/${ontologyId}/workspace`);
 }
 
 function toggleActivityFilter(): void {

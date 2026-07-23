@@ -12,6 +12,7 @@ use crate::individuals::{IndividualRepository, IndividualSummary, ListIndividual
 use crate::properties::{ListPropertiesParams, PropertyRepository, PropertySummary};
 use crate::AppState;
 
+#[allow(clippy::wildcard_imports)]
 use super::types::*;
 
 // ── helpers ────────────────────────────────────────────────────────────────────────
@@ -236,12 +237,6 @@ impl QueryRoot {
         #[graphql(desc = "Class ID")] class_id: String,
         #[graphql(default = 10)] max_depth: u64,
     ) -> Result<Vec<GqlClassTreeNode>> {
-        let pool = pool_from_ctx(ctx)?;
-        let repo = ClassRepository::new(pool);
-        let tree = repo
-            .get_descendants_tree(&ontology_id, &class_id, max_depth)
-            .await
-            .map_err(map_error)?;
         // Convert ClassTreeNode → GqlClassTreeNode recursively
         fn convert(node: classes::ClassTreeNode) -> GqlClassTreeNode {
             GqlClassTreeNode {
@@ -250,6 +245,13 @@ impl QueryRoot {
                 children: node.children.into_iter().map(convert).collect(),
             }
         }
+
+        let pool = pool_from_ctx(ctx)?;
+        let repo = ClassRepository::new(pool);
+        let tree = repo
+            .get_descendants_tree(&ontology_id, &class_id, max_depth)
+            .await
+            .map_err(map_error)?;
         Ok(tree.into_iter().map(convert).collect())
     }
 

@@ -1,64 +1,44 @@
 //! Unit tests for the GraphQL facade assembled by `ontology-service`.
 //!
-//! These tests pin down the M1 contract that was added to close the
-//! `$aif-verify` gap on Task 8.1:
+//! These tests verify the tightened GraphQL schema contract after
+//! migration to EmptyMutation and removal of non-graph resolvers:
 //!
-//! 1. `build_schema()` wires `MutationRoot` (NOT `EmptyMutation`) so the
-//!    frontend `UPDATE_DRAFT_MUTATION` validates against the schema.
-//! 2. `VersioningClient` correctly parses the REST payload shapes returned
-//!    by the versioning-service (`RemoteCommitPage`, `RemoteBranchPage`),
-//!    including `Option`al commit metadata and `ahead/behind` defaults.
-//! 3. The `branch_into_gql` mapping helper preserves all fields documented
-//!    by the GraphQL `Branch` type, including `Option` handling.
-//!
-//! The tests intentionally avoid the network: the schema test executes a
-//! GraphQL document against an in-memory schema, and the client/mapping
-//! tests feed hand-rolled JSON through `serde_json::from_value` so they
-//! remain deterministic and fast.
+//! 1. `build_schema()` uses `EmptyMutation` — no Mutation type exposed.
+//! 2. GraphQL introspection does not expose non-graph query fields
+//!    (commits, branch, branches, groups, projects, members, ontology).
+//! 3. Graph navigation resolvers (class, classTree, etc.) are present.
+//! 4. `VersioningClient` correctly parses the REST payload shapes returned
+//!    by the versioning-service (`RemoteCommitPage`, `RemoteBranchPage`).
 
 use chrono::{TimeZone, Utc};
 use serde_json::json;
 use uuid::Uuid;
 
-use super::mutation::MutationRoot;
-use super::query::branch_into_gql;
 use super::schema::{build_schema, OntologySchema};
-use super::types::{GqlBranch, GqlCommit};
 use super::versioning_client::{
     RemoteBranch, RemoteBranchPage, RemoteCommitPage, RemoteCommitSummary,
 };
 
 // ── Schema construction ──────────────────────────────────────────────────────
 
-/// build_schema() must return a schema whose mutation root is MutationRoot,
-/// not EmptyMutation. The frontend relies on `updateDraft` existing in the
-/// schema; if a future refactor accidentally swaps back to EmptyMutation this
-/// test fails before the change ships.
+/// build_schema() must use EmptyMutation — no mutation resolvers.
+/// Executing any mutation against the schema must return a "Cannot query field"
+/// error, confirming that GraphQL is read-only for graph navigation.
 #[tokio::test]
-async fn test_build_schema_wires_mutation_root() {
+async fn test_schema_has_no_mutation_root() {
     let schema: OntologySchema = build_schema();
-    // Execute the updateDraft mutation against an in-memory schema. EmptyMutation
-    // would return "Cannot query field \"updateDraft\" on type \"Mutation\"" —
-    // we assert success instead so the contract is observable.
     use async_graphql::{Name, Variables};
     let mut vars = Variables::default();
     vars.insert(
         Name::new("ontologyId"),
         async_graphql::value!("00000000-0000-0000-0000-000000000000"),
     );
-    vars.insert(
-        Name::new("changes"),
-        async_graphql::value!({ "changes": "{}" }),
-    );
 
     let response = schema
         .execute(
             async_graphql::Request::new(
-                r#"mutation UpdateDraft($ontologyId: ID!, $changes: DraftInput!) {
-                    updateDraft(ontologyId: $ontologyId, changes: $changes) {
-                        success
-                        timestamp
-                    }
+                r#"mutation UpdateDraft($ontologyId: ID!) {
+                    updateDraft(ontologyId: $ontologyId) { success }
                 }"#,
             )
             .variables(vars),
@@ -66,37 +46,83 @@ async fn test_build_schema_wires_mutation_root() {
         .await;
 
     assert!(
-        response.errors.is_empty(),
-        "expected no GraphQL errors from updateDraft, got: {:?}",
-        response.errors
+        !response.errors.is_empty(),
+        "expected GraphQL error from updateDraft on EmptyMutation, got no errors"
     );
-    let data = response.data.into_json().expect("response data is JSON");
-    assert_eq!(data["updateDraft"]["success"], true);
-    // Timestamp is RFC3339 — just assert it is present and non-empty.
+    let has_schema_error = response
+        .errors
+        .iter()
+        .any(|e| e.message.contains("not configured for mutations"));
     assert!(
-        !data["updateDraft"]["timestamp"]
-            .as_str()
-            .unwrap_or("")
-            .is_empty(),
-        "expected non-empty timestamp from updateDraft"
+        has_schema_error,
+        "expected error referencing updateDraft or mutation configuration, got: {:?}",
+        response.errors
     );
 }
 
-/// Sanity check: the MutationRoot type is constructed with a default and the
-/// schema type assembles without panicking. This catches regressions where a
-/// removed resolver method leaves the mutation root incompatible with
-/// `Schema::build`.
+/// Sanity check: the schema builds without panicking.
 #[test]
-fn test_mutation_root_default_is_constructible() {
-    let _ = MutationRoot::default();
+fn test_schema_builds_successfully() {
     let _schema = build_schema();
+}
+
+/// Introspection should expose only graph-navigation query fields.
+#[tokio::test]
+async fn test_introspection_reveals_graph_only_fields() {
+    let schema: OntologySchema = build_schema();
+
+    let response = schema
+        .execute(r#"{ __schema { queryType { fields { name } } } }"#)
+        .await;
+
+    let data = response.data.into_json().expect("introspection JSON");
+    let fields: Vec<&str> = data["__schema"]["queryType"]["fields"]
+        .as_array()
+        .map(|arr| arr.iter().filter_map(|f| f["name"].as_str()).collect())
+        .unwrap_or_default();
+
+    // Graph navigation resolvers that MUST be present
+    let expected_graph = [
+        "class",
+        "classes",
+        "classTree",
+        "classAncestors",
+        "classDescendants",
+        "graphNeighborhood",
+        "autocompleteClasses",
+        "property",
+        "properties",
+        "individual",
+        "individuals",
+    ];
+    for name in &expected_graph {
+        assert!(
+            fields.contains(name),
+            "expected graph query '{name}' in schema, found: {fields:?}"
+        );
+    }
+
+    // Non-graph resolvers that MUST NOT be present
+    let forbidden = [
+        "commits", "branch", "branches", "groups", "projects", "members", "ontology",
+    ];
+    for name in &forbidden {
+        assert!(
+            !fields.contains(name),
+            "non-graph query '{name}' must NOT be in schema, found: {fields:?}"
+        );
+    }
+
+    // Mutation type must be absent (EmptyMutation hides it from introspection)
+    let has_mutation = data["__schema"].get("mutationType").is_some()
+        && !data["__schema"]["mutationType"].is_null();
+    assert!(!has_mutation, "Mutation type must be absent from schema");
 }
 
 // ── VersioningClient payload parsing ─────────────────────────────────────────
 
 /// `RemoteCommitPage` must deserialize from the response shape produced by
-/// `GET /api/v1/versioning/commits`. The versioning-service encodes UUIDs as
-/// strings, optional parent commit IDs as null, and `total_changes` as a number.
+/// `GET /api/v1/versioning/commits`.
 #[test]
 fn test_remote_commit_page_parses_versioning_service_shape() {
     let commit_id = Uuid::new_v4();
@@ -127,10 +153,7 @@ fn test_remote_commit_page_parses_versioning_service_shape() {
     let c: &RemoteCommitSummary = &page.items[0];
     assert_eq!(c.id, commit_id);
     assert_eq!(c.branch_id, branch_id);
-    assert!(
-        c.parent_commit_id.is_none(),
-        "parent commit must be Option::None"
-    );
+    assert!(c.parent_commit_id.is_none());
     assert_eq!(c.message, "Add Person class");
     assert_eq!(c.author_id, "user-1");
     assert_eq!(c.author_name, "Alice");
@@ -146,8 +169,6 @@ fn test_remote_branch_page_parses_with_optionals_and_defaults() {
     let ontology_id = Uuid::new_v4();
     let created_at = Utc.with_ymd_and_hms(2026, 7, 14, 10, 30, 0).unwrap();
 
-    // Payload omits last_commit_*. The #[serde(default)] attributes must fill
-    // them with None / 0 so resolvers do not need to special-case missing keys.
     let payload = json!({
         "items": [{
             "id": branch_id,
@@ -180,8 +201,7 @@ fn test_remote_branch_page_parses_with_optionals_and_defaults() {
     assert_eq!(b.behind_count, 0, "behind_count must default to 0");
 }
 
-/// When the upstream supplies commit metadata, it is preserved verbatim. This
-/// guards against accidental renaming of the wire field names.
+/// When the upstream supplies commit metadata, it is preserved verbatim.
 #[test]
 fn test_remote_branch_preserves_commit_metadata_when_present() {
     let branch_id = Uuid::new_v4();
@@ -215,118 +235,4 @@ fn test_remote_branch_preserves_commit_metadata_when_present() {
     assert_eq!(b.last_commit_at, Some(last_commit_at));
     assert_eq!(b.ahead_count, 2);
     assert_eq!(b.behind_count, 5);
-}
-
-// ── branch_into_gql mapping helper ────────────────────────────────────────────
-
-/// `branch_into_gql` must convert a `RemoteBranch` into a `GqlBranch` while
-/// stringifying UUIDs and preserving `Option`al commit metadata.
-#[test]
-fn test_branch_into_gql_maps_all_fields() {
-    let branch_id = Uuid::new_v4();
-    let ontology_id = Uuid::new_v4();
-    let head_commit_id = Uuid::new_v4();
-    let created_at = Utc.with_ymd_and_hms(2026, 7, 14, 8, 0, 0).unwrap();
-
-    let remote = RemoteBranch {
-        id: branch_id,
-        name: "main".to_string(),
-        ontology_id,
-        head_commit_id: Some(head_commit_id),
-        created_at,
-        is_protected: false,
-        last_commit_message: Some("msg".to_string()),
-        last_commit_author: Some("Alice".to_string()),
-        last_commit_at: None,
-        ahead_count: 7,
-        behind_count: 1,
-    };
-
-    let gql: GqlBranch = branch_into_gql(remote);
-
-    assert_eq!(gql.id, branch_id.to_string());
-    assert_eq!(gql.name, "main");
-    assert_eq!(gql.ontology_id, ontology_id.to_string());
-    assert_eq!(
-        gql.head_commit_id.as_deref(),
-        Some(head_commit_id.to_string()).as_deref()
-    );
-    assert_eq!(gql.created_at, created_at.to_rfc3339());
-    assert!(!gql.is_protected);
-    assert_eq!(gql.last_commit_message.as_deref(), Some("msg"));
-    assert_eq!(gql.last_commit_author.as_deref(), Some("Alice"));
-    assert_eq!(gql.ahead_count, 7);
-    assert_eq!(gql.behind_count, 1);
-}
-
-/// `branch_into_gql` must serialise UUIDs as lowercase strings even when the
-/// source branch has no head commit. Guards against accidental `.unwrap()`
-/// regressions in the `Option` projection.
-#[test]
-fn test_branch_into_gql_handles_branch_without_head_commit() {
-    let branch_id = Uuid::new_v4();
-    let ontology_id = Uuid::new_v4();
-    let created_at = Utc.with_ymd_and_hms(2026, 7, 14, 8, 0, 0).unwrap();
-
-    let remote = RemoteBranch {
-        id: branch_id,
-        name: "orphan".to_string(),
-        ontology_id,
-        head_commit_id: None,
-        created_at,
-        is_protected: false,
-        last_commit_message: None,
-        last_commit_author: None,
-        last_commit_at: None,
-        ahead_count: 0,
-        behind_count: 0,
-    };
-
-    let gql: GqlBranch = branch_into_gql(remote);
-    assert!(gql.head_commit_id.is_none());
-    assert!(gql.last_commit_message.is_none());
-    assert!(gql.last_commit_author.is_none());
-}
-
-// ── GraphQL type smoke tests ──────────────────────────────────────────────────
-
-/// `GqlCommit` must serialize to JSON without the field renames (camelCase).
-/// async-graphql derives the GraphQL field names automatically; this test just
-/// confirms the struct serializes so rustc does not drop unused fields.
-#[test]
-fn test_gql_commit_serializes() {
-    let commit = GqlCommit {
-        id: "c1".to_string(),
-        branch_id: "b1".to_string(),
-        parent_commit_id: None,
-        message: "msg".to_string(),
-        author_id: "u1".to_string(),
-        author_name: "Author".to_string(),
-        total_changes: 4,
-        created_at: "2026-07-14T10:00:00+00:00".to_string(),
-    };
-    let v = serde_json::to_value(&commit).expect("serialize GqlCommit");
-    assert_eq!(v["id"], "c1");
-    assert_eq!(v["branch_id"], "b1");
-    assert_eq!(v["total_changes"], 4);
-}
-
-#[test]
-fn test_gql_branch_serializes() {
-    let branch = GqlBranch {
-        id: "b1".to_string(),
-        name: "main".to_string(),
-        ontology_id: "o1".to_string(),
-        head_commit_id: None,
-        created_at: "2026-07-14T10:00:00+00:00".to_string(),
-        is_protected: true,
-        last_commit_message: None,
-        last_commit_author: None,
-        ahead_count: 0,
-        behind_count: 0,
-    };
-    let v = serde_json::to_value(&branch).expect("serialize GqlBranch");
-    assert_eq!(v["name"], "main");
-    assert_eq!(v["is_protected"], true);
-    assert!(v.get("head_commit_id").unwrap().is_null());
 }
