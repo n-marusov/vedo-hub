@@ -1,8 +1,15 @@
-//! ApplySequence business logic — the main entry point for document extractor
+//! `ApplySequence` business logic — the main entry point for document extractor
 //! requests to apply an ontology sequence atomically.
 //!
 //! # Flow
 //!
+
+#![allow(
+    clippy::cast_possible_truncation,
+    clippy::unused_self,
+    clippy::manual_let_else,
+    clippy::cast_possible_wrap
+)]
 //! 1. **Order steps** — classes first, then properties, then individuals/annotations
 //! 2. **Execute in Neo4j transaction** — all or nothing
 //! 3. **Create versioning commit** — record the change
@@ -30,19 +37,18 @@ pub async fn apply_sequence(
     state: &Arc<AppState>,
     request: &ApplySequenceRequest,
 ) -> Result<ApplySequenceResponse, tonic::Status> {
-    let pool = match &state.neo4j {
-        Some(p) => p,
-        None => {
-            warn!("sequence.neo4j_not_configured");
-            return Ok(ApplySequenceResponse {
-                commit_id: String::new(),
-                steps_applied: 0,
-                steps_skipped: 0,
-                steps_failed: 0,
-                errors: vec!["Neo4j is not configured".to_string()],
-                error: None,
-            });
-        }
+    let pool = if let Some(p) = &state.neo4j {
+        p
+    } else {
+        warn!("sequence.neo4j_not_configured");
+        return Ok(ApplySequenceResponse {
+            commit_id: String::new(),
+            steps_applied: 0,
+            steps_skipped: 0,
+            steps_failed: 0,
+            errors: vec!["Neo4j is not configured".to_string()],
+            error: None,
+        });
     };
 
     let ontology_id = request.ontology_id.as_str();

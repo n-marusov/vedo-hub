@@ -3,6 +3,12 @@
 //! Provides the `build_app` function that assembles all routes, middleware,
 //! and shared state into a single axum `Router`.
 
+#![allow(
+    clippy::too_many_lines,
+    clippy::too_many_arguments,
+    clippy::doc_markdown
+)]
+
 pub mod classes;
 pub mod clients;
 pub mod error;
@@ -81,6 +87,7 @@ async fn neo4j_health_handler(State(state): State<Arc<AppState>>) -> Json<serde_
 /// # Returns
 ///
 /// A configured `Router` ready to serve.
+#[allow(clippy::needless_pass_by_value)]
 pub fn build_app(state: Arc<AppState>) -> Router {
     // Build stateless routes
     let app = Router::new()

@@ -1,4 +1,4 @@
-//! Property (ObjectProperty + DatatypeProperty) CRUD operations against Neo4j.
+//! Property (`ObjectProperty` + `DatatypeProperty`) CRUD operations against Neo4j.
 //!
 //! Provides the domain model (`Property`), a repository layer for Neo4j Cypher
 //! queries, and axum HTTP handlers for the REST API.
@@ -8,6 +8,19 @@
 //! Domain/Range edges point FROM property TO class, matching the RDF semantics
 //! `rdfs:domain` / `rdfs:range` (the property *has* a domain/range Class).
 //!
+
+#![allow(
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss,
+    clippy::items_after_statements,
+    clippy::struct_excessive_bools,
+    clippy::if_same_then_else,
+    clippy::manual_strip,
+    clippy::trivially_copy_pass_by_ref,
+    clippy::unused_self,
+    clippy::ref_option,
+    clippy::map_identity
+)]
 //! ```cypher
 //! (p:Property)-[:DOMAIN]->(c:Class)   -- p's domain is c
 //! (p:Property)-[:RANGE]->(c:Class)    -- p's range is c (ObjectProperty only)
@@ -30,7 +43,7 @@ use tracing::{debug, error, info, warn};
 use crate::neo4j::Neo4jPool;
 use crate::AppState;
 
-/// Helper: extracts a PropertyRepository from the application state or returns
+/// Helper: extracts a `PropertyRepository` from the application state or returns
 /// a `Neo4jNotConfigured` error when no database pool is available.
 fn repo_from_state(state: &AppState) -> Result<PropertyRepository, PropertyError> {
     match &state.neo4j {
@@ -45,9 +58,9 @@ fn repo_from_state(state: &AppState) -> Result<PropertyRepository, PropertyError
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum PropertyType {
-    /// ObjectProperty — relates individuals to individuals (range = Class).
+    /// `ObjectProperty` — relates individuals to individuals (range = Class).
     Object,
-    /// DatatypeProperty — relates individuals to literal values (range = XSD type).
+    /// `DatatypeProperty` — relates individuals to literal values (range = XSD type).
     Datatype,
 }
 
@@ -60,8 +73,8 @@ impl PropertyType {
     }
 }
 
-/// Characteristics applicable to ObjectProperties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+/// Characteristics applicable to `ObjectProperties`.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct PropertyCharacteristics {
     #[serde(default)]
     pub functional: bool,
@@ -77,19 +90,6 @@ pub struct PropertyCharacteristics {
     /// Maximum cardinality constraint (OWL maxCardinality).
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub max_cardinality: Option<i32>,
-}
-
-impl Default for PropertyCharacteristics {
-    fn default() -> Self {
-        Self {
-            functional: false,
-            inverse_functional: false,
-            transitive: false,
-            symmetric: false,
-            min_cardinality: None,
-            max_cardinality: None,
-        }
-    }
 }
 
 /// An annotation on a property (custom annotation properties beyond label/comment).
@@ -108,7 +108,7 @@ pub struct AnnotationInput {
     pub value: String,
 }
 
-/// A property in the ontology (ObjectProperty or DatatypeProperty).
+/// A property in the ontology (`ObjectProperty` or `DatatypeProperty`).
 #[derive(Debug, Clone, Serialize)]
 pub struct Property {
     /// Unique identifier within the ontology.
@@ -123,13 +123,13 @@ pub struct Property {
     /// Domain class IDs (classes this property applies to).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub domains: Vec<String>,
-    /// Range class IDs (ObjectProperty only — the classes linked by this property).
+    /// Range class IDs (`ObjectProperty` only — the classes linked by this property).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub ranges: Vec<String>,
-    /// XSD type for DatatypeProperty (e.g. `"string"`, `"integer"`, `"boolean"`).
+    /// XSD type for `DatatypeProperty` (e.g. `"string"`, `"integer"`, `"boolean"`).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub xsd_type: Option<String>,
-    /// ObjectProperty characteristics (ignored for DatatypeProperty).
+    /// `ObjectProperty` characteristics (ignored for `DatatypeProperty`).
     #[serde(default)]
     pub characteristics: PropertyCharacteristics,
     /// Custom annotations (beyond rdfs:label / rdfs:comment).
@@ -137,7 +137,7 @@ pub struct Property {
     pub annotations: Vec<Annotation>,
 }
 
-/// Valid XSD types for DatatypeProperty.
+/// Valid XSD types for `DatatypeProperty`.
 const VALID_XSD_TYPES: &[&str] = &["string", "integer", "boolean", "date", "float"];
 
 /// Normalizes an XSD type input to the short form.
@@ -160,13 +160,13 @@ pub struct CreatePropertyRequest {
     pub property_type: PropertyType,
     #[serde(default)]
     pub domains: Vec<String>,
-    /// Range class IDs (ObjectProperty only).
+    /// Range class IDs (`ObjectProperty` only).
     #[serde(default)]
     pub ranges: Vec<String>,
-    /// XSD type (DatatypeProperty only).
+    /// XSD type (`DatatypeProperty` only).
     #[serde(default)]
     pub xsd_type: Option<String>,
-    /// ObjectProperty characteristics.
+    /// `ObjectProperty` characteristics.
     #[serde(default)]
     pub characteristics: PropertyCharacteristics,
     /// Custom annotations.
@@ -176,7 +176,7 @@ pub struct CreatePropertyRequest {
 
 /// Request body for updating a property.
 ///
-/// Note: property_type cannot be changed after creation. If present in the body
+/// Note: `property_type` cannot be changed after creation. If present in the body
 /// it is validated against the existing type and any mismatch is rejected.
 #[derive(Debug, Deserialize)]
 pub struct UpdatePropertyRequest {
@@ -185,13 +185,13 @@ pub struct UpdatePropertyRequest {
     pub comment: Option<String>,
     #[serde(default)]
     pub domains: Vec<String>,
-    /// Range class IDs (ObjectProperty only; ignored for DatatypeProperty).
+    /// Range class IDs (`ObjectProperty` only; ignored for `DatatypeProperty`).
     #[serde(default)]
     pub ranges: Vec<String>,
-    /// XSD type (DatatypeProperty only; ignored for ObjectProperty).
+    /// XSD type (`DatatypeProperty` only; ignored for `ObjectProperty`).
     #[serde(default)]
     pub xsd_type: Option<String>,
-    /// ObjectProperty characteristics (ignored for DatatypeProperty).
+    /// `ObjectProperty` characteristics (ignored for `DatatypeProperty`).
     #[serde(default)]
     pub characteristics: PropertyCharacteristics,
     /// Custom annotations — replaces the entire annotation list.
@@ -695,7 +695,7 @@ impl PropertyRepository {
         } else {
             None
         };
-        let xsd_val = xsd_normalized.as_deref().unwrap_or("");
+        let xsd_val = xsd_normalized.unwrap_or("");
 
         // Rewrite: update node fields, delete old domain/range edges, recreate
         let query = "\
@@ -765,7 +765,7 @@ impl PropertyRepository {
                 Vec::new()
             },
             xsd_type: if property_type == PropertyType::Datatype {
-                xsd_normalized.map(|s| s.to_string())
+                xsd_normalized.map(std::string::ToString::to_string)
             } else {
                 None
             },
@@ -836,8 +836,7 @@ impl PropertyRepository {
 
         let warning = if cascade && inverse_count > 0 {
             Some(format!(
-                "Deleted with cascade: {} inverse property references detached",
-                inverse_count,
+                "Deleted with cascade: {inverse_count} inverse property references detached",
             ))
         } else {
             None
@@ -892,7 +891,7 @@ impl PropertyRepository {
         "
         );
 
-        let q = neo4rs::Query::new(query.to_string())
+        let q = neo4rs::Query::new(query.clone())
             .param("ontology_id", ontology_id)
             .param("search", params.q.as_str())
             .param("skip", skip as i64)
@@ -1096,7 +1095,7 @@ impl PropertyRepository {
             .pool
             .graph()
             .execute(
-                neo4rs::Query::new(query.to_string())
+                neo4rs::Query::new(query.clone())
                     .param("ontology_id", ontology_id)
                     .param("search", search),
             )

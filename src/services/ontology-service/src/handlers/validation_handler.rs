@@ -3,6 +3,8 @@
 //! Provides:
 //! - `POST /api/v1/ontologies/{ontology_id}/validate` — validate ontology against SHACL shapes
 
+#![allow(clippy::unused_self, clippy::if_same_then_else)]
+
 use std::sync::Arc;
 
 use axum::{
@@ -37,20 +39,19 @@ pub async fn validate_ontology_handler(
 ) -> Response {
     debug!(ontology_id, "SHACL validation requested");
 
-    let pool = match &state.neo4j {
-        Some(pool) => pool.clone(),
-        None => {
-            warn!("Validation failed: Neo4j not configured");
-            return (
-                StatusCode::SERVICE_UNAVAILABLE,
-                [(header::CONTENT_TYPE, "application/json")],
-                Json(serde_json::json!({
-                    "error": "NEO4J_NOT_CONFIGURED",
-                    "detail": "Neo4j database is not configured",
-                })),
-            )
-                .into_response();
-        }
+    let pool = if let Some(pool) = &state.neo4j {
+        pool.clone()
+    } else {
+        warn!("Validation failed: Neo4j not configured");
+        return (
+            StatusCode::SERVICE_UNAVAILABLE,
+            [(header::CONTENT_TYPE, "application/json")],
+            Json(serde_json::json!({
+                "error": "NEO4J_NOT_CONFIGURED",
+                "detail": "Neo4j database is not configured",
+            })),
+        )
+            .into_response();
     };
 
     let validator = ShaclValidator::new(pool);

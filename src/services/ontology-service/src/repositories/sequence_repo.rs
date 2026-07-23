@@ -13,7 +13,7 @@ use vedo_shared::protos::ontology::v1::SequenceStep;
 /// Executes a single `SequenceStep` within the given transaction.
 ///
 /// Returns `Ok(true)` if the step was applied, `Ok(false)` if it was
-/// skipped (skip_if_exists + already exists), or an error on failure.
+/// skipped (`skip_if_exists` + already exists), or an error on failure.
 pub async fn execute_step(
     tx: &mut Txn,
     ontology_id: &str,
@@ -107,8 +107,8 @@ async fn create_class(
         RETURN c.id AS id
         ",
     )
-    .param("entity_id", entity_id.to_string())
-    .param("label", label.to_string())
+    .param("entity_id", entity_id.clone())
+    .param("label", label.clone())
     .param("ontology_id", ontology_id.to_string())
     .param("parent_id", parent_id);
 
@@ -125,7 +125,7 @@ async fn create_class(
             MERGE (child)-[:SUB_CLASS_OF]->(parent)
             ",
         )
-        .param("entity_id", entity_id.to_string())
+        .param("entity_id", entity_id.clone())
         .param("ontology_id", ontology_id.to_string())
         .param("parent_id", step.parent_id.clone());
 
@@ -142,7 +142,7 @@ async fn create_class(
             SET c += {annotations: coalesce(c.annotations, []) + $annotation}
             ",
         )
-        .param("entity_id", entity_id.to_string())
+        .param("entity_id", entity_id.clone())
         .param("ontology_id", ontology_id.to_string())
         .param("annotation", annotation.clone());
 
@@ -183,8 +183,8 @@ async fn create_object_property(
         RETURN p.id AS id
         ",
     )
-    .param("entity_id", entity_id.to_string())
-    .param("label", label.to_string())
+    .param("entity_id", entity_id.clone())
+    .param("label", label.clone())
     .param("ontology_id", ontology_id.to_string())
     .param("domain_id", step.domain_id.clone())
     .param("range_id", step.range_id.clone());
@@ -225,8 +225,8 @@ async fn create_datatype_property(
         RETURN p.id AS id
         ",
     )
-    .param("entity_id", entity_id.to_string())
-    .param("label", label.to_string())
+    .param("entity_id", entity_id.clone())
+    .param("label", label.clone())
     .param("ontology_id", ontology_id.to_string())
     .param("domain_id", step.domain_id.clone())
     .param("range_id", step.range_id.clone());
@@ -272,8 +272,8 @@ async fn create_individual(
         RETURN i.id AS id
         ",
     )
-    .param("entity_id", entity_id.to_string())
-    .param("label", label.to_string())
+    .param("entity_id", entity_id.clone())
+    .param("label", label.clone())
     .param("ontology_id", ontology_id.to_string())
     .param("type_id", step.parent_id.clone());
 
@@ -300,7 +300,7 @@ async fn add_annotation(
             SET e.annotations = coalesce(e.annotations, []) + $annotation
             ",
         )
-        .param("entity_id", entity_id.to_string())
+        .param("entity_id", entity_id.clone())
         .param("ontology_id", ontology_id.to_string())
         .param("annotation", annotation.clone());
 
@@ -329,7 +329,7 @@ async fn set_parent(tx: &mut Txn, ontology_id: &str, step: &SequenceStep) -> Res
         DELETE r
         ",
     )
-    .param("entity_id", entity_id.to_string())
+    .param("entity_id", entity_id.clone())
     .param("ontology_id", ontology_id.to_string());
     let _ = tx.run(remove_query).await; // May succeed even without existing parent
 
@@ -342,7 +342,7 @@ async fn set_parent(tx: &mut Txn, ontology_id: &str, step: &SequenceStep) -> Res
             MERGE (child)-[:SUB_CLASS_OF]->(parent)
             ",
         )
-        .param("entity_id", entity_id.to_string())
+        .param("entity_id", entity_id.clone())
         .param("ontology_id", ontology_id.to_string())
         .param("parent_id", parent_id.clone());
 
@@ -357,7 +357,7 @@ async fn set_parent(tx: &mut Txn, ontology_id: &str, step: &SequenceStep) -> Res
             SET e.parent_id = $parent_id
             ",
         )
-        .param("entity_id", entity_id.to_string())
+        .param("entity_id", entity_id.clone())
         .param("ontology_id", ontology_id.to_string())
         .param("parent_id", parent_id.clone());
         tx.run(update_query)
@@ -373,7 +373,7 @@ async fn set_parent(tx: &mut Txn, ontology_id: &str, step: &SequenceStep) -> Res
 }
 
 /// Sets the domain of an existing property.
-/// Filters by ontology_id to prevent cross-ontology data corruption.
+/// Filters by `ontology_id` to prevent cross-ontology data corruption.
 async fn set_domain(tx: &mut Txn, ontology_id: &str, step: &SequenceStep) -> Result<bool, String> {
     let entity_id = &step.entity_id;
     let domain_id = &step.domain_id;
@@ -384,7 +384,7 @@ async fn set_domain(tx: &mut Txn, ontology_id: &str, step: &SequenceStep) -> Res
         SET p.domain_id = $domain_id
         ",
     )
-    .param("entity_id", entity_id.to_string())
+    .param("entity_id", entity_id.clone())
     .param("ontology_id", ontology_id.to_string())
     .param("domain_id", domain_id.clone());
 
@@ -400,7 +400,7 @@ async fn set_domain(tx: &mut Txn, ontology_id: &str, step: &SequenceStep) -> Res
 }
 
 /// Sets the range of an existing property.
-/// Filters by ontology_id to prevent cross-ontology data corruption.
+/// Filters by `ontology_id` to prevent cross-ontology data corruption.
 async fn set_range(tx: &mut Txn, ontology_id: &str, step: &SequenceStep) -> Result<bool, String> {
     let entity_id = &step.entity_id;
     let range_id = &step.range_id;
@@ -411,7 +411,7 @@ async fn set_range(tx: &mut Txn, ontology_id: &str, step: &SequenceStep) -> Resu
         SET p.range_id = $range_id
         ",
     )
-    .param("entity_id", entity_id.to_string())
+    .param("entity_id", entity_id.clone())
     .param("ontology_id", ontology_id.to_string())
     .param("range_id", range_id.clone());
 

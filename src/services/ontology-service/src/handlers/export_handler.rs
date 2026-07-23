@@ -29,7 +29,7 @@ pub struct ExportParams {
     pub branch_id: Option<String>,
     /// Optional commit ID for versioned export.
     /// When specified, exports the materialized state at that commit.
-    /// Takes precedence over branch_id when both are provided.
+    /// Takes precedence over `branch_id` when both are provided.
     #[serde(default)]
     pub commit_id: Option<String>,
 }
@@ -46,20 +46,19 @@ pub async fn export_ontology_handler(
 ) -> Response {
     debug!(ontology_id, format = %params.format, "Export requested");
 
-    let pool = match &state.neo4j {
-        Some(pool) => pool.clone(),
-        None => {
-            warn!("Export failed: Neo4j not configured");
-            return (
-                StatusCode::SERVICE_UNAVAILABLE,
-                [(header::CONTENT_TYPE, "application/json")],
-                Json(serde_json::json!({
-                    "error": "NEO4J_NOT_CONFIGURED",
-                    "detail": "Neo4j database is not configured",
-                })),
-            )
-                .into_response();
-        }
+    let pool = if let Some(pool) = &state.neo4j {
+        pool.clone()
+    } else {
+        warn!("Export failed: Neo4j not configured");
+        return (
+            StatusCode::SERVICE_UNAVAILABLE,
+            [(header::CONTENT_TYPE, "application/json")],
+            Json(serde_json::json!({
+                "error": "NEO4J_NOT_CONFIGURED",
+                "detail": "Neo4j database is not configured",
+            })),
+        )
+            .into_response();
     };
 
     let service = ExportService::new(pool);

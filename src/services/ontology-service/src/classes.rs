@@ -3,6 +3,12 @@
 //! Provides the domain model (`OwlClass`), a repository layer for Neo4j
 //! Cypher queries, and axum HTTP handlers for the REST API.
 
+#![allow(
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss,
+    clippy::items_after_statements
+)]
+
 use axum::{
     extract::{Path, Query, State},
     http::StatusCode,
@@ -426,8 +432,7 @@ impl ClassRepository {
         let mut warning = None;
         if cascade && dependent_count > 0 {
             warning = Some(format!(
-                "Deleted with cascade: {} dependent classes and {} referencing properties were affected",
-                dependent_count, property_count,
+                "Deleted with cascade: {dependent_count} dependent classes and {property_count} referencing properties were affected",
             ));
         }
 
@@ -772,7 +777,7 @@ impl ClassRepository {
     }
 
     /// Returns ancestor chain: closest parent(s) first, root last.
-    /// max_depth: 0 = unlimited, otherwise max hops up the hierarchy.
+    /// `max_depth`: 0 = unlimited, otherwise max hops up the hierarchy.
     pub async fn get_ancestors(
         &self,
         ontology_id: &str,
@@ -799,7 +804,7 @@ impl ClassRepository {
         "
         );
 
-        let q = neo4rs::Query::new(query.to_string())
+        let q = neo4rs::Query::new(query.clone())
             .param("ontology_id", ontology_id)
             .param("class_id", class_id);
 
@@ -828,7 +833,7 @@ impl ClassRepository {
     }
 
     /// Builds the descendant tree as a nested structure.
-    /// max_depth: 0 = unlimited.
+    /// `max_depth`: 0 = unlimited.
     pub async fn get_descendants_tree(
         &self,
         ontology_id: &str,
@@ -857,7 +862,7 @@ impl ClassRepository {
         "
         );
 
-        let q = neo4rs::Query::new(query.to_string())
+        let q = neo4rs::Query::new(query.clone())
             .param("ontology_id", ontology_id)
             .param("class_id", class_id);
 
@@ -1026,7 +1031,7 @@ impl ClassRepository {
         Ok(items)
     }
 
-    /// Graph neighborhood: returns classes connected to the given class via ObjectProperties.
+    /// Graph neighborhood: returns classes connected to the given class via `ObjectProperties`.
     /// depth: 1 = directly connected only.
     pub async fn get_graph_neighborhood(
         &self,

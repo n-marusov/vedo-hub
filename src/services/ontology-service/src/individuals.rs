@@ -1,8 +1,15 @@
-//! Individual (ABox) CRUD operations against Neo4j.
+//! Individual (`ABox`) CRUD operations against Neo4j.
 //!
 //! Provides full lifecycle for OWL individuals (instances of classes) including:
 //! - Create individual with `INSTANCE_OF` relationship and property values
 //! - Read individual with literal and reference property values
+
+#![allow(
+    clippy::cast_possible_wrap,
+    clippy::struct_excessive_bools,
+    clippy::result_large_err,
+    clippy::unused_self
+)]
 //! - Update property values (add, remove, replace)
 //! - Delete individual with reference check and cascade support
 //! - List individuals by class (paginated) with property-based filtering
@@ -57,10 +64,10 @@ pub struct LiteralValue {
     pub value_id: Option<String>,
 }
 
-/// A reference value — an ObjectProperty linking this individual to another.
+/// A reference value — an `ObjectProperty` linking this individual to another.
 #[derive(Debug, Clone, Serialize)]
 pub struct ReferenceValue {
-    /// The ObjectProperty ID.
+    /// The `ObjectProperty` ID.
     pub property_id: String,
     /// The property label.
     pub property_label: String,
@@ -73,7 +80,7 @@ pub struct ReferenceValue {
     pub edge_id: Option<String>,
 }
 
-/// An OWL individual (instance of a class) in the ABox.
+/// An OWL individual (instance of a class) in the `ABox`.
 #[derive(Debug, Clone, Serialize)]
 pub struct Individual {
     /// Unique identifier within the ontology.
@@ -302,7 +309,7 @@ impl axum::response::IntoResponse for IndividualError {
 
 // ── Repository ───────────────────────────────────────────────────────────────────
 
-/// Repository for individual (ABox) CRUD operations against Neo4j.
+/// Repository for individual (`ABox`) CRUD operations against Neo4j.
 pub struct IndividualRepository {
     pool: Neo4jPool,
 }
@@ -789,7 +796,7 @@ impl IndividualRepository {
         let mut conditions = vec!["i.ontology_id = $ontology_id".to_string()];
 
         if !params.class_id.is_empty() {
-            conditions.push(format!("c.id = $class_id"));
+            conditions.push("c.id = $class_id".to_string());
         }
 
         if !params.q.is_empty() {
@@ -803,10 +810,11 @@ impl IndividualRepository {
         if has_property_filter {
             let parts: Vec<&str> = params.property_filter.splitn(3, ':').collect();
             if parts.len() == 3 {
-                conditions.push(format!(
-                    "EXISTS {{ MATCH (i)-[:HAS_VALUE]->(lv:LiteralValue) \
-                     WHERE lv.property_id = $f_prop AND lv.value = $f_val }}"
-                ));
+                conditions.push(
+                    "EXISTS { MATCH (i)-[:HAS_VALUE]->(lv:LiteralValue) \
+                     WHERE lv.property_id = $f_prop AND lv.value = $f_val }"
+                        .to_string(),
+                );
             } else {
                 return Err(IndividualError::InvalidFilter(
                     params.property_filter.clone(),
@@ -985,7 +993,7 @@ impl IndividualRepository {
         Ok(values)
     }
 
-    /// Counts incoming HAS_REF references to an individual.
+    /// Counts incoming `HAS_REF` references to an individual.
     async fn count_incoming_references(
         &self,
         ontology_id: &str,

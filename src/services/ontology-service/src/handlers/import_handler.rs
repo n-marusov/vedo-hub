@@ -3,6 +3,8 @@
 //! Provides:
 //! - `POST /api/v1/ontologies/{ontology_id}/import` — upload Turtle or RDF/XML
 
+#![allow(clippy::unused_self, clippy::if_same_then_else)]
+
 use std::sync::Arc;
 
 use axum::{
@@ -50,19 +52,18 @@ pub async fn import_ontology_handler(
 ) -> impl IntoResponse {
     debug!(ontology_id, body_bytes = body.len(), "Import requested");
 
-    let pool = match &state.neo4j {
-        Some(pool) => pool.clone(),
-        None => {
-            warn!("Import failed: Neo4j not configured");
-            return (
-                StatusCode::SERVICE_UNAVAILABLE,
-                [(header::CONTENT_TYPE, "application/json")],
-                Json(serde_json::json!({
-                    "error": "NEO4J_NOT_CONFIGURED",
-                    "detail": "Neo4j database is not configured",
-                })),
-            );
-        }
+    let pool = if let Some(pool) = &state.neo4j {
+        pool.clone()
+    } else {
+        warn!("Import failed: Neo4j not configured");
+        return (
+            StatusCode::SERVICE_UNAVAILABLE,
+            [(header::CONTENT_TYPE, "application/json")],
+            Json(serde_json::json!({
+                "error": "NEO4J_NOT_CONFIGURED",
+                "detail": "Neo4j database is not configured",
+            })),
+        );
     };
 
     // Determine format: query param > Content-Type header

@@ -3,6 +3,16 @@
 //!
 //! # Import Flow
 //!
+
+#![allow(
+    clippy::items_after_statements,
+    clippy::option_as_ref_deref,
+    clippy::struct_excessive_bools,
+    clippy::manual_strip,
+    clippy::unused_async,
+    clippy::needless_continue,
+    clippy::should_implement_trait
+)]
 //! 1. **Parse** — parse Turtle or RDF/XML into raw triples
 //! 2. **Classify** — group triples by entity type (class, property, individual)
 //! 3. **Validate** — verify referenced classes/properties exist (or stub)
@@ -828,7 +838,7 @@ impl ImportService {
             .graph()
             .execute(q)
             .await
-            .map_err(|e| ImportError::Database(format!("CHECK class '{}': {}", class_id, e)))?;
+            .map_err(|e| ImportError::Database(format!("CHECK class '{class_id}': {e}")))?;
 
         if let Ok(Some(row)) = result.next().await {
             let cnt: i64 = row.get("cnt").unwrap_or(0);
@@ -850,9 +860,10 @@ impl ImportService {
         .param("ontology_id", ontology_id)
         .param("id", property_id);
 
-        let mut result = self.pool.graph().execute(q).await.map_err(|e| {
-            ImportError::Database(format!("CHECK property '{}': {}", property_id, e))
-        })?;
+        let mut result =
+            self.pool.graph().execute(q).await.map_err(|e| {
+                ImportError::Database(format!("CHECK property '{property_id}': {e}"))
+            })?;
 
         if let Ok(Some(row)) = result.next().await {
             let cnt: i64 = row.get("cnt").unwrap_or(0);
@@ -875,7 +886,7 @@ impl ImportService {
         .param("id", individual_id);
 
         let mut result = self.pool.graph().execute(q).await.map_err(|e| {
-            ImportError::Database(format!("CHECK individual '{}': {}", individual_id, e))
+            ImportError::Database(format!("CHECK individual '{individual_id}': {e}"))
         })?;
 
         if let Ok(Some(row)) = result.next().await {
@@ -974,7 +985,7 @@ fn convert_triple_parts(triple: &rio_api::model::Triple<'_>) -> (String, String,
 /// Standard RDF/OWL vocabulary IRIs used for classification.
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
-/// Classifies raw triples into an ImportModel.
+/// Classifies raw triples into an `ImportModel`.
 fn classify_triples(ontology_id: &str, triples: &[RawTriple]) -> ImportModel {
     let base_prefix = format!("http://vedo.dev/ontology/{ontology_id}#");
 

@@ -3,6 +3,8 @@
 //! Provides a unified `OntologyError` enum covering all error variants from
 //! classes, properties, individuals, and export operations. Implements axum's
 //! `IntoResponse` so errors can be returned directly from handlers.
+
+#![allow(clippy::result_large_err)]
 //!
 //! Error codes use the `ONT-*` domain prefix for consistency across the
 //! VEDO Core platform, as specified in the architecture guidelines.

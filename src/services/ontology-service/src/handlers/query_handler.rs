@@ -3,6 +3,17 @@
 //! Provides:
 //! - `POST /api/v1/sparql` — minimal SPARQL SELECT → Cypher translation
 //! - `POST /api/v1/cypher` — direct Cypher execution with read-only enforcement
+
+#![allow(
+    clippy::cast_possible_truncation,
+    clippy::struct_excessive_bools,
+    clippy::items_after_statements,
+    clippy::unused_self,
+    clippy::if_same_then_else,
+    clippy::cast_possible_wrap,
+    clippy::map_identity,
+    clippy::result_large_err
+)]
 //!
 //! The API Gateway already validates queries (read-only enforcement, LIMIT
 //! injection) before proxying here. This handler applies **defense-in-depth**:
@@ -24,7 +35,7 @@ use tracing::{debug, error, info, warn};
 use crate::AppState;
 
 /// Default row cap applied when the inbound query has no LIMIT. The gateway
-/// injects its own cap (QUERY_MAX_LIMIT, default 1000) before forwarding, so
+/// injects its own cap (`QUERY_MAX_LIMIT`, default 1000) before forwarding, so
 /// this value is the second line of defense for callers hitting the
 /// ontology-service directly (e.g. internal operators).
 const DEFAULT_QUERY_LIMIT: usize = 1000;
@@ -242,10 +253,11 @@ fn validate_readonly(query: &str, dialect: QueryDialect) -> Option<&'static str>
     // Additional check for Cypher: CALL to write procedures can bypass keyword
     // detection if the procedure name doesn't contain a whole-word mutation
     // keyword (e.g. `apoc.periodic.commit` won't match any Cypher keyword).
-    if matches!(dialect, QueryDialect::Cypher) && upper.contains("CALL") {
-        if !contains_known_readonly_procedure(&upper) {
-            return Some("ONT-QUERY-READONLY");
-        }
+    if matches!(dialect, QueryDialect::Cypher)
+        && upper.contains("CALL")
+        && !contains_known_readonly_procedure(&upper)
+    {
+        return Some("ONT-QUERY-READONLY");
     }
 
     None

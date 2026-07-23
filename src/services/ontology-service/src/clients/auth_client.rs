@@ -3,6 +3,8 @@
 //! Provides methods to list groups, projects, and members via the auth-service
 //! REST endpoints. Returns domain types that GraphQL resolvers can use.
 
+#![allow(clippy::items_after_statements)]
+
 use std::time::Duration;
 
 use reqwest::{Client, StatusCode};
@@ -123,10 +125,10 @@ impl AuthClient {
         let mut url = format!("{}/api/v1/projects", self.base_url);
         let mut params = vec![];
         if let Some(p) = page {
-            params.push(format!("page={}", p));
+            params.push(format!("page={p}"));
         }
         if let Some(pp) = per_page {
-            params.push(format!("perPage={}", pp));
+            params.push(format!("perPage={pp}"));
         }
         if !params.is_empty() {
             url.push('?');
@@ -239,11 +241,11 @@ impl AuthClient {
 /// like "/api/v1/ontologies/ont-123/members".
 fn scope_to_api_path(scope: &str) -> String {
     if let Some(rest) = scope.strip_prefix("ontology/") {
-        format!("/api/v1/ontologies/{}/members", rest)
+        format!("/api/v1/ontologies/{rest}/members")
     } else if let Some(rest) = scope.strip_prefix("group/") {
-        format!("/api/v1/groups/{}/members", rest)
+        format!("/api/v1/groups/{rest}/members")
     } else {
         // Fallback: assume it's an ontology ID
-        format!("/api/v1/ontologies/{}/members", scope)
+        format!("/api/v1/ontologies/{scope}/members")
     }
 }

@@ -3,6 +3,16 @@
 //! Performs a full graph traversal of the ontology (classes, properties, individuals,
 //! property values) and converts all entities to RDF triples, then serializes them
 //! as Turtle (TTL) or RDF/XML text.
+
+#![allow(
+    clippy::items_after_statements,
+    clippy::unused_self,
+    clippy::option_as_ref_deref,
+    clippy::struct_excessive_bools,
+    clippy::struct_field_names,
+    clippy::unnecessary_wraps,
+    clippy::manual_strip
+)]
 //!
 //! # RDF Mapping
 //!
@@ -231,7 +241,7 @@ impl ExportService {
                 // [FIX] Previously this fell back to current Neo4j state, masking
                 // versioning failures. Fail loudly so callers know the snapshot
                 // they requested is not the one shipped.
-                return Err(ExportError::VersioningUnavailable(e.to_string()));
+                Err(ExportError::VersioningUnavailable(e.to_string()))
             }
         }
     }
@@ -290,7 +300,7 @@ impl ExportService {
                     endpoint,
                     "[FIX] Versioning service transport error — refusing to fall back"
                 );
-                return Err(ExportError::VersioningUnavailable(e.to_string()));
+                Err(ExportError::VersioningUnavailable(e.to_string()))
             }
         }
     }
@@ -349,7 +359,7 @@ impl ExportService {
                     endpoint,
                     "[FIX] Versioning service transport error — refusing to fall back"
                 );
-                return Err(ExportError::VersioningUnavailable(e.to_string()));
+                Err(ExportError::VersioningUnavailable(e.to_string()))
             }
         }
     }
@@ -552,9 +562,8 @@ impl ExportService {
             local
         } else {
             // Extract from full IRI
-            pred.rsplit_once(|c| c == '/' || c == '#')
-                .map(|(_, local)| local)
-                .unwrap_or(pred)
+            pred.rsplit_once(['/', '#'])
+                .map_or(pred, |(_, local)| local)
         }
     }
 
@@ -601,7 +610,7 @@ impl ExportService {
             triples.push(ExportTriple {
                 subject: e(&cls.id),
                 predicate: iri("rdf:type"),
-                object: format!("owl:Class"),
+                object: "owl:Class".to_string(),
             });
 
             // rdfs:label

@@ -12,6 +12,7 @@ use tracing::{info, warn};
 use crate::AppState;
 use ontology_service::services::apply_sequence;
 use vedo_shared::protos::ontology::v1::ontology_service_server::OntologyService;
+#[allow(clippy::wildcard_imports)]
 use vedo_shared::protos::ontology::v1::*;
 
 /// gRPC server that implements the `OntologyService` tonic trait.

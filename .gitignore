@@ -45,3 +45,5 @@ nul
 **/test-results/
 __pycache__
 *.pyc
+src/services/ontology-service/*-errors.txt
+src/services/ontology-service/*_report.txt
