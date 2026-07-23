@@ -79,7 +79,7 @@ func TestBOLA_EditorAccess_GroupOfAnotherTeam_Returns403(t *testing.T) {
 // Validates: ADR-DES.API.organization-rest-endpoints
 func TestBOLA_CrossUser_UpdateRole_OnDifferentScope_Returns403(t *testing.T) {
 	// PUT /api/v1/projects/:id/members/:userId with cross-scope user
-	t.Log("BOLA cross-user test - configured at auth-service level")
+	t.Skip("BOLA cross-user update-role test requires auth-service gRPC and running API Gateway — run with integration test tag")
 }
 
 // ============================================================================

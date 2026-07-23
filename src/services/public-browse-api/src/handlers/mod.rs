@@ -32,7 +32,7 @@ pub async fn list_published_ontologies(
     Json(summaries)
 }
 
-/// GET /api/v1/ontologies/{ontology_id}
+/// GET `/api/v1/ontologies/{ontology_id}`
 ///
 /// Returns full detail for a published ontology including class tree.
 pub async fn get_published_ontology(
@@ -106,7 +106,7 @@ pub async fn get_class_tree(
 /// GET /api/v1/search
 ///
 /// Searches published entities by keyword (public, no auth required).
-/// Query param: q (search query), max_results (optional, default 20)
+/// Query param: q (search query), `max_results` (optional, default 20)
 pub async fn search_published(
     State(state): State<Arc<AppState>>,
     Query(query): Query<SearchQuery>,

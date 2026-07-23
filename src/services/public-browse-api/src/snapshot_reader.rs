@@ -61,17 +61,17 @@ pub struct SearchQuery {
     pub max_results: Option<usize>,
 }
 
-/// SnapshotReader provides read-only access to published ontology snapshots.
+/// `SnapshotReader` provides read-only access to published ontology snapshots.
 ///
 /// For MVP, it stores published ontology metadata in-memory. In future iterations,
-/// this will read from the publisher-service API or MinIO directly.
+/// this will read from the publisher-service API or `MinIO` directly.
 #[derive(Clone)]
 pub struct SnapshotReader {
     ontologies: Arc<RwLock<Vec<PublishedOntology>>>,
 }
 
 impl SnapshotReader {
-    /// Creates a new empty SnapshotReader.
+    /// Creates a new empty `SnapshotReader`.
     pub fn new() -> Self {
         SnapshotReader {
             ontologies: Arc::new(RwLock::new(Vec::new())),

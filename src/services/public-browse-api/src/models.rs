@@ -50,3 +50,33 @@ pub struct ApiErrorResponse {
     pub error: String,
     pub message: String,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_search_query_defaults() {
+        let q: SearchQuery = serde_json::from_str(r#"{"q":"Person"}"#).unwrap();
+        assert_eq!(q.q, "Person");
+        assert_eq!(q.max_results, None);
+    }
+
+    #[test]
+    fn test_search_query_with_max_results() {
+        let q: SearchQuery = serde_json::from_str(r#"{"q":"Student","max_results":50}"#).unwrap();
+        assert_eq!(q.q, "Student");
+        assert_eq!(q.max_results, Some(50));
+    }
+
+    #[test]
+    fn test_api_error_response_serialization() {
+        let err = ApiErrorResponse {
+            error: "NOT_FOUND".to_string(),
+            message: "Entity not found".to_string(),
+        };
+        let json = serde_json::to_string(&err).unwrap();
+        assert!(json.contains("NOT_FOUND"));
+        assert!(json.contains("Entity not found"));
+    }
+}

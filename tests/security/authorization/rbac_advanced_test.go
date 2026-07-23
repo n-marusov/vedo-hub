@@ -125,7 +125,7 @@ func TestRBAC_TC029_AuditLogging_EveryWriteEndpoint_EmitsAuditEvents(t *testing.
 	//       AND object_id = '<projPrivateA>'
 	//       AND created_at > NOW() - INTERVAL '10 seconds';
 	//   Assert each required field is non-empty and has expected value.
-	t.Log("TC-029: verify audit_events table entries to complete this test")
+	t.Skip("TC-029: requires audit_events table in PostgreSQL — run with ORG_TEST_DATABASE_URL set and integration test tag")
 }
 
 // ============================================================================

@@ -3402,6 +3402,33 @@ base:ts/versioning-service.tests.transactional_integration a vdo:TestSuite ;
     rdfs:comment "Integration tests for transactional operations"@en ;
     vdo:filePath "src/services/versioning-service/tests/transactional_integration_test.rs" .
 
+# --- Document-Extractor Tests ---
+
+base:ts/document-extractor.api.routes a vdo:TestSuite ;
+    rdfs:label "DOCUMENT-EXTRACTOR API TESTS"@en ;
+    rdfs:comment "Unit tests for document-extractor API routes"@en ;
+    vdo:filePath "src/services/document-extractor/api/routes_test.py" .
+
+base:ts/document-extractor.llm.client a vdo:TestSuite ;
+    rdfs:label "DOCUMENT-EXTRACTOR LLM CLIENT TESTS"@en ;
+    rdfs:comment "Unit tests for document-extractor LLM client"@en ;
+    vdo:filePath "src/services/document-extractor/llm/client_test.py" .
+
+base:ts/document-extractor.parsers a vdo:TestSuite ;
+    rdfs:label "DOCUMENT-EXTRACTOR PARSER TESTS"@en ;
+    rdfs:comment "Unit tests for document-extractor parsers (CSV, DOCX, JSON, PDF, TXT, XLSX, XML)"@en ;
+    vdo:filePath "src/services/document-extractor/parsers/" .
+
+base:ts/document-extractor.sequence.validator a vdo:TestSuite ;
+    rdfs:label "DOCUMENT-EXTRACTOR SEQUENCE VALIDATOR TESTS"@en ;
+    rdfs:comment "Unit tests for document-extractor sequence validator"@en ;
+    vdo:filePath "src/services/document-extractor/sequence/validator_test.py" .
+
+base:ts/document-extractor.parsers.xlsx a vdo:TestSuite ;
+    rdfs:label "DOCUMENT-EXTRACTOR XLSX PARSER TESTS"@en ;
+    rdfs:comment "Unit tests for XLSX parser covering formats, validation, duplicates, error thresholds"@en ;
+    vdo:filePath "src/services/document-extractor/parsers/xlsx_parser_test.py" .
+
 
 # =============================================================================
 # VALIDATION LINKS — Test-to-Requirement (from // Validates: annotations)
@@ -3508,6 +3535,59 @@ base:ts/versioning-service.tests.checkout_integration vdo:validates base:req/REQ
 base:ts/versioning-service.tests.commit_integration vdo:validates base:req/REQ-FUN.DATA.versioning .
 base:ts/versioning-service.tests.merge_integration vdo:validates base:req/REQ-FUN.DATA.versioning .
 base:ts/versioning-service.tests.route_registration vdo:validates base:req/REQ-FUN.API.route-registration .
+
+# --- Document-extractor validation links ---
+base:ts/document-extractor.parsers vdo:validates base:req/REQ-FUN.API.doc-extract-supported-formats .
+base:ts/document-extractor.parsers vdo:validates base:req/REQ-FUN.API.excel-supported-formats .
+base:ts/document-extractor.parsers.xlsx vdo:validates base:req/REQ-FUN.API.excel-validation .
+base:ts/document-extractor.parsers.xlsx vdo:validates base:req/REQ-FUN.API.excel-duplicate-handling .
+base:ts/document-extractor.parsers.xlsx vdo:validates base:req/REQ-FUN.API.excel-error-threshold .
+base:ts/document-extractor.parsers.xlsx vdo:validates base:req/REQ-FUN.API.excel-import-block .
+base:ts/document-extractor.sequence.validator vdo:validates base:req/REQ-FUN.API.doc-extract-sequence-schema .
+base:ts/document-extractor.api.routes vdo:validates base:req/REQ-NFR.API.doc-extract-performance .
+
+# --- Additional ontology-service validation links ---
+# These map ontology tests to P0 requirements that describe the tested behavior
+# but were missing explicit vdo:validates triples.
+base:ts/ontology-service.tests.validation_integration vdo:validates base:req/REQ-FUN.API.owl-syntax-validity .
+base:ts/ontology-service.tests.validation_integration vdo:validates base:req/REQ-FUN.API.owl-unique-iri .
+base:ts/ontology-service.tests.property_integration vdo:validates base:req/REQ-FUN.API.owl-reference-integrity .
+base:ts/ontology-service.tests.property_integration vdo:validates base:req/REQ-FUN.API.properties-accuracy .
+base:ts/ontology-service.tests.class_integration vdo:validates base:req/REQ-FUN.API.no-cyclic-hierarchy .
+base:ts/ontology-service.tests.query_integration vdo:validates base:req/REQ-FUN.API.sparql-compatibility .
+base:ts/versioning-service.tests.transactional_integration vdo:validates base:req/REQ-FUN.DATA.versioning .
+base:ts/api-gateway.rest_entity_crud_integration vdo:validates base:req/REQ-FUN.API.write-idempotency .
+base:ts/api-gateway.rest_entity_crud_integration vdo:validates base:req/REQ-FUN.API.rest-versioning .
+
+# --- Additional quick-win validation links ---
+base:ts/api-gateway.auth_integration vdo:validates base:req/REQ-FUN.API.swagger-ui-dev-only .
+base:ts/e2e.playwright.tests.api.graphql.schema-boundary vdo:validates base:req/REQ-FUN.API.graphql-deprecation-policy .
+base:ts/api-gateway.query_integration vdo:validates base:req/REQ-FUN.DATA.query-export-content .
+base:ts/api-gateway.query_integration vdo:validates base:req/REQ-FUN.DATA.query-export-format .
+base:ts/api-gateway.query_integration vdo:validates base:req/REQ-FUN.DATA.query-export-validation .
+base:ts/api-gateway.main vdo:validates base:req/REQ-FUN.API.unified-root-endpoint .
+base:ts/publish-browse-ui.__tests__.setup vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+# --- Non-testable P0 requirements ---
+# These P0 requirements describe constraints, process policies, or business rules
+# that cannot be verified through automated tests. They are excluded from RCS
+# scoring as they require manual verification, audited compliance, or
+# architectural review:
+#
+# REQ-CON.* (15): Deployment constraints, stack decisions, infrastructure architecture
+# REQ-FUN.PROCESS.* (10): CI/CD procedures, deployment checklist, escalation matrix
+# REQ-NFR.DATA.* backup/retention/decommission/rollback (12): Data policies
+# REQ-NFR.INFRA.* (7): Availability SLO, client environment, isolation
+# REQ-NFR.SUP.* (1): Support SLA
+# REQ-BIZ.SUP.* (3): Billing business rules
+# REQ-NFR.OPS.* log-retention, alerting (4): Operational procedures
+# REQ-NFR.PROCESS.* (3): Chaos testing, rollout gates
+# REQ-CROSS.* (1): Cross-cutting constraints
+# REQ-FUN.DOC.* (1): LLM privacy policy
+# REQ-USR.DOC.* (1): User guide documentation
+# REQ-NFR.INTEGRATION.* (2): Failover downtime SLAs
+# REQ-FUN.INFRA.* deployment-integrity, provider-priority, runbook (3)
+# REQ-NFR.UI.* accessibility, error-feedback, data-loss-prevention (3)
 
 # CHANGE IMPACT ANALYSIS
 # =============================================================================

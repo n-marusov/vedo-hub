@@ -1,9 +1,25 @@
 package cli
 
 import (
+	"bytes"
+	"log/slog"
 	"strings"
 	"testing"
 )
+
+// captureSlog replaces the default slog logger with a text handler writing to
+// a buffer for the duration of fn, returning the captured output. The original
+// logger is restored automatically when the test finishes.
+func captureSlog(t *testing.T, fn func()) string {
+	t.Helper()
+	var buf bytes.Buffer
+	handler := slog.NewTextHandler(&buf, &slog.HandlerOptions{Level: slog.LevelDebug})
+	original := slog.Default()
+	slog.SetDefault(slog.New(handler))
+	t.Cleanup(func() { slog.SetDefault(original) })
+	fn()
+	return buf.String()
+}
 
 // @ctx: command framework contract tests for CLI-OPS-001
 
@@ -199,17 +215,57 @@ func TestRenderOutput_Human(t *testing.T) {
 
 // @hlv structured_logging_only
 func TestExecuteCommand_StructuredLogging(t *testing.T) {
-	t.Log("command.go uses slog structured logging only")
+	input := CliInput{
+		Command:      CmdSupportTenantInfo,
+		OutputFormat: FormatJSON,
+		TenantID:     "tenant-struct",
+		RequestID:    "req-struct",
+	}
+	output := captureSlog(t, func() { ExecuteCommand(input) })
+	// Structured logging emits key=value pairs, not free-form strings.
+	for _, field := range []string{"command=" + string(CmdSupportTenantInfo), "request_id=req-struct"} {
+		if !strings.Contains(output, field) {
+			t.Fatalf("expected structured field %q in log output, got: %s", field, output)
+		}
+	}
 }
 
 // @hlv log_entry_exit
 func TestExecuteCommand_EntryExitLogged(t *testing.T) {
-	t.Log("cli.command.enter and cli.command.exit logged with duration")
+	input := CliInput{
+		Command:      CmdSupportTenantInfo,
+		OutputFormat: FormatJSON,
+		TenantID:     "tenant-enter-exit",
+		RequestID:    "req-enter-exit",
+	}
+	output := captureSlog(t, func() { ExecuteCommand(input) })
+	if !strings.Contains(output, "cli.command.enter") {
+		t.Fatalf("expected cli.command.enter log line, got: %s", output)
+	}
+	if !strings.Contains(output, "cli.command.exit") {
+		t.Fatalf("expected cli.command.exit log line, got: %s", output)
+	}
+	if !strings.Contains(output, "duration_ms") {
+		t.Fatalf("expected duration_ms field in exit log, got: %s", output)
+	}
 }
 
 // @hlv log_all_errors
 func TestExecuteCommand_ErrorsLogged(t *testing.T) {
-	t.Log("all command error paths log request_id, entity_id, input summary, and error details")
+	input := CliInput{
+		Command:      CmdSupportTenantInfo,
+		OutputFormat: FormatJSON,
+		TenantID:     "tenant-err-log",
+		RequestID:    "req-err-log",
+	}
+	output := captureSlog(t, func() { ExecuteCommand(input) })
+	// Every command invocation logs request_id, trace_id, and entity_id so
+	// error paths are fully traceable in aggregated logs.
+	for _, field := range []string{"request_id=req-err-log", "trace_id=", "entity_id=tenant-err-log"} {
+		if !strings.Contains(output, field) {
+			t.Fatalf("expected traceability field %q in log output, got: %s", field, output)
+		}
+	}
 }
 
 // @hlv request_correlation
@@ -223,5 +279,20 @@ func TestExecuteCommand_TraceAndCorrelationIDs(t *testing.T) {
 
 // @hlv no_secrets_in_logs
 func TestExecuteCommand_NoSecretsInLogs(t *testing.T) {
-	t.Log("command paths avoid logging secret values")
+	// @ctx: the command framework logs only bounded fields (command, tenant_id,
+	// request_id, trace_id, actor_type) and never free-form user input like
+	// Reason, which could carry secret values. Verify the Reason field never
+	// leaks into any log line.
+	secretInReason := "token=super-secret-value-12345"
+	input := CliInput{
+		Command:      CmdSupportTenantInfo,
+		OutputFormat: FormatJSON,
+		TenantID:     "tenant-no-secrets",
+		RequestID:    "req-no-secrets",
+		Reason:       secretInReason,
+	}
+	output := captureSlog(t, func() { ExecuteCommand(input) })
+	if strings.Contains(output, secretInReason) {
+		t.Fatalf("command log leaked value from Reason field: %s", output)
+	}
 }
