@@ -286,3 +286,151 @@ async fn test_create_class_missing_fields_returns_error() {
         "missing fields should return 4xx"
     );
 }
+
+#[tokio::test]
+/// Validates: REQ-FUN.API.class-hierarchy-accuracy
+///
+/// TC-A03: Create class hierarchy with subClassOf.
+/// Creates a parent class, then creates a child class referencing the parent,
+/// and verifies the CHILD_OF relationship exists in Neo4j.
+async fn test_create_class_with_parent_creates_hierarchy() {
+    common::skip_if_no_neo4j();
+    let (app, pool) = common::create_test_app().await;
+    let oid = common::test_ontology_id("hierarchy");
+
+    // Create parent class "Person"
+    let resp = app
+        .clone()
+        .oneshot(post_json(
+            &format!("/api/v1/ontologies/{oid}/classes"),
+            r#"{"id":"Person","label":"Person","parents":[]}"#,
+        ))
+        .await
+        .unwrap();
+    assert!(
+        resp.status().is_success(),
+        "create parent should succeed, got {}",
+        resp.status()
+    );
+
+    // Create child class "Student" with Person as parent
+    let resp = app
+        .clone()
+        .oneshot(post_json(
+            &format!("/api/v1/ontologies/{oid}/classes"),
+            r#"{"id":"Student","label":"Student","parents":["Person"]}"#,
+        ))
+        .await
+        .unwrap();
+    assert!(
+        resp.status().is_success(),
+        "create child should succeed, got {}",
+        resp.status()
+    );
+
+    // Verify CHILD_OF relationship in Neo4j
+    let mut result = pool
+        .graph()
+        .execute(
+            neo4rs::query(
+                "MATCH (s:Class {id: $child_id, ontology_id: $oid})-[:CHILD_OF]->(p:Class {id: $parent_id}) RETURN count(s) AS cnt",
+            )
+            .param("child_id", "Student".to_string())
+            .param("parent_id", "Person".to_string())
+            .param("oid", oid.clone()),
+        )
+        .await
+        .unwrap();
+    let row = result.next().await.unwrap().unwrap();
+    assert!(
+        row.get::<i64>("cnt").unwrap_or(0) > 0,
+        "Student should be CHILD_OF Person"
+    );
+
+    common::clean_ontology(&pool, &oid).await;
+}
+
+#[tokio::test]
+/// Validates: REQ-USR.UI.tbox-editor
+///
+/// TC-A06: Delete class with existing subclasses.
+/// Creates a parent class with a subclass, then attempts to delete the parent
+/// without cascade=true. Expects HTTP 409 CONFLICT with ONT-CLASS-HAS-DEPENDENTS.
+async fn test_delete_class_with_dependents_returns_error() {
+    common::skip_if_no_neo4j();
+    let (app, pool) = common::create_test_app().await;
+    let oid = common::test_ontology_id("delete_dep");
+
+    // Create parent class "Department"
+    let _ = pool
+        .graph()
+        .execute(
+            neo4rs::query("CREATE (c:Class {ontology_id: $id, id: $cid, label: $label})")
+                .param("id", oid.clone())
+                .param("cid", "Department".to_string())
+                .param("label", "Department".to_string()),
+        )
+        .await;
+
+    // Create child class "Engineering" with CHILD_OF → Department
+    let _ = pool
+        .graph()
+        .execute(
+            neo4rs::query(
+                "MATCH (p:Class {ontology_id: $id, id: $pid}) CREATE (c:Class {ontology_id: $id, id: $cid, label: $label})-[:CHILD_OF]->(p)",
+            )
+            .param("id", oid.clone())
+            .param("pid", "Department".to_string())
+            .param("cid", "Engineering".to_string())
+            .param("label", "Engineering".to_string()),
+        )
+        .await;
+
+    // Attempt to delete Department without cascade — should be blocked
+    let resp = app
+        .clone()
+        .oneshot(delete(&format!(
+            "/api/v1/ontologies/{oid}/classes/Department"
+        )))
+        .await
+        .unwrap();
+
+    assert_eq!(
+        resp.status(),
+        StatusCode::CONFLICT,
+        "deleting class with dependents should return 409"
+    );
+
+    // Verify Department still exists
+    let mut result = pool
+        .graph()
+        .execute(
+            neo4rs::query(
+                "MATCH (c:Class {ontology_id: $id, id: 'Department'}) RETURN count(c) AS cnt",
+            )
+            .param("id", oid.clone()),
+        )
+        .await
+        .unwrap();
+    let row = result.next().await.unwrap().unwrap();
+    assert_eq!(row.get::<i64>("cnt").unwrap(), 1);
+
+    common::clean_ontology(&pool, &oid).await;
+}
+
+#[tokio::test]
+/// Validates: REQ-FUN.API.class-hierarchy-accuracy
+///
+/// Edge case: deleting a nonexistent class returns 404 NotFound.
+async fn test_delete_nonexistent_class_returns_404() {
+    common::skip_if_no_neo4j();
+    let (app, _pool) = common::create_test_app().await;
+    let oid = common::test_ontology_id("delete_nope");
+
+    let resp = app
+        .clone()
+        .oneshot(delete(&format!("/api/v1/ontologies/{oid}/classes/Nope")))
+        .await
+        .unwrap();
+    assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+}

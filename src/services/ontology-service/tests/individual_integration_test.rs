@@ -218,3 +218,82 @@ async fn test_delete_individual_removes_from_neo4j() {
     );
     common::clean_ontology(&pool, &oid).await;
 }
+
+#[tokio::test]
+/// Validates: REQ-USR.UI.abox-editor
+///
+/// TC-A09: Create individual with property values.
+/// Creates a class and a property, then creates an individual with literal
+/// property values. Verifies the individual is linked to the class via
+/// INSTANCE_OF and the LiteralValue node via HAS_VALUE.
+async fn test_create_individual_with_property_values() {
+    common::skip_if_no_neo4j();
+    let (app, pool) = common::create_test_app().await;
+    let oid = common::test_ontology_id("indiv_props");
+    seed_class(&pool, &oid, "Person").await;
+
+    // Seed a datatype property "hasName" via Neo4j directly
+    let _ = pool
+        .graph()
+        .execute(
+            neo4rs::query(
+                r#"CREATE (p:Property {ontology_id:$id, id:$pid, label:$label, property_type:$ptype, domain:$domain, range:$range})"#,
+            )
+            .param("id", oid.clone())
+            .param("pid", "hasName".to_string())
+            .param("label", "has name".to_string())
+            .param("ptype", "datatype".to_string())
+            .param("domain", "Person".to_string())
+            .param("range", "xsd:string".to_string()),
+        )
+        .await;
+
+    // Create individual with literal property values
+    let resp = app
+        .clone()
+        .oneshot(post_json(
+            &format!("/api/v1/ontologies/{oid}/individuals"),
+            r#"{"id":"alice","label":"Alice","class_id":"Person","literal_values":[{"property_id":"hasName","value":"Alice"}]}"#,
+        ))
+        .await
+        .unwrap();
+    assert!(
+        resp.status().is_success(),
+        "create individual should succeed, got {}",
+        resp.status()
+    );
+
+    // Verify INSTANCE_OF relationship
+    let mut r1 = pool
+        .graph()
+        .execute(
+            neo4rs::query(
+                "MATCH (i:Individual {ontology_id:$id,id:'alice'})-[:INSTANCE_OF]->(c:Class {id:'Person'}) RETURN count(i) AS cnt",
+            )
+            .param("id", oid.clone()),
+        )
+        .await
+        .unwrap();
+    let row1 = r1.next().await.unwrap().unwrap();
+    assert!(
+        row1.get::<i64>("cnt").unwrap_or(0) > 0,
+        "alice should be INSTANCE_OF Person"
+    );
+
+    // Verify HAS_VALUE → LiteralValue for property hasName
+    let mut r2 = pool
+        .graph()
+        .execute(
+            neo4rs::query(
+                "MATCH (i:Individual {ontology_id:$id,id:'alice'})-[r:HAS_VALUE]->(lv:LiteralValue) RETURN lv.property_id AS pid, lv.value AS val",
+            )
+            .param("id", oid.clone()),
+        )
+        .await
+        .unwrap();
+    let row2 = r2.next().await.unwrap().unwrap();
+    assert_eq!(row2.get::<String>("pid").unwrap(), "hasName");
+    assert_eq!(row2.get::<String>("val").unwrap(), "Alice");
+
+    common::clean_ontology(&pool, &oid).await;
+}

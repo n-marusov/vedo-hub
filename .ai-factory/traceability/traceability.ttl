@@ -5478,6 +5478,32 @@ base:uc/UC-team.reviews.review-merge-request a vdo:UseCase ;
     vdo:priority "P1" ;
     vdo:filePath "specs/use-cases/UC-team.reviews.review-merge-request.md" .
 
+# --- Ontology Core Test Suites (feature/test-improvements) ---
+
+base:test/ontology-service.class-crud a vdo:TestSuite ;
+    rdfs:label "Ontology Service — Class CRUD Integration Tests"@en ;
+    rdfs:comment "Integration tests for class (TBox) CRUD: create, read, update, delete, hierarchy, dependents"@en ;
+    vdo:filePath "src/services/ontology-service/tests/class_integration_test.rs" ;
+    vdo:validates base:req/REQ-FUN.API.class-hierarchy-accuracy, base:req/REQ-USR.UI.tbox-editor .
+
+base:test/ontology-service.individual-crud a vdo:TestSuite ;
+    rdfs:label "Ontology Service — Individual CRUD Integration Tests"@en ;
+    rdfs:comment "Integration tests for individual (ABox) CRUD: create, read, update, delete, property values"@en ;
+    vdo:filePath "src/services/ontology-service/tests/individual_integration_test.rs" ;
+    vdo:validates base:req/REQ-USR.UI.abox-editor .
+
+base:test/ontology-service.validation a vdo:TestSuite ;
+    rdfs:label "Ontology Service — SHACL Validation Integration Tests"@en ;
+    rdfs:comment "Integration tests for SHACL validation endpoint: default shapes, custom shapes, nonexistent ontology"@en ;
+    vdo:filePath "src/services/ontology-service/tests/validation_integration_test.rs" ;
+    vdo:validates base:req/REQ-FUN.API.pre-save-validation .
+
+base:test/versioning-service.delta a vdo:TestSuite ;
+    rdfs:label "Versioning Service — Commit Delta Integration Tests"@en ;
+    rdfs:comment "Integration tests for commit delta/diff operations: delta endpoint, semantic-diff, nonexistent commit"@en ;
+    vdo:filePath "src/services/versioning-service/tests/delta_integration_test.rs" ;
+    vdo:validates base:req/REQ-FUN.DATA.versioning .
+
 # --- Deleted Artifacts ---
 # mutation.rs — MutationRoot removed, replaced with EmptyMutation
 # GqlOntology, GqlCommit, GqlCommitConnection, GqlBranch, GqlBranchConnection,
