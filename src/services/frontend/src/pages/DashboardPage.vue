@@ -16,8 +16,29 @@
         <h1 class="dash-name">{{ displayName }}</h1>
         <p class="dash-role">{{ userRole }}</p>
       </div>
-      <span class="status-indicator">online</span>
       <button class="status-btn" type="button"><Smile :size="14" />Set status</button>
+    </section>
+
+    <!-- Fork Quick Start — demo project cards -->
+    <section class="dash-fork card">
+      <div class="fork-header">
+        <GitFork :size="24" class="fork-head-icon" />
+        <div>
+          <h2 class="fork-title">Quick start: Fork a demo project</h2>
+          <p class="fork-desc">Choose from 5 starter ontologies to fork into your workspace</p>
+        </div>
+      </div>
+      <div class="fork-cards">
+        <article v-for="proj in demoProjects" :key="proj.name" class="fork-card">
+          <h3 class="fork-card-name">{{ proj.name }}</h3>
+          <p class="fork-card-desc">{{ proj.desc }}</p>
+          <div class="fork-card-stats">
+            <span class="fork-stat">{{ proj.classes }}</span>
+            <span class="fork-stat">{{ proj.properties }}</span>
+          </div>
+          <span class="fork-card-domain">{{ proj.domain }}</span>
+        </article>
+      </div>
     </section>
 
     <!-- @m4 Widgets — wired to dashboard.widgets from GQL -->
@@ -53,8 +74,8 @@
         <article class="card attention-card">
           <header class="attention-header">
             <h2>Items that need your attention</h2>
-            <button class="filter-btn" type="button" @click="toggleActivityFilter">
-              <span>{{ activityFilter }}</span>
+            <button class="filter-btn" type="button" @click="toggleAttentionFilter">
+              <span>{{ attentionFilter }}</span>
               <ChevronDown :size="10" />
             </button>
           </header>
@@ -101,7 +122,7 @@
       <!-- @m4 Recent ontologies — wired to dashboard.recentOntologies from GQL, clickable -->
       <article class="card quick-card">
         <header class="section-header">
-          <h2>Recent project</h2>
+          <h2>Recent Ontologies</h2>
           <Settings :size="16" class="quick-settings" />
         </header>
         <div class="onto-list">
@@ -136,11 +157,13 @@ import {
 	ChevronDown,
 	ChevronRight,
 	FileText,
+	GitFork,
 	GitMerge,
 	MessageSquare,
 	Settings,
 	Smile,
 	User,
+	UserCheck,
 } from "lucide-vue-next";
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
@@ -149,6 +172,7 @@ const router = useRouter();
 const { displayName, displayInitials } = useCurrentUser();
 const userRole = computed(() => getUserRole() || "Knowledge Engineer");
 const activityFilter = ref("All team");
+const attentionFilter = ref("Everything");
 
 // @m4 — Dashboard migrated from GraphQL DASHBOARD_QUERY to REST
 const loading = ref(false);
@@ -161,7 +185,7 @@ async function fetchDashboard() {
 	try {
 		dashData.value = await getDashboard();
 	} catch (e: unknown) {
-			error.value = e instanceof Error ? e.message : String(e);
+		error.value = e instanceof Error ? e.message : String(e);
 	} finally {
 		loading.value = false;
 	}
@@ -184,23 +208,31 @@ interface WidgetItem {
 function mapWidgetIcon(iconName: string): typeof GitMerge {
 	const icons: Record<string, typeof GitMerge> = {
 		"git-merge": GitMerge,
-		eye: GitMerge,
-		"list-todo": GitMerge,
+		"user-check": UserCheck,
+		"message-square": MessageSquare,
 	};
 	return icons[iconName] || GitMerge;
 }
+
+const demoProjects = computed(() => dashData.value?.demoProjects ?? []);
 
 const resolvedWidgets = computed<WidgetItem[]>(() => {
 	const widgets = dashData.value?.widgets;
 	if (!widgets) return [];
 	return widgets.map(
-		(w: { title: string; count: number; icon: string; route: string }) => ({
+		(w: {
+			title: string;
+			count: number;
+			icon: string;
+			subtitle: string;
+			time: string;
+		}) => ({
 			title: w.title,
 			value: String(w.count),
-			subtitle: w.route,
-			time: "",
+			subtitle: w.subtitle,
+			time: w.time,
 			icon: mapWidgetIcon(w.icon),
-			iconColor: w.icon === "eye" ? "icon-warning" : "icon-primary",
+			iconColor: w.icon === "message-square" ? "icon-warning" : "icon-primary",
 		}),
 	);
 });
@@ -326,10 +358,9 @@ function navigateToOntology(ontologyId: string): void {
 	router.push(`/project/${ontologyId}/workspace`);
 }
 
-function toggleActivityFilter(): void {
-	// Toggle between All team / Mine
-	activityFilter.value =
-		activityFilter.value === "All team" ? "Mine" : "All team";
+function toggleAttentionFilter(): void {
+	attentionFilter.value =
+		attentionFilter.value === "Everything" ? "Unread" : "Everything";
 }
 
 function formatTimeAgo(timestamp: string): string {
@@ -413,6 +444,94 @@ function formatTimeAgo(timestamp: string): string {
   font-size: 14px;
 }
 
+/* Fork Quick Start */
+.dash-fork {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fork-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.fork-head-icon {
+  color: var(--primary);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.fork-title {
+  margin: 0;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.fork-desc {
+  margin: 4px 0 0;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+.fork-cards {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.fork-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--background);
+  transition: border-color 0.15s ease;
+}
+
+.fork-card:hover {
+  border-color: var(--primary);
+}
+
+.fork-card-name {
+  margin: 0;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.fork-card-desc {
+  margin: 0;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--muted-foreground);
+}
+
+.fork-card-stats {
+  display: flex;
+  gap: 12px;
+}
+
+.fork-stat {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--muted-foreground);
+}
+
+.fork-card-domain {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 .status-btn {
   height: 32px;
   border: 1px solid var(--border);
@@ -426,12 +545,6 @@ function formatTimeAgo(timestamp: string): string {
   font-size: 12px;
   background: transparent;
   cursor: pointer;
-}
-
-.status-indicator {
-  font-size: 12px;
-  color: var(--success);
-  white-space: nowrap;
 }
 
 .dash-widgets {
