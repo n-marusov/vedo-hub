@@ -41,7 +41,7 @@ pub struct ModifiedTriple {
     pub new_o: String,
 }
 
-/// The delta payload stored as JSONB in PostgreSQL.
+/// The delta payload stored as JSONB in `PostgreSQL`.
 ///
 /// ```json
 /// {

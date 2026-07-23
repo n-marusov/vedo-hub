@@ -1,4 +1,4 @@
-//! Branch repository — PostgreSQL data access for branches.
+//! Branch repository — `PostgreSQL` data access for branches.
 //!
 //! Provides SQL queries for branch CRUD, listing with latest commit info,
 //! and ahead/behind computation.
@@ -12,7 +12,7 @@ use crate::models::{
     MergeBranchesRequest, MergeMetadata, MergeResponse, SwitchBranchResponse,
 };
 
-/// Repository for branch operations against PostgreSQL.
+/// Repository for branch operations against `PostgreSQL`.
 pub struct BranchRepository {
     pool: PgPool,
 }
@@ -59,11 +59,11 @@ impl BranchRepository {
         };
 
         let row = sqlx::query(
-            r#"
+            r"
             INSERT INTO branches (name, ontology_id, head_commit_id)
             VALUES ($1, $2, $3)
             RETURNING id, name, ontology_id, head_commit_id, created_at, is_protected
-            "#,
+            ",
         )
         .bind(&req.name)
         .bind(req.ontology_id)
@@ -107,11 +107,11 @@ impl BranchRepository {
         tracing::debug!(branch_id = %id, "Fetching branch by ID");
 
         let row = sqlx::query(
-            r#"
+            r"
             SELECT id, name, ontology_id, head_commit_id, created_at, is_protected
             FROM branches
             WHERE id = $1
-            "#,
+            ",
         )
         .bind(id)
         .fetch_optional(self.pool())
@@ -133,7 +133,7 @@ impl BranchRepository {
         tracing::debug!(ontology_id = %ontology_id, "Listing branches");
 
         let rows = sqlx::query(
-            r#"
+            r"
             SELECT
                 b.id, b.name, b.ontology_id, b.head_commit_id, b.created_at, b.is_protected,
                 c.message AS last_commit_message,
@@ -148,7 +148,7 @@ impl BranchRepository {
             ) c ON TRUE
             WHERE b.ontology_id = $1
             ORDER BY b.created_at DESC
-            "#,
+            ",
         )
         .bind(ontology_id)
         .fetch_all(self.pool())
@@ -205,7 +205,7 @@ impl BranchRepository {
 
     /// Deletes a branch by ID. Protected branches require `force: true`.
     /// Both the commits DELETE and the branch DELETE run inside a single
-    /// PostgreSQL transaction so a partial failure cannot leave orphaned
+    /// `PostgreSQL` transaction so a partial failure cannot leave orphaned
     /// commits.
     pub async fn delete(&self, id: Uuid, req: &DeleteBranchRequest) -> Result<(), VersionError> {
         tracing::debug!(
@@ -219,12 +219,12 @@ impl BranchRepository {
         // [FIX] Lock branch row and check existence + protection inside the
         // transaction to prevent TOCTOU races.
         let row = sqlx::query(
-            r#"
+            r"
             SELECT id, name, ontology_id, head_commit_id, created_at, is_protected
             FROM branches
             WHERE id = $1
             FOR UPDATE
-            "#,
+            ",
         )
         .bind(id)
         .fetch_optional(&mut *tx)
@@ -278,6 +278,7 @@ impl BranchRepository {
     /// Merges source branch into target branch, creating a merge commit.
     /// Returns an error when both branches are at the same commit (nothing
     /// to merge) or when either branch cannot be resolved.
+    #[allow(clippy::too_many_lines)]
     pub async fn merge_branches(
         &self,
         req: &MergeBranchesRequest,
@@ -367,10 +368,10 @@ impl BranchRepository {
         let mut tx = self.pool().begin().await?;
 
         sqlx::query(
-            r#"
+            r"
             INSERT INTO commits (id, branch_id, parent_commit_id, message, author_id, author_name, delta)
             VALUES ($1, $2, $3, $4, $5, $6, $7)
-            "#,
+            ",
         )
         .bind(merge_commit_id)
         .bind(req.target_branch_id)
@@ -464,7 +465,7 @@ impl BranchRepository {
         let ref_head_id = ref_head.unwrap();
 
         let ahead: i64 = sqlx::query_scalar(
-            r#"
+            r"
             WITH RECURSIVE branch_ancestors AS (
                 SELECT id, parent_commit_id, branch_id FROM commits WHERE id = $1
                 UNION ALL
@@ -486,7 +487,7 @@ impl BranchRepository {
                 SELECT id FROM ref_ancestors
                 WHERE branch_id = (SELECT branch_id FROM commits WHERE id = $2)
             ) AS ahead_commits
-            "#,
+            ",
         )
         .bind(branch_head_id)
         .bind(ref_head_id)
@@ -495,7 +496,7 @@ impl BranchRepository {
         .map_err(VersionError::from)?;
 
         let behind: i64 = sqlx::query_scalar(
-            r#"
+            r"
             WITH RECURSIVE branch_ancestors AS (
                 SELECT id, parent_commit_id, branch_id FROM commits WHERE id = $1
                 UNION ALL
@@ -517,7 +518,7 @@ impl BranchRepository {
                 SELECT id FROM branch_ancestors
                 WHERE branch_id = (SELECT branch_id FROM commits WHERE id = $1)
             ) AS behind_commits
-            "#,
+            ",
         )
         .bind(branch_head_id)
         .bind(ref_head_id)
@@ -531,7 +532,7 @@ impl BranchRepository {
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 
-/// Converts a PostgreSQL row into a `Branch` model.
+/// Converts a `PostgreSQL` row into a `Branch` model.
 fn row_to_branch(row: &sqlx::postgres::PgRow) -> Result<Branch, VersionError> {
     Ok(Branch {
         id: row.try_get("id")?,

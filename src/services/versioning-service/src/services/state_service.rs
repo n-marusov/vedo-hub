@@ -24,6 +24,7 @@ pub struct StateService {
 
 impl StateService {
     /// Creates a new `StateService` with the given pool and optional sync client.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn new(pool: PgPool, sync_client: Option<SyncClient>) -> Self {
         Self {
             delta_engine: DeltaReplayEngine::new(pool.clone()),
@@ -64,8 +65,7 @@ impl StateService {
         if let Some(head_id) = branch.head_commit_id {
             if !self.commit_repo.is_ancestor_of(head_id, commit_id).await? {
                 return Err(VersionError::InvalidRequest(format!(
-                    "Commit {} is not reachable from branch {} (head commit {})",
-                    commit_id, branch_id, head_id
+                    "Commit {commit_id} is not reachable from branch {branch_id} (head commit {head_id})"
                 )));
             }
         }
@@ -136,8 +136,7 @@ impl StateService {
             .await?
         {
             return Err(VersionError::InvalidRequest(format!(
-                "Target commit {} is not reachable from branch {} (head commit {})",
-                target_commit_id, branch_id, current_head
+                "Target commit {target_commit_id} is not reachable from branch {branch_id} (head commit {current_head})"
             )));
         }
 
@@ -154,7 +153,7 @@ impl StateService {
         // Create a rollback commit with the inverse delta
         let req = CreateCommitRequest {
             branch_id,
-            message: format!("Rollback to commit {}", target_commit_id.to_string()),
+            message: format!("Rollback to commit {target_commit_id}"),
             author_id: author_id.to_string(),
             author_name: author_name.to_string(),
             delta: inverse_delta,

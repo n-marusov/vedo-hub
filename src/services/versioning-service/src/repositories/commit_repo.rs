@@ -1,4 +1,4 @@
-//! Commit repository — PostgreSQL data access for commits.
+//! Commit repository — `PostgreSQL` data access for commits.
 //!
 //! Provides SQL queries for commit CRUD, history listing, and delta
 //! persistence using `sqlx`.
@@ -12,7 +12,7 @@ use crate::models::{
     Commit, CommitDelta, CommitSummary, CreateCommitRequest, ListCommitsParams, PaginatedResponse,
 };
 
-/// Repository for commit operations against PostgreSQL.
+/// Repository for commit operations against `PostgreSQL`.
 pub struct CommitRepository {
     pool: PgPool,
 }
@@ -57,15 +57,12 @@ impl CommitRepository {
                 .fetch_optional(&mut *tx)
                 .await?;
 
-        let head_commit_id = match row {
-            None => {
-                tracing::error!(
-                    branch_id = %req.branch_id,
-                    "[FIX] Branch not found during commit creation"
-                );
-                return Err(VersionError::BranchNotFound(req.branch_id.to_string()));
-            }
-            Some(val) => val,
+        let Some(head_commit_id) = row else {
+            tracing::error!(
+                branch_id = %req.branch_id,
+                "[FIX] Branch not found during commit creation"
+            );
+            return Err(VersionError::BranchNotFound(req.branch_id.to_string()));
         };
 
         let parent_id = head_commit_id;
@@ -74,11 +71,11 @@ impl CommitRepository {
             serde_json::to_value(&req.delta).map_err(|e| VersionError::Database(e.to_string()))?;
 
         let row = sqlx::query(
-            r#"
+            r"
             INSERT INTO commits (branch_id, parent_commit_id, message, author_id, author_name, delta)
             VALUES ($1, $2, $3, $4, $5, $6)
             RETURNING id, branch_id, parent_commit_id, message, author_id, author_name, delta, created_at
-            "#,
+            ",
         )
         .bind(req.branch_id)
         .bind(parent_id)
@@ -118,12 +115,12 @@ impl CommitRepository {
         tracing::debug!(commit_id = %id, "Fetching commit by ID");
 
         let row = sqlx::query(
-            r#"
+            r"
             SELECT id, branch_id, parent_commit_id, message, author_id, author_name,
                    delta, created_at
             FROM commits
             WHERE id = $1
-            "#,
+            ",
         )
         .bind(id)
         .fetch_optional(self.pool())
@@ -136,6 +133,7 @@ impl CommitRepository {
     }
 
     /// Lists commits with optional branch filtering, pagination, and sorting.
+    #[allow(clippy::cast_possible_wrap, clippy::cast_sign_loss)]
     pub async fn list(
         &self,
         params: &ListCommitsParams,
@@ -153,25 +151,25 @@ impl CommitRepository {
         let (count_query, data_query, branch_filter) = match params.branch_id {
             Some(_bid) => (
                 "SELECT COUNT(*) FROM commits WHERE branch_id = $1",
-                r#"
+                r"
                 SELECT id, branch_id, parent_commit_id, message, author_id, author_name,
                        delta, created_at
                 FROM commits
                 WHERE branch_id = $1
                 ORDER BY created_at DESC
                 LIMIT $2 OFFSET $3
-                "#,
+                ",
                 true,
             ),
             None => (
                 "SELECT COUNT(*) FROM commits",
-                r#"
+                r"
                 SELECT id, branch_id, parent_commit_id, message, author_id, author_name,
                        delta, created_at
                 FROM commits
                 ORDER BY created_at DESC
                 LIMIT $1 OFFSET $2
-                "#,
+                ",
                 false,
             ),
         };
@@ -240,7 +238,7 @@ impl CommitRepository {
             return Ok(true);
         }
         let exists: Option<bool> = sqlx::query_scalar(
-            r#"
+            r"
             WITH RECURSIVE ancestors AS (
                 SELECT id, parent_commit_id FROM commits WHERE id = $1
                 UNION ALL
@@ -249,7 +247,7 @@ impl CommitRepository {
                 INNER JOIN ancestors a ON c.id = a.parent_commit_id
             )
             SELECT EXISTS(SELECT 1 FROM ancestors WHERE id = $2)
-            "#,
+            ",
         )
         .bind(head_commit_id)
         .bind(target_commit_id)
@@ -270,7 +268,7 @@ impl CommitRepository {
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 
-/// Converts a PostgreSQL row into a `Commit` model.
+/// Converts a `PostgreSQL` row into a `Commit` model.
 pub fn row_to_commit(row: &sqlx::postgres::PgRow) -> Result<Commit, VersionError> {
     let id: Uuid = row.try_get("id")?;
     let branch_id: Uuid = row.try_get("branch_id")?;

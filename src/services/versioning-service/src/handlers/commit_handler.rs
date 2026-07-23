@@ -37,7 +37,7 @@ fn repo_from_state(state: &AppState) -> Result<CommitRepository, VersionError> {
 
 /// POST /api/v1/versioning/commits — Create a new commit.
 ///
-/// Accepts a commit request with branch_id, message, author info, and delta.
+/// Accepts a commit request with `branch_id`, message, author info, and delta.
 /// Returns the created commit with full details.
 pub async fn create_commit_handler(
     State(state): State<Arc<AppState>>,

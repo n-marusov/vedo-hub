@@ -1,17 +1,17 @@
-//! PostgreSQL connection pool manager for versioning-service.
+//! `PostgreSQL` connection pool manager for versioning-service.
 //!
 //! Provides:
-//! - Connection pool initialization from DATABASE_URL
+//! - Connection pool initialization from `DATABASE_URL`
 //! - Health check via table existence verification
-//! - Migration runner (actual migration is called from main.rs using sqlx::migrate!)
+//! - Migration runner (actual migration is called from main.rs using `sqlx::migrate`!)
 
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
 
-/// Default PostgreSQL connection URL
+/// Default `PostgreSQL` connection URL
 const DEFAULT_DATABASE_URL: &str = "postgres://vedo:vedo@localhost:5432/vedo_versioning";
 
-/// The shared PostgreSQL connection pool.
+/// The shared `PostgreSQL` connection pool.
 #[derive(Clone)]
 pub struct PgPoolWrapper {
     pool: PgPool,
@@ -24,7 +24,7 @@ impl PgPoolWrapper {
     }
 }
 
-/// Configuration for PostgreSQL connection.
+/// Configuration for `PostgreSQL` connection.
 pub struct PgConfig {
     pub database_url: String,
     pub max_connections: u32,
@@ -53,7 +53,7 @@ impl PgConfig {
     }
 }
 
-/// Creates a PostgreSQL connection pool with the given config.
+/// Creates a `PostgreSQL` connection pool with the given config.
 pub async fn create_pool(config: &PgConfig) -> Result<PgPoolWrapper, sqlx::Error> {
     let pool = PgPoolOptions::new()
         .max_connections(config.max_connections)
@@ -70,10 +70,11 @@ pub async fn create_pool(config: &PgConfig) -> Result<PgPoolWrapper, sqlx::Error
 
 /// Runs manual SQL migrations for the versioning schema.
 /// Uses CREATE TABLE IF NOT EXISTS so it can be run idempotently.
+#[allow(clippy::too_many_lines)]
 pub async fn run_manual_migrations(pool: &PgPool) -> Result<(), sqlx::Error> {
     // Migration 001: Initial schema
     sqlx::query(
-        r#"
+        r"
         CREATE TABLE IF NOT EXISTS branches (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             name VARCHAR(255) NOT NULL,
@@ -82,13 +83,13 @@ pub async fn run_manual_migrations(pool: &PgPool) -> Result<(), sqlx::Error> {
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             is_protected BOOLEAN NOT NULL DEFAULT FALSE
         );
-        "#,
+        ",
     )
     .execute(pool)
     .await?;
 
     sqlx::query(
-        r#"
+        r"
         CREATE TABLE IF NOT EXISTS commits (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             branch_id UUID NOT NULL REFERENCES branches(id),
@@ -99,7 +100,7 @@ pub async fn run_manual_migrations(pool: &PgPool) -> Result<(), sqlx::Error> {
             delta JSONB NOT NULL DEFAULT '{}',
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         );
-        "#,
+        ",
     )
     .execute(pool)
     .await?;
@@ -128,14 +129,14 @@ pub async fn run_manual_migrations(pool: &PgPool) -> Result<(), sqlx::Error> {
 
     // Migration 003: State snapshots for fast materialization
     sqlx::query(
-        r#"
+        r"
         CREATE TABLE IF NOT EXISTS state_snapshots (
             commit_id UUID PRIMARY KEY,
             branch_id UUID NOT NULL,
             triples JSONB NOT NULL DEFAULT '[]',
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         );
-        "#,
+        ",
     )
     .execute(pool)
     .await?;
@@ -167,7 +168,7 @@ pub async fn run_manual_migrations(pool: &PgPool) -> Result<(), sqlx::Error> {
 
     // Add foreign key constraints to state_snapshots (idempotent via DO block)
     sqlx::query(
-        r#"
+        r"
         DO $$ BEGIN
             IF NOT EXISTS (
                 SELECT 1 FROM pg_constraint WHERE conname = 'fk_snapshots_commit'
@@ -177,13 +178,13 @@ pub async fn run_manual_migrations(pool: &PgPool) -> Result<(), sqlx::Error> {
                 FOREIGN KEY (commit_id) REFERENCES commits(id) ON DELETE CASCADE;
             END IF;
         END $$;
-        "#,
+        ",
     )
     .execute(pool)
     .await?;
 
     sqlx::query(
-        r#"
+        r"
         DO $$ BEGIN
             IF NOT EXISTS (
                 SELECT 1 FROM pg_constraint WHERE conname = 'fk_snapshots_branch'
@@ -193,7 +194,7 @@ pub async fn run_manual_migrations(pool: &PgPool) -> Result<(), sqlx::Error> {
                 FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE CASCADE;
             END IF;
         END $$;
-        "#,
+        ",
     )
     .execute(pool)
     .await?;

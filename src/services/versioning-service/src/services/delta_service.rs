@@ -193,7 +193,7 @@ impl DeltaReplayEngine {
         let pool = self.commit_repo.pool().clone();
 
         let rows = sqlx::query(
-            r#"
+            r"
             WITH RECURSIVE commit_chain AS (
                 SELECT id, branch_id, parent_commit_id, message, author_id,
                        author_name, delta, created_at
@@ -209,7 +209,7 @@ impl DeltaReplayEngine {
                    author_name, delta, created_at
             FROM commit_chain
             ORDER BY created_at ASC
-            "#,
+            ",
         )
         .bind(start_commit_id)
         .fetch_all(&pool)
@@ -242,7 +242,7 @@ impl DeltaReplayEngine {
         // Use the commit chain to walk backward and check for snapshots.
         // We check up to 11 commits back (target + 10 ancestors).
         let row: Option<(Uuid, serde_json::Value)> = sqlx::query_as(
-            r#"
+            r"
             WITH RECURSIVE commit_chain AS (
                 SELECT id, parent_commit_id, 0 AS depth
                 FROM commits
@@ -258,7 +258,7 @@ impl DeltaReplayEngine {
             INNER JOIN commit_chain cc ON ss.commit_id = cc.id
             ORDER BY cc.depth ASC
             LIMIT 1
-            "#,
+            ",
         )
         .bind(commit_id)
         .fetch_optional(&pool)
@@ -289,13 +289,13 @@ impl DeltaReplayEngine {
             .ok_or_else(|| VersionError::CommitNotFound(commit_id.to_string()))?;
 
         sqlx::query(
-            r#"
+            r"
             INSERT INTO state_snapshots (commit_id, branch_id, triples)
             VALUES ($1, $2, $3)
             ON CONFLICT (commit_id) DO UPDATE
                 SET triples = EXCLUDED.triples,
                     created_at = NOW()
-            "#,
+            ",
         )
         .bind(commit_id)
         .bind(branch_id)
@@ -330,15 +330,12 @@ impl DeltaReplayEngine {
                 .unwrap_or(None)
                 .flatten();
 
-        let branch_id = match branch_id {
-            Some(id) => id,
-            None => {
-                tracing::warn!(
-                    commit_id = %commit_id,
-                    "Cannot create snapshot: commit not found"
-                );
-                return;
-            }
+        let Some(branch_id) = branch_id else {
+            tracing::warn!(
+                commit_id = %commit_id,
+                "Cannot create snapshot: commit not found"
+            );
+            return;
         };
 
         // Count commits on this branch
@@ -380,7 +377,7 @@ impl DeltaReplayEngine {
 /// - Added triples are appended.
 ///
 /// [FIX] Uses pre-built HashSet/HashMap for O(n + δ) removal instead of O(N·M).
-/// [FIX] Deduplicates via HashSet on final state to prevent duplicate triple accumulation.
+/// [FIX] Deduplicates via `HashSet` on final state to prevent duplicate triple accumulation.
 pub fn apply_delta_to_state(state: &mut Vec<TripleRef>, delta: &CommitDelta) {
     // [FIX] Pre-build HashSet for O(1) removal checks
     let removed_set: HashSet<TripleRef> = delta.removed_triples.iter().cloned().collect();

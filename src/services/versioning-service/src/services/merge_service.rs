@@ -45,6 +45,7 @@ pub struct MergeAnalysis {
 /// - If a triple was modified in both → prefer source's new value
 ///
 /// Returns the merged delta and a conflict count.
+#[allow(clippy::too_many_lines)]
 pub fn compute_merged_delta(
     source_delta: &CommitDelta,
     target_delta: &CommitDelta,
@@ -66,15 +67,12 @@ pub fn compute_merged_delta(
 
     // [FIX] Build lookup sets for both source and target — all 9 categories
     // Target sets for checking source entries against
-    let target_added_keys: HashSet<(String, String, String)> = target_delta
-        .added_triples
-        .iter()
-        .map(|t| triple_key(t))
-        .collect();
+    let target_added_keys: HashSet<(String, String, String)> =
+        target_delta.added_triples.iter().map(triple_key).collect();
     let target_removed_keys: HashSet<(String, String, String)> = target_delta
         .removed_triples
         .iter()
-        .map(|t| triple_key(t))
+        .map(triple_key)
         .collect();
     let target_modified_keys: HashSet<(String, String, String)> = target_delta
         .modified_triples
@@ -83,15 +81,12 @@ pub fn compute_merged_delta(
         .collect();
 
     // [FIX] Pre-build source lookup sets for O(1) checks in reverse pass
-    let source_added_keys: HashSet<(String, String, String)> = source_delta
-        .added_triples
-        .iter()
-        .map(|t| triple_key(t))
-        .collect();
+    let source_added_keys: HashSet<(String, String, String)> =
+        source_delta.added_triples.iter().map(triple_key).collect();
     let source_removed_keys: HashSet<(String, String, String)> = source_delta
         .removed_triples
         .iter()
-        .map(|t| triple_key(t))
+        .map(triple_key)
         .collect();
     let source_modified_keys: HashSet<(String, String, String)> = source_delta
         .modified_triples

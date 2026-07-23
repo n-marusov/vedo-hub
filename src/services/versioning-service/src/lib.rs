@@ -66,7 +66,7 @@ async fn pg_health_handler(State(state): State<Arc<AppState>>) -> Json<serde_jso
 ///
 /// # Arguments
 ///
-/// * `state` - The shared application state (wraps PostgreSQL pool).
+/// * `state` - The shared application state (wraps `PostgreSQL` pool).
 ///
 /// # Returns
 ///
@@ -89,18 +89,17 @@ pub fn build_app(state: Arc<AppState>) -> Router {
     );
 
     // Merge versioning API routes with state
-    let app = app.merge(routes::build_routes().with_state(state));
 
-    app
+    app.merge(routes::build_routes().with_state(state))
 }
 
-/// Initializes the PostgreSQL connection pool from environment config.
+/// Initializes the `PostgreSQL` connection pool from environment config.
 pub async fn init_pg_pool() -> Option<postgres::PgPoolWrapper> {
     let pg_config = postgres::PgConfig::from_env();
     match postgres::create_pool(&pg_config).await {
         Ok(pool) => {
             match postgres::run_manual_migrations(pool.pool()).await {
-                Ok(_) => tracing::info!("PostgreSQL migrations applied successfully"),
+                Ok(()) => tracing::info!("PostgreSQL migrations applied successfully"),
                 Err(e) => tracing::warn!(error = %e, "Migration warning, continuing"),
             }
             tracing::info!("PostgreSQL pool initialized successfully");
