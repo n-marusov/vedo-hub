@@ -52682,6 +52682,203 @@
           ]
         }
       ]
+    },
+    {
+      "type": "frame",
+      "id": "ze4Nt",
+      "name": "Molecule/DemoProjectCard",
+      "reusable": true,
+      "width": 280,
+      "fill": "$card",
+      "stroke": "$border",
+      "strokeWidth": 1,
+      "strokeAlignment": "inner",
+      "cornerRadius": 8,
+      "layout": "vertical",
+      "gap": 8,
+      "padding": 16,
+      "children": [
+        {
+          "type": "text",
+          "id": "dpcName",
+          "name": "cardName",
+          "fill": "$foreground",
+          "width": "fill_container",
+          "content": "Organization",
+          "fontFamily": "IBM Plex Mono",
+          "fontSize": 15,
+          "fontWeight": "600"
+        },
+        {
+          "type": "text",
+          "id": "dpcDesc",
+          "name": "cardDesc",
+          "fill": "$muted-foreground",
+          "width": "fill_container",
+          "textGrowth": "fixed-width",
+          "content": "Departments, roles, structure",
+          "fontFamily": "IBM Plex Mono",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "dpcStats",
+          "name": "cardStats",
+          "width": "fill_container",
+          "gap": 12,
+          "children": [
+            {
+              "type": "text",
+              "id": "dpcClass",
+              "name": "classCount",
+              "fill": "$muted-foreground",
+              "content": "5 classes",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "dpcProp",
+              "name": "propCount",
+              "fill": "$muted-foreground",
+              "content": "4 properties",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "dpcDomainWrap",
+          "name": "cardDomainWrap",
+          "width": "fit_content",
+          "fill": "$muted",
+          "cornerRadius": 4,
+          "padding": 4,
+          "children": [
+            {
+              "type": "text",
+              "id": "dpcDomain",
+              "name": "domainName",
+              "fill": "$foreground",
+              "content": "Enterprise",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 11,
+              "fontWeight": "500"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "LgxGO",
+      "name": "Organism/ForkDemoDialog",
+      "reusable": true,
+      "width": "fill_container",
+      "height": "fill_container",
+      "layoutPosition": "absolute",
+      "x": 0,
+      "y": 0,
+      "layout": "vertical",
+      "alignItems": "center",
+      "justifyContent": "center",
+      "padding": 24,
+      "children": [
+        {
+          "type": "rectangle",
+          "id": "fddBackdrop",
+          "name": "dialogBackdrop",
+          "width": "fill_container",
+          "height": "fill_container",
+          "fill": "#000000",
+          "opacity": 0.6,
+          "layoutPosition": "absolute",
+          "x": 0,
+          "y": 0
+        },
+        {
+          "type": "frame",
+          "id": "fddPanel",
+          "name": "dialogPanel",
+          "width": 720,
+          "fill": "$card",
+          "stroke": "$border",
+          "strokeWidth": 1,
+          "strokeAlignment": "inner",
+          "cornerRadius": 12,
+          "layout": "vertical",
+          "gap": 16,
+          "padding": 24,
+          "children": [
+            {
+              "type": "frame",
+              "id": "fddHeader",
+              "name": "dialogHeader",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "fddTitle",
+                  "name": "dialogTitle",
+                  "fill": "$foreground",
+                  "content": "Fork a demo project",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 18,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "fddDesc",
+                  "name": "dialogDesc",
+                  "fill": "$muted-foreground",
+                  "width": "fill_container",
+                  "textGrowth": "fixed-width",
+                  "content": "Choose a starter ontology to fork into your project.",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "fddCardSlot",
+              "name": "dialogCardSlot",
+              "slot": [],
+              "width": "fill_container",
+              "layout": "horizontal",
+              "gap": 12
+            },
+            {
+              "type": "frame",
+              "id": "fddActions",
+              "name": "dialogActions",
+              "width": "fill_container",
+              "gap": 8,
+              "justifyContent": "end",
+              "children": [
+                {
+                  "id": "fddClose",
+                  "type": "ref",
+                  "ref": "kLoW9",
+                  "name": "dialogClose",
+                  "descendants": {
+                    "label": {
+                      "content": "Cancel"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ],
   "themes": {
