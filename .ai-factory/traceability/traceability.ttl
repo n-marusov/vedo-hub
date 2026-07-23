@@ -559,6 +559,164 @@ base:nfr/observability-otel a vdo:NonFunctionalRequirement ;
     vdo:filePath "specs/stack.md" .
 
 # =============================================================================
+# INSTANCES — Functional Requirements (P0)
+# =============================================================================
+
+# --- API Functional Requirements ---
+
+base:req/REQ-FUN.API.llm-policy a vdo:FunctionalRequirement ;
+    rdfs:label "LLM Usage Policy"@en ;
+    rdfs:comment "LLM access policy depending on deployment mode and ontology visibility level"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.llm-policy.md" .
+
+base:req/REQ-FUN.API.class-hierarchy-accuracy a vdo:FunctionalRequirement ;
+    rdfs:label "Class Hierarchy Accuracy"@en ;
+    rdfs:comment "NL to OWL generation must correctly determine class hierarchy (rdfs:subClassOf) matching NL description"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.class-hierarchy-accuracy.md" .
+
+base:req/REQ-FUN.API.properties-accuracy a vdo:FunctionalRequirement ;
+    rdfs:label "Property Accuracy"@en ;
+    rdfs:comment "NL to OWL generation must correctly identify property types, domains, and ranges matching NL description"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.properties-accuracy.md" .
+
+base:req/REQ-FUN.API.pre-save-validation a vdo:FunctionalRequirement ;
+    rdfs:label "Pre-Save Validation"@en ;
+    rdfs:comment "System must validate ontology integrity before saving — detect cycles, IRI uniqueness, and syntax correctness"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.pre-save-validation.md" .
+
+base:req/REQ-FUN.API.write-idempotency a vdo:FunctionalRequirement ;
+    rdfs:label "Write Idempotency"@en ;
+    rdfs:comment "All entity write endpoints must support idempotency keys to prevent duplicate entity creation"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.write-idempotency.md" .
+
+base:req/REQ-FUN.API.protocol-stack a vdo:FunctionalRequirement ;
+    rdfs:label "Protocol Stack Strategy"@en ;
+    rdfs:comment "gRPC for internal service-to-service, REST for external API, GraphQL for read-only navigation"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.protocol-stack.md" .
+
+# --- Data Functional Requirements ---
+
+base:req/REQ-FUN.DATA.versioning a vdo:FunctionalRequirement ;
+    rdfs:label "Git-like Versioning"@en ;
+    rdfs:comment "Git-like versioning: commits, branches, merges, diffs for ontology changes"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-FUN.DATA.versioning.md" .
+
+base:req/REQ-FUN.DATA.ontology-visibility-levels a vdo:FunctionalRequirement ;
+    rdfs:label "Ontology Visibility Levels"@en ;
+    rdfs:comment "Three visibility levels (public, internal, private) controlling access to ontologies and AI features"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-FUN.DATA.ontology-visibility-levels.md" .
+
+# --- Integration Functional Requirements ---
+
+base:req/REQ-FUN.INTEGRATION.collaboration a vdo:FunctionalRequirement ;
+    rdfs:label "Collaboration"@en ;
+    rdfs:comment "Real-time collaboration: comments, notifications, node locking for multi-user ontology editing"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Integration" ;
+    vdo:filePath "specs/requirements/REQ-FUN.INTEGRATION.collaboration.md" .
+
+# =============================================================================
+# INSTANCES — Non-Functional Requirements (P0 extensions)
+# =============================================================================
+
+base:req/REQ-NFR.SECURITY.authorization-regression-gates a vdo:NonFunctionalRequirement ;
+    rdfs:label "Authorization Regression Gates"@en ;
+    rdfs:comment "Authorization regression gate policy before release — BOLA/BFLA test suite must pass"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.authorization-regression-gates.md" .
+
+base:req/REQ-NFR.SECURITY.prompt-structure-detection a vdo:NonFunctionalRequirement ;
+    rdfs:label "Prompt Structure Detection"@en ;
+    rdfs:comment "Detect nested instructions and prompt injection structures in NL queries"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.prompt-structure-detection.md" .
+
+base:req/REQ-NFR.SECURITY.system-prompt-hardening a vdo:NonFunctionalRequirement ;
+    rdfs:label "System Prompt Hardening"@en ;
+    rdfs:comment "System prompt boundary enforcement and jailbreak resistance for all LLM interactions"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.system-prompt-hardening.md" .
+
+base:req/REQ-NFR.SECURITY.llm-tool-least-privilege a vdo:NonFunctionalRequirement ;
+    rdfs:label "LLM Tool Least Privilege"@en ;
+    rdfs:comment "LLM tools must enforce least privilege — only execute authorized ontology operations"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.llm-tool-least-privilege.md" .
+
+base:req/REQ-NFR.SECURITY.emergency-policy-disable a vdo:NonFunctionalRequirement ;
+    rdfs:label "Emergency Policy Disable"@en ;
+    rdfs:comment "Emergency policy disable mechanism with guardrails and audit logging"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.emergency-policy-disable.md" .
+
+base:req/REQ-NFR.PERF.performance a vdo:NonFunctionalRequirement ;
+    rdfs:label "Performance Specification"@en ;
+    rdfs:comment "API response time p95 below 120ms, p99 below 250ms, canonical workload profile for up to 1M axioms"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Performance" ;
+    vdo:filePath "specs/requirements/REQ-NFR.PERF.performance.md" .
+
+base:req/REQ-NFR.API.generation-latency a vdo:NonFunctionalRequirement ;
+    rdfs:label "NL to OWL Generation Latency"@en ;
+    rdfs:comment "NL to OWL generation for 10-class ontology must complete within acceptable time"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Performance" ;
+    vdo:filePath "specs/requirements/REQ-NFR.API.generation-latency.md" .
+
+base:req/REQ-NFR.PROCESS.prompt-injection-tests a vdo:NonFunctionalRequirement ;
+    rdfs:label "Prompt Injection Tests"@en ;
+    rdfs:comment "Dedicated test suite for prompt injection attack scenarios and jailbreak attempts"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.PROCESS.prompt-injection-tests.md" .
+
+# =============================================================================
+# INSTANCES — UI Requirements (P0)
+# =============================================================================
+
+base:req/REQ-USR.UI.tbox-editor a vdo:FunctionalRequirement ;
+    rdfs:label "TBox Editor"@en ;
+    rdfs:comment "TBox ontology editor: create, read, update, delete classes, properties, and annotations"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.tbox-editor.md" .
+
+base:req/REQ-USR.UI.abox-editor a vdo:FunctionalRequirement ;
+    rdfs:label "ABox Editor"@en ;
+    rdfs:comment "ABox individual editor: create and edit individuals, assign property values"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.abox-editor.md" .
+
+base:req/REQ-USR.UI.graph-navigation a vdo:FunctionalRequirement ;
+    rdfs:label "Graph Navigation"@en ;
+    rdfs:comment "Interactive graph visualization for ontology entities, relationships, and navigation"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.graph-navigation.md" .
+
+# =============================================================================
 # INSTANCES — Security Boundaries
 # =============================================================================
 
