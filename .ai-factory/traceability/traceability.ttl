@@ -752,6 +752,38 @@ base:test/observability-stack a vdo:TestSuite ;
     vdo:filePath "tests/test_observability_stack.sh" ;
     vdo:validates base:nfr/observability-otel .
 
+# --- RBAC Full Test Suite (rbac-full plan) ---
+
+base:test/rbac-cross-tenant a vdo:TestSuite ;
+    rdfs:label "RBAC Cross-Tenant BOLA Tests"@en ;
+    rdfs:comment "Cross-tenant and cross-object BOLA tests, plus GraphQL/SPARQL RBAC enforcement"@en ;
+    vdo:filePath "tests/security/authorization/rbac_cross_tenant_bola_test.go" ;
+    vdo:validates base:nfr/security-bola-bfla .
+
+base:test/rbac-bfla-membership a vdo:TestSuite ;
+    rdfs:label "RBAC BFLA and Membership Tests"@en ;
+    rdfs:comment "BFLA privilege escalation tests, Owner-only membership boundary, and max-role-wins inheritance"@en ;
+    vdo:filePath "tests/security/authorization/rbac_bfla_membership_test.go" ;
+    vdo:validates base:nfr/security-bola-bfla, base:nfr/org-access-model .
+
+base:test/rbac-idor-visibility a vdo:TestSuite ;
+    rdfs:label "RBAC IDOR, Visibility and Pagination Tests"@en ;
+    rdfs:comment "IDOR guessable-ID protection, visibility level enforcement, and pagination compliance"@en ;
+    vdo:filePath "tests/security/authorization/rbac_idor_visibility_pagination_test.go" ;
+    vdo:validates base:nfr/security-bola-bfla, base:nfr/org-access-model .
+
+base:test/rbac-fork-idempotency a vdo:TestSuite ;
+    rdfs:label "RBAC Fork and Idempotency Tests"@en ;
+    rdfs:comment "Fork RBAC enforcement and write-idempotency validation"@en ;
+    vdo:filePath "tests/security/authorization/rbac_fork_idempotency_test.go" ;
+    vdo:validates base:nfr/security-bola-bfla .
+
+base:test/rbac-advanced a vdo:TestSuite ;
+    rdfs:label "RBAC Advanced Scenario Tests"@en ;
+    rdfs:comment "Audit logging, OMR workflow, MFA, JIT/PAM, break-glass, guardrails, public browse, ABAC, and service-account restrictions"@en ;
+    vdo:filePath "tests/security/authorization/rbac_advanced_test.go" ;
+    vdo:validates base:nfr/security-bola-bfla, base:nfr/org-access-model .
+
 # --- Contract Test Definitions ---
 
 base:contract/CT-DEPLOY-001 a vdo:TestContract ;

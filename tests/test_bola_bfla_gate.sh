@@ -35,7 +35,7 @@ if [ -z "$GO_CMD" ]; then
   exit 1
 fi
 
-echo "=== Running BOLA/BFLA negative test suite with $GO_CMD ==="
+echo "=== Running BOLA/BFLA/RBAC negative test suite with $GO_CMD ===
 
 # run auth middleware tests with BOLA/BFLA focus (all CT-SEC-* tests)
 cd "$ROOT/src/services/api-gateway" && "$GO_CMD" test ./auth/... -v -count=1 -run "TestCT_SEC|TestProperty|TestInvariant" 2>&1
@@ -43,7 +43,7 @@ cd "$ROOT/src/services/api-gateway" && "$GO_CMD" test ./auth/... -v -count=1 -ru
 # run org-level access control tests (membership, policies, visibility enforcement)
 cd "$ROOT/src/services/auth-service/org" && "$GO_CMD" test ./... -v -count=1 2>&1
 
-# run existing BOLA/BFLA fixture tests
+# run existing BOLA/BFLA fixture tests and comprehensive RBAC suite
 cd "$ROOT/tests/security/authorization" && "$GO_CMD" test ./... -v -count=1 2>&1
 
-echo "=== BOLA/BFLA suite complete ==="
+echo "=== BOLA/BFLA/RBAC suite complete ==="
