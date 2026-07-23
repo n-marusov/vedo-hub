@@ -4524,6 +4524,436 @@ base:user/US-a11y.auth.authentication a vdo:UserStory ;
     rdfs:comment "Keyboard-only OAuth authentication flow"@en ;
     vdo:filePath "specs/user-stories/US-a11y.auth.authentication.md" .
 
+base:user/US-a11y.account.close-confirm a vdo:UserStory ;
+    rdfs:label "US-a11y.account.close-confirm"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-a11y.account.close-confirm.md" .
+
+base:user/US-a11y.classes.create-reader a vdo:UserStory ;
+    rdfs:label "US-a11y.classes.create-reader"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/user-stories/US-a11y.classes.create-reader.md" .
+
+base:user/US-a11y.classes.edit-validated a vdo:UserStory ;
+    rdfs:label "US-a11y.classes.edit-validated"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-a11y.classes.edit-validated.md" .
+
+base:user/US-a11y.classes.property-panel a vdo:UserStory ;
+    rdfs:label "US-a11y.classes.property-panel"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-a11y.classes.property-panel.md" .
+
+base:user/US-a11y.comments.add-keyboard a vdo:UserStory ;
+    rdfs:label "US-a11y.comments.add-keyboard"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-a11y.comments.add-keyboard.md" .
+
+base:user/US-a11y.comments.view-add a vdo:UserStory ;
+    rdfs:label "US-a11y.comments.view-add"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-a11y.comments.view-add.md" .
+
+base:user/US-a11y.editing.cancel a vdo:UserStory ;
+    rdfs:label "US-a11y.editing.cancel"@en ;
+    vdo:priority "P2" ;
+    vdo:filePath "specs/user-stories/US-a11y.editing.cancel.md" .
+
+base:user/US-a11y.i18n.switch-language a vdo:UserStory ;
+    rdfs:label "US-a11y.i18n.switch-language"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-a11y.i18n.switch-language.md" .
+
+base:user/US-a11y.individuals.edit-dynamic a vdo:UserStory ;
+    rdfs:label "US-a11y.individuals.edit-dynamic"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-a11y.individuals.edit-dynamic.md" .
+
+base:user/US-a11y.navigation.graph-fallback a vdo:UserStory ;
+    rdfs:label "US-a11y.navigation.graph-fallback"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/user-stories/US-a11y.navigation.graph-fallback.md" .
+
+base:user/US-a11y.navigation.tree-reader a vdo:UserStory ;
+    rdfs:label "US-a11y.navigation.tree-reader"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/user-stories/US-a11y.navigation.tree-reader.md" .
+
+base:user/US-a11y.properties.create-object a vdo:UserStory ;
+    rdfs:label "US-a11y.properties.create-object"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-a11y.properties.create-object.md" .
+
+base:user/US-a11y.publish.view-public a vdo:UserStory ;
+    rdfs:label "US-a11y.publish.view-public"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-a11y.publish.view-public.md" .
+
+base:user/US-a11y.search.fulltext-keyboard a vdo:UserStory ;
+    rdfs:label "US-a11y.search.fulltext-keyboard"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/user-stories/US-a11y.search.fulltext-keyboard.md" .
+
+base:user/US-a11y.versioning.commit-history a vdo:UserStory ;
+    rdfs:label "US-a11y.versioning.commit-history"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-a11y.versioning.commit-history.md" .
+
+base:user/US-a11y.versioning.create-commit a vdo:UserStory ;
+    rdfs:label "US-a11y.versioning.create-commit"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-a11y.versioning.create-commit.md" .
+
+base:user/US-a11y.versioning.switch-branch a vdo:UserStory ;
+    rdfs:label "US-a11y.versioning.switch-branch"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-a11y.versioning.switch-branch.md" .
+
+base:user/US-abox.individuals.create a vdo:UserStory ;
+    rdfs:label "US-abox.individuals.create"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-abox.individuals.create.md" .
+
+base:user/US-abox.individuals.edit-property-values a vdo:UserStory ;
+    rdfs:label "US-abox.individuals.edit-property-values"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-abox.individuals.edit-property-values.md" .
+
+base:user/US-abox.individuals.export-xlsx a vdo:UserStory ;
+    rdfs:label "US-abox.individuals.export-xlsx"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-abox.individuals.export-xlsx.md" .
+
+base:user/US-abox.individuals.navigate-link a vdo:UserStory ;
+    rdfs:label "US-abox.individuals.navigate-link"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-abox.individuals.navigate-link.md" .
+
+base:user/US-admin.access.assign-role a vdo:UserStory ;
+    rdfs:label "US-admin.access.assign-role"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/user-stories/US-admin.access.assign-role.md" .
+
+base:user/US-admin.airgap.prepare a vdo:UserStory ;
+    rdfs:label "US-admin.airgap.prepare"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-admin.airgap.prepare.md" .
+
+base:user/US-admin.backup.daily a vdo:UserStory ;
+    rdfs:label "US-admin.backup.daily"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/user-stories/US-admin.backup.daily.md" .
+
+base:user/US-admin.endpoints.create-bind a vdo:UserStory ;
+    rdfs:label "US-admin.endpoints.create-bind"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-admin.endpoints.create-bind.md" .
+
+base:user/US-admin.migration.diff a vdo:UserStory ;
+    rdfs:label "US-admin.migration.diff"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-admin.migration.diff.md" .
+
+base:user/US-admin.migration.schema-rollback a vdo:UserStory ;
+    rdfs:label "US-admin.migration.schema-rollback"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/user-stories/US-admin.migration.schema-rollback.md" .
+
+base:user/US-admin.migration.transfer-staging a vdo:UserStory ;
+    rdfs:label "US-admin.migration.transfer-staging"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-admin.migration.transfer-staging.md" .
+
+base:user/US-api.classes.create-rest a vdo:UserStory ;
+    rdfs:label "US-api.classes.create-rest"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-api.classes.create-rest.md" .
+
+base:user/US-api.cypher.execute a vdo:UserStory ;
+    rdfs:label "US-api.cypher.execute"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-api.cypher.execute.md" .
+
+base:user/US-api.docs.openapi a vdo:UserStory ;
+    rdfs:label "US-api.docs.openapi"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/user-stories/US-api.docs.openapi.md" .
+
+base:user/US-api.ontologies.read-rest a vdo:UserStory ;
+    rdfs:label "US-api.ontologies.read-rest"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-api.ontologies.read-rest.md" .
+
+base:user/US-api.sparql.execute a vdo:UserStory ;
+    rdfs:label "US-api.sparql.execute"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-api.sparql.execute.md" .
+
+base:user/US-api.webhooks.manage a vdo:UserStory ;
+    rdfs:label "US-api.webhooks.manage"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-api.webhooks.manage.md" .
+
+base:user/US-browse.graph.paginated a vdo:UserStory ;
+    rdfs:label "US-browse.graph.paginated"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/user-stories/US-browse.graph.paginated.md" .
+
+base:user/US-browse.individuals.filter-by-property a vdo:UserStory ;
+    rdfs:label "US-browse.individuals.filter-by-property"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-browse.individuals.filter-by-property.md" .
+
+base:user/US-browse.individuals.list-by-class a vdo:UserStory ;
+    rdfs:label "US-browse.individuals.list-by-class"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-browse.individuals.list-by-class.md" .
+
+base:user/US-browse.public.view a vdo:UserStory ;
+    rdfs:label "US-browse.public.view"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-browse.public.view.md" .
+
+base:user/US-browse.public.view-accessible a vdo:UserStory ;
+    rdfs:label "US-browse.public.view-accessible"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/user-stories/US-browse.public.view-accessible.md" .
+
+base:user/US-browse.search.fulltext a vdo:UserStory ;
+    rdfs:label "US-browse.search.fulltext"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/user-stories/US-browse.search.fulltext.md" .
+
+base:user/US-browse.search.parametric a vdo:UserStory ;
+    rdfs:label "US-browse.search.parametric"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/user-stories/US-browse.search.parametric.md" .
+
+base:user/US-browse.tree.graph-view a vdo:UserStory ;
+    rdfs:label "US-browse.tree.graph-view"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/user-stories/US-browse.tree.graph-view.md" .
+
+base:user/US-diagnostics.trace.diagnose a vdo:UserStory ;
+    rdfs:label "US-diagnostics.trace.diagnose"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/user-stories/US-diagnostics.trace.diagnose.md" .
+
+base:user/US-diagnostics.trace.llm-recommend a vdo:UserStory ;
+    rdfs:label "US-diagnostics.trace.llm-recommend"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-diagnostics.trace.llm-recommend.md" .
+
+base:user/US-editor.annotations.add-label a vdo:UserStory ;
+    rdfs:label "US-editor.annotations.add-label"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-editor.annotations.add-label.md" .
+
+base:user/US-editor.classes.create-parents a vdo:UserStory ;
+    rdfs:label "US-editor.classes.create-parents"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/user-stories/US-editor.classes.create-parents.md" .
+
+base:user/US-editor.classes.delete a vdo:UserStory ;
+    rdfs:label "US-editor.classes.delete"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/user-stories/US-editor.classes.delete.md" .
+
+base:user/US-editor.classes.edit a vdo:UserStory ;
+    rdfs:label "US-editor.classes.edit"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/user-stories/US-editor.classes.edit.md" .
+
+base:user/US-editor.classes.hierarchy-drag-drop a vdo:UserStory ;
+    rdfs:label "US-editor.classes.hierarchy-drag-drop"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-editor.classes.hierarchy-drag-drop.md" .
+
+base:user/US-editor.classes.validate-shacl a vdo:UserStory ;
+    rdfs:label "US-editor.classes.validate-shacl"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-editor.classes.validate-shacl.md" .
+
+base:user/US-editor.properties.create-datatype a vdo:UserStory ;
+    rdfs:label "US-editor.properties.create-datatype"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/user-stories/US-editor.properties.create-datatype.md" .
+
+base:user/US-editor.properties.create-object a vdo:UserStory ;
+    rdfs:label "US-editor.properties.create-object"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/user-stories/US-editor.properties.create-object.md" .
+
+base:user/US-editor.properties.edit-delete a vdo:UserStory ;
+    rdfs:label "US-editor.properties.edit-delete"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/user-stories/US-editor.properties.edit-delete.md" .
+
+base:user/US-editor.rules.create-visual a vdo:UserStory ;
+    rdfs:label "US-editor.rules.create-visual"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-editor.rules.create-visual.md" .
+
+base:user/US-editor.rules.deduplicate a vdo:UserStory ;
+    rdfs:label "US-editor.rules.deduplicate"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-editor.rules.deduplicate.md" .
+
+base:user/US-git.branches.create-merge a vdo:UserStory ;
+    rdfs:label "US-git.branches.create-merge"@en ;
+    vdo:priority "P2" ;
+    vdo:filePath "specs/user-stories/US-git.branches.create-merge.md" .
+
+base:user/US-git.branches.create-switch a vdo:UserStory ;
+    rdfs:label "US-git.branches.create-switch"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-git.branches.create-switch.md" .
+
+base:user/US-git.commits.compare a vdo:UserStory ;
+    rdfs:label "US-git.commits.compare"@en ;
+    vdo:priority "P2" ;
+    vdo:filePath "specs/user-stories/US-git.commits.compare.md" .
+
+base:user/US-git.commits.create a vdo:UserStory ;
+    rdfs:label "US-git.commits.create"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-git.commits.create.md" .
+
+base:user/US-git.commits.rollback a vdo:UserStory ;
+    rdfs:label "US-git.commits.rollback"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-git.commits.rollback.md" .
+
+base:user/US-io.document.batch-extract a vdo:UserStory ;
+    rdfs:label "US-io.document.batch-extract"@en ;
+    vdo:priority "P2" ;
+    vdo:filePath "specs/user-stories/US-io.document.batch-extract.md" .
+
+base:user/US-io.document.extract-md-txt a vdo:UserStory ;
+    rdfs:label "US-io.document.extract-md-txt"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-io.document.extract-md-txt.md" .
+
+base:user/US-io.document.extract-pdf-docx a vdo:UserStory ;
+    rdfs:label "US-io.document.extract-pdf-docx"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-io.document.extract-pdf-docx.md" .
+
+base:user/US-io.document.extract-structured a vdo:UserStory ;
+    rdfs:label "US-io.document.extract-structured"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-io.document.extract-structured.md" .
+
+base:user/US-io.document.preview-sequence a vdo:UserStory ;
+    rdfs:label "US-io.document.preview-sequence"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-io.document.preview-sequence.md" .
+
+base:user/US-io.export.canonical-turtle a vdo:UserStory ;
+    rdfs:label "US-io.export.canonical-turtle"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/user-stories/US-io.export.canonical-turtle.md" .
+
+base:user/US-io.export.docx a vdo:UserStory ;
+    rdfs:label "US-io.export.docx"@en ;
+    vdo:priority "P2" ;
+    vdo:filePath "specs/user-stories/US-io.export.docx.md" .
+
+base:user/US-io.forms.configure-templates a vdo:UserStory ;
+    rdfs:label "US-io.forms.configure-templates"@en ;
+    vdo:priority "P2" ;
+    vdo:filePath "specs/user-stories/US-io.forms.configure-templates.md" .
+
+base:user/US-io.import.turtle a vdo:UserStory ;
+    rdfs:label "US-io.import.turtle"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/user-stories/US-io.import.turtle.md" .
+
+base:user/US-io.publish.snapshot a vdo:UserStory ;
+    rdfs:label "US-io.publish.snapshot"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-io.publish.snapshot.md" .
+
+base:user/US-io.reports.generate a vdo:UserStory ;
+    rdfs:label "US-io.reports.generate"@en ;
+    vdo:priority "P2" ;
+    vdo:filePath "specs/user-stories/US-io.reports.generate.md" .
+
+base:user/US-io.xlsx.import-export a vdo:UserStory ;
+    rdfs:label "US-io.xlsx.import-export"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-io.xlsx.import-export.md" .
+
+base:user/US-metrics.analytics.complexity a vdo:UserStory ;
+    rdfs:label "US-metrics.analytics.complexity"@en ;
+    vdo:priority "P2" ;
+    vdo:filePath "specs/user-stories/US-metrics.analytics.complexity.md" .
+
+base:user/US-metrics.analytics.feedback a vdo:UserStory ;
+    rdfs:label "US-metrics.analytics.feedback"@en ;
+    vdo:priority "P2" ;
+    vdo:filePath "specs/user-stories/US-metrics.analytics.feedback.md" .
+
+base:user/US-projects.fork a vdo:UserStory ;
+    rdfs:label "US-projects.fork"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/user-stories/US-projects.fork.md" .
+
+base:user/US-support.community.forum a vdo:UserStory ;
+    rdfs:label "US-support.community.forum"@en ;
+    vdo:priority "P2" ;
+    vdo:filePath "specs/user-stories/US-support.community.forum.md" .
+
+base:user/US-support.feedback.in-app-nps a vdo:UserStory ;
+    rdfs:label "US-support.feedback.in-app-nps"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-support.feedback.in-app-nps.md" .
+
+base:user/US-support.knowledge.search a vdo:UserStory ;
+    rdfs:label "US-support.knowledge.search"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-support.knowledge.search.md" .
+
+base:user/US-support.roadmap.vote-comment a vdo:UserStory ;
+    rdfs:label "US-support.roadmap.vote-comment"@en ;
+    vdo:priority "P2" ;
+    vdo:filePath "specs/user-stories/US-support.roadmap.vote-comment.md" .
+
+base:user/US-support.status.incident a vdo:UserStory ;
+    rdfs:label "US-support.status.incident"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-support.status.incident.md" .
+
+base:user/US-support.telemetry.opt-in a vdo:UserStory ;
+    rdfs:label "US-support.telemetry.opt-in"@en ;
+    vdo:priority "P2" ;
+    vdo:filePath "specs/user-stories/US-support.telemetry.opt-in.md" .
+
+base:user/US-support.tickets.create-track a vdo:UserStory ;
+    rdfs:label "US-support.tickets.create-track"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/user-stories/US-support.tickets.create-track.md" .
+
+base:user/US-team.comments.feed a vdo:UserStory ;
+    rdfs:label "US-team.comments.feed"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-team.comments.feed.md" .
+
+base:user/US-team.comments.mention a vdo:UserStory ;
+    rdfs:label "US-team.comments.mention"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-team.comments.mention.md" .
+
+base:user/US-team.comments.visibility a vdo:UserStory ;
+    rdfs:label "US-team.comments.visibility"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/user-stories/US-team.comments.visibility.md" .
+
+base:user/US-team.reviews.approve a vdo:UserStory ;
+    rdfs:label "US-team.reviews.approve"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/user-stories/US-team.reviews.approve.md" .
+
 # =============================================================================
 # INSTANCES — E2E Test Suites (Keycloak Auth)
 # =============================================================================
@@ -4634,6 +5064,138 @@ base:src/use-draft-state a vdo:CodeArtifact ;
     rdfs:comment "Migrated from Apollo UPDATE_DRAFT_MUTATION to PUT /api/v1/ontologies/:id/draft REST with Idempotency-Key."@en ;
     vdo:filePath "src/services/frontend/src/composables/useDraftState.ts" ;
     vdo:implements base:adr/rest-graphql-mutation-boundary .
+
+
+# =============================================================================
+# PENDING TEST SUITES — Skipped skeletons (test.describe.skip)
+# =============================================================================
+# 10 pending test suites covering 64 US stories.
+# Marked with test.describe.skip — remove skip and implement scenarios.
+# =============================================================================
+
+# Pending test suite: a11y.spec.ts
+base:ts/pending-a11y a vdo:TestSuite ;
+    rdfs:label "Pending: a11y"@en ;
+    rdfs:comment "Skeleton test with test.describe.skip. Ready for implementation."@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/a11y.spec.ts" .
+base:ts/pending-a11y vdo:validates base:user/US-a11y.account.close-confirm .
+base:ts/pending-a11y vdo:validates base:user/US-a11y.classes.create-reader .
+base:ts/pending-a11y vdo:validates base:user/US-a11y.classes.edit-validated .
+base:ts/pending-a11y vdo:validates base:user/US-a11y.classes.property-panel .
+base:ts/pending-a11y vdo:validates base:user/US-a11y.comments.add-keyboard .
+base:ts/pending-a11y vdo:validates base:user/US-a11y.comments.view-add .
+base:ts/pending-a11y vdo:validates base:user/US-a11y.editing.cancel .
+base:ts/pending-a11y vdo:validates base:user/US-a11y.i18n.switch-language .
+base:ts/pending-a11y vdo:validates base:user/US-a11y.individuals.edit-dynamic .
+base:ts/pending-a11y vdo:validates base:user/US-a11y.navigation.graph-fallback .
+base:ts/pending-a11y vdo:validates base:user/US-a11y.navigation.tree-reader .
+base:ts/pending-a11y vdo:validates base:user/US-a11y.properties.create-object .
+base:ts/pending-a11y vdo:validates base:user/US-a11y.publish.view-public .
+base:ts/pending-a11y vdo:validates base:user/US-a11y.search.fulltext-keyboard .
+base:ts/pending-a11y vdo:validates base:user/US-a11y.versioning.commit-history .
+base:ts/pending-a11y vdo:validates base:user/US-a11y.versioning.create-commit .
+base:ts/pending-a11y vdo:validates base:user/US-a11y.versioning.switch-branch .
+
+# Pending test suite: admin.spec.ts
+base:ts/pending-admin a vdo:TestSuite ;
+    rdfs:label "Pending: admin"@en ;
+    rdfs:comment "Skeleton test with test.describe.skip. Ready for implementation."@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/admin.spec.ts" .
+base:ts/pending-admin vdo:validates base:user/US-admin.access.assign-role .
+base:ts/pending-admin vdo:validates base:user/US-admin.airgap.prepare .
+base:ts/pending-admin vdo:validates base:user/US-admin.backup.daily .
+base:ts/pending-admin vdo:validates base:user/US-admin.endpoints.create-bind .
+base:ts/pending-admin vdo:validates base:user/US-admin.migration.diff .
+base:ts/pending-admin vdo:validates base:user/US-admin.migration.schema-rollback .
+base:ts/pending-admin vdo:validates base:user/US-admin.migration.transfer-staging .
+
+# Pending test suite: api.spec.ts
+base:ts/pending-api a vdo:TestSuite ;
+    rdfs:label "Pending: api"@en ;
+    rdfs:comment "Skeleton test with test.describe.skip. Ready for implementation."@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/api.spec.ts" .
+base:ts/pending-api vdo:validates base:user/US-api.docs.openapi .
+base:ts/pending-api vdo:validates base:user/US-api.ontologies.read-rest .
+
+# Pending test suite: browse.spec.ts
+base:ts/pending-browse a vdo:TestSuite ;
+    rdfs:label "Pending: browse"@en ;
+    rdfs:comment "Skeleton test with test.describe.skip. Ready for implementation."@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/browse.spec.ts" .
+base:ts/pending-browse vdo:validates base:user/US-browse.graph.paginated .
+base:ts/pending-browse vdo:validates base:user/US-browse.individuals.filter-by-property .
+base:ts/pending-browse vdo:validates base:user/US-browse.individuals.list-by-class .
+base:ts/pending-browse vdo:validates base:user/US-browse.public.view .
+base:ts/pending-browse vdo:validates base:user/US-browse.public.view-accessible .
+base:ts/pending-browse vdo:validates base:user/US-browse.search.fulltext .
+base:ts/pending-browse vdo:validates base:user/US-browse.search.parametric .
+
+# Pending test suite: editor.spec.ts
+base:ts/pending-editor a vdo:TestSuite ;
+    rdfs:label "Pending: editor"@en ;
+    rdfs:comment "Skeleton test with test.describe.skip. Ready for implementation."@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/editor.spec.ts" .
+base:ts/pending-editor vdo:validates base:user/US-editor.annotations.add-label .
+base:ts/pending-editor vdo:validates base:user/US-editor.classes.delete .
+base:ts/pending-editor vdo:validates base:user/US-editor.classes.edit .
+base:ts/pending-editor vdo:validates base:user/US-editor.classes.validate-shacl .
+base:ts/pending-editor vdo:validates base:user/US-editor.properties.edit-delete .
+base:ts/pending-editor vdo:validates base:user/US-editor.rules.create-visual .
+base:ts/pending-editor vdo:validates base:user/US-editor.rules.deduplicate .
+base:ts/pending-editor vdo:validates base:user/US-abox.individuals.batch-delete .
+base:ts/pending-editor vdo:validates base:user/US-abox.individuals.create-multi .
+base:ts/pending-editor vdo:validates base:user/US-abox.properties.add-inline .
+
+# Pending test suite: git.spec.ts
+base:ts/pending-git a vdo:TestSuite ;
+    rdfs:label "Pending: git"@en ;
+    rdfs:comment "Skeleton test with test.describe.skip. Ready for implementation."@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/git.spec.ts" .
+base:ts/pending-git vdo:validates base:user/US-git.branches.create-merge .
+base:ts/pending-git vdo:validates base:user/US-git.commits.compare .
+
+# Pending test suite: io.spec.ts
+base:ts/pending-io a vdo:TestSuite ;
+    rdfs:label "Pending: io"@en ;
+    rdfs:comment "Skeleton test with test.describe.skip. Ready for implementation."@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/io.spec.ts" .
+base:ts/pending-io vdo:validates base:user/US-io.export.docx .
+base:ts/pending-io vdo:validates base:user/US-io.forms.configure-templates .
+base:ts/pending-io vdo:validates base:user/US-io.import.turtle .
+base:ts/pending-io vdo:validates base:user/US-io.publish.snapshot .
+base:ts/pending-io vdo:validates base:user/US-io.reports.generate .
+base:ts/pending-io vdo:validates base:user/US-io.xlsx.import-export .
+
+# Pending test suite: metrics.spec.ts
+base:ts/pending-metrics a vdo:TestSuite ;
+    rdfs:label "Pending: metrics"@en ;
+    rdfs:comment "Skeleton test with test.describe.skip. Ready for implementation."@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/metrics.spec.ts" .
+base:ts/pending-metrics vdo:validates base:user/US-metrics.analytics.complexity .
+base:ts/pending-metrics vdo:validates base:user/US-metrics.analytics.feedback .
+base:ts/pending-metrics vdo:validates base:user/US-diagnostics.trace.diagnose .
+base:ts/pending-metrics vdo:validates base:user/US-diagnostics.trace.llm-recommend .
+
+# Pending test suite: support.spec.ts
+base:ts/pending-support a vdo:TestSuite ;
+    rdfs:label "Pending: support"@en ;
+    rdfs:comment "Skeleton test with test.describe.skip. Ready for implementation."@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/support.spec.ts" .
+base:ts/pending-support vdo:validates base:user/US-support.community.forum .
+base:ts/pending-support vdo:validates base:user/US-support.feedback.in-app-nps .
+base:ts/pending-support vdo:validates base:user/US-support.knowledge.search .
+base:ts/pending-support vdo:validates base:user/US-support.roadmap.vote-comment .
+base:ts/pending-support vdo:validates base:user/US-support.status.incident .
+base:ts/pending-support vdo:validates base:user/US-support.telemetry.opt-in .
+base:ts/pending-support vdo:validates base:user/US-support.tickets.create-track .
+
+# Pending test suite: team.spec.ts
+base:ts/pending-team a vdo:TestSuite ;
+    rdfs:label "Pending: team"@en ;
+    rdfs:comment "Skeleton test with test.describe.skip. Ready for implementation."@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/team.spec.ts" .
+base:ts/pending-team vdo:validates base:user/US-team.reviews.approve .
+base:ts/pending-team vdo:validates base:user/US-projects.fork .
 
 # --- Deleted Artifacts ---
 # mutation.rs — MutationRoot removed, replaced with EmptyMutation
