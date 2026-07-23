@@ -19,7 +19,14 @@ vi.mock("@/api/org", () => ({
 // Teleport stub: renders slot inline instead of moving to document.body
 const TeleportStub = { template: "<div><slot /></div>" };
 
-const mockGroups = [{ id: "group-1", name: "Test Group", type: "group", description: "A test group" }];
+const mockGroups = [
+	{
+		id: "group-1",
+		name: "Test Group",
+		type: "group",
+		description: "A test group",
+	},
+];
 
 describePage("GroupsPage", () => {
 	afterEach(() => {
@@ -90,17 +97,17 @@ describePage("GroupsPage", () => {
 	});
 
 	it("should not crash when groups API fails", async () => {
-			const { listGroups } = await import("@/api/org");
-			vi.mocked(listGroups).mockRejectedValue(new Error("Failed to load groups"));
-			const GroupsPage = (await import("@/pages/GroupsPage.vue")).default;
-			const wrapper = mountWithProviders(GroupsPage);
-			await new Promise((resolve) => setTimeout(resolve, 200));
-			await nextTick();
-			expect(
-				wrapper.find(".gp-top").exists() || wrapper.find(".gp-page").exists(),
-			).toBe(true);
-		});
+		const { listGroups } = await import("@/api/org");
+		vi.mocked(listGroups).mockRejectedValue(new Error("Failed to load groups"));
+		const GroupsPage = (await import("@/pages/GroupsPage.vue")).default;
+		const wrapper = mountWithProviders(GroupsPage);
+		await new Promise((resolve) => setTimeout(resolve, 200));
+		await nextTick();
+		expect(
+			wrapper.find(".gp-top").exists() || wrapper.find(".gp-page").exists(),
+		).toBe(true);
 	});
+});
 
 describe("GroupsPage - Create Group Dialog", () => {
 	afterEach(() => {
@@ -147,7 +154,9 @@ describe("GroupsPage - Create Group Dialog", () => {
 		expect(wrapper.find(".dialog-overlay").exists()).toBe(true);
 
 		// Click Cancel
-		const cancelBtn = wrapper.findAll("button").filter((b) => b.text().includes("Cancel"));
+		const cancelBtn = wrapper
+			.findAll("button")
+			.filter((b) => b.text().includes("Cancel"));
 		expect(cancelBtn.length).toBeGreaterThanOrEqual(1);
 		await cancelBtn[0].trigger("click");
 		await nextTick();

@@ -193,7 +193,9 @@ function onGroupCreated(name: string): void {
 	fetchGroups();
 }
 
-onMounted(() => { fetchGroups(); });
+onMounted(() => {
+	fetchGroups();
+});
 
 const groupRows = computed<GroupRow[]>(() => {
 	const items = groupsData.value;

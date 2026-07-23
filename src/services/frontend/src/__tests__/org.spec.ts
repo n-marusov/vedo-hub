@@ -103,9 +103,9 @@ describe("org API - createGroup", () => {
 		});
 
 		const { createGroup } = await import("@/api/org");
-		await expect(
-			createGroup({ name: "Duplicate" }),
-		).rejects.toThrow("Group name already exists");
+		await expect(createGroup({ name: "Duplicate" })).rejects.toThrow(
+			"Group name already exists",
+		);
 	});
 
 	it("should throw generic error when no response body", async () => {
@@ -114,8 +114,8 @@ describe("org API - createGroup", () => {
 		vi.mocked(mockApi.post).mockRejectedValue(new Error("Network Error"));
 
 		const { createGroup } = await import("@/api/org");
-		await expect(
-			createGroup({ name: "Failing" }),
-		).rejects.toThrow("Network Error");
+		await expect(createGroup({ name: "Failing" })).rejects.toThrow(
+			"Network Error",
+		);
 	});
 });
