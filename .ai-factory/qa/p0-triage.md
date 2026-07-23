@@ -118,8 +118,23 @@ Add `vdo:validates` for ~25 REQs that already have test coverage but lack TTL li
 Re-compute RCS → should increase from ~0.8 to ~4.0+.
 
 ### Phase 2 (This milestone) — Security test coverage (NFR-SECURITY)
-17 orphan P0 security REQs. Most are already planned for M3 security gates
-(`tests/security/authorization/`). Link tests as they're implemented.
+
+17 orphan P0 security REQs — **5 linked, 12 remaining**.
+
+**Resolved (TTL links added):**
+| REQ | Linked to |
+|-----|-----------|
+| `REQ-NFR.SECURITY.emergency-policy-disable` | `src/cli/emergency_policy_disable_test.go` |
+| `REQ-NFR.SECURITY.incident-secret-rotation` | `src/cli/secret_rotation_test.go` |
+| `REQ-NFR.SECURITY.audit-access-audit` | `src/cli/internal/audit/audit_log_test.go` |
+| `REQ-NFR.SECURITY.llm-content-screening` | `src/services/ai-orchestration-service/internal/handler/handler_test.go` |
+| `REQ-NFR.SECURITY.llm-tool-least-privilege` | `src/services/ai-orchestration-service/internal/middleware/middleware_test.go` |
+
+**Remaining (no tests exist yet, need M3 implementation):**
+`audit-encryption`, `audit-masking`, `doc-extract-security`, `enforced-in-code`,
+`excel-import-security`, `llm-write-human-approval`, `parser-query-fuzz-gates`,
+`privileged-access-control`, `prompt-audit`, `prompt-filter-blacklist`,
+`security-integration`, `suggestion-privacy`
 
 ### Phase 3 (Next milestone) — API functional gaps (FUN-API)
 8 remaining FUN-API orphan P0s that have no test coverage:

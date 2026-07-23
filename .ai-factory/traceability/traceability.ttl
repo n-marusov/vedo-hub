@@ -3568,6 +3568,34 @@ base:ts/api-gateway.query_integration vdo:validates base:req/REQ-FUN.DATA.query-
 base:ts/api-gateway.main vdo:validates base:req/REQ-FUN.API.unified-root-endpoint .
 base:ts/publish-browse-ui.__tests__.setup vdo:validates base:req/REQ-USR.UI.gui-implementation .
 
+# --- Security validation links ---
+# CLI emergency-policy-disable tests
+base:ts/cli.emergency_policy_disable a vdo:TestSuite ;
+    rdfs:label "CLI EMERGENCY POLICY DISABLE TESTS"@en ;
+    rdfs:comment "Tests for emergency policy disable with guardrails, MFA, and approval workflows"@en ;
+    vdo:filePath "src/cli/emergency_policy_disable_test.go" .
+base:ts/cli.emergency_policy_disable vdo:validates base:req/REQ-NFR.SECURITY.emergency-policy-disable .
+
+# CLI secret rotation tests
+base:ts/cli.secret_rotation a vdo:TestSuite ;
+    rdfs:label "CLI SECRET ROTATION TESTS"@en ;
+    rdfs:comment "Tests for incident-driven secret rotation with SLA tracking and revocation"@en ;
+    vdo:filePath "src/cli/secret_rotation_test.go" .
+base:ts/cli.secret_rotation vdo:validates base:req/REQ-NFR.SECURITY.incident-secret-rotation .
+
+# CLI audit log tests
+base:ts/cli.internal.audit.audit_log a vdo:TestSuite ;
+    rdfs:label "CLI AUDIT LOG TESTS"@en ;
+    rdfs:comment "Tests for audit event emission, redaction, and structured logging"@en ;
+    vdo:filePath "src/cli/internal/audit/audit_log_test.go" .
+base:ts/cli.internal.audit.audit_log vdo:validates base:req/REQ-NFR.SECURITY.audit-access-audit .
+
+# AI-orchestration handler tests — prompt safety
+base:ts/ai-orchestration-service.internal.handler.handler vdo:validates base:req/REQ-NFR.SECURITY.llm-content-screening .
+
+# AI-orchestration middleware tests — policy enforcement
+base:ts/ai-orchestration-service.internal.middleware.middleware vdo:validates base:req/REQ-NFR.SECURITY.llm-tool-least-privilege .
+
 # --- Non-testable P0 requirements ---
 # These P0 requirements describe constraints, process policies, or business rules
 # that cannot be verified through automated tests. They are excluded from RCS
