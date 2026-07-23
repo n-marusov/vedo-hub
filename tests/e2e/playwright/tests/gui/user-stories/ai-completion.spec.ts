@@ -1,6 +1,8 @@
 import { test, expect } from '../../fixtures';
 import { DocumentUploadPage } from '../../../pages/document-upload.page';
 
+// Validates: US-io.ontology.ai-completion
+//
 // E2E-ai.completion.class-suggestions — AI-assisted class completion (P1)
 // Covers US: US-io.ontology.ai-completion
 //

@@ -1,5 +1,7 @@
 package proxy
 
+// Validates: REQ-NFR.SECURITY.bola-bfla-negative-tests
+
 import (
 	"bytes"
 	"io"

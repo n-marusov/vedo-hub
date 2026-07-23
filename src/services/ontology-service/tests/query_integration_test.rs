@@ -1,5 +1,8 @@
 //! Integration tests for the ontology-service SPARQL/CYPHER query endpoints.
 //!
+//! Validates: REQ-FUN.API.graphql-sparql
+//! Validates: REQ-NFR.SECURITY.bola-bfla-negative-tests
+//!
 //! These tests do NOT require Neo4j when the assertions focus on validation,
 //! error handling, and route resolution. Tests that exercise real query
 //! execution require `NEO4J_TEST_URI` and are gated via `common::skip_if_no_neo4j`.

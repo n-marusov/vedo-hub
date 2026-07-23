@@ -1,5 +1,7 @@
 package org
 
+// Validates: REQ-NFR.SECURITY.organization-access-model
+//
 // MVP role vocabulary contract tests.
 // Verifies that the API accepts MVP roles (Guest, Reporter, Developer, Maintainer, Owner)
 // and maintains backward compatibility with legacy roles (Viewer, Editor).

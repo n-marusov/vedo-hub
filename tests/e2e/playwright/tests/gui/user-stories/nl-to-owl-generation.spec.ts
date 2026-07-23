@@ -1,6 +1,8 @@
 import { test, expect } from '../../fixtures';
 import { DocumentUploadPage } from '../../../pages/document-upload.page';
 
+// Validates: US-io.ontology.create-nl-to-owl
+//
 // E2E-nl-to-owl.generation — Natural language to OWL ontology generation (P0)
 // Covers US: US-io.ontology.create-nl-to-owl
 //

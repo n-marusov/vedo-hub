@@ -1,5 +1,7 @@
 package auth
 
+// Validates: REQ-NFR.SECURITY.bola-bfla-negative-tests
+
 import (
 	"context"
 	"crypto/rand"

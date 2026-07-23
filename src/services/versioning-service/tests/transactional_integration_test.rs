@@ -1,5 +1,7 @@
 //! Integration tests for transactional correctness of the versioning service.
 //!
+//! Validates: REQ-FUN.DATA.versioning
+//!
 //! These tests verify that the versioning operations maintain data consistency
 //! invariants even when intermediate steps fail. They require a running
 //! PostgreSQL instance; set `PG_TEST_DATABASE_URL` to enable them.

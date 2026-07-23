@@ -2,6 +2,8 @@ import { test, expect } from '../../fixtures';
 import { DocumentUploadPage } from '../../../pages/document-upload.page';
 import path from 'path';
 
+// Validates: US-io.document.extract-md-txt
+//
 // E2E-document.extract-md-txt — Document extraction from Markdown and plain text (P0)
 // Covers US: US-io.document.extract-md-txt
 //
