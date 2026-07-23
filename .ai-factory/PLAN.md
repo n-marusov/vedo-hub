@@ -1,122 +1,120 @@
-# Fix Plan: AI Factory Validation Guidance
+# Implementation Plan: Migration Integration Tests — Graceful Guard Pattern
 
-**Created:** 2026-07-14
-**Branch:** `feature/ontology-core-engine`
-**Mode:** fast / current branch
-**Objective:** Fix the `$aif-review` blocking finding and clarify traceability scope. Auto-generated `.ai-factory/evolutions/*` and `.ai-factory/skill-context/*` artifacts are internal AI Factory artifacts, not product artifacts, and do not require mandatory entries in `.ai-factory/traceability/traceability.ttl` unless they directly define product behavior.
+Branch: feature/test-improvements
+Created: 2026-07-23
 
 ## Settings
-
-- **Testing:** yes — perform lightweight validation of the updated markdown guidance and verify command wording is directory-aware.
-- **Logging:** standard — runtime logging is not applicable because this change only updates AI Factory guidance documents.
-- **Docs:** no — no product documentation checkpoint is required for internal AI Factory guidance.
+- Testing: yes (the plan IS about test infrastructure changes)
+- Logging: verbose
+- Docs: no (internal test infrastructure, no user docs needed)
 
 ## Roadmap Linkage
+Milestone: M7 — MVP Acceptance, Security & Demo Readiness
+Rationale: Стабильный `make test` — базовое требование acceptance. Падение интеграционных тестов без БД блокирует разработчикам быстрый фидбэк.
 
-- **Milestone:** none
-- **Rationale:** Skipped by user; this is an internal agent-workflow correction, not a product milestone item.
+## Research Context
+Source: Исследование от 2026-07-23 (см. историю — explore mode по `make test`)
 
-## Scope
+Goal: Мигрировать интеграционные тесты с panic на graceful guard, разделить unit/integration в Makefile
+Constraints:
+- TQS B4: нельзя молча завершать тест без проверки
+- Минимальные изменения — не переписывать существующие тесты
+- Сохранить возможность запуска интеграционных тестов с БД отдельно
+Decisions:
+- `eprintln + return` вместо `panic!` — TQS B4 не нарушен (stderr ≠ silent)
+- `make test` = только unit (T0), `make test-integration` = с БД
+- Docker Compose profile "test" для инфраструктуры
 
-Modify only AI Factory artifacts:
+## Commit Plan
+- **Commit 1** (tasks 1-2): "fix(versioning-service): replace panic with graceful skip in integration tests"
+- **Commit 2** (tasks 3-4): "fix(ontology-service): replace panic with graceful skip in integration tests"
+- **Commit 3** (task 5): "build: add test-unit and test-integration targets to Makefile"
+- **Commit 4** (task 6): "chore: add test DB services to Docker Compose"
+- **Commit 5** (task 7): "docs: update run_integration_rust.sh and README"
 
-- `.ai-factory/skill-context/aif-implement/SKILL.md`
-- `.ai-factory/RULES.md` or the resolved rules artifact that owns the traceability rule
-
-Do not modify product/service code.
+## Acceptance Criteria
+- [ ] All tests pass: `make test` (unit only, без инфраструктуры)
+- [ ] `make test-integration` запускает тесты с БД
+- [ ] TQS B4 не нарушен — все guard выводят сообщение в stderr
+- [ ] ontology-service: `skip_if_no_neo4j()` — `eprintln + return`, не `panic!`
+- [ ] versioning-service: `skip_if_no_pg()` — `eprintln + return`, не `panic!`
 
 ## Tasks
 
-### Phase 1 — Fix Go validation guidance
+### Phase 1: versioning-service — graceful skip вместо panic
+- [x] **Task 1: Обновить `skip_if_no_pg()` в versioning-service** (depends on: none)
+  - Файл: `src/services/versioning-service/tests/common/mod.rs`
+  - Заменить `panic!(...)` на `eprintln!(...)` + `return`
+  - Сигнатура функции остаётся `pub fn skip_if_no_pg()`
+  - Сообщение: `eprintln!("⚠️  Skipping PostgreSQL integration test. Set PG_TEST_DATABASE_URL to run.")`
+  - Убедиться, что тест не делает `panic` — просто возвращается рано
+  - LOGGING: INFO-level message to stderr, not stdout
 
-- [x] **Task 1: Make Go validation commands module-aware**
-  - **Files:** `.ai-factory/skill-context/aif-implement/SKILL.md`
-  - **Deliverable:** Replace generic `go vet ./...` / `go test ./...` wording with guidance that respects the multi-module monorepo layout.
-  - **Expected behavior:** Implementers must run Go checks from each affected Go module directory, for example:
-    - `cd src/services/api-gateway` then `go test ./...`
-    - `cd src/services/ticket-api` then `go vet ./...`
-    - `cd src/cli` then `go test ./...`
-  - **Logging requirements:** Runtime logging is not applicable; do not add application logging requirements for this markdown-only update.
-  - **Dependency notes:** No dependencies.
+- [x] **Task 2: Обновить integration-тесты versioning-service** (depends on: 1)
+  - Файлы: `src/services/versioning-service/tests/branch_integration_test.rs` и остальные 6 test файлов
+  - Для асинхронных тестов (`#[tokio::test]`): проверить, что `skip_if_no_pg()` вызывается первой строкой и тест корректно завершается после return
+  - Все 4 теста в branch_integration_test.rs, плюс остальные 6 test файлов
+  - BDD naming: `skip_if_no_pg` → test returns early without panic
+  - **Валидация:** `cargo test -p versioning-service --test '*'` — exit 0 без PG
 
-### Phase 2 — Clarify Rust validation guidance
+### Phase 2: ontology-service — graceful skip вместо panic
+- [x] **Task 3: Обновить `skip_if_no_neo4j()` в ontology-service** (depends on: none)
+  - Файл: `src/services/ontology-service/tests/common/mod.rs`
+  - Заменить `panic!(...)` на `eprintln!(...)` + ранний return
+  - Сигнатура: `pub fn skip_if_no_neo4j()`
+  - Сообщение: `eprintln!("⚠️  Skipping Neo4j integration test. Set NEO4J_TEST_URI to run.")`
+  - LOGGING: INFO-level to stderr
 
-- [x] **Task 2: Separate Rust type/lint gates from build gates**
-  - **Files:** `.ai-factory/skill-context/aif-implement/SKILL.md`
-  - **Deliverable:** Replace wording like `cargo check` or `cargo build` before merge with stricter validation guidance.
-  - **Expected behavior:** The rule must state that:
-    - `cargo check` and/or `cargo clippy` are the Rust validation/type/lint gates;
-    - `cargo build` is a build gate and does not replace `cargo check` / `cargo clippy`;
-    - commands must run from the affected Rust crate or workspace directory.
-  - **Logging requirements:** Runtime logging is not applicable; do not add application logging requirements for this markdown-only update.
-  - **Dependency notes:** Prefer doing this after Task 1 so validation guidance remains consistent across languages.
+- [x] **Task 4: Обновить integration-тесты ontology-service** (depends on: 3)
+  - Файлы: все файлы в `src/services/ontology-service/tests/*.rs` (9 файлов)
+  - Для тестов, которые используют `skip_if_no_neo4j()` → проверить ранний return без panic
+  - Для тестов без внешних зависимостей (org_resolvers_test, route_registration_test) — оставить как есть
+  - **Валидация:** `cargo test -p ontology-service --test '*'` — exit 0 без Neo4j
 
-### Phase 3 — Scope GraphQL/E2E validation commands
+### Phase 3: Makefile — разделение unit/integration
+- [x] **Task 5: Добавить `test-rust-unit` и `test-integration` в Makefile** (depends on: 2, 4)
+  - Файл: `src/build/rust.mk` и `src/Makefile`
+  - Добавить `test-rust-unit`:
+    ```makefile
+    .PHONY: test-rust-unit
+    test-rust-unit:
+        @if [ -z "$(RUST_DIRS)" ]; then echo "No Rust services found"; exit 0; fi
+        @for dir in $(RUST_DIRS); do \
+            echo "[Rust] unit testing $$(basename $$dir)"; \
+            cd $$dir && cargo test --lib 2>&1 || ...; \
+        done
+    ```
+  - Изменить `test` в Makefile:
+    ```makefile
+    test: test-rust-unit test-go test-python test-typescript
+    ```
+  - Добавить `test-all` (старое поведение: запускает всё)
+    ```makefile
+    test-all: test-rust test-go test-python test-typescript
+    ```
+  - **Валидация:** `make test` — exit 0 без БД
 
-- [x] **Task 3: Make GraphQL end-to-end commands directory-aware**
-  - **Files:** `.ai-factory/skill-context/aif-implement/SKILL.md`
-  - **Deliverable:** Clarify that commands such as `cargo test -p ontology-service --lib` and Go tests must be run from the correct workspace/module directory.
-  - **Expected behavior:** The rule must avoid generic commands without a working directory. It should state:
-    - Rust ontology tests run from the Rust workspace/crate directory where package `ontology-service` is available;
-    - Go gateway/API tests run from the concrete affected Go module directory.
-  - **Logging requirements:** Runtime logging is not applicable; if the guidance mentions debugging, keep it limited to implementation-time runtime code, not this markdown-only update.
-  - **Dependency notes:** Depends on Tasks 1 and 2 for consistent validation wording.
+### Phase 4: Docker Compose — test profile (опционально, если нужна БД для локального запуска)
+- [ ] **Task 6: Добавить test-зависимости в Docker Compose** (depends on: none, optional)
+  - Файл: `deploy/docker-compose.yml`
+  - Добавить сервисы под `profiles: ["test"]`:
+    - `postgres-test` (postgres:16-alpine, порт 5433, БД vedo_test)
+    - `neo4j-test` (neo4j:5, порт 7688)
+  - Убедиться, что сервисы не запускаются в `docker compose up` без `--profile test`
+  - **Валидация:** `docker compose --profile test up -d postgres-test neo4j-test` — контейнеры стартуют
 
-### Phase 4 — Clarify traceability scope
+### Phase 5: Документация
+- [ ] **Task 7: Обновить документацию тестов** (depends on: 5)
+  - Файл: `tests/run_integration_rust.sh` — исправить комментарий «normally SKIPPED» → «normally gracefully skipped with eprintln»
+  - Обновить `deploy/README.md` или `src/docs/antora/developer-guide/` — секция про запуск тестов:
+    - `make test` → unit-тесты (без инфры)
+    - `make test-all` → все тесты (требует инфру)
+    - `PG_TEST_DATABASE_URL=... NEO4J_TEST_URI=... make test-integration`
+  - **Валидация:** `grep -r "normally SKIPPED" tests/run_integration_rust.sh` — больше не показывает устаревший текст
 
-- [x] **Task 4: Exclude internal AI Factory artifacts from mandatory product traceability**
-  - **Files:** `.ai-factory/RULES.md` or the resolved rules artifact that owns the traceability rule
-  - **Deliverable:** Add an explicit clarification that mandatory traceability applies to product/service artifacts, not internal agent workflow artifacts.
-  - **Expected behavior:** The rule must state that these internal AI Factory artifacts do not require mandatory entries in `.ai-factory/traceability/traceability.ttl` unless they directly define product behavior:
-    - `.ai-factory/evolutions/*`
-    - `.ai-factory/skill-context/*`
-    - agent plan/review/fix metadata
-  - **Logging requirements:** Runtime logging is not applicable.
-  - **Dependency notes:** Independent of Tasks 1–3.
-
-### Phase 5 — Validate the corrected guidance
-
-- [x] **Task 5: Verify updated rules remove ambiguous command guidance**
-  - **Files:** `.ai-factory/skill-context/aif-implement/SKILL.md`, `.ai-factory/RULES.md`
-  - **Deliverable:** Inspect the changed markdown and confirm no misleading validation or traceability wording remains.
-  - **Expected behavior:** The changed guidance must no longer contain:
-    - `go vet ./...` as a standalone recommendation without a Go module working directory;
-    - `go test ./...` as a standalone recommendation without a Go module working directory;
-    - `cargo build` presented as a replacement for `cargo check` / `cargo clippy`;
-    - mandatory product traceability requirements for `.ai-factory/evolutions/*` or `.ai-factory/skill-context/*`.
-  - **Logging requirements:** Runtime logging is not applicable; record validation results in the final implementation summary.
-  - **Dependency notes:** Depends on Tasks 1–4.
-
-## Acceptance Criteria
-
-- [x] Go validation guidance no longer implies root-level `go vet ./...` / `go test ./...` in a monorepo without root `go.mod`.
-- [x] Rust guidance clearly separates `cargo check` / `cargo clippy` from `cargo build`.
-- [x] GraphQL/E2E validation guidance identifies the correct workspace/module working directory.
-- [x] Traceability rule is explicitly scoped to product/service artifacts.
-- [x] `.ai-factory/evolutions/*` and `.ai-factory/skill-context/*` are documented as internal AI Factory artifacts that do not require mandatory traceability entries unless they directly define product behavior.
-- [x] Changes remain on the current branch; no branch/worktree is created.
-
-## Progress Tracking
-
-Update task checkboxes in this file as implementation progresses:
-
-- `[ ]` not started
-- `[~]` in progress
-- `[x]` complete
-- `[!]` blocked
-
-## Commit Plan
-
-Single commit after all tasks are complete:
-
-```text
-Fix AI Factory validation guidance
-```
-
-## Next Steps
-
-To start implementation, run:
-
-```text
-$aif-implement
-```
+### Phase 6: Traceability
+- [ ] **Task 8: Обновить traceability.ttl** (depends on: 5)
+  - Файл: `.ai-factory/traceability/traceability.ttl`
+  - Проверить, нужно ли обновлять записи для изменённых `tests/common/mod.rs` файлов
+  - Если изменённые файлы уже покрыты директорией service → skip
+  - Если нет → добавить `vdo:TestSuite` / `vdo:TestContract`

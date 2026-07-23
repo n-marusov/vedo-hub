@@ -5,9 +5,9 @@
 #   tests/run_integration_rust.sh                 # uses default env vars
 #   NEO4J_TEST_URI=bolt://... PG_TEST_DATABASE_URL=... tests/run_integration_rust.sh
 #
-# These tests are normally SKIPPED by `cargo test --workspace` (the test
-# binaries exit 0 when the relevant env var is unset). This script sets them
-# up to actually run against a developer database.
+# These tests are gracefully skipped when the relevant env var is unset
+# (each test prints a clear message to stderr and returns early).
+# This script sets the env vars to actually run against a developer database.
 #
 # This script is a thin wrapper that delegates to the canonical script at
 # src/services/scripts/run_integration_rust.sh. Keep the canonical version

@@ -16,14 +16,43 @@ Cross-service test suites are in `tests/`:
 
 == Running Tests
 
-=== All Tests
+=== Unit Tests (Fast)
 
 [source,bash]
 ----
 cd src && make test
 ----
 
-This runs tests for all languages: Rust (`cargo test`), Go (`go test`), Python (`pytest`), TypeScript.
+Runs unit tests for all languages without external infrastructure:
+
+* **Rust:** `cargo test --lib` (unit tests only — no PostgreSQL/Neo4j needed)
+* **Go:** `go test ./...`
+* **Python:** `uv run pytest`
+* **TypeScript:** `pnpm test`
+
+This is the standard feedback loop during development — no databases required.
+
+=== All Tests (Including Integration)
+
+[source,bash]
+----
+cd src && make test-all
+----
+
+Runs the full test suite including Rust integration tests that require
+PostgreSQL and Neo4j. Set these environment variables first:
+
+[source,bash]
+----
+export PG_TEST_DATABASE_URL=postgres://postgres:password@localhost:5432/vedo_test
+export NEO4J_TEST_URI=bolt://localhost:7687
+export NEO4J_USER=neo4j
+export NEO4J_PASSWORD=password
+cd src && make test-all
+----
+
+Integration tests gracefully skip with a clear message to stderr when
+the relevant environment variable is unset.
 
 === Coverage
 
@@ -38,14 +67,17 @@ Runs Go tests with coverage profiles (`cover.out` per service).
 
 [source,bash]
 ----
-# Rust
-cd src/services/ontology-service && cargo test
+# Rust — unit tests only
+cd src/services/ontology-service && cargo test --lib
+
+# Rust — all tests (including integration, requires DB)
+cd src/services/versioning-service && cargo test
 
 # Go
 cd src/services/api-gateway && go test ./...
 
 # Python
-cd src/services/metrics-service && pytest
+cd src/services/metrics-service && uv run pytest
 
 # TypeScript
 cd src/services/frontend && pnpm test

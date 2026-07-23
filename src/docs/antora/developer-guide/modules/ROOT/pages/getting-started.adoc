@@ -108,8 +108,11 @@ cd src && make docker-build
 # Lint everything
 cd src && make lint
 
-# Run all tests
+# Run unit tests (fast, no infrastructure needed)
 cd src && make test
+
+# Run all tests (including integration, requires DB)
+cd src && make test-all
 
 # Full CI check (build + lint + test + typecheck)
 cd src && make ci
