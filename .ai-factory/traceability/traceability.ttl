@@ -3617,6 +3617,8 @@ base:ts/ai-orchestration-service.internal.middleware.middleware vdo:validates ba
 # REQ-NFR.INTEGRATION.* (2): Failover downtime SLAs
 # REQ-FUN.INFRA.* deployment-integrity, provider-priority, runbook (3)
 # REQ-NFR.UI.* accessibility, error-feedback, data-loss-prevention (3)
+# REQ-FUN.API.on-premise-lts — LTS policy documentation
+# REQ-FUN.API.protocol-stack — Architectural protocol strategy (gRPC/REST/GraphQL)
 
 # CHANGE IMPACT ANALYSIS
 # =============================================================================

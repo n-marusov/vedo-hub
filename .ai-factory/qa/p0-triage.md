@@ -8,11 +8,11 @@
 
 | Category | Count | Action |
 |----------|-------|--------|
-| 🟢 Already tested — needs TTL link | ~25 | Quick win — add `vdo:validates` |
-| 🟡 Testable — needs new tests | ~80 | Requires implementation |
-| 🔴 Non-testable (constraint/process/policy) | ~66 | No test needed — mark as non-testable |
+| 🟢 Already tested — needs TTL link | ~25 | ✅ Done (22+ linked) |
+| 🟡 Testable — needs new tests | ~74 | Requires implementation |
+| 🔴 Non-testable (constraint/process/policy) | ~70 | No test needed — marked in TTL |
 
-**Recommendation:** Start with 🟢 quick wins (add TTL links), then triage 🟡 by impact.
+**Progress:** 22 quick-win TTL links added. 6 security REQs linked. 2 FUN-API moved to non-testable.
 
 ---
 
@@ -106,6 +106,8 @@ These describe constraints, process requirements, or business policies that cann
 | REQ-FUN.DOC.* | 1 | LLM privacy policy |
 | REQ-USR.DOC.* | 1 | User guide navigation |
 | REQ-FUN.INFRA.* (except vedo-cli) | 3 | Deployment integrity, provider-priority-config, runbook procedures |
+| REQ-FUN.API."protocol-stack" | 1 | Architectural decision: gRPC/REST/GraphQL protocol stack strategy |
+| REQ-FUN.API."on-premise-lts" | 1 | LTS policy documentation for on-premise deployments |
 
 These should be annotated as `vdo:nfr` with `vdo:testStrategy "documented"` (or similar marker) to distinguish from unaddressed testable P0s.
 
@@ -119,7 +121,7 @@ Re-compute RCS → should increase from ~0.8 to ~4.0+.
 
 ### Phase 2 (This milestone) — Security test coverage (NFR-SECURITY)
 
-17 orphan P0 security REQs — **5 linked, 12 remaining**.
+17 orphan P0 security REQs — **6 linked, 11 remaining**.
 
 **Resolved (TTL links added):**
 | REQ | Linked to |
@@ -129,20 +131,19 @@ Re-compute RCS → should increase from ~0.8 to ~4.0+.
 | `REQ-NFR.SECURITY.audit-access-audit` | `src/cli/internal/audit/audit_log_test.go` |
 | `REQ-NFR.SECURITY.llm-content-screening` | `src/services/ai-orchestration-service/internal/handler/handler_test.go` |
 | `REQ-NFR.SECURITY.llm-tool-least-privilege` | `src/services/ai-orchestration-service/internal/middleware/middleware_test.go` |
+| `REQ-NFR.SECURITY.privileged-access-control` | `src/services/auth-service/org/org_roles_test.go` |
 
 **Remaining (no tests exist yet, need M3 implementation):**
 `audit-encryption`, `audit-masking`, `doc-extract-security`, `enforced-in-code`,
 `excel-import-security`, `llm-write-human-approval`, `parser-query-fuzz-gates`,
-`privileged-access-control`, `prompt-audit`, `prompt-filter-blacklist`,
+`prompt-audit`, `prompt-filter-blacklist`,
 `security-integration`, `suggestion-privacy`
 
 ### Phase 3 (Next milestone) — API functional gaps (FUN-API)
-8 remaining FUN-API orphan P0s that have no test coverage:
+6 remaining FUN-API orphan P0s that need feature implementation + tests:
 - `suggestion-confidence-threshold`, `suggestion-recalculation` → AI-orchestration service
 - `iterative-refinement-context`, `gradual-rollback` → API Gateway
 - `validation-import`, `validation-pr` → Ontology service
-- `protocol-stack` → Integration test
-- `on-premise-lts` → Not testable per-se (LTS policy)
 
 ### Phase 4 (Backlog) — USR-UI specs
 24 orphan P0 UI REQs. The frontend has 28 specs covering `gui-implementation`,
