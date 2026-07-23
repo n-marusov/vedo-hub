@@ -2517,6 +2517,12 @@ base:req/REQ-NFR.SECURITY.incident-secret-rotation a vdo:NonFunctionalRequiremen
     vdo:area "Security" ;
     vdo:filePath "specs/requirements/REQ-NFR.SECURITY.incident-secret-rotation.md" .
 
+base:req/REQ-NFR.SECURITY.jwt-key-mismatch a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY jwt key mismatch"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.jwt-key-mismatch.md" .
+
 base:req/REQ-NFR.SECURITY.llm-content-screening a vdo:NonFunctionalRequirement ;
     rdfs:label "NFR SECURITY llm content screening"@en ;
     vdo:priority "P1" ;
