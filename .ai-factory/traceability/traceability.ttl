@@ -3459,6 +3459,7 @@ base:ts/auth-service.org.org_hierarchy vdo:validates base:req/REQ-NFR.SECURITY.o
 base:ts/auth-service.org.org_proto_validation vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
 base:ts/auth-service.org.org_remove_member vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
 base:ts/auth-service.org.org_roles vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
+base:ts/auth-service.org.org_roles vdo:validates base:req/REQ-NFR.SECURITY.privileged-access-control .
 base:ts/auth-service.org.postgres_store vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
 base:ts/auth-service.org.schema vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
 base:ts/auth-service.org_proto_generate vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
