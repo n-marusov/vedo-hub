@@ -3406,7 +3406,7 @@ base:ts/versioning-service.tests.transactional_integration a vdo:TestSuite ;
 # =============================================================================
 # VALIDATION LINKS — Test-to-Requirement (from // Validates: annotations)
 # =============================================================================
-# 90 validates links connecting test suites to requirements.
+# 99 validates links connecting test suites to requirements.
 # =============================================================================
 
 base:ts/ai-orchestration-service.internal.handler.handler vdo:validates base:req/REQ-FUN.API.llm-policy .
@@ -3499,6 +3499,15 @@ base:ts/ontology-service.tests.class_integration vdo:validates base:req/REQ-USR.
 base:ts/ontology-service.tests.individual_integration vdo:validates base:req/REQ-USR.UI.abox-editor .
 base:ts/ontology-service.tests.validation_integration vdo:validates base:req/REQ-FUN.API.pre-save-validation .
 base:ts/versioning-service.tests.delta_integration vdo:validates base:req/REQ-FUN.DATA.versioning .
+base:ts/ontology-service.tests.graph_query_integration vdo:validates base:req/REQ-FUN.API.class-hierarchy-accuracy .
+base:ts/ontology-service.tests.import_export_integration vdo:validates base:req/REQ-FUN.DATA.ontology-import-export .
+base:ts/ontology-service.tests.property_integration vdo:validates base:req/REQ-FUN.API.property-crud .
+base:ts/ontology-service.tests.route_registration vdo:validates base:req/REQ-FUN.API.route-registration .
+base:ts/versioning-service.tests.branch_integration vdo:validates base:req/REQ-FUN.DATA.versioning .
+base:ts/versioning-service.tests.checkout_integration vdo:validates base:req/REQ-FUN.DATA.versioning .
+base:ts/versioning-service.tests.commit_integration vdo:validates base:req/REQ-FUN.DATA.versioning .
+base:ts/versioning-service.tests.merge_integration vdo:validates base:req/REQ-FUN.DATA.versioning .
+base:ts/versioning-service.tests.route_registration vdo:validates base:req/REQ-FUN.API.route-registration .
 
 # CHANGE IMPACT ANALYSIS
 # =============================================================================

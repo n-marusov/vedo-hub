@@ -1,5 +1,7 @@
 //! Route-registration smoke tests for the ontology-service.
 //!
+//! Validates: REQ-FUN.API.route-registration
+//!
 //! These tests verify that every parameterized route registered in
 //! `build_app` resolves correctly under axum 0.7's `:param` syntax. The
 //! regression they guard against: a previous revision used `{param}` syntax,

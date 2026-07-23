@@ -1,5 +1,7 @@
 //! Integration tests for property CRUD operations.
 //!
+//! Validates: REQ-FUN.API.property-crud
+//!
 //! Requires running Neo4j. Set NEO4J_TEST_URI env var to enable.
 
 mod common;

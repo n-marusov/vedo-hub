@@ -1,5 +1,7 @@
 //! Integration tests for graph queries (hierarchy, neighborhood, breadcrumb).
 //!
+//! Validates: REQ-FUN.API.class-hierarchy-accuracy
+//!
 //! Requires running Neo4j. Set NEO4J_TEST_URI env var to enable.
 
 mod common;

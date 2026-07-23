@@ -1,5 +1,7 @@
 //! Route-registration smoke tests for the versioning-service.
 //!
+//! Validates: REQ-FUN.API.route-registration
+//!
 //! Verifies that every parameterized route registered in `build_routes`
 //! resolves correctly under axum 0.7's `:param` syntax. The regression they
 //! guard against: the previous revision used `{param}` syntax, which axum 0.7

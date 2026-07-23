@@ -1,5 +1,7 @@
 //! Integration tests for import/export operations.
 //!
+//! Validates: REQ-FUN.DATA.ontology-import-export
+//!
 //! Requires running Neo4j. Set NEO4J_TEST_URI env var to enable.
 
 mod common;

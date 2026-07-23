@@ -1,5 +1,7 @@
 //! Integration tests for merge operations with PostgreSQL.
 //!
+//! Validates: REQ-FUN.DATA.versioning
+//!
 //! Requires running PostgreSQL. Set PG_TEST_DATABASE_URL env var to enable.
 
 mod common;
