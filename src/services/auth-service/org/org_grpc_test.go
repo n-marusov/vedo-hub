@@ -10,6 +10,8 @@ package org
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"net"
 	"testing"
 
@@ -22,6 +24,18 @@ import (
 
 const bufSize = 1024 * 1024
 
+// newUUID generates a UUID v4 for testing.
+func newUUID() string {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		return "00000000-0000-0000-0000-000000000000"
+	}
+	b[6] = (b[6] & 0x0f) | 0x40
+	b[8] = (b[8] & 0x3f) | 0x80
+	s := hex.EncodeToString(b)
+	return s[:8] + "-" + s[8:12] + "-" + s[12:16] + "-" + s[16:20] + "-" + s[20:]
+}
+
 // setupGrpcTest creates an in-memory gRPC test server with OrgService + MemStore.
 func setupGrpcTest(t *testing.T) (authv1.OrgServiceClient, func()) {
 	t.Helper()
@@ -29,19 +43,25 @@ func setupGrpcTest(t *testing.T) (authv1.OrgServiceClient, func()) {
 	store := NewMemStore()
 	svc := NewOrgService(store)
 
-	// Seed test data
-	_ = store.UpsertScope(ScopeNode{ID: "group/test-group", Type: ScopeGroup, Visibility: VisibilityPrivate})
-	_ = store.UpsertScope(ScopeNode{ID: "group/test-group/child", Type: ScopeGroup, ParentID: "group/test-group"})
-	_ = store.UpsertScope(ScopeNode{ID: "ontology/test-ont", Type: ScopeOntology, Visibility: VisibilityPrivate})
-	_ = store.UpsertScope(ScopeNode{ID: "ontology/public-ont", Type: ScopeOntology, Visibility: VisibilityPublic})
-	_ = store.UpsertScope(ScopeNode{ID: "ontology/tenant-ont", Type: ScopeOntology, Visibility: VisibilityPrivate, TenantID: "tenant-b"})
+	// Seed test data with UUIDs
+	groupID := newUUID()
+	childID := newUUID()
+	ontologyID := newUUID()
+	publicOntID := newUUID()
+	tenantOntID := newUUID()
 
-	_ = store.UpsertMembership(OrgMembership{UserID: "owner-uuid", Scope: "group/test-group", Role: "Owner"})
-	_ = store.UpsertMembership(OrgMembership{UserID: "owner-uuid", Scope: "ontology/test-ont", Role: "Owner"})
-	_ = store.UpsertMembership(OrgMembership{UserID: "viewer-uuid", Scope: "ontology/test-ont", Role: "Viewer"})
-	_ = store.UpsertMembership(OrgMembership{UserID: "editor-uuid", Scope: "ontology/test-ont", Role: "Editor"})
-	_ = store.UpsertMembership(OrgMembership{UserID: "owner-uuid", Scope: "ontology/public-ont", Role: "Owner"})
-	_ = store.UpsertMembership(OrgMembership{UserID: "owner-uuid", Scope: "ontology/tenant-ont", Role: "Owner"})
+	_ = store.UpsertScope(ScopeNode{ID: groupID, Type: ScopeGroup, Visibility: VisibilityPrivate, Name: "test-group"})
+	_ = store.UpsertScope(ScopeNode{ID: childID, Type: ScopeGroup, ParentID: groupID, Name: "child"})
+	_ = store.UpsertScope(ScopeNode{ID: ontologyID, Type: ScopeOntology, Visibility: VisibilityPrivate, Name: "test-ont"})
+	_ = store.UpsertScope(ScopeNode{ID: publicOntID, Type: ScopeOntology, Visibility: VisibilityPublic, Name: "public-ont"})
+	_ = store.UpsertScope(ScopeNode{ID: tenantOntID, Type: ScopeOntology, Visibility: VisibilityPrivate, TenantID: "tenant-b", Name: "tenant-ont"})
+
+	_ = store.UpsertMembership(OrgMembership{UserID: "owner-uuid", Scope: groupID, Role: "Owner"})
+	_ = store.UpsertMembership(OrgMembership{UserID: "owner-uuid", Scope: ontologyID, Role: "Owner"})
+	_ = store.UpsertMembership(OrgMembership{UserID: "viewer-uuid", Scope: ontologyID, Role: "Viewer"})
+	_ = store.UpsertMembership(OrgMembership{UserID: "editor-uuid", Scope: ontologyID, Role: "Editor"})
+	_ = store.UpsertMembership(OrgMembership{UserID: "owner-uuid", Scope: publicOntID, Role: "Owner"})
+	_ = store.UpsertMembership(OrgMembership{UserID: "owner-uuid", Scope: tenantOntID, Role: "Owner"})
 
 	// Create gRPC server with test stub
 	lis := bufconn.Listen(bufSize)
@@ -83,10 +103,13 @@ type testOrgGrpcServer struct {
 }
 
 func (s *testOrgGrpcServer) CreateGroup(ctx context.Context, req *authv1.CreateGroupRequest) (*authv1.CreateGroupResponse, error) {
+	groupID := newUUID()
 	node := ScopeNode{
-		ID:       "group/" + req.Name,
-		Type:     ScopeGroup,
-		TenantID: req.OrganizationId,
+		ID:          groupID,
+		Type:        ScopeGroup,
+		TenantID:    req.OrganizationId,
+		Name:        req.Name,
+		Description: req.Description,
 	}
 	if req.ParentId != "" {
 		node.ParentID = req.ParentId

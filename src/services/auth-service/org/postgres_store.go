@@ -120,8 +120,10 @@ func (p *PostgresOrgStore) UpsertScope(s ScopeNode) error {
 			parent_id = EXCLUDED.parent_id,
 			visibility = EXCLUDED.visibility,
 			tenant_id = EXCLUDED.tenant_id,
+			name = EXCLUDED.name,
+			description = EXCLUDED.description,
 			updated_at = now()
-	`, s.ID, string(s.Type), nullString(s.ParentID), string(s.Visibility), s.TenantID, extractName(s.ID), "")
+	`, s.ID, string(s.Type), nullString(s.ParentID), string(s.Visibility), s.TenantID, s.Name, s.Description)
 	if err != nil {
 		log.Printf(`{"event":"store.error","operation":"UpsertScope","scope":"%s","error":"%v"}`, s.ID, err)
 		return err

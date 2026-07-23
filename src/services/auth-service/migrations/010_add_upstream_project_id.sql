@@ -6,7 +6,7 @@
 --
 -- Schema: vedo_org
 
-ALTER TABLE scopes ADD COLUMN IF NOT EXISTS upstream_project_id TEXT REFERENCES scopes(id) ON DELETE SET NULL;
+ALTER TABLE scopes ADD COLUMN IF NOT EXISTS upstream_project_id UUID REFERENCES scopes(id) ON DELETE SET NULL;
 
 CREATE INDEX IF NOT EXISTS idx_scopes_upstream ON scopes(upstream_project_id) WHERE upstream_project_id IS NOT NULL;
 

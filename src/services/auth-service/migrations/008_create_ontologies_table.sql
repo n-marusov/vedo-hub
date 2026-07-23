@@ -12,9 +12,9 @@
 
 CREATE TABLE IF NOT EXISTS ontologies (
     -- project_scope is both PK and FK: enforces 1:1 (one ontology per project scope)
-    project_scope TEXT PRIMARY KEY REFERENCES scopes(id) ON DELETE CASCADE,
+    project_scope UUID PRIMARY KEY REFERENCES scopes(id) ON DELETE CASCADE,
     -- ontology_id is the identifier used by ontology-service to address the graph
-    ontology_id   TEXT NOT NULL UNIQUE,
+    ontology_id   UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
     iri           TEXT NOT NULL DEFAULT '',
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()

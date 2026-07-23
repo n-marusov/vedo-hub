@@ -66,10 +66,13 @@ func NewOrgGrpcServer(svc *org.OrgService) *OrgGrpcServer {
 func (s *OrgGrpcServer) CreateGroup(ctx context.Context, req *authv1.CreateGroupRequest) (*authv1.CreateGroupResponse, error) {
 	requesterID := extractUserID(ctx)
 
+	groupID := newUUID()
 	scopeNode := org.ScopeNode{
-		ID:       "group/" + req.Name,
-		Type:     org.ScopeGroup,
-		TenantID: req.OrganizationId,
+		ID:          groupID,
+		Type:        org.ScopeGroup,
+		TenantID:    req.OrganizationId,
+		Name:        req.Name,
+		Description: req.Description,
 	}
 	if req.ParentId != "" {
 		scopeNode.ParentID = req.ParentId
@@ -168,11 +171,13 @@ func (s *OrgGrpcServer) ListChildGroups(ctx context.Context, req *authv1.ListChi
 func (s *OrgGrpcServer) CreateProject(ctx context.Context, req *authv1.CreateProjectRequest) (*authv1.CreateProjectResponse, error) {
 	requesterID := extractUserID(ctx)
 
-	projectScopeID := "project/" + req.Name
+	projectID := newUUID()
 	node := org.ScopeNode{
-		ID:       projectScopeID,
-		Type:     org.ScopeProject,
-		TenantID: req.OrganizationId,
+		ID:          projectID,
+		Type:        org.ScopeProject,
+		TenantID:    req.OrganizationId,
+		Name:        req.Name,
+		Description: req.Description,
 	}
 
 	if err := s.svc.CreateScope(requesterID, node); err != nil {
@@ -182,24 +187,24 @@ func (s *OrgGrpcServer) CreateProject(ctx context.Context, req *authv1.CreatePro
 	// Generate a UUID v4 for the paired Ontology (REQ-FUN.DATA.ontology-identifier-standard).
 	ontologyID := newUUID()
 	if err := s.svc.Store().CreateOntology(org.Ontology{
-		ProjectScope: projectScopeID,
+		ProjectScope: projectID,
 		OntologyID:   ontologyID,
 	}); err != nil {
-		slog.Error("project.create.ontology_pairing_failed", "project_id", projectScopeID, "err", err)
+		slog.Error("project.create.ontology_pairing_failed", "project_id", projectID, "err", err)
 		// Best-effort cleanup: remove the scope if the ontology pairing failed.
-		if delErr := s.svc.Store().DeleteScope(projectScopeID); delErr != nil {
-			slog.Error("project.create.cleanup_failed", "project_id", projectScopeID, "err", delErr)
+		if delErr := s.svc.Store().DeleteScope(projectID); delErr != nil {
+			slog.Error("project.create.cleanup_failed", "project_id", projectID, "err", delErr)
 		}
 		return nil, status.Errorf(codes.Internal, "PROJECT_CREATE_ONTOLOGY_PAIRING_FAILED: %v", err)
 	}
 
-	scope, _ := s.svc.Store().GetScope(projectScopeID)
+	scope, _ := s.svc.Store().GetScope(projectID)
 	proto := scopeNodeToProto(scope)
 	if proto != nil {
 		proto.OntologyId = ontologyID
 	}
-	slog.Info("project.create", "project_id", projectScopeID, "ontology_id", ontologyID)
-	log.Printf(`{"event":"grpc.request","method":"CreateProject","scope":"%s","ontology_id":"%s"}`, projectScopeID, ontologyID)
+	slog.Info("project.create", "project_id", projectID, "ontology_id", ontologyID)
+	log.Printf(`{"event":"grpc.request","method":"CreateProject","scope":"%s","ontology_id":"%s"}`, projectID, ontologyID)
 	return &authv1.CreateProjectResponse{Project: proto}, nil
 }
 
@@ -429,7 +434,7 @@ func (s *OrgGrpcServer) ForkProject(ctx context.Context, req *authv1.ForkProject
 	sourceID := req.SourceProjectId
 
 	// Generate IDs for the new project
-	newProjectID := "project/" + newUUID()
+	newProjectID := newUUID()
 	ontologyID := newUUID()
 
 	// Create new project scope with upstream link
@@ -517,7 +522,10 @@ func scopeNodeToProto(s *org.ScopeNode) *authv1.Scope {
 	if s == nil {
 		return nil
 	}
-	// Extract the name/label from the ID (e.g. "group/MyGroup" → "MyGroup").
+	// Extract the display name from the scope ID.
+	// With UUID identifiers (ADR-DES.DATA.uuid-identifiers-for-groups-projects-mandate),
+	// the ID is the UUID directly. For backward compatibility with legacy
+	// "group/name" format, extract the part after the slash if present.
 	name := s.ID
 	if idx := strings.Index(s.ID, "/"); idx >= 0 && idx+1 < len(s.ID) {
 		name = s.ID[idx+1:]

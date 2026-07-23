@@ -863,7 +863,7 @@
             "in": "path",
             "description": "Group ID",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": { "type": "string", "format": "uuid" }
           }
         ],
         "responses": {
@@ -896,7 +896,7 @@
             "in": "path",
             "description": "Group ID",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": { "type": "string", "format": "uuid" }
           },
           { "$ref": "#/components/parameters/IdempotencyKey" }
         ],
@@ -941,7 +941,7 @@
             "in": "path",
             "description": "Group ID",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": { "type": "string", "format": "uuid" }
           },
           { "$ref": "#/components/parameters/IdempotencyKey" }
         ],
@@ -961,7 +961,7 @@
       "get": {
         "summary": "List subgroups",
         "description": "Returns a paginated list of direct child groups.",
-        "operationId": "listSubgroups",
+        "operationId": "listChildGroups",
         "tags": ["Organization"],
         "parameters": [
           {
@@ -969,7 +969,7 @@
             "in": "path",
             "description": "Group ID",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": { "type": "string", "format": "uuid" }
           },
           { "$ref": "#/components/parameters/Page" },
           { "$ref": "#/components/parameters/PerPage" }
@@ -1010,7 +1010,7 @@
             "in": "path",
             "description": "Group ID",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": { "type": "string", "format": "uuid" }
           },
           { "$ref": "#/components/parameters/Page" },
           { "$ref": "#/components/parameters/PerPage" }
@@ -1049,7 +1049,7 @@
             "in": "path",
             "description": "Group ID",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": { "type": "string", "format": "uuid" }
           },
           { "$ref": "#/components/parameters/IdempotencyKey" }
         ],
@@ -1097,7 +1097,7 @@
             "name": "group_id",
             "in": "query",
             "description": "Filter by parent group ID",
-            "schema": { "type": "string" },
+            "schema": { "type": "string", "format": "uuid" },
             "required": false
           }
         ],
@@ -1173,7 +1173,7 @@
             "in": "path",
             "description": "Project ID",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": { "type": "string", "format": "uuid" }
           }
         ],
         "responses": {
@@ -1206,7 +1206,7 @@
             "in": "path",
             "description": "Project ID",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": { "type": "string", "format": "uuid" }
           },
           { "$ref": "#/components/parameters/IdempotencyKey" }
         ],
@@ -1251,7 +1251,7 @@
             "in": "path",
             "description": "Project ID",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": { "type": "string", "format": "uuid" }
           },
           { "$ref": "#/components/parameters/IdempotencyKey" }
         ],
@@ -1279,7 +1279,7 @@
             "in": "path",
             "description": "Project ID",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": { "type": "string", "format": "uuid" }
           },
           { "$ref": "#/components/parameters/IdempotencyKey" }
         ],
@@ -1292,6 +1292,7 @@
                 "properties": {
                   "target_group_id": {
                     "type": "string",
+                    "format": "uuid",
                     "description": "Target group ID to move the project to"
                   }
                 },
@@ -1336,7 +1337,7 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string" },
+            "schema": { "type": "string", "format": "uuid" },
             "description": "Source project ID to fork"
           }
         ],
@@ -1360,9 +1361,9 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "project_id": { "type": "string" },
-                    "ontology_id": { "type": "string" },
-                    "upstream_project_id": { "type": "string" }
+                    "project_id": { "type": "string", "format": "uuid" },
+                    "ontology_id": { "type": "string", "format": "uuid" },
+                    "upstream_project_id": { "type": "string", "format": "uuid" }
                   }
                 }
               }
@@ -1386,7 +1387,7 @@
             "in": "path",
             "description": "Project ID",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": { "type": "string", "format": "uuid" }
           },
           { "$ref": "#/components/parameters/Page" },
           { "$ref": "#/components/parameters/PerPage" }
@@ -1425,7 +1426,7 @@
             "in": "path",
             "description": "Project ID",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": { "type": "string", "format": "uuid" }
           },
           { "$ref": "#/components/parameters/IdempotencyKey" }
         ],
@@ -1472,7 +1473,7 @@
             "in": "path",
             "description": "Project ID",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": { "type": "string", "format": "uuid" }
           },
           {
             "name": "userId",
@@ -1524,7 +1525,7 @@
             "in": "path",
             "description": "Project ID",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": { "type": "string", "format": "uuid" }
           },
           {
             "name": "userId",
@@ -1559,7 +1560,7 @@
             "in": "path",
             "description": "Project ID",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": { "type": "string", "format": "uuid" }
           }
         ],
         "responses": {
@@ -1592,7 +1593,7 @@
             "in": "path",
             "description": "Project ID",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": { "type": "string", "format": "uuid" }
           },
           { "$ref": "#/components/parameters/IdempotencyKey" }
         ],
@@ -1638,7 +1639,7 @@
             "in": "path",
             "description": "Project ID",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": { "type": "string", "format": "uuid" }
           }
         ],
         "responses": {
@@ -1674,7 +1675,7 @@
             "in": "path",
             "description": "Project ID",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": { "type": "string", "format": "uuid" }
           },
           { "$ref": "#/components/parameters/IdempotencyKey" }
         ],
@@ -1721,7 +1722,7 @@
             "in": "path",
             "description": "Project ID",
             "required": true,
-            "schema": { "type": "string" }
+            "schema": { "type": "string", "format": "uuid" }
           },
           {
             "name": "policyId",
@@ -2142,14 +2143,14 @@
             "name": "ontology_id",
             "in": "query",
             "description": "Filter by ontology ID",
-            "schema": { "type": "string" },
+            "schema": { "type": "string", "format": "uuid" },
             "required": false
           },
           {
             "name": "branch_id",
             "in": "query",
             "description": "Filter by branch ID",
-            "schema": { "type": "string" },
+            "schema": { "type": "string", "format": "uuid" },
             "required": false
           },
           { "$ref": "#/components/parameters/Page" },
@@ -2409,7 +2410,7 @@
             "name": "ontology_id",
             "in": "query",
             "description": "Filter by ontology ID",
-            "schema": { "type": "string" },
+            "schema": { "type": "string", "format": "uuid" },
             "required": false
           },
           { "$ref": "#/components/parameters/Page" },
@@ -2772,10 +2773,10 @@
       "GroupSummary": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
+          "id": { "type": "string", "format": "uuid" },
           "label": { "type": "string" },
           "description": { "type": "string" },
-          "parent_id": { "type": "string" },
+          "parent_id": { "type": "string", "format": "uuid" },
           "child_count": { "type": "integer" },
           "member_count": { "type": "integer" }
         }
@@ -2783,10 +2784,10 @@
       "GroupDetail": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
+          "id": { "type": "string", "format": "uuid" },
           "label": { "type": "string" },
           "description": { "type": "string" },
-          "parent_id": { "type": "string" },
+          "parent_id": { "type": "string", "format": "uuid" },
           "path": {
             "type": "array",
             "items": { "type": "string" },
@@ -2804,23 +2805,23 @@
       "ProjectSummary": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
+          "id": { "type": "string", "format": "uuid" },
           "label": { "type": "string" },
           "description": { "type": "string" },
-          "group_id": { "type": "string" },
+          "group_id": { "type": "string", "format": "uuid" },
           "group_name": { "type": "string" }
         }
       },
       "ProjectDetail": {
         "type": "object",
         "properties": {
-          "id": { "type": "string" },
+          "id": { "type": "string", "format": "uuid" },
           "label": { "type": "string" },
           "description": { "type": "string" },
-          "group_id": { "type": "string" },
+          "group_id": { "type": "string", "format": "uuid" },
           "group_name": { "type": "string" },
-          "ontology_id": { "type": "string", "description": "ID of the 1:1 paired Ontology" },
-          "upstream_project_id": { "type": "string", "nullable": true, "description": "ID of the upstream Project if this is a fork, null otherwise" },
+          "ontology_id": { "type": "string", "format": "uuid", "description": "ID of the 1:1 paired Ontology" },
+          "upstream_project_id": { "type": "string", "format": "uuid", "nullable": true, "description": "ID of the upstream Project if this is a fork, null otherwise" },
           "forks_count": { "type": "integer", "description": "Number of forks created from this Project" },
           "created_at": { "type": "string", "format": "date-time" },
           "updated_at": { "type": "string", "format": "date-time" }
@@ -2874,7 +2875,7 @@
         "properties": {
           "label": { "type": "string", "description": "Group display name" },
           "description": { "type": "string", "description": "Optional group description" },
-          "parent_id": { "type": "string", "description": "Optional parent group ID for nested groups" }
+          "parent_id": { "type": "string", "format": "uuid", "description": "Optional parent group ID for nested groups" }
         },
         "required": ["label"]
       },
@@ -2883,7 +2884,7 @@
         "properties": {
           "label": { "type": "string", "description": "Project display name" },
           "description": { "type": "string", "description": "Optional project description" },
-          "group_id": { "type": "string", "description": "Parent group ID" }
+          "group_id": { "type": "string", "format": "uuid", "description": "Parent group ID" }
         },
         "required": ["label", "group_id"]
       },

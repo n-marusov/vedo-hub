@@ -5,7 +5,7 @@
 -- Role CHECK constraint enforces valid role values at the database level.
 
 CREATE TABLE IF NOT EXISTS memberships (
-    scope       TEXT NOT NULL REFERENCES scopes(id) ON DELETE CASCADE,
+    scope       UUID NOT NULL REFERENCES scopes(id) ON DELETE CASCADE,
     user_id     TEXT NOT NULL,
     role        TEXT NOT NULL CHECK (role IN ('Guest', 'Reporter', 'Developer', 'Maintainer', 'Owner', 'Viewer', 'Editor', 'SupportEngineer', 'SRE', 'SecurityLead', 'ProductOwner')),
     inherited   BOOLEAN NOT NULL DEFAULT false,

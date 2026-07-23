@@ -3,7 +3,7 @@
 
 CREATE TABLE IF NOT EXISTS attribute_policies (
     id          SERIAL PRIMARY KEY,
-    scope       TEXT NOT NULL REFERENCES scopes(id) ON DELETE CASCADE,
+    scope       UUID NOT NULL REFERENCES scopes(id) ON DELETE CASCADE,
     pattern     JSONB NOT NULL,
     right       TEXT NOT NULL,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now()

@@ -63,6 +63,8 @@ type ScopeNode struct {
 	Visibility        Visibility `json:"visibility"`
 	TenantID          string     `json:"tenant_id"`
 	UpstreamProjectID string     `json:"upstream_project_id,omitempty"`
+	Name              string     `json:"name,omitempty"`
+	Description       string     `json:"description,omitempty"`
 }
 
 // OrgStore is the storage interface for org data.
