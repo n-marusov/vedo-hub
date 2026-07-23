@@ -3668,6 +3668,11 @@ base:ts/api-gateway.middleware.llm_policy_router a vdo:TestSuite ;
     rdfs:comment "Tests for LLM policy-based request routing"@en ;
     vdo:filePath "src/services/api-gateway/middleware/llm_policy_router_test.go" .
 
+base:ts/api-gateway.middleware.deprecation a vdo:TestSuite ;
+    rdfs:label "API GATEWAY DEPRECATION MIDDLEWARE TESTS"@en ;
+    rdfs:comment "Tests for RFC 8594 Sunset/Deprecation header middleware"@en ;
+    vdo:filePath "src/services/api-gateway/middleware/deprecation_test.go" .
+
 
 # =============================================================================
 # VALIDATION LINKS — Test-to-Requirement (from // Validates: annotations)
@@ -3996,6 +4001,7 @@ base:ts/metrics-service.test_prometheus_exporter vdo:validates base:req/REQ-FUN.
 
 # --- API Gateway additional validation links ---
 base:ts/api-gateway.services.query_service vdo:validates base:req/REQ-FUN.API.graphql-sparql .
+base:ts/api-gateway.middleware.deprecation vdo:validates base:req/REQ-FUN.API.sunset-header .
 
 # --- Orphan P0 quick-win links (existing tests cover these) ---
 base:ts/ontology-service.tests.class_integration vdo:validates base:req/REQ-FUN.API.owl-no-cycles .
@@ -4008,7 +4014,7 @@ base:ts/document-extractor.sequence.validator vdo:validates base:req/REQ-FUN.CRO
 
 # --- Additional non-testable P0 requirements ---
 # REQ-FUN.API.migration-guide — Migration guide is documentation
-# REQ-FUN.API.sunset-header — NEEDS NEW TESTS (api-gateway sunset/deprecation endpoint)
+# REQ-FUN.API.sunset-header — ✅ Covered (api-gateway deprecation middleware tests)
 # REQ-FUN.DATA.* (5): storage-stack, gdpr-export-mandate, major-version-policy/migration/rollback — most are infrastructure/data policy
 # REQ-FUN.PROCESS.* (10): Architecture, CI/CD, deployment, evaluation, incident-response, linting
 # REQ-NFR.PERF.* (2): performance, canonical-workload-profile (needs perf benchmarking)
