@@ -3318,11 +3318,95 @@ base:ts/security.org_access_control a vdo:TestSuite ;
     rdfs:label "SECURITY ORG_ACCESS_CONTROL"@en ;
     vdo:filePath "tests/security/org_access_control_test.go" .
 
+# --- Ontology-Service Integration Tests ---
+
+base:ts/ontology-service.tests.class_integration a vdo:TestSuite ;
+    rdfs:label "ONTOLOGY-SERVICE TESTS CLASS_INTEGRATION"@en ;
+    rdfs:comment "Integration tests for class (TBox) CRUD, hierarchy, and dependency operations"@en ;
+    vdo:filePath "src/services/ontology-service/tests/class_integration_test.rs" .
+
+base:ts/ontology-service.tests.graph_query_integration a vdo:TestSuite ;
+    rdfs:label "ONTOLOGY-SERVICE TESTS GRAPH_QUERY_INTEGRATION"@en ;
+    rdfs:comment "Integration tests for graph query operations"@en ;
+    vdo:filePath "src/services/ontology-service/tests/graph_query_integration_test.rs" .
+
+base:ts/ontology-service.tests.import_export_integration a vdo:TestSuite ;
+    rdfs:label "ONTOLOGY-SERVICE TESTS IMPORT_EXPORT_INTEGRATION"@en ;
+    rdfs:comment "Integration tests for ontology import/export operations"@en ;
+    vdo:filePath "src/services/ontology-service/tests/import_export_integration_test.rs" .
+
+base:ts/ontology-service.tests.individual_integration a vdo:TestSuite ;
+    rdfs:label "ONTOLOGY-SERVICE TESTS INDIVIDUAL_INTEGRATION"@en ;
+    rdfs:comment "Integration tests for individual (ABox) CRUD operations"@en ;
+    vdo:filePath "src/services/ontology-service/tests/individual_integration_test.rs" .
+
+base:ts/ontology-service.tests.org_resolvers a vdo:TestSuite ;
+    rdfs:label "ONTOLOGY-SERVICE TESTS ORG_RESOLVERS"@en ;
+    rdfs:comment "Tests for organization resolver logic"@en ;
+    vdo:filePath "src/services/ontology-service/tests/org_resolvers_test.rs" .
+
+base:ts/ontology-service.tests.property_integration a vdo:TestSuite ;
+    rdfs:label "ONTOLOGY-SERVICE TESTS PROPERTY_INTEGRATION"@en ;
+    rdfs:comment "Integration tests for property (RBox) CRUD operations"@en ;
+    vdo:filePath "src/services/ontology-service/tests/property_integration_test.rs" .
+
+base:ts/ontology-service.tests.query_integration a vdo:TestSuite ;
+    rdfs:label "ONTOLOGY-SERVICE TESTS QUERY_INTEGRATION"@en ;
+    rdfs:comment "Integration tests for SPARQL/query operations"@en ;
+    vdo:filePath "src/services/ontology-service/tests/query_integration_test.rs" .
+
+base:ts/ontology-service.tests.route_registration a vdo:TestSuite ;
+    rdfs:label "ONTOLOGY-SERVICE TESTS ROUTE_REGISTRATION"@en ;
+    rdfs:comment "Tests for axum route registration"@en ;
+    vdo:filePath "src/services/ontology-service/tests/route_registration_test.rs" .
+
+base:ts/ontology-service.tests.validation_integration a vdo:TestSuite ;
+    rdfs:label "ONTOLOGY-SERVICE TESTS VALIDATION_INTEGRATION"@en ;
+    rdfs:comment "Integration tests for SHACL validation endpoint"@en ;
+    vdo:filePath "src/services/ontology-service/tests/validation_integration_test.rs" .
+
+# --- Versioning-Service Integration Tests ---
+
+base:ts/versioning-service.tests.branch_integration a vdo:TestSuite ;
+    rdfs:label "VERSIONING-SERVICE TESTS BRANCH_INTEGRATION"@en ;
+    rdfs:comment "Integration tests for branch operations"@en ;
+    vdo:filePath "src/services/versioning-service/tests/branch_integration_test.rs" .
+
+base:ts/versioning-service.tests.checkout_integration a vdo:TestSuite ;
+    rdfs:label "VERSIONING-SERVICE TESTS CHECKOUT_INTEGRATION"@en ;
+    rdfs:comment "Integration tests for checkout operations"@en ;
+    vdo:filePath "src/services/versioning-service/tests/checkout_integration_test.rs" .
+
+base:ts/versioning-service.tests.commit_integration a vdo:TestSuite ;
+    rdfs:label "VERSIONING-SERVICE TESTS COMMIT_INTEGRATION"@en ;
+    rdfs:comment "Integration tests for commit operations"@en ;
+    vdo:filePath "src/services/versioning-service/tests/commit_integration_test.rs" .
+
+base:ts/versioning-service.tests.delta_integration a vdo:TestSuite ;
+    rdfs:label "VERSIONING-SERVICE TESTS DELTA_INTEGRATION"@en ;
+    rdfs:comment "Integration tests for commit delta/diff operations with PostgreSQL"@en ;
+    vdo:filePath "src/services/versioning-service/tests/delta_integration_test.rs" .
+
+base:ts/versioning-service.tests.merge_integration a vdo:TestSuite ;
+    rdfs:label "VERSIONING-SERVICE TESTS MERGE_INTEGRATION"@en ;
+    rdfs:comment "Integration tests for merge operations"@en ;
+    vdo:filePath "src/services/versioning-service/tests/merge_integration_test.rs" .
+
+base:ts/versioning-service.tests.route_registration a vdo:TestSuite ;
+    rdfs:label "VERSIONING-SERVICE TESTS ROUTE_REGISTRATION"@en ;
+    rdfs:comment "Tests for axum route registration"@en ;
+    vdo:filePath "src/services/versioning-service/tests/route_registration_test.rs" .
+
+base:ts/versioning-service.tests.transactional_integration a vdo:TestSuite ;
+    rdfs:label "VERSIONING-SERVICE TESTS TRANSACTIONAL_INTEGRATION"@en ;
+    rdfs:comment "Integration tests for transactional operations"@en ;
+    vdo:filePath "src/services/versioning-service/tests/transactional_integration_test.rs" .
+
 
 # =============================================================================
 # VALIDATION LINKS — Test-to-Requirement (from // Validates: annotations)
 # =============================================================================
-# 85 validates links connecting test suites to requirements.
+# 90 validates links connecting test suites to requirements.
 # =============================================================================
 
 base:ts/ai-orchestration-service.internal.handler.handler vdo:validates base:req/REQ-FUN.API.llm-policy .
@@ -3410,6 +3494,11 @@ base:ts/frontend.composables.useBatchUpload vdo:validates base:req/REQ-USR.UI.gu
 base:ts/org-api.org_api_integration vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
 base:ts/security.org_access_control vdo:validates base:req/REQ-NFR.SECURITY.authorization-regression-gates .
 base:ts/security.org_access_control vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
+base:ts/ontology-service.tests.class_integration vdo:validates base:req/REQ-FUN.API.class-hierarchy-accuracy .
+base:ts/ontology-service.tests.class_integration vdo:validates base:req/REQ-USR.UI.tbox-editor .
+base:ts/ontology-service.tests.individual_integration vdo:validates base:req/REQ-USR.UI.abox-editor .
+base:ts/ontology-service.tests.validation_integration vdo:validates base:req/REQ-FUN.API.pre-save-validation .
+base:ts/versioning-service.tests.delta_integration vdo:validates base:req/REQ-FUN.DATA.versioning .
 
 # CHANGE IMPACT ANALYSIS
 # =============================================================================
