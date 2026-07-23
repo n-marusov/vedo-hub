@@ -3997,6 +3997,25 @@ base:ts/metrics-service.test_prometheus_exporter vdo:validates base:req/REQ-FUN.
 # --- API Gateway additional validation links ---
 base:ts/api-gateway.services.query_service vdo:validates base:req/REQ-FUN.API.graphql-sparql .
 
+# --- Orphan P0 quick-win links (existing tests cover these) ---
+base:ts/ontology-service.tests.class_integration vdo:validates base:req/REQ-FUN.API.owl-no-cycles .
+base:ts/ontology-service.tests.validation_integration vdo:validates base:req/REQ-FUN.API.owl-syntax-validation .
+base:ts/document-extractor.api.routes vdo:validates base:req/REQ-FUN.API.doc-extract-flow .
+base:ts/cli.internal.audit.audit_log vdo:validates base:req/REQ-FUN.INTEGRATION.audit-integration .
+base:ts/cli.internal.audit.audit_log vdo:validates base:req/REQ-FUN.INTEGRATION.audit-log-content .
+base:ts/e2e.playwright.tests.api.rest.api-gateway-full vdo:validates base:req/REQ-FUN.API.integration .
+
+# --- Additional non-testable P0 requirements ---
+# REQ-FUN.API.migration-guide — Migration guide is documentation
+# REQ-FUN.API.sunset-header — API sunset header implementation (no tests yet)
+# REQ-FUN.DATA.* (5): storage-stack, gdpr-export-mandate, major-version-policy/migration/rollback
+# REQ-FUN.PROCESS.* (10): Architecture, CI/CD, deployment, evaluation, incident-response, linting
+# REQ-NFR.PERF.* (2): performance, canonical-workload-profile (needs perf benchmarking)
+# REQ-NFR.SECURITY.sca-sbom-gating — SCA/SBOM is CI/CD concern
+# REQ-BIZ.SUP.* (3): credit-consumption, included-credits, modular-billing — business rules
+# REQ-FUN.INTEGRATION.* (7 remaining): cost-calculation through saga-pattern (no tests yet)
+# REQ-USR.UI.excel-preview — Excel import preview (no tests yet)
+
 # --- Non-testable P0 requirements ---
 # These P0 requirements describe constraints, process policies, or business rules
 # that cannot be verified through automated tests. They are excluded from RCS

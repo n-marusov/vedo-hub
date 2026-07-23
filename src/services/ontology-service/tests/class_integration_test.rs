@@ -1,7 +1,11 @@
+//! Validates: REQ-FUN.API.class-hierarchy-accuracy
+//! Validates: REQ-USR.UI.tbox-editor
+//! Validates: REQ-FUN.API.no-cyclic-hierarchy
+//! Validates: REQ-FUN.API.owl-no-cycles
+//!
 //! Integration tests for class (TBox) CRUD operations.
 //!
 //! Requires running Neo4j. Set NEO4J_TEST_URI env var to enable.
-
 mod common;
 
 use axum::{

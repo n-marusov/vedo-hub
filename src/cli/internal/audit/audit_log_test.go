@@ -1,5 +1,9 @@
 package audit
 
+// Validates: REQ-NFR.SECURITY.audit-access-audit
+// Validates: REQ-FUN.INTEGRATION.audit-integration
+// Validates: REQ-FUN.INTEGRATION.audit-log-content
+
 import (
 	"bytes"
 	"log/slog"

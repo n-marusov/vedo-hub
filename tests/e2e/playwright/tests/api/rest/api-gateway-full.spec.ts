@@ -1,5 +1,6 @@
 // Validates: REQ-FUN.PROCESS.e2e-testing
 // Validates: REQ-NFR.SECURITY.bola-bfla-negative-tests
+// Validates: REQ-FUN.API.integration
 // API Gateway real-backend integration tests — verifies the
 // deployed gateway contract against docker-compose.test.yml services.
 import { test, expect } from '@playwright/test'

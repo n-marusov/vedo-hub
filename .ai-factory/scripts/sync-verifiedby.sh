@@ -21,17 +21,17 @@ function trim(s) {
 {
   line = $0
   ts = $1
-  
+
   # Extract all base:req/ and base:nfr/ URIs including dots
   # Match everything from "base:req/" or "base:nfr/" up to whitespace, comma, or period-at-end
   while (match(line, /base:(req|nfr)\/[A-Za-z0-9_.-]+/)) {
     req = substr(line, RSTART, RLENGTH)
     req = trim(req)
-    
+
     # Add to map, deduplicating test suites per requirement
     if (map[req] == "") map[req] = ts
     else if (map[req] !~ "(^|,)" ts "(,|$)") map[req] = map[req] "," ts
-    
+
     line = substr(line, RSTART + RLENGTH)
   }
 }

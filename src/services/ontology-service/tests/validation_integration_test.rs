@@ -1,3 +1,8 @@
+//! Validates: REQ-FUN.API.pre-save-validation
+//! Validates: REQ-FUN.API.owl-syntax-validity
+//! Validates: REQ-FUN.API.owl-unique-iri
+//! Validates: REQ-FUN.API.owl-syntax-validation
+//!
 //! Integration tests for SHACL validation endpoint.
 //!
 //! Requires running Neo4j. Set NEO4J_TEST_URI env var to enable.

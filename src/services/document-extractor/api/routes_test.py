@@ -1,4 +1,8 @@
-"""Tests for the document-extractor API routes with mocked dependencies."""
+"""Tests for the document-extractor API routes with mocked dependencies.
+
+Validates: REQ-FUN.API.doc-extract-flow
+Validates: REQ-NFR.API.doc-extract-performance
+"""
 
 from __future__ import annotations
 
