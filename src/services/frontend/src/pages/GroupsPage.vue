@@ -9,7 +9,7 @@
         </div>
         <h1 class="gp-title">Groups</h1>
       </div>
-      <button class="gp-new-btn" type="button"><Plus :size="14" />New group</button>
+      <button class="gp-new-btn" type="button" @click="showCreateDialog = true"><Plus :size="14" />New group</button>
     </section>
 
     <section class="gp-toolbar">
@@ -96,11 +96,18 @@
         </div>
       </div>
     </section>
+
+    <CreateGroupDialog
+      :open="showCreateDialog"
+      @close="showCreateDialog = false"
+      @created="onGroupCreated"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { listGroups } from "@/api/org";
+import CreateGroupDialog from "@/components/ontology/CreateGroupDialog.vue";
 import {
 	ChevronDown,
 	ChevronRight,
@@ -118,6 +125,7 @@ import type { Component } from "vue";
 import { computed, onMounted, reactive, ref, watch } from "vue";
 
 const searchQuery = ref("");
+const showCreateDialog = ref(false);
 
 // @m4 Reactive expand/collapse map — keyed by group name
 type ExpandedMap = Record<string, boolean>;
@@ -170,6 +178,19 @@ async function fetchGroups() {
 	} finally {
 		loading.value = false;
 	}
+}
+
+function onGroupCreated(name: string): void {
+	showCreateDialog.value = false;
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "Groups.groupCreated",
+			groupName: name,
+			ts: new Date().toISOString(),
+		}),
+	);
+	fetchGroups();
 }
 
 onMounted(() => { fetchGroups(); });

@@ -77,6 +77,36 @@ export async function listGroups(q?: string): Promise<GroupInfo[]> {
   }
 }
 
+export async function createGroup(params: {
+	name: string;
+	description?: string;
+	visibility?: string;
+	parentGroupId?: string | null;
+}): Promise<GroupInfo> {
+	console.info(JSON.stringify({
+		level: "info", msg: "org.groups.create.request",
+		name: params.name, visibility: params.visibility,
+		parentGroupId: params.parentGroupId, ts: new Date().toISOString(),
+	}));
+
+	try {
+		const { data } = await api.post("/groups", params);
+		console.info(JSON.stringify({
+			level: "info", msg: "org.groups.create.success",
+			id: data.data?.id ?? data.id,
+			name: params.name, ts: new Date().toISOString(),
+		}));
+		return data.data ?? data;
+	} catch (err: any) {
+		const msg = err.response?.data?.error?.message ?? err.message ?? "Failed to create group";
+		console.error(JSON.stringify({
+			level: "error", msg: "org.groups.create.failed",
+			error: msg, ts: new Date().toISOString(),
+		}));
+		throw new Error(msg);
+	}
+}
+
 export async function getGroup(id: string): Promise<GroupInfo> {
   console.info(JSON.stringify({
     level: "info", msg: "org.group.get.request",
