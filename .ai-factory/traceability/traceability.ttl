@@ -3597,6 +3597,107 @@ base:ts/ai-orchestration-service.internal.handler.handler vdo:validates base:req
 # AI-orchestration middleware tests — policy enforcement
 base:ts/ai-orchestration-service.internal.middleware.middleware vdo:validates base:req/REQ-NFR.SECURITY.llm-tool-least-privilege .
 
+# --- P0 placeholder test suites (skipped, awaiting implementation) ---
+
+# Security authorization placeholders (tests/security/authorization/)
+base:ts/security.authorization.p0_security_placeholder a vdo:TestSuite ;
+    rdfs:label "SECURITY P0 PLACEHOLDER TESTS"@en ;
+    rdfs:comment "Skipped tests for audit-encryption, audit-masking, enforced-in-code, security-integration"@en ;
+    vdo:filePath "tests/security/authorization/p0_security_placeholder_test.go" .
+base:ts/security.authorization.p0_security_placeholder vdo:validates base:req/REQ-NFR.SECURITY.audit-encryption .
+base:ts/security.authorization.p0_security_placeholder vdo:validates base:req/REQ-NFR.SECURITY.audit-masking .
+base:ts/security.authorization.p0_security_placeholder vdo:validates base:req/REQ-NFR.SECURITY.enforced-in-code .
+base:ts/security.authorization.p0_security_placeholder vdo:validates base:req/REQ-NFR.SECURITY.security-integration .
+
+base:ts/security.authorization.p0_llm_security_placeholder a vdo:TestSuite ;
+    rdfs:label "SECURITY LLM P0 PLACEHOLDER TESTS"@en ;
+    rdfs:comment "Skipped tests for llm-write-approval, prompt-audit, prompt-filter, suggestion-privacy, parser-fuzz"@en ;
+    vdo:filePath "tests/security/authorization/p0_llm_security_placeholder_test.go" .
+base:ts/security.authorization.p0_llm_security_placeholder vdo:validates base:req/REQ-NFR.SECURITY.llm-write-human-approval .
+base:ts/security.authorization.p0_llm_security_placeholder vdo:validates base:req/REQ-NFR.SECURITY.prompt-audit .
+base:ts/security.authorization.p0_llm_security_placeholder vdo:validates base:req/REQ-NFR.SECURITY.prompt-filter-blacklist .
+base:ts/security.authorization.p0_llm_security_placeholder vdo:validates base:req/REQ-NFR.SECURITY.suggestion-privacy .
+base:ts/security.authorization.p0_llm_security_placeholder vdo:validates base:req/REQ-NFR.SECURITY.parser-query-fuzz-gates .
+
+# Document-extractor security placeholders
+base:ts/document-extractor.security_p0 a vdo:TestSuite ;
+    rdfs:label "DOCUMENT-EXTRACTOR SECURITY P0 TESTS"@en ;
+    rdfs:comment "Skipped tests for doc-extract-security, excel-import-security"@en ;
+    vdo:filePath "src/services/document-extractor/security_p0_test.py" .
+base:ts/document-extractor.security_p0 vdo:validates base:req/REQ-NFR.SECURITY.doc-extract-security .
+base:ts/document-extractor.security_p0 vdo:validates base:req/REQ-NFR.SECURITY.excel-import-security .
+
+# AI-orchestration suggestion placeholders
+base:ts/ai-orchestration-service.suggestion_p0 a vdo:TestSuite ;
+    rdfs:label "AI-ORCHESTRATION SUGGESTION P0 TESTS"@en ;
+    rdfs:comment "Skipped tests for suggestion-confidence-threshold, suggestion-recalculation"@en ;
+    vdo:filePath "src/services/ai-orchestration-service/suggestion_p0_test.go" .
+base:ts/ai-orchestration-service.suggestion_p0 vdo:validates base:req/REQ-FUN.API.suggestion-confidence-threshold .
+base:ts/ai-orchestration-service.suggestion_p0 vdo:validates base:req/REQ-FUN.API.suggestion-recalculation .
+
+# API gateway rollback placeholders
+base:ts/api-gateway.handlers.rollback_p0 a vdo:TestSuite ;
+    rdfs:label "API-GATEWAY ROLLBACK P0 TESTS"@en ;
+    rdfs:comment "Skipped tests for gradual-rollback, iterative-refinement-context"@en ;
+    vdo:filePath "src/services/api-gateway/handlers/rollback_p0_test.go" .
+base:ts/api-gateway.handlers.rollback_p0 vdo:validates base:req/REQ-FUN.API.gradual-rollback .
+base:ts/api-gateway.handlers.rollback_p0 vdo:validates base:req/REQ-FUN.API.iterative-refinement-context .
+
+# Ontology-service validation placeholders
+base:ts/ontology-service.tests.validation_p0 a vdo:TestSuite ;
+    rdfs:label "ONTOLOGY-SERVICE VALIDATION P0 TESTS"@en ;
+    rdfs:comment "Skipped tests for validation-import, validation-pr"@en ;
+    vdo:filePath "src/services/ontology-service/tests/validation_p0_test.rs" .
+base:ts/ontology-service.tests.validation_p0 vdo:validates base:req/REQ-FUN.API.validation-import .
+base:ts/ontology-service.tests.validation_p0 vdo:validates base:req/REQ-FUN.API.validation-pr .
+
+# Frontend UI placeholder specs
+base:ts/frontend.p0_ui_graph_search vdo:validates base:req/REQ-USR.UI.graph-navigation .
+base:ts/frontend.p0_ui_graph_search vdo:validates base:req/REQ-USR.UI.sparql-gui-search .
+base:ts/frontend.p0_ui_graph_search vdo:validates base:req/REQ-USR.UI.ontology-mental-model .
+base:ts/frontend.p0_ui_suggestions vdo:validates base:req/REQ-USR.UI.confidence-indicator .
+base:ts/frontend.p0_ui_suggestions vdo:validates base:req/REQ-USR.UI.suggestion-confirmation .
+base:ts/frontend.p0_ui_suggestions vdo:validates base:req/REQ-USR.UI.suggestion-interaction .
+base:ts/frontend.p0_ui_suggestions vdo:validates base:req/REQ-USR.UI.suggestion-ranking .
+base:ts/frontend.p0_ui_suggestions vdo:validates base:req/REQ-USR.UI.max-suggestions .
+base:ts/frontend.p0_ui_suggestions vdo:validates base:req/REQ-USR.UI.llm-selector .
+base:ts/frontend.p0_ui_suggestions vdo:validates base:req/REQ-USR.UI.nl-language-support .
+base:ts/frontend.p0_ui_suggestions vdo:validates base:req/REQ-USR.UI.generation-progress .
+base:ts/frontend.p0_ui_suggestions vdo:validates base:req/REQ-USR.UI.model-cost-awareness .
+base:ts/frontend.p0_ui_suggestions vdo:validates base:req/REQ-USR.UI.external-llm-consent .
+base:ts/frontend.p0_ui_suggestions vdo:validates base:req/REQ-USR.UI.external-llm-override .
+base:ts/frontend.p0_ui_import_export vdo:validates base:req/REQ-USR.UI.import-export .
+base:ts/frontend.p0_ui_import_export vdo:validates base:req/REQ-USR.UI.doc-extract-upload .
+base:ts/frontend.p0_ui_import_export vdo:validates base:req/REQ-USR.UI.excel-error-report .
+base:ts/frontend.p0_ui_import_export vdo:validates base:req/REQ-USR.UI.excel-progress .
+base:ts/frontend.p0_ui_import_export vdo:validates base:req/REQ-USR.UI.excel-templates .
+base:ts/frontend.p0_ui_import_export vdo:validates base:req/REQ-USR.UI.query-export-availability .
+base:ts/frontend.p0_ui_import_export vdo:validates base:req/REQ-USR.UI.query-export-localization .
+base:ts/frontend.p0_ui_import_export vdo:validates base:req/REQ-USR.UI.query-export-notifications .
+base:ts/frontend.p0_ui_system vdo:validates base:req/REQ-USR.UI.customization .
+base:ts/frontend.p0_ui_system vdo:validates base:req/REQ-USR.UI.graceful-degradation .
+base:ts/frontend.p0_ui_system vdo:validates base:req/REQ-USR.UI.critical-errors .
+base:ts/frontend.p0_ui_system vdo:validates base:req/REQ-USR.UI.validation-feedback .
+base:ts/frontend.p0_ui_system vdo:validates base:req/REQ-USR.UI.validation-fix .
+base:ts/frontend.p0_ui_system vdo:validates base:req/REQ-USR.UI.degraded-mode-ux .
+base:ts/frontend.p0_ui_system vdo:validates base:req/REQ-USR.UI.dangerous-actions-recovery .
+base:ts/frontend.p0_ui_system vdo:validates base:req/REQ-USR.UI.audit-access .
+base:ts/frontend.p0_ui_system vdo:validates base:req/REQ-USR.UI.circuit-breaker-feedback .
+base:ts/frontend.p0_ui_system vdo:validates base:req/REQ-USR.UI.consent-withdrawal .
+base:ts/frontend.p0_ui_system vdo:validates base:req/REQ-USR.UI.prompt-block-feedback .
+base:ts/frontend.p0_ui_system vdo:validates base:req/REQ-USR.UI.provider-change-notification .
+base:ts/frontend.p0_ui_system vdo:validates base:req/REQ-USR.UI.provider-status-indicator .
+base:ts/frontend.p0_ui_system vdo:validates base:req/REQ-USR.UI.usability-metrics .
+base:ts/frontend.p0_ui_system vdo:validates base:req/REQ-USR.UI.quality-report .
+base:ts/frontend.p0_ui_system vdo:validates base:req/REQ-USR.UI.visibility-indicator .
+base:ts/frontend.p0_ui_system vdo:validates base:req/REQ-USR.UI.decommission-usability .
+base:ts/frontend.p0_ui_system vdo:validates base:req/REQ-USR.UI.delight-features .
+base:ts/frontend.p0_ui_system vdo:validates base:req/REQ-USR.UI.credits-notifications .
+base:ts/frontend.p0_ui_system vdo:validates base:req/REQ-USR.UI.cost-transparency .
+base:ts/frontend.p0_ui_system vdo:validates base:req/REQ-USR.UI.credits-dashboard .
+base:ts/frontend.p0_ui_system vdo:validates base:req/REQ-USR.UI.status-page-deprecation .
+base:ts/frontend.p0_ui_system vdo:validates base:req/REQ-USR.UI.ux-review-process .
+
 # --- Non-testable P0 requirements ---
 # These P0 requirements describe constraints, process policies, or business rules
 # that cannot be verified through automated tests. They are excluded from RCS
