@@ -1260,6 +1260,2151 @@ base:docs/deploy-readme a vdo:Documentation ;
     vdo:filePath "deploy/README.md" .
 
 # =============================================================================
+
+# =============================================================================
+# INSTANCES - Complete Requirements Registry (generated from REQ-*.md)
+# =============================================================================
+# This section was auto-generated to register all 288 REQ-*.md files
+# that were previously missing from traceability.ttl.
+# Priority distribution: 184 P0, 96 P1, 8 P2
+# =============================================================================
+
+base:req/REQ-BIZ.API.enterprise-grace-period a vdo:BusinessRequirement ;
+    rdfs:label "BIZ API enterprise grace period"@en ;
+    vdo:priority "P1" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-BIZ.API.enterprise-grace-period.md" .
+
+base:req/REQ-BIZ.SUP.credit-consumption a vdo:BusinessRequirement ;
+    rdfs:label "BIZ SUP credit consumption"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Support" ;
+    vdo:filePath "specs/requirements/REQ-BIZ.SUP.credit-consumption.md" .
+
+base:req/REQ-BIZ.SUP.credit-reporting a vdo:BusinessRequirement ;
+    rdfs:label "BIZ SUP credit reporting"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Support" ;
+    vdo:filePath "specs/requirements/REQ-BIZ.SUP.credit-reporting.md" .
+
+base:req/REQ-BIZ.SUP.included-credits a vdo:BusinessRequirement ;
+    rdfs:label "BIZ SUP included credits"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Support" ;
+    vdo:filePath "specs/requirements/REQ-BIZ.SUP.included-credits.md" .
+
+base:req/REQ-BIZ.SUP.modular-billing a vdo:BusinessRequirement ;
+    rdfs:label "BIZ SUP modular billing"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Support" ;
+    vdo:filePath "specs/requirements/REQ-BIZ.SUP.modular-billing.md" .
+
+base:req/REQ-BIZ.SUP.suggestion-cost a vdo:BusinessRequirement ;
+    rdfs:label "BIZ SUP suggestion cost"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Support" ;
+    vdo:filePath "specs/requirements/REQ-BIZ.SUP.suggestion-cost.md" .
+
+base:req/REQ-BIZ.SUP.tier-data-transparency a vdo:BusinessRequirement ;
+    rdfs:label "BIZ SUP tier data transparency"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Support" ;
+    vdo:filePath "specs/requirements/REQ-BIZ.SUP.tier-data-transparency.md" .
+
+base:req/REQ-CON.API.property-path-limit a vdo:NonFunctionalRequirement ;
+    rdfs:label "CON API property path limit"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-CON.API.property-path-limit.md" .
+
+base:req/REQ-CON.API.unbounded-path-block a vdo:NonFunctionalRequirement ;
+    rdfs:label "CON API unbounded path block"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-CON.API.unbounded-path-block.md" .
+
+base:req/REQ-CON.CROSS.constraints a vdo:NonFunctionalRequirement ;
+    rdfs:label "CON CROSS constraints"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Cross-Cutting" ;
+    vdo:filePath "specs/requirements/REQ-CON.CROSS.constraints.md" .
+
+base:req/REQ-CON.INFRA.air-gapped-deployment a vdo:NonFunctionalRequirement ;
+    rdfs:label "CON INFRA air gapped deployment"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-CON.INFRA.air-gapped-deployment.md" .
+
+base:req/REQ-CON.INFRA.containerization a vdo:NonFunctionalRequirement ;
+    rdfs:label "CON INFRA containerization"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-CON.INFRA.containerization.md" .
+
+base:req/REQ-CON.INFRA.deployment-geography a vdo:NonFunctionalRequirement ;
+    rdfs:label "CON INFRA deployment geography"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-CON.INFRA.deployment-geography.md" .
+
+base:req/REQ-CON.INFRA.deployment-model a vdo:NonFunctionalRequirement ;
+    rdfs:label "CON INFRA deployment model"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-CON.INFRA.deployment-model.md" .
+
+base:req/REQ-CON.INFRA.deployment-strategy a vdo:NonFunctionalRequirement ;
+    rdfs:label "CON INFRA deployment strategy"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-CON.INFRA.deployment-strategy.md" .
+
+base:req/REQ-CON.INFRA.deployment-tiers a vdo:NonFunctionalRequirement ;
+    rdfs:label "CON INFRA deployment tiers"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-CON.INFRA.deployment-tiers.md" .
+
+base:req/REQ-CON.INFRA.environment-configuration a vdo:NonFunctionalRequirement ;
+    rdfs:label "CON INFRA environment configuration"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-CON.INFRA.environment-configuration.md" .
+
+base:req/REQ-CON.INFRA.network-requirements a vdo:NonFunctionalRequirement ;
+    rdfs:label "CON INFRA network requirements"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-CON.INFRA.network-requirements.md" .
+
+base:req/REQ-CON.INFRA.on-premise-llm-limitations a vdo:NonFunctionalRequirement ;
+    rdfs:label "CON INFRA on premise llm limitations"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-CON.INFRA.on-premise-llm-limitations.md" .
+
+base:req/REQ-CON.INFRA.on-premise-local-llm a vdo:NonFunctionalRequirement ;
+    rdfs:label "CON INFRA on premise local llm"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-CON.INFRA.on-premise-local-llm.md" .
+
+base:req/REQ-CON.INFRA.saas-llm-limitations a vdo:NonFunctionalRequirement ;
+    rdfs:label "CON INFRA saas llm limitations"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-CON.INFRA.saas-llm-limitations.md" .
+
+base:req/REQ-CON.SECURITY.nl-query-length-limit a vdo:NonFunctionalRequirement ;
+    rdfs:label "CON SECURITY nl query length limit"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-CON.SECURITY.nl-query-length-limit.md" .
+
+base:req/REQ-CON.STACK.backend-service-stack a vdo:NonFunctionalRequirement ;
+    rdfs:label "CON STACK backend service stack"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Technology Stack" ;
+    vdo:filePath "specs/requirements/REQ-CON.STACK.backend-service-stack.md" .
+
+base:req/REQ-CON.STACK.documentation-tool a vdo:NonFunctionalRequirement ;
+    rdfs:label "CON STACK documentation tool"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Technology Stack" ;
+    vdo:filePath "specs/requirements/REQ-CON.STACK.documentation-tool.md" .
+
+base:req/REQ-CON.STACK.frontend-stack a vdo:NonFunctionalRequirement ;
+    rdfs:label "CON STACK frontend stack"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Technology Stack" ;
+    vdo:filePath "specs/requirements/REQ-CON.STACK.frontend-stack.md" .
+
+base:req/REQ-CON.STACK.ontology-publishing a vdo:NonFunctionalRequirement ;
+    rdfs:label "CON STACK ontology publishing"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Technology Stack" ;
+    vdo:filePath "specs/requirements/REQ-CON.STACK.ontology-publishing.md" .
+
+base:req/REQ-CON.STACK.ui-design-tool a vdo:NonFunctionalRequirement ;
+    rdfs:label "CON STACK ui design tool"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Technology Stack" ;
+    vdo:filePath "specs/requirements/REQ-CON.STACK.ui-design-tool.md" .
+
+base:req/REQ-CON.STACK.version-support-policy a vdo:NonFunctionalRequirement ;
+    rdfs:label "CON STACK version support policy"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Technology Stack" ;
+    vdo:filePath "specs/requirements/REQ-CON.STACK.version-support-policy.md" .
+
+base:req/REQ-FUN.API.class-hierarchy-accuracy a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API class hierarchy accuracy"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.class-hierarchy-accuracy.md" .
+
+base:req/REQ-FUN.API.cypher-query-language a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API cypher query language"@en ;
+    vdo:priority "P1" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.cypher-query-language.md" .
+
+base:req/REQ-FUN.API.doc-extract-flow a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API doc extract flow"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.doc-extract-flow.md" .
+
+base:req/REQ-FUN.API.doc-extract-sequence-schema a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API doc extract sequence schema"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.doc-extract-sequence-schema.md" .
+
+base:req/REQ-FUN.API.doc-extract-supported-formats a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API doc extract supported formats"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.doc-extract-supported-formats.md" .
+
+base:req/REQ-FUN.API.excel-duplicate-handling a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API excel duplicate handling"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.excel-duplicate-handling.md" .
+
+base:req/REQ-FUN.API.excel-error-threshold a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API excel error threshold"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.excel-error-threshold.md" .
+
+base:req/REQ-FUN.API.excel-import-block a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API excel import block"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.excel-import-block.md" .
+
+base:req/REQ-FUN.API.excel-supported-formats a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API excel supported formats"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.excel-supported-formats.md" .
+
+base:req/REQ-FUN.API.excel-validation a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API excel validation"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.excel-validation.md" .
+
+base:req/REQ-FUN.API.gradual-rollback a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API gradual rollback"@en ;
+    vdo:priority "P2" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.gradual-rollback.md" .
+
+base:req/REQ-FUN.API.graphql-deprecation-policy a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API graphql deprecation policy"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.graphql-deprecation-policy.md" .
+
+base:req/REQ-FUN.API.graphql-sparql a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API graphql sparql"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.graphql-sparql.md" .
+
+base:req/REQ-FUN.API.grpc-protobuf-compatibility a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API grpc protobuf compatibility"@en ;
+    vdo:priority "P1" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.grpc-protobuf-compatibility.md" .
+
+base:req/REQ-FUN.API.integration a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API integration"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.integration.md" .
+
+base:req/REQ-FUN.API.iterative-refinement-context a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API iterative refinement context"@en ;
+    vdo:priority "P1" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.iterative-refinement-context.md" .
+
+base:req/REQ-FUN.API.llm-policy a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API llm policy"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.llm-policy.md" .
+
+base:req/REQ-FUN.API.max-refinement-iterations a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API max refinement iterations"@en ;
+    vdo:priority "P1" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.max-refinement-iterations.md" .
+
+base:req/REQ-FUN.API.migration-guide a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API migration guide"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.migration-guide.md" .
+
+base:req/REQ-FUN.API.no-cyclic-hierarchy a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API no cyclic hierarchy"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.no-cyclic-hierarchy.md" .
+
+base:req/REQ-FUN.API.on-premise-lts a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API on premise lts"@en ;
+    vdo:priority "P2" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.on-premise-lts.md" .
+
+base:req/REQ-FUN.API.owl-datatype-validation a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API owl datatype validation"@en ;
+    vdo:priority "P1" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.owl-datatype-validation.md" .
+
+base:req/REQ-FUN.API.owl-domain-range a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API owl domain range"@en ;
+    vdo:priority "P1" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.owl-domain-range.md" .
+
+base:req/REQ-FUN.API.owl-labels a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API owl labels"@en ;
+    vdo:priority "P1" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.owl-labels.md" .
+
+base:req/REQ-FUN.API.owl-no-cycles a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API owl no cycles"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.owl-no-cycles.md" .
+
+base:req/REQ-FUN.API.owl-reference-integrity a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API owl reference integrity"@en ;
+    vdo:priority "P1" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.owl-reference-integrity.md" .
+
+base:req/REQ-FUN.API.owl-supported-constructs a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API owl supported constructs"@en ;
+    vdo:priority "P1" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.owl-supported-constructs.md" .
+
+base:req/REQ-FUN.API.owl-syntax-validation a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API owl syntax validation"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.owl-syntax-validation.md" .
+
+base:req/REQ-FUN.API.owl-syntax-validity a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API owl syntax validity"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.owl-syntax-validity.md" .
+
+base:req/REQ-FUN.API.owl-unique-iri a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API owl unique iri"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.owl-unique-iri.md" .
+
+base:req/REQ-FUN.API.pre-save-validation a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API pre save validation"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.pre-save-validation.md" .
+
+base:req/REQ-FUN.API.properties-accuracy a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API properties accuracy"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.properties-accuracy.md" .
+
+base:req/REQ-FUN.API.protocol-stack a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API protocol stack"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.protocol-stack.md" .
+
+base:req/REQ-FUN.API.query-export-api a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API query export api"@en ;
+    vdo:priority "P1" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.query-export-api.md" .
+
+base:req/REQ-FUN.API.rest-versioning a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API rest versioning"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.rest-versioning.md" .
+
+base:req/REQ-FUN.API.suggestion-confidence-threshold a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API suggestion confidence threshold"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.suggestion-confidence-threshold.md" .
+
+base:req/REQ-FUN.API.suggestion-recalculation a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API suggestion recalculation"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.suggestion-recalculation.md" .
+
+base:req/REQ-FUN.API.suggestion-types a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API suggestion types"@en ;
+    vdo:priority "P1" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.suggestion-types.md" .
+
+base:req/REQ-FUN.API.sunset-header a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API sunset header"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.sunset-header.md" .
+
+base:req/REQ-FUN.API.swagger-ui-dev-only a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API swagger ui dev only"@en ;
+    vdo:priority "P2" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.swagger-ui-dev-only.md" .
+
+base:req/REQ-FUN.API.unified-root-endpoint a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API unified root endpoint"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.unified-root-endpoint.md" .
+
+base:req/REQ-FUN.API.validation-import a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API validation import"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.validation-import.md" .
+
+base:req/REQ-FUN.API.validation-pr a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API validation pr"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.validation-pr.md" .
+
+base:req/REQ-FUN.API.write-idempotency a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API write idempotency"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.write-idempotency.md" .
+
+base:req/REQ-FUN.CROSS.sequences a vdo:FunctionalRequirement ;
+    rdfs:label "FUN CROSS sequences"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Cross-Cutting" ;
+    vdo:filePath "specs/requirements/REQ-FUN.CROSS.sequences.md" .
+
+base:req/REQ-FUN.DATA.gdpr-export-mandate a vdo:FunctionalRequirement ;
+    rdfs:label "FUN DATA gdpr export mandate"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-FUN.DATA.gdpr-export-mandate.md" .
+
+base:req/REQ-FUN.DATA.major-version-migration a vdo:FunctionalRequirement ;
+    rdfs:label "FUN DATA major version migration"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-FUN.DATA.major-version-migration.md" .
+
+base:req/REQ-FUN.DATA.major-version-policy a vdo:FunctionalRequirement ;
+    rdfs:label "FUN DATA major version policy"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-FUN.DATA.major-version-policy.md" .
+
+base:req/REQ-FUN.DATA.migration-rollback a vdo:FunctionalRequirement ;
+    rdfs:label "FUN DATA migration rollback"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-FUN.DATA.migration-rollback.md" .
+
+base:req/REQ-FUN.DATA.ontology-identifier-standard a vdo:FunctionalRequirement ;
+    rdfs:label "FUN DATA ontology identifier standard"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-FUN.DATA.ontology-identifier-standard.md" .
+
+base:req/REQ-FUN.DATA.ontology-visibility-levels a vdo:FunctionalRequirement ;
+    rdfs:label "FUN DATA ontology visibility levels"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-FUN.DATA.ontology-visibility-levels.md" .
+
+base:req/REQ-FUN.DATA.query-export-content a vdo:FunctionalRequirement ;
+    rdfs:label "FUN DATA query export content"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-FUN.DATA.query-export-content.md" .
+
+base:req/REQ-FUN.DATA.query-export-format a vdo:FunctionalRequirement ;
+    rdfs:label "FUN DATA query export format"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-FUN.DATA.query-export-format.md" .
+
+base:req/REQ-FUN.DATA.query-export-validation a vdo:FunctionalRequirement ;
+    rdfs:label "FUN DATA query export validation"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-FUN.DATA.query-export-validation.md" .
+
+base:req/REQ-FUN.DATA.storage-stack a vdo:FunctionalRequirement ;
+    rdfs:label "FUN DATA storage stack"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-FUN.DATA.storage-stack.md" .
+
+base:req/REQ-FUN.DATA.suggestion-history a vdo:FunctionalRequirement ;
+    rdfs:label "FUN DATA suggestion history"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-FUN.DATA.suggestion-history.md" .
+
+base:req/REQ-FUN.DATA.versioning a vdo:FunctionalRequirement ;
+    rdfs:label "FUN DATA versioning"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-FUN.DATA.versioning.md" .
+
+base:req/REQ-FUN.DOC.llm-privacy-policy a vdo:FunctionalRequirement ;
+    rdfs:label "FUN DOC llm privacy policy"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Documentation" ;
+    vdo:filePath "specs/requirements/REQ-FUN.DOC.llm-privacy-policy.md" .
+
+base:req/REQ-FUN.INFRA.deployment-integrity a vdo:FunctionalRequirement ;
+    rdfs:label "FUN INFRA deployment integrity"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-FUN.INFRA.deployment-integrity.md" .
+
+base:req/REQ-FUN.INFRA.provider-priority-config a vdo:FunctionalRequirement ;
+    rdfs:label "FUN INFRA provider priority config"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-FUN.INFRA.provider-priority-config.md" .
+
+base:req/REQ-FUN.INFRA.runbook-procedures a vdo:FunctionalRequirement ;
+    rdfs:label "FUN INFRA runbook procedures"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-FUN.INFRA.runbook-procedures.md" .
+
+base:req/REQ-FUN.INFRA.vedo-cli-specification a vdo:FunctionalRequirement ;
+    rdfs:label "FUN INFRA vedo cli specification"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-FUN.INFRA.vedo-cli-specification.md" .
+
+base:req/REQ-FUN.INTEGRATION.audit-api a vdo:FunctionalRequirement ;
+    rdfs:label "FUN INTEGRATION audit api"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Integration" ;
+    vdo:filePath "specs/requirements/REQ-FUN.INTEGRATION.audit-api.md" .
+
+base:req/REQ-FUN.INTEGRATION.audit-integration a vdo:FunctionalRequirement ;
+    rdfs:label "FUN INTEGRATION audit integration"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Integration" ;
+    vdo:filePath "specs/requirements/REQ-FUN.INTEGRATION.audit-integration.md" .
+
+base:req/REQ-FUN.INTEGRATION.audit-log-content a vdo:FunctionalRequirement ;
+    rdfs:label "FUN INTEGRATION audit log content"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Integration" ;
+    vdo:filePath "specs/requirements/REQ-FUN.INTEGRATION.audit-log-content.md" .
+
+base:req/REQ-FUN.INTEGRATION.collaboration a vdo:FunctionalRequirement ;
+    rdfs:label "FUN INTEGRATION collaboration"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Integration" ;
+    vdo:filePath "specs/requirements/REQ-FUN.INTEGRATION.collaboration.md" .
+
+base:req/REQ-FUN.INTEGRATION.collaboration-quality-metrics a vdo:FunctionalRequirement ;
+    rdfs:label "FUN INTEGRATION collaboration quality metrics"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Integration" ;
+    vdo:filePath "specs/requirements/REQ-FUN.INTEGRATION.collaboration-quality-metrics.md" .
+
+base:req/REQ-FUN.INTEGRATION.cost-calculation a vdo:FunctionalRequirement ;
+    rdfs:label "FUN INTEGRATION cost calculation"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Integration" ;
+    vdo:filePath "specs/requirements/REQ-FUN.INTEGRATION.cost-calculation.md" .
+
+base:req/REQ-FUN.INTEGRATION.credit-top-up a vdo:FunctionalRequirement ;
+    rdfs:label "FUN INTEGRATION credit top up"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Integration" ;
+    vdo:filePath "specs/requirements/REQ-FUN.INTEGRATION.credit-top-up.md" .
+
+base:req/REQ-FUN.INTEGRATION.full-response-storage a vdo:FunctionalRequirement ;
+    rdfs:label "FUN INTEGRATION full response storage"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Integration" ;
+    vdo:filePath "specs/requirements/REQ-FUN.INTEGRATION.full-response-storage.md" .
+
+base:req/REQ-FUN.INTEGRATION.provider-billing-integration a vdo:FunctionalRequirement ;
+    rdfs:label "FUN INTEGRATION provider billing integration"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Integration" ;
+    vdo:filePath "specs/requirements/REQ-FUN.INTEGRATION.provider-billing-integration.md" .
+
+base:req/REQ-FUN.INTEGRATION.provider-rate-sync a vdo:FunctionalRequirement ;
+    rdfs:label "FUN INTEGRATION provider rate sync"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Integration" ;
+    vdo:filePath "specs/requirements/REQ-FUN.INTEGRATION.provider-rate-sync.md" .
+
+base:req/REQ-FUN.INTEGRATION.saga-pattern a vdo:FunctionalRequirement ;
+    rdfs:label "FUN INTEGRATION saga pattern"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Integration" ;
+    vdo:filePath "specs/requirements/REQ-FUN.INTEGRATION.saga-pattern.md" .
+
+base:req/REQ-FUN.INTEGRATION.ticket-management a vdo:FunctionalRequirement ;
+    rdfs:label "FUN INTEGRATION ticket management"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Integration" ;
+    vdo:filePath "specs/requirements/REQ-FUN.INTEGRATION.ticket-management.md" .
+
+base:req/REQ-FUN.OPS.auto-top-up a vdo:FunctionalRequirement ;
+    rdfs:label "FUN OPS auto top up"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Operations" ;
+    vdo:filePath "specs/requirements/REQ-FUN.OPS.auto-top-up.md" .
+
+base:req/REQ-FUN.OPS.circuit-breaker-config a vdo:FunctionalRequirement ;
+    rdfs:label "FUN OPS circuit breaker config"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Operations" ;
+    vdo:filePath "specs/requirements/REQ-FUN.OPS.circuit-breaker-config.md" .
+
+base:req/REQ-FUN.OPS.credit-zero-block a vdo:FunctionalRequirement ;
+    rdfs:label "FUN OPS credit zero block"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Operations" ;
+    vdo:filePath "specs/requirements/REQ-FUN.OPS.credit-zero-block.md" .
+
+base:req/REQ-FUN.OPS.manual-circuit-breaker a vdo:FunctionalRequirement ;
+    rdfs:label "FUN OPS manual circuit breaker"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Operations" ;
+    vdo:filePath "specs/requirements/REQ-FUN.OPS.manual-circuit-breaker.md" .
+
+base:req/REQ-FUN.OPS.organization-pool a vdo:FunctionalRequirement ;
+    rdfs:label "FUN OPS organization pool"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Operations" ;
+    vdo:filePath "specs/requirements/REQ-FUN.OPS.organization-pool.md" .
+
+base:req/REQ-FUN.OPS.prompt-blacklist-config a vdo:FunctionalRequirement ;
+    rdfs:label "FUN OPS prompt blacklist config"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Operations" ;
+    vdo:filePath "specs/requirements/REQ-FUN.OPS.prompt-blacklist-config.md" .
+
+base:req/REQ-FUN.OPS.provider-rate-config a vdo:FunctionalRequirement ;
+    rdfs:label "FUN OPS provider rate config"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Operations" ;
+    vdo:filePath "specs/requirements/REQ-FUN.OPS.provider-rate-config.md" .
+
+base:req/REQ-FUN.PROCESS.architecture-decomposition a vdo:FunctionalRequirement ;
+    rdfs:label "FUN PROCESS architecture decomposition"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Process" ;
+    vdo:filePath "specs/requirements/REQ-FUN.PROCESS.architecture-decomposition.md" .
+
+base:req/REQ-FUN.PROCESS.architecture-documentation a vdo:FunctionalRequirement ;
+    rdfs:label "FUN PROCESS architecture documentation"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Process" ;
+    vdo:filePath "specs/requirements/REQ-FUN.PROCESS.architecture-documentation.md" .
+
+base:req/REQ-FUN.PROCESS.ci-cd-procedures a vdo:FunctionalRequirement ;
+    rdfs:label "FUN PROCESS ci cd procedures"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Process" ;
+    vdo:filePath "specs/requirements/REQ-FUN.PROCESS.ci-cd-procedures.md" .
+
+base:req/REQ-FUN.PROCESS.ci-cd-requirements a vdo:FunctionalRequirement ;
+    rdfs:label "FUN PROCESS ci cd requirements"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Process" ;
+    vdo:filePath "specs/requirements/REQ-FUN.PROCESS.ci-cd-requirements.md" .
+
+base:req/REQ-FUN.PROCESS.deployment-checklist a vdo:FunctionalRequirement ;
+    rdfs:label "FUN PROCESS deployment checklist"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Process" ;
+    vdo:filePath "specs/requirements/REQ-FUN.PROCESS.deployment-checklist.md" .
+
+base:req/REQ-FUN.PROCESS.e2e-testing a vdo:FunctionalRequirement ;
+    rdfs:label "FUN PROCESS e2e testing"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Process" ;
+    vdo:filePath "specs/requirements/REQ-FUN.PROCESS.e2e-testing.md" .
+
+base:req/REQ-FUN.PROCESS.escalation-matrix a vdo:FunctionalRequirement ;
+    rdfs:label "FUN PROCESS escalation matrix"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Process" ;
+    vdo:filePath "specs/requirements/REQ-FUN.PROCESS.escalation-matrix.md" .
+
+base:req/REQ-FUN.PROCESS.evaluation-suite a vdo:FunctionalRequirement ;
+    rdfs:label "FUN PROCESS evaluation suite"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Process" ;
+    vdo:filePath "specs/requirements/REQ-FUN.PROCESS.evaluation-suite.md" .
+
+base:req/REQ-FUN.PROCESS.incident-response-slo a vdo:FunctionalRequirement ;
+    rdfs:label "FUN PROCESS incident response slo"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Process" ;
+    vdo:filePath "specs/requirements/REQ-FUN.PROCESS.incident-response-slo.md" .
+
+base:req/REQ-FUN.PROCESS.linting-static-analysis a vdo:FunctionalRequirement ;
+    rdfs:label "FUN PROCESS linting static analysis"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Process" ;
+    vdo:filePath "specs/requirements/REQ-FUN.PROCESS.linting-static-analysis.md" .
+
+base:req/REQ-FUN.PROCESS.preprod-release-gates a vdo:FunctionalRequirement ;
+    rdfs:label "FUN PROCESS preprod release gates"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Process" ;
+    vdo:filePath "specs/requirements/REQ-FUN.PROCESS.preprod-release-gates.md" .
+
+base:req/REQ-FUN.PROCESS.uat-specification a vdo:FunctionalRequirement ;
+    rdfs:label "FUN PROCESS uat specification"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Process" ;
+    vdo:filePath "specs/requirements/REQ-FUN.PROCESS.uat-specification.md" .
+
+base:req/REQ-FUN.UI.external-llm-override a vdo:FunctionalRequirement ;
+    rdfs:label "FUN UI external llm override"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-FUN.UI.external-llm-override.md" .
+
+base:req/REQ-NFR.API.backward-compatibility a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR API backward compatibility"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-NFR.API.backward-compatibility.md" .
+
+base:req/REQ-NFR.API.circuit-breaker a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR API circuit breaker"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-NFR.API.circuit-breaker.md" .
+
+base:req/REQ-NFR.API.circuit-breaker-integration a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR API circuit breaker integration"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-NFR.API.circuit-breaker-integration.md" .
+
+base:req/REQ-NFR.API.compatibility-sla a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR API compatibility sla"@en ;
+    vdo:priority "P1" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-NFR.API.compatibility-sla.md" .
+
+base:req/REQ-NFR.API.compatibility-testing a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR API compatibility testing"@en ;
+    vdo:priority "P1" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-NFR.API.compatibility-testing.md" .
+
+base:req/REQ-NFR.API.coverage-gate a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR API coverage gate"@en ;
+    vdo:priority "P1" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-NFR.API.coverage-gate.md" .
+
+base:req/REQ-NFR.API.decommission-support a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR API decommission support"@en ;
+    vdo:priority "P1" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-NFR.API.decommission-support.md" .
+
+base:req/REQ-NFR.API.deprecation-periods a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR API deprecation periods"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-NFR.API.deprecation-periods.md" .
+
+base:req/REQ-NFR.API.doc-extract-performance a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR API doc extract performance"@en ;
+    vdo:priority "P1" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-NFR.API.doc-extract-performance.md" .
+
+base:req/REQ-NFR.API.excel-async-import a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR API excel async import"@en ;
+    vdo:priority "P1" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-NFR.API.excel-async-import.md" .
+
+base:req/REQ-NFR.API.excel-max-rows a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR API excel max rows"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-NFR.API.excel-max-rows.md" .
+
+base:req/REQ-NFR.API.excel-max-size a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR API excel max size"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-NFR.API.excel-max-size.md" .
+
+base:req/REQ-NFR.API.generation-latency a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR API generation latency"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-NFR.API.generation-latency.md" .
+
+base:req/REQ-NFR.API.sparql-compatibility a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR API sparql compatibility"@en ;
+    vdo:priority "P1" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-NFR.API.sparql-compatibility.md" .
+
+base:req/REQ-NFR.API.suggestion-latency a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR API suggestion latency"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-NFR.API.suggestion-latency.md" .
+
+base:req/REQ-NFR.API.validation-latency a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR API validation latency"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-NFR.API.validation-latency.md" .
+
+base:req/REQ-NFR.CROSS.usability-metrics a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR CROSS usability metrics"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Cross-Cutting" ;
+    vdo:filePath "specs/requirements/REQ-NFR.CROSS.usability-metrics.md" .
+
+base:req/REQ-NFR.DATA.account-closure-retention a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DATA account closure retention"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DATA.account-closure-retention.md" .
+
+base:req/REQ-NFR.DATA.audit-retention a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DATA audit retention"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DATA.audit-retention.md" .
+
+base:req/REQ-NFR.DATA.backup-format a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DATA backup format"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DATA.backup-format.md" .
+
+base:req/REQ-NFR.DATA.backup-retention a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DATA backup retention"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DATA.backup-retention.md" .
+
+base:req/REQ-NFR.DATA.backup-storage a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DATA backup storage"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DATA.backup-storage.md" .
+
+base:req/REQ-NFR.DATA.circuit-breaker-audit a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DATA circuit breaker audit"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DATA.circuit-breaker-audit.md" .
+
+base:req/REQ-NFR.DATA.decommission-archive-retention a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DATA decommission archive retention"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DATA.decommission-archive-retention.md" .
+
+base:req/REQ-NFR.DATA.decommission-export a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DATA decommission export"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DATA.decommission-export.md" .
+
+base:req/REQ-NFR.DATA.decommission-notification-policy a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DATA decommission notification policy"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DATA.decommission-notification-policy.md" .
+
+base:req/REQ-NFR.DATA.deprecation-audit a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DATA deprecation audit"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DATA.deprecation-audit.md" .
+
+base:req/REQ-NFR.DATA.failover-audit a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DATA failover audit"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DATA.failover-audit.md" .
+
+base:req/REQ-NFR.DATA.llm-audit a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DATA llm audit"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DATA.llm-audit.md" .
+
+base:req/REQ-NFR.DATA.migration-automation a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DATA migration automation"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DATA.migration-automation.md" .
+
+base:req/REQ-NFR.DATA.migration-integrity-checks a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DATA migration integrity checks"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DATA.migration-integrity-checks.md" .
+
+base:req/REQ-NFR.DATA.migration-maintenance-window a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DATA migration maintenance window"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DATA.migration-maintenance-window.md" .
+
+base:req/REQ-NFR.DATA.migration-preparation a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DATA migration preparation"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DATA.migration-preparation.md" .
+
+base:req/REQ-NFR.DATA.migration-runbook a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DATA migration runbook"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DATA.migration-runbook.md" .
+
+base:req/REQ-NFR.DATA.partial-data-rollback a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DATA partial data rollback"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DATA.partial-data-rollback.md" .
+
+base:req/REQ-NFR.DATA.query-export-audit a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DATA query export audit"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DATA.query-export-audit.md" .
+
+base:req/REQ-NFR.DATA.query-export-auto-delete a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DATA query export auto delete"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DATA.query-export-auto-delete.md" .
+
+base:req/REQ-NFR.DATA.query-export-retention a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DATA query export retention"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DATA.query-export-retention.md" .
+
+base:req/REQ-NFR.DATA.query-export-scaling a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DATA query export scaling"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DATA.query-export-scaling.md" .
+
+base:req/REQ-NFR.DATA.rollback-data-loss-rpo a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DATA rollback data loss rpo"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DATA.rollback-data-loss-rpo.md" .
+
+base:req/REQ-NFR.DATA.rollback-data-policy a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DATA rollback data policy"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DATA.rollback-data-policy.md" .
+
+base:req/REQ-NFR.DATA.rollback-prevention a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DATA rollback prevention"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DATA.rollback-prevention.md" .
+
+base:req/REQ-NFR.DATA.rollback-runbook a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DATA rollback runbook"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DATA.rollback-runbook.md" .
+
+base:req/REQ-NFR.DATA.secure-erase a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DATA secure erase"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Data" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DATA.secure-erase.md" .
+
+base:req/REQ-NFR.DOC.documentation-training a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DOC documentation training"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Documentation" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DOC.documentation-training.md" .
+
+base:req/REQ-NFR.DOC.localization-language-policy a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR DOC localization language policy"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Documentation" ;
+    vdo:filePath "specs/requirements/REQ-NFR.DOC.localization-language-policy.md" .
+
+base:req/REQ-NFR.INFRA.availability-slo a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR INFRA availability slo"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-NFR.INFRA.availability-slo.md" .
+
+base:req/REQ-NFR.INFRA.client-environment-support a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR INFRA client environment support"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-NFR.INFRA.client-environment-support.md" .
+
+base:req/REQ-NFR.INFRA.control-plane-isolation a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR INFRA control plane isolation"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-NFR.INFRA.control-plane-isolation.md" .
+
+base:req/REQ-NFR.INFRA.edge-region-failover a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR INFRA edge region failover"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-NFR.INFRA.edge-region-failover.md" .
+
+base:req/REQ-NFR.INFRA.fault-scenarios a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR INFRA fault scenarios"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-NFR.INFRA.fault-scenarios.md" .
+
+base:req/REQ-NFR.INFRA.router-resilience a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR INFRA router resilience"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-NFR.INFRA.router-resilience.md" .
+
+base:req/REQ-NFR.INFRA.runbook-ownership-drill-evidence a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR INFRA runbook ownership drill evidence"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-NFR.INFRA.runbook-ownership-drill-evidence.md" .
+
+base:req/REQ-NFR.INFRA.runbook-usability a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR INFRA runbook usability"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-NFR.INFRA.runbook-usability.md" .
+
+base:req/REQ-NFR.INFRA.sla-recovery a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR INFRA sla recovery"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-NFR.INFRA.sla-recovery.md" .
+
+base:req/REQ-NFR.INFRA.support-metadata-isolation a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR INFRA support metadata isolation"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-NFR.INFRA.support-metadata-isolation.md" .
+
+base:req/REQ-NFR.INFRA.sustainability-energy-efficiency a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR INFRA sustainability energy efficiency"@en ;
+    vdo:priority "P2" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-NFR.INFRA.sustainability-energy-efficiency.md" .
+
+base:req/REQ-NFR.INTEGRATION.automatic-failover a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR INTEGRATION automatic failover"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Integration" ;
+    vdo:filePath "specs/requirements/REQ-NFR.INTEGRATION.automatic-failover.md" .
+
+base:req/REQ-NFR.INTEGRATION.failover-internal-private a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR INTEGRATION failover internal private"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Integration" ;
+    vdo:filePath "specs/requirements/REQ-NFR.INTEGRATION.failover-internal-private.md" .
+
+base:req/REQ-NFR.INTEGRATION.max-downtime a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR INTEGRATION max downtime"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Integration" ;
+    vdo:filePath "specs/requirements/REQ-NFR.INTEGRATION.max-downtime.md" .
+
+base:req/REQ-NFR.OPS.alert-fatigue a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR OPS alert fatigue"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Operations" ;
+    vdo:filePath "specs/requirements/REQ-NFR.OPS.alert-fatigue.md" .
+
+base:req/REQ-NFR.OPS.circuit-breaker-monitoring a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR OPS circuit breaker monitoring"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Operations" ;
+    vdo:filePath "specs/requirements/REQ-NFR.OPS.circuit-breaker-monitoring.md" .
+
+base:req/REQ-NFR.OPS.critical-alerts a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR OPS critical alerts"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Operations" ;
+    vdo:filePath "specs/requirements/REQ-NFR.OPS.critical-alerts.md" .
+
+base:req/REQ-NFR.OPS.llm-agent-observability a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR OPS llm agent observability"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Operations" ;
+    vdo:filePath "specs/requirements/REQ-NFR.OPS.llm-agent-observability.md" .
+
+base:req/REQ-NFR.OPS.log-retention a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR OPS log retention"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Operations" ;
+    vdo:filePath "specs/requirements/REQ-NFR.OPS.log-retention.md" .
+
+base:req/REQ-NFR.OPS.metrics a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR OPS metrics"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Operations" ;
+    vdo:filePath "specs/requirements/REQ-NFR.OPS.metrics.md" .
+
+base:req/REQ-NFR.OPS.observability-stack a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR OPS observability stack"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Operations" ;
+    vdo:filePath "specs/requirements/REQ-NFR.OPS.observability-stack.md" .
+
+base:req/REQ-NFR.OPS.provider-alerting a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR OPS provider alerting"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Operations" ;
+    vdo:filePath "specs/requirements/REQ-NFR.OPS.provider-alerting.md" .
+
+base:req/REQ-NFR.OPS.provider-health-checks a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR OPS provider health checks"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Operations" ;
+    vdo:filePath "specs/requirements/REQ-NFR.OPS.provider-health-checks.md" .
+
+base:req/REQ-NFR.OPS.suggestion-analytics a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR OPS suggestion analytics"@en ;
+    vdo:priority "P2" ;
+    vdo:area "Operations" ;
+    vdo:filePath "specs/requirements/REQ-NFR.OPS.suggestion-analytics.md" .
+
+base:req/REQ-NFR.PERF.canonical-workload-profile a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR PERF canonical workload profile"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Performance" ;
+    vdo:filePath "specs/requirements/REQ-NFR.PERF.canonical-workload-profile.md" .
+
+base:req/REQ-NFR.PERF.performance a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR PERF performance"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Performance" ;
+    vdo:filePath "specs/requirements/REQ-NFR.PERF.performance.md" .
+
+base:req/REQ-NFR.PROCESS.chaos-testing a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR PROCESS chaos testing"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Process" ;
+    vdo:filePath "specs/requirements/REQ-NFR.PROCESS.chaos-testing.md" .
+
+base:req/REQ-NFR.PROCESS.circuit-breaker-tests a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR PROCESS circuit breaker tests"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Process" ;
+    vdo:filePath "specs/requirements/REQ-NFR.PROCESS.circuit-breaker-tests.md" .
+
+base:req/REQ-NFR.PROCESS.prompt-injection-tests a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR PROCESS prompt injection tests"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Process" ;
+    vdo:filePath "specs/requirements/REQ-NFR.PROCESS.prompt-injection-tests.md" .
+
+base:req/REQ-NFR.PROCESS.rollout-safety-gates a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR PROCESS rollout safety gates"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Process" ;
+    vdo:filePath "specs/requirements/REQ-NFR.PROCESS.rollout-safety-gates.md" .
+
+base:req/REQ-NFR.SECURITY.audit-access-audit a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY audit access audit"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.audit-access-audit.md" .
+
+base:req/REQ-NFR.SECURITY.audit-encryption a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY audit encryption"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.audit-encryption.md" .
+
+base:req/REQ-NFR.SECURITY.audit-masking a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY audit masking"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.audit-masking.md" .
+
+base:req/REQ-NFR.SECURITY.authorization-regression-gates a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY authorization regression gates"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.authorization-regression-gates.md" .
+
+base:req/REQ-NFR.SECURITY.bola-bfla-negative-tests a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY bola bfla negative tests"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.bola-bfla-negative-tests.md" .
+
+base:req/REQ-NFR.SECURITY.doc-extract-security a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY doc extract security"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.doc-extract-security.md" .
+
+base:req/REQ-NFR.SECURITY.emergency-policy-disable a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY emergency policy disable"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.emergency-policy-disable.md" .
+
+base:req/REQ-NFR.SECURITY.enforced-in-code a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY enforced in code"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.enforced-in-code.md" .
+
+base:req/REQ-NFR.SECURITY.excel-import-security a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY excel import security"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.excel-import-security.md" .
+
+base:req/REQ-NFR.SECURITY.incident-secret-rotation a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY incident secret rotation"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.incident-secret-rotation.md" .
+
+base:req/REQ-NFR.SECURITY.llm-content-screening a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY llm content screening"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.llm-content-screening.md" .
+
+base:req/REQ-NFR.SECURITY.llm-dependency-fail-mode a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY llm dependency fail mode"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.llm-dependency-fail-mode.md" .
+
+base:req/REQ-NFR.SECURITY.llm-excessive-agency-control a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY llm excessive agency control"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.llm-excessive-agency-control.md" .
+
+base:req/REQ-NFR.SECURITY.llm-output-screening a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY llm output screening"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.llm-output-screening.md" .
+
+base:req/REQ-NFR.SECURITY.llm-tool-least-privilege a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY llm tool least privilege"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.llm-tool-least-privilege.md" .
+
+base:req/REQ-NFR.SECURITY.llm-write-human-approval a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY llm write human approval"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.llm-write-human-approval.md" .
+
+base:req/REQ-NFR.SECURITY.organization-access-model a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY organization access model"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.organization-access-model.md" .
+
+base:req/REQ-NFR.SECURITY.parser-query-fuzz-gates a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY parser query fuzz gates"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.parser-query-fuzz-gates.md" .
+
+base:req/REQ-NFR.SECURITY.privileged-access-control a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY privileged access control"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.privileged-access-control.md" .
+
+base:req/REQ-NFR.SECURITY.prompt-audit a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY prompt audit"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.prompt-audit.md" .
+
+base:req/REQ-NFR.SECURITY.prompt-filter-blacklist a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY prompt filter blacklist"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.prompt-filter-blacklist.md" .
+
+base:req/REQ-NFR.SECURITY.prompt-structure-detection a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY prompt structure detection"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.prompt-structure-detection.md" .
+
+base:req/REQ-NFR.SECURITY.sandbox-mode a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY sandbox mode"@en ;
+    vdo:priority "P2" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.sandbox-mode.md" .
+
+base:req/REQ-NFR.SECURITY.sca-sbom-gating a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY sca sbom gating"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.sca-sbom-gating.md" .
+
+base:req/REQ-NFR.SECURITY.security-integration a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY security integration"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.security-integration.md" .
+
+base:req/REQ-NFR.SECURITY.security-requirements a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY security requirements"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.security-requirements.md" .
+
+base:req/REQ-NFR.SECURITY.suggestion-privacy a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY suggestion privacy"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.suggestion-privacy.md" .
+
+base:req/REQ-NFR.SECURITY.system-prompt-hardening a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SECURITY system prompt hardening"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SECURITY.system-prompt-hardening.md" .
+
+base:req/REQ-NFR.SUP.support-sla a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR SUP support sla"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Support" ;
+    vdo:filePath "specs/requirements/REQ-NFR.SUP.support-sla.md" .
+
+base:req/REQ-NFR.UI.accessibility a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR UI accessibility"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-NFR.UI.accessibility.md" .
+
+base:req/REQ-NFR.UI.data-loss-prevention a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR UI data loss prevention"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-NFR.UI.data-loss-prevention.md" .
+
+base:req/REQ-NFR.UI.error-feedback a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR UI error feedback"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-NFR.UI.error-feedback.md" .
+
+base:req/REQ-NFR.UI.incident-communication-sla a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR UI incident communication sla"@en ;
+    vdo:priority "P1" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-NFR.UI.incident-communication-sla.md" .
+
+base:req/REQ-NFR.UI.wcag-mvp-scenarios a vdo:NonFunctionalRequirement ;
+    rdfs:label "NFR UI wcag mvp scenarios"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-NFR.UI.wcag-mvp-scenarios.md" .
+
+base:req/REQ-USR.API.deprecation-notification a vdo:FunctionalRequirement ;
+    rdfs:label "USR API deprecation notification"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-USR.API.deprecation-notification.md" .
+
+base:req/REQ-USR.DOC.user-guide-graphql-navigation a vdo:FunctionalRequirement ;
+    rdfs:label "USR DOC user guide graphql navigation"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Documentation" ;
+    vdo:filePath "specs/requirements/REQ-USR.DOC.user-guide-graphql-navigation.md" .
+
+base:req/REQ-USR.DOC.user-guide-sparql-gui a vdo:FunctionalRequirement ;
+    rdfs:label "USR DOC user guide sparql gui"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Documentation" ;
+    vdo:filePath "specs/requirements/REQ-USR.DOC.user-guide-sparql-gui.md" .
+
+base:req/REQ-USR.INFRA.cli-admin-tool a vdo:FunctionalRequirement ;
+    rdfs:label "USR INFRA cli admin tool"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-USR.INFRA.cli-admin-tool.md" .
+
+base:req/REQ-USR.INFRA.cli-design-guidelines a vdo:FunctionalRequirement ;
+    rdfs:label "USR INFRA cli design guidelines"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Infrastructure" ;
+    vdo:filePath "specs/requirements/REQ-USR.INFRA.cli-design-guidelines.md" .
+
+base:req/REQ-USR.UI.abox-editor a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI abox editor"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.abox-editor.md" .
+
+base:req/REQ-USR.UI.audit-access a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI audit access"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.audit-access.md" .
+
+base:req/REQ-USR.UI.audit-export-incident a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI audit export incident"@en ;
+    vdo:priority "P1" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.audit-export-incident.md" .
+
+base:req/REQ-USR.UI.audit-ui a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI audit ui"@en ;
+    vdo:priority "P1" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.audit-ui.md" .
+
+base:req/REQ-USR.UI.circuit-breaker-feedback a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI circuit breaker feedback"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.circuit-breaker-feedback.md" .
+
+base:req/REQ-USR.UI.confidence-indicator a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI confidence indicator"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.confidence-indicator.md" .
+
+base:req/REQ-USR.UI.consent-withdrawal a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI consent withdrawal"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.consent-withdrawal.md" .
+
+base:req/REQ-USR.UI.cost-transparency a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI cost transparency"@en ;
+    vdo:priority "P1" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.cost-transparency.md" .
+
+base:req/REQ-USR.UI.credits-dashboard a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI credits dashboard"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.credits-dashboard.md" .
+
+base:req/REQ-USR.UI.credits-notifications a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI credits notifications"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.credits-notifications.md" .
+
+base:req/REQ-USR.UI.critical-errors a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI critical errors"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.critical-errors.md" .
+
+base:req/REQ-USR.UI.customization a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI customization"@en ;
+    vdo:priority "P2" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.customization.md" .
+
+base:req/REQ-USR.UI.dangerous-actions-recovery a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI dangerous actions recovery"@en ;
+    vdo:priority "P1" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.dangerous-actions-recovery.md" .
+
+base:req/REQ-USR.UI.decommission-usability a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI decommission usability"@en ;
+    vdo:priority "P1" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.decommission-usability.md" .
+
+base:req/REQ-USR.UI.degraded-mode-ux a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI degraded mode ux"@en ;
+    vdo:priority "P1" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.degraded-mode-ux.md" .
+
+base:req/REQ-USR.UI.delight-features a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI delight features"@en ;
+    vdo:priority "P1" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.delight-features.md" .
+
+base:req/REQ-USR.UI.doc-extract-upload a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI doc extract upload"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.doc-extract-upload.md" .
+
+base:req/REQ-USR.UI.excel-error-report a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI excel error report"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.excel-error-report.md" .
+
+base:req/REQ-USR.UI.excel-export-error-report a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI excel export error report"@en ;
+    vdo:priority "P1" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.excel-export-error-report.md" .
+
+base:req/REQ-USR.UI.excel-preview a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI excel preview"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.excel-preview.md" .
+
+base:req/REQ-USR.UI.excel-progress a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI excel progress"@en ;
+    vdo:priority "P1" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.excel-progress.md" .
+
+base:req/REQ-USR.UI.excel-templates a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI excel templates"@en ;
+    vdo:priority "P1" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.excel-templates.md" .
+
+base:req/REQ-USR.UI.external-llm-consent a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI external llm consent"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.external-llm-consent.md" .
+
+base:req/REQ-USR.UI.generation-progress a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI generation progress"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.generation-progress.md" .
+
+base:req/REQ-USR.UI.graceful-degradation a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI graceful degradation"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.graceful-degradation.md" .
+
+base:req/REQ-USR.UI.graph-navigation a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI graph navigation"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.graph-navigation.md" .
+
+base:req/REQ-USR.UI.gui-implementation a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI gui implementation"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.gui-implementation.md" .
+
+base:req/REQ-USR.UI.import-export a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI import export"@en ;
+    vdo:priority "P1" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.import-export.md" .
+
+base:req/REQ-USR.UI.llm-selector a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI llm selector"@en ;
+    vdo:priority "P1" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.llm-selector.md" .
+
+base:req/REQ-USR.UI.max-suggestions a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI max suggestions"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.max-suggestions.md" .
+
+base:req/REQ-USR.UI.model-cost-awareness a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI model cost awareness"@en ;
+    vdo:priority "P1" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.model-cost-awareness.md" .
+
+base:req/REQ-USR.UI.nl-language-support a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI nl language support"@en ;
+    vdo:priority "P1" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.nl-language-support.md" .
+
+base:req/REQ-USR.UI.ontology-mental-model a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI ontology mental model"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.ontology-mental-model.md" .
+
+base:req/REQ-USR.UI.prompt-block-feedback a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI prompt block feedback"@en ;
+    vdo:priority "P1" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.prompt-block-feedback.md" .
+
+base:req/REQ-USR.UI.provider-change-notification a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI provider change notification"@en ;
+    vdo:priority "P1" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.provider-change-notification.md" .
+
+base:req/REQ-USR.UI.provider-status-indicator a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI provider status indicator"@en ;
+    vdo:priority "P1" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.provider-status-indicator.md" .
+
+base:req/REQ-USR.UI.quality-report a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI quality report"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.quality-report.md" .
+
+base:req/REQ-USR.UI.query-export-availability a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI query export availability"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.query-export-availability.md" .
+
+base:req/REQ-USR.UI.query-export-localization a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI query export localization"@en ;
+    vdo:priority "P2" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.query-export-localization.md" .
+
+base:req/REQ-USR.UI.query-export-notifications a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI query export notifications"@en ;
+    vdo:priority "P1" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.query-export-notifications.md" .
+
+base:req/REQ-USR.UI.sparql-gui-search a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI sparql gui search"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.sparql-gui-search.md" .
+
+base:req/REQ-USR.UI.status-page-deprecation a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI status page deprecation"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.status-page-deprecation.md" .
+
+base:req/REQ-USR.UI.suggestion-confirmation a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI suggestion confirmation"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.suggestion-confirmation.md" .
+
+base:req/REQ-USR.UI.suggestion-interaction a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI suggestion interaction"@en ;
+    vdo:priority "P1" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.suggestion-interaction.md" .
+
+base:req/REQ-USR.UI.suggestion-ranking a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI suggestion ranking"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.suggestion-ranking.md" .
+
+base:req/REQ-USR.UI.tbox-editor a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI tbox editor"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.tbox-editor.md" .
+
+base:req/REQ-USR.UI.usability-metrics a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI usability metrics"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.usability-metrics.md" .
+
+base:req/REQ-USR.UI.ux-review-process a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI ux review process"@en ;
+    vdo:priority "P1" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.ux-review-process.md" .
+
+base:req/REQ-USR.UI.validation-feedback a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI validation feedback"@en ;
+    vdo:priority "P0" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.validation-feedback.md" .
+
+base:req/REQ-USR.UI.validation-fix a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI validation fix"@en ;
+    vdo:priority "P1" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.validation-fix.md" .
+
+base:req/REQ-USR.UI.visibility-indicator a vdo:FunctionalRequirement ;
+    rdfs:label "USR UI visibility indicator"@en ;
+    vdo:priority "P1" ;
+    vdo:area "UI" ;
+    vdo:filePath "specs/requirements/REQ-USR.UI.visibility-indicator.md" .
+
+
+# =============================================================================
+# TEST SUITE DECLARATIONS (from files with // Validates: annotations)
+# =============================================================================
+# These test suites were identified from // Validates: annotations in test files.
+# =============================================================================
+
+base:ts/ai-orchestration-service.internal.handler.handler a vdo:TestSuite ;
+    rdfs:label "AI-ORCHESTRATION-SERVICE INTERNAL HANDLER HANDLER"@en ;
+    vdo:filePath "src/services/ai-orchestration-service/internal/handler/handler_test.go" .
+
+base:ts/ai-orchestration-service.internal.middleware.middleware a vdo:TestSuite ;
+    rdfs:label "AI-ORCHESTRATION-SERVICE INTERNAL MIDDLEWARE MIDDLEWARE"@en ;
+    vdo:filePath "src/services/ai-orchestration-service/internal/middleware/middleware_test.go" .
+
+base:ts/ai-orchestration-service.service a vdo:TestSuite ;
+    rdfs:label "AI-ORCHESTRATION-SERVICE SERVICE"@en ;
+    vdo:filePath "src/services/ai-orchestration-service/service_test.go" .
+
+base:ts/api-gateway.auth.auth a vdo:TestSuite ;
+    rdfs:label "API-GATEWAY AUTH AUTH"@en ;
+    vdo:filePath "src/services/api-gateway/auth/auth_test.go" .
+
+base:ts/api-gateway.auth_integration a vdo:TestSuite ;
+    rdfs:label "API-GATEWAY AUTH_INTEGRATION"@en ;
+    vdo:filePath "src/services/api-gateway/auth_integration_test.go" .
+
+base:ts/api-gateway.handlers.org_handler a vdo:TestSuite ;
+    rdfs:label "API-GATEWAY HANDLERS ORG_HANDLER"@en ;
+    vdo:filePath "src/services/api-gateway/handlers/org_handler_test.go" .
+
+base:ts/api-gateway.main a vdo:TestSuite ;
+    rdfs:label "API-GATEWAY MAIN"@en ;
+    vdo:filePath "src/services/api-gateway/main_test.go" .
+
+base:ts/api-gateway.proxy.proxy a vdo:TestSuite ;
+    rdfs:label "API-GATEWAY PROXY PROXY"@en ;
+    vdo:filePath "src/services/api-gateway/proxy/proxy_test.go" .
+
+base:ts/api-gateway.proxy_integration a vdo:TestSuite ;
+    rdfs:label "API-GATEWAY PROXY_INTEGRATION"@en ;
+    vdo:filePath "src/services/api-gateway/proxy_integration_test.go" .
+
+base:ts/api-gateway.query_integration a vdo:TestSuite ;
+    rdfs:label "API-GATEWAY QUERY_INTEGRATION"@en ;
+    vdo:filePath "src/services/api-gateway/query_integration_test.go" .
+
+base:ts/api-gateway.rate_limit_integration a vdo:TestSuite ;
+    rdfs:label "API-GATEWAY RATE_LIMIT_INTEGRATION"@en ;
+    vdo:filePath "src/services/api-gateway/rate_limit_integration_test.go" .
+
+base:ts/api-gateway.rest_entity_crud_integration a vdo:TestSuite ;
+    rdfs:label "API-GATEWAY REST_ENTITY_CRUD_INTEGRATION"@en ;
+    vdo:filePath "src/services/api-gateway/rest_entity_crud_integration_test.go" .
+
+base:ts/auth-service.auth_service a vdo:TestSuite ;
+    rdfs:label "AUTH-SERVICE AUTH_SERVICE"@en ;
+    vdo:filePath "src/services/auth-service/auth_service_test.go" .
+
+base:ts/auth-service.keycloak_introspect a vdo:TestSuite ;
+    rdfs:label "AUTH-SERVICE KEYCLOAK_INTROSPECT"@en ;
+    vdo:filePath "src/services/auth-service/keycloak_introspect_test.go" .
+
+base:ts/auth-service.membership.membership a vdo:TestSuite ;
+    rdfs:label "AUTH-SERVICE MEMBERSHIP MEMBERSHIP"@en ;
+    vdo:filePath "src/services/auth-service/membership/membership_test.go" .
+
+base:ts/auth-service.org.org_grpc a vdo:TestSuite ;
+    rdfs:label "AUTH-SERVICE ORG ORG_GRPC"@en ;
+    vdo:filePath "src/services/auth-service/org/org_grpc_test.go" .
+
+base:ts/auth-service.org.org_hierarchy a vdo:TestSuite ;
+    rdfs:label "AUTH-SERVICE ORG ORG_HIERARCHY"@en ;
+    vdo:filePath "src/services/auth-service/org/org_hierarchy_test.go" .
+
+base:ts/auth-service.org.org_proto_validation a vdo:TestSuite ;
+    rdfs:label "AUTH-SERVICE ORG ORG_PROTO_VALIDATION"@en ;
+    vdo:filePath "src/services/auth-service/org/org_proto_validation_test.go" .
+
+base:ts/auth-service.org.org_remove_member a vdo:TestSuite ;
+    rdfs:label "AUTH-SERVICE ORG ORG_REMOVE_MEMBER"@en ;
+    vdo:filePath "src/services/auth-service/org/org_remove_member_test.go" .
+
+base:ts/auth-service.org.org_roles a vdo:TestSuite ;
+    rdfs:label "AUTH-SERVICE ORG ORG_ROLES"@en ;
+    vdo:filePath "src/services/auth-service/org/org_roles_test.go" .
+
+base:ts/auth-service.org.org a vdo:TestSuite ;
+    rdfs:label "AUTH-SERVICE ORG ORG"@en ;
+    vdo:filePath "src/services/auth-service/org/org_test.go" .
+
+base:ts/auth-service.org.postgres_store a vdo:TestSuite ;
+    rdfs:label "AUTH-SERVICE ORG POSTGRES_STORE"@en ;
+    vdo:filePath "src/services/auth-service/org/postgres_store_test.go" .
+
+base:ts/auth-service.org.schema a vdo:TestSuite ;
+    rdfs:label "AUTH-SERVICE ORG SCHEMA"@en ;
+    vdo:filePath "src/services/auth-service/org/schema_test.go" .
+
+base:ts/auth-service.org_proto_generate a vdo:TestSuite ;
+    rdfs:label "AUTH-SERVICE ORG_PROTO_GENERATE"@en ;
+    vdo:filePath "src/services/auth-service/org_proto_generate_test.go" .
+
+base:ts/e2e.playwright.tests.api.graphql.schema-boundary a vdo:TestSuite ;
+    rdfs:label "E2E PLAYWRIGHT TESTS API GRAPHQL SCHEMA-BOUNDARY"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/api/graphql/schema-boundary.spec.ts" .
+
+base:ts/e2e.playwright.tests.api.rest.api-gateway-full a vdo:TestSuite ;
+    rdfs:label "E2E PLAYWRIGHT TESTS API REST API-GATEWAY-FULL"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/api/rest/api-gateway-full.spec.ts" .
+
+base:ts/e2e.playwright.tests.api.rest.jwt-auth a vdo:TestSuite ;
+    rdfs:label "E2E PLAYWRIGHT TESTS API REST JWT-AUTH"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/api/rest/jwt-auth.spec.ts" .
+
+base:ts/e2e.playwright.tests.api.rest.org-api a vdo:TestSuite ;
+    rdfs:label "E2E PLAYWRIGHT TESTS API REST ORG-API"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/api/rest/org-api.spec.ts" .
+
+base:ts/e2e.playwright.tests.gui.pages.dashboard-navigation a vdo:TestSuite ;
+    rdfs:label "E2E PLAYWRIGHT TESTS GUI PAGES DASHBOARD-NAVIGATION"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/dashboard-navigation.spec.ts" .
+
+base:ts/e2e.playwright.tests.gui.pages.dashboard-wiring a vdo:TestSuite ;
+    rdfs:label "E2E PLAYWRIGHT TESTS GUI PAGES DASHBOARD-WIRING"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/dashboard-wiring.spec.ts" .
+
+base:ts/e2e.playwright.tests.gui.pages.deployments-page a vdo:TestSuite ;
+    rdfs:label "E2E PLAYWRIGHT TESTS GUI PAGES DEPLOYMENTS-PAGE"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/deployments-page.spec.ts" .
+
+base:ts/e2e.playwright.tests.gui.pages.groups-page a vdo:TestSuite ;
+    rdfs:label "E2E PLAYWRIGHT TESTS GUI PAGES GROUPS-PAGE"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/groups-page.spec.ts" .
+
+base:ts/e2e.playwright.tests.gui.pages.groups-page-wired a vdo:TestSuite ;
+    rdfs:label "E2E PLAYWRIGHT TESTS GUI PAGES GROUPS-PAGE-WIRED"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/groups-page-wired.spec.ts" .
+
+base:ts/e2e.playwright.tests.gui.pages.members-page a vdo:TestSuite ;
+    rdfs:label "E2E PLAYWRIGHT TESTS GUI PAGES MEMBERS-PAGE"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/members-page.spec.ts" .
+
+base:ts/e2e.playwright.tests.gui.pages.members-page-wired a vdo:TestSuite ;
+    rdfs:label "E2E PLAYWRIGHT TESTS GUI PAGES MEMBERS-PAGE-WIRED"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/members-page-wired.spec.ts" .
+
+base:ts/e2e.playwright.tests.gui.pages.merge-requests-page a vdo:TestSuite ;
+    rdfs:label "E2E PLAYWRIGHT TESTS GUI PAGES MERGE-REQUESTS-PAGE"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/merge-requests-page.spec.ts" .
+
+base:ts/e2e.playwright.tests.gui.pages.metrics-page a vdo:TestSuite ;
+    rdfs:label "E2E PLAYWRIGHT TESTS GUI PAGES METRICS-PAGE"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/metrics-page.spec.ts" .
+
+base:ts/e2e.playwright.tests.gui.pages.projects-page a vdo:TestSuite ;
+    rdfs:label "E2E PLAYWRIGHT TESTS GUI PAGES PROJECTS-PAGE"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/projects-page.spec.ts" .
+
+base:ts/e2e.playwright.tests.gui.pages.projects-page-wired a vdo:TestSuite ;
+    rdfs:label "E2E PLAYWRIGHT TESTS GUI PAGES PROJECTS-PAGE-WIRED"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/projects-page-wired.spec.ts" .
+
+base:ts/e2e.playwright.tests.gui.pages.sparql-gui a vdo:TestSuite ;
+    rdfs:label "E2E PLAYWRIGHT TESTS GUI PAGES SPARQL-GUI"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/sparql-gui.spec.ts" .
+
+base:ts/e2e.playwright.tests.gui.pages.validation-page a vdo:TestSuite ;
+    rdfs:label "E2E PLAYWRIGHT TESTS GUI PAGES VALIDATION-PAGE"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/validation-page.spec.ts" .
+
+base:ts/e2e.playwright.tests.gui.pages.versioning-tabs a vdo:TestSuite ;
+    rdfs:label "E2E PLAYWRIGHT TESTS GUI PAGES VERSIONING-TABS"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/pages/versioning-tabs.spec.ts" .
+
+base:ts/e2e.playwright.tests.gui.user-stories.ai-completion a vdo:TestSuite ;
+    rdfs:label "E2E PLAYWRIGHT TESTS GUI USER-STORIES AI-COMPLETION"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/ai-completion.spec.ts" .
+
+base:ts/e2e.playwright.tests.gui.user-stories.document-extraction-md-txt a vdo:TestSuite ;
+    rdfs:label "E2E PLAYWRIGHT TESTS GUI USER-STORIES DOCUMENT-EXTRACTION-MD-TXT"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/document-extraction-md-txt.spec.ts" .
+
+base:ts/e2e.playwright.tests.gui.user-stories.keycloak-login a vdo:TestSuite ;
+    rdfs:label "E2E PLAYWRIGHT TESTS GUI USER-STORIES KEYCLOAK-LOGIN"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/keycloak-login.spec.ts" .
+
+base:ts/e2e.playwright.tests.gui.user-stories.nl-to-owl-generation a vdo:TestSuite ;
+    rdfs:label "E2E PLAYWRIGHT TESTS GUI USER-STORIES NL-TO-OWL-GENERATION"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/nl-to-owl-generation.spec.ts" .
+
+base:ts/e2e.playwright.tests.gui.user-stories.org-lifecycle a vdo:TestSuite ;
+    rdfs:label "E2E PLAYWRIGHT TESTS GUI USER-STORIES ORG-LIFECYCLE"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/gui/user-stories/org-lifecycle.spec.ts" .
+
+base:ts/frontend.__tests__.AnnotationDialog a vdo:TestSuite ;
+    rdfs:label "FRONTEND __TESTS__ ANNOTATIONDIALOG"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/AnnotationDialog.spec.ts" .
+
+base:ts/frontend.__tests__.CreateClassDialog a vdo:TestSuite ;
+    rdfs:label "FRONTEND __TESTS__ CREATECLASSDIALOG"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/CreateClassDialog.spec.ts" .
+
+base:ts/frontend.__tests__.CreateIndividualDialog a vdo:TestSuite ;
+    rdfs:label "FRONTEND __TESTS__ CREATEINDIVIDUALDIALOG"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/CreateIndividualDialog.spec.ts" .
+
+base:ts/frontend.__tests__.CreatePropertyDialog a vdo:TestSuite ;
+    rdfs:label "FRONTEND __TESTS__ CREATEPROPERTYDIALOG"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/CreatePropertyDialog.spec.ts" .
+
+base:ts/frontend.__tests__.DashboardPage a vdo:TestSuite ;
+    rdfs:label "FRONTEND __TESTS__ DASHBOARDPAGE"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/DashboardPage.spec.ts" .
+
+base:ts/frontend.__tests__.DeploymentsPage a vdo:TestSuite ;
+    rdfs:label "FRONTEND __TESTS__ DEPLOYMENTSPAGE"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/DeploymentsPage.spec.ts" .
+
+base:ts/frontend.__tests__.ForkDemoDialog a vdo:TestSuite ;
+    rdfs:label "FRONTEND __TESTS__ FORKDEMODIALOG"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/ForkDemoDialog.spec.ts" .
+
+base:ts/frontend.__tests__.GroupsPage a vdo:TestSuite ;
+    rdfs:label "FRONTEND __TESTS__ GROUPSPAGE"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/GroupsPage.spec.ts" .
+
+base:ts/frontend.__tests__.MembersPage a vdo:TestSuite ;
+    rdfs:label "FRONTEND __TESTS__ MEMBERSPAGE"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/MembersPage.spec.ts" .
+
+base:ts/frontend.__tests__.MergeRequestsPage a vdo:TestSuite ;
+    rdfs:label "FRONTEND __TESTS__ MERGEREQUESTSPAGE"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/MergeRequestsPage.spec.ts" .
+
+base:ts/frontend.__tests__.MetricsPage a vdo:TestSuite ;
+    rdfs:label "FRONTEND __TESTS__ METRICSPAGE"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/MetricsPage.spec.ts" .
+
+base:ts/frontend.__tests__.MfaChallengeDialog a vdo:TestSuite ;
+    rdfs:label "FRONTEND __TESTS__ MFACHALLENGEDIALOG"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/MfaChallengeDialog.spec.ts" .
+
+base:ts/frontend.__tests__.Navigation a vdo:TestSuite ;
+    rdfs:label "FRONTEND __TESTS__ NAVIGATION"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/Navigation.spec.ts" .
+
+base:ts/frontend.__tests__.OntologyWorkspaceSave a vdo:TestSuite ;
+    rdfs:label "FRONTEND __TESTS__ ONTOLOGYWORKSPACESAVE"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/OntologyWorkspaceSave.spec.ts" .
+
+base:ts/frontend.__tests__.ProjectsPage a vdo:TestSuite ;
+    rdfs:label "FRONTEND __TESTS__ PROJECTSPAGE"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/ProjectsPage.spec.ts" .
+
+base:ts/frontend.__tests__.PublishSnapshotDialog a vdo:TestSuite ;
+    rdfs:label "FRONTEND __TESTS__ PUBLISHSNAPSHOTDIALOG"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/PublishSnapshotDialog.spec.ts" .
+
+base:ts/frontend.__tests__.setup a vdo:TestSuite ;
+    rdfs:label "FRONTEND __TESTS__ SETUP"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/setup.test.ts" .
+
+base:ts/frontend.__tests__.ValidationPage a vdo:TestSuite ;
+    rdfs:label "FRONTEND __TESTS__ VALIDATIONPAGE"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/ValidationPage.spec.ts" .
+
+base:ts/frontend.__tests__.VersioningPage a vdo:TestSuite ;
+    rdfs:label "FRONTEND __TESTS__ VERSIONINGPAGE"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/VersioningPage.spec.ts" .
+
+base:ts/frontend.components.ontology.ApplySequenceButton a vdo:TestSuite ;
+    rdfs:label "FRONTEND COMPONENTS ONTOLOGY APPLYSEQUENCEBUTTON"@en ;
+    vdo:filePath "src/services/frontend/src/components/ontology/ApplySequenceButton.spec.ts" .
+
+base:ts/frontend.components.ontology.DocumentUploader a vdo:TestSuite ;
+    rdfs:label "FRONTEND COMPONENTS ONTOLOGY DOCUMENTUPLOADER"@en ;
+    vdo:filePath "src/services/frontend/src/components/ontology/DocumentUploader.spec.ts" .
+
+base:ts/frontend.components.ontology.SequencePreview a vdo:TestSuite ;
+    rdfs:label "FRONTEND COMPONENTS ONTOLOGY SEQUENCEPREVIEW"@en ;
+    vdo:filePath "src/services/frontend/src/components/ontology/SequencePreview.spec.ts" .
+
+base:ts/frontend.composables.useBatchUpload a vdo:TestSuite ;
+    rdfs:label "FRONTEND COMPOSABLES USEBATCHUPLOAD"@en ;
+    vdo:filePath "src/services/frontend/src/composables/useBatchUpload.spec.ts" .
+
+base:ts/org-api.org_api_integration a vdo:TestSuite ;
+    rdfs:label "ORG-API ORG_API_INTEGRATION"@en ;
+    vdo:filePath "tests/org-api/org_api_integration_test.go" .
+
+base:ts/security.authorization.rbac_advanced a vdo:TestSuite ;
+    rdfs:label "SECURITY AUTHORIZATION RBAC_ADVANCED"@en ;
+    vdo:filePath "tests/security/authorization/rbac_advanced_test.go" .
+
+base:ts/security.authorization.rbac_bfla_membership a vdo:TestSuite ;
+    rdfs:label "SECURITY AUTHORIZATION RBAC_BFLA_MEMBERSHIP"@en ;
+    vdo:filePath "tests/security/authorization/rbac_bfla_membership_test.go" .
+
+base:ts/security.authorization.rbac_cross_tenant_bola a vdo:TestSuite ;
+    rdfs:label "SECURITY AUTHORIZATION RBAC_CROSS_TENANT_BOLA"@en ;
+    vdo:filePath "tests/security/authorization/rbac_cross_tenant_bola_test.go" .
+
+base:ts/security.authorization.rbac_fork_idempotency a vdo:TestSuite ;
+    rdfs:label "SECURITY AUTHORIZATION RBAC_FORK_IDEMPOTENCY"@en ;
+    vdo:filePath "tests/security/authorization/rbac_fork_idempotency_test.go" .
+
+base:ts/security.authorization.rbac_idor_visibility_pagination a vdo:TestSuite ;
+    rdfs:label "SECURITY AUTHORIZATION RBAC_IDOR_VISIBILITY_PAGINATION"@en ;
+    vdo:filePath "tests/security/authorization/rbac_idor_visibility_pagination_test.go" .
+
+base:ts/security.org_access_control a vdo:TestSuite ;
+    rdfs:label "SECURITY ORG_ACCESS_CONTROL"@en ;
+    vdo:filePath "tests/security/org_access_control_test.go" .
+
+
+# =============================================================================
+# VALIDATION LINKS — Test-to-Requirement (from // Validates: annotations)
+# =============================================================================
+# 85 validates links connecting test suites to requirements.
+# =============================================================================
+
+base:ts/ai-orchestration-service.internal.handler.handler vdo:validates base:req/REQ-FUN.API.llm-policy .
+base:ts/ai-orchestration-service.internal.handler.handler vdo:validates base:req/REQ-NFR.SECURITY.prompt-structure-detection .
+base:ts/ai-orchestration-service.internal.handler.handler vdo:validates base:req/REQ-NFR.SECURITY.system-prompt-hardening .
+base:ts/ai-orchestration-service.internal.middleware.middleware vdo:validates base:req/REQ-FUN.API.llm-policy .
+base:ts/ai-orchestration-service.internal.middleware.middleware vdo:validates base:req/REQ-FUN.DATA.ontology-visibility-levels .
+base:ts/ai-orchestration-service.service vdo:validates base:req/REQ-FUN.API.llm-policy .
+base:ts/api-gateway.auth.auth vdo:validates base:req/REQ-NFR.SECURITY.bola-bfla-negative-tests .
+base:ts/api-gateway.auth_integration vdo:validates base:req/REQ-NFR.SECURITY.bola-bfla-negative-tests .
+base:ts/api-gateway.main vdo:validates base:req/REQ-NFR.SECURITY.bola-bfla-negative-tests .
+base:ts/api-gateway.proxy.proxy vdo:validates base:req/REQ-NFR.SECURITY.bola-bfla-negative-tests .
+base:ts/api-gateway.proxy_integration vdo:validates base:req/REQ-NFR.SECURITY.bola-bfla-negative-tests .
+base:ts/api-gateway.query_integration vdo:validates base:req/REQ-NFR.SECURITY.bola-bfla-negative-tests .
+base:ts/api-gateway.rate_limit_integration vdo:validates base:req/REQ-NFR.SECURITY.bola-bfla-negative-tests .
+base:ts/api-gateway.rest_entity_crud_integration vdo:validates base:req/REQ-FUN.API.graphql-sparql .
+base:ts/auth-service.auth_service vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
+base:ts/auth-service.keycloak_introspect vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
+base:ts/auth-service.membership.membership vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
+base:ts/auth-service.org.org vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
+base:ts/auth-service.org.org_grpc vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
+base:ts/auth-service.org.org_hierarchy vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
+base:ts/auth-service.org.org_proto_validation vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
+base:ts/auth-service.org.org_remove_member vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
+base:ts/auth-service.org.org_roles vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
+base:ts/auth-service.org.postgres_store vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
+base:ts/auth-service.org.schema vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
+base:ts/auth-service.org_proto_generate vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
+base:ts/e2e.playwright.tests.api.graphql.schema-boundary vdo:validates base:req/REQ-FUN.API.graphql-sparql .
+base:ts/e2e.playwright.tests.api.rest.api-gateway-full vdo:validates base:req/REQ-FUN.PROCESS.e2e-testing .
+base:ts/e2e.playwright.tests.api.rest.api-gateway-full vdo:validates base:req/REQ-NFR.SECURITY.bola-bfla-negative-tests .
+base:ts/e2e.playwright.tests.api.rest.jwt-auth vdo:validates base:req/REQ-FUN.PROCESS.e2e-testing .
+base:ts/e2e.playwright.tests.api.rest.jwt-auth vdo:validates base:req/REQ-NFR.SECURITY.jwt-key-mismatch .
+base:ts/e2e.playwright.tests.api.rest.org-api vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
+base:ts/e2e.playwright.tests.gui.pages.dashboard-navigation vdo:validates base:req/REQ-FUN.PROCESS.e2e-testing .
+base:ts/e2e.playwright.tests.gui.pages.dashboard-navigation vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/e2e.playwright.tests.gui.pages.dashboard-wiring vdo:validates base:req/REQ-FUN.PROCESS.e2e-testing .
+base:ts/e2e.playwright.tests.gui.pages.dashboard-wiring vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/e2e.playwright.tests.gui.pages.deployments-page vdo:validates base:req/REQ-FUN.PROCESS.e2e-testing .
+base:ts/e2e.playwright.tests.gui.pages.deployments-page vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/e2e.playwright.tests.gui.pages.groups-page vdo:validates base:req/REQ-FUN.PROCESS.e2e-testing .
+base:ts/e2e.playwright.tests.gui.pages.groups-page vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/e2e.playwright.tests.gui.pages.groups-page-wired vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
+base:ts/e2e.playwright.tests.gui.pages.members-page vdo:validates base:req/REQ-FUN.PROCESS.e2e-testing .
+base:ts/e2e.playwright.tests.gui.pages.members-page vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/e2e.playwright.tests.gui.pages.members-page-wired vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
+base:ts/e2e.playwright.tests.gui.pages.merge-requests-page vdo:validates base:req/REQ-FUN.PROCESS.e2e-testing .
+base:ts/e2e.playwright.tests.gui.pages.merge-requests-page vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/e2e.playwright.tests.gui.pages.metrics-page vdo:validates base:req/REQ-FUN.PROCESS.e2e-testing .
+base:ts/e2e.playwright.tests.gui.pages.metrics-page vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/e2e.playwright.tests.gui.pages.projects-page vdo:validates base:req/REQ-FUN.PROCESS.e2e-testing .
+base:ts/e2e.playwright.tests.gui.pages.projects-page vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/e2e.playwright.tests.gui.pages.projects-page-wired vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
+base:ts/e2e.playwright.tests.gui.pages.sparql-gui vdo:validates base:req/REQ-FUN.PROCESS.e2e-testing .
+base:ts/e2e.playwright.tests.gui.pages.sparql-gui vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/e2e.playwright.tests.gui.pages.validation-page vdo:validates base:req/REQ-FUN.PROCESS.e2e-testing .
+base:ts/e2e.playwright.tests.gui.pages.validation-page vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/e2e.playwright.tests.gui.pages.versioning-tabs vdo:validates base:req/REQ-FUN.PROCESS.e2e-testing .
+base:ts/e2e.playwright.tests.gui.pages.versioning-tabs vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/e2e.playwright.tests.gui.user-stories.keycloak-login vdo:validates base:req/REQ-NFR.SECURITY.security-requirements .
+base:ts/e2e.playwright.tests.gui.user-stories.org-lifecycle vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
+base:ts/frontend.__tests__.AnnotationDialog vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/frontend.__tests__.CreateClassDialog vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/frontend.__tests__.CreateIndividualDialog vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/frontend.__tests__.CreatePropertyDialog vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/frontend.__tests__.DashboardPage vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/frontend.__tests__.DeploymentsPage vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/frontend.__tests__.ForkDemoDialog vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/frontend.__tests__.GroupsPage vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/frontend.__tests__.MembersPage vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/frontend.__tests__.MergeRequestsPage vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/frontend.__tests__.MetricsPage vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/frontend.__tests__.MfaChallengeDialog vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/frontend.__tests__.Navigation vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/frontend.__tests__.OntologyWorkspaceSave vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/frontend.__tests__.ProjectsPage vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/frontend.__tests__.PublishSnapshotDialog vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/frontend.__tests__.setup vdo:validates base:req/REQ-CON.STACK.frontend-stack .
+base:ts/frontend.__tests__.ValidationPage vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/frontend.__tests__.VersioningPage vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/frontend.components.ontology.ApplySequenceButton vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/frontend.components.ontology.DocumentUploader vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/frontend.components.ontology.SequencePreview vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/frontend.composables.useBatchUpload vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/org-api.org_api_integration vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
+base:ts/security.org_access_control vdo:validates base:req/REQ-NFR.SECURITY.authorization-regression-gates .
+base:ts/security.org_access_control vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
+
 # CHANGE IMPACT ANALYSIS
 # =============================================================================
 # The affectedBy relationships document change impact chains:
