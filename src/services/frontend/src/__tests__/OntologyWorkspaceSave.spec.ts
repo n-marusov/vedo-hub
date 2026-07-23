@@ -8,17 +8,46 @@ import {
 	setMockOperationResult,
 	waitForQuery,
 } from "@/__tests__/setup/mock-providers";
-import { afterEach, expect, it } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
+
+// OntologyWorkspace uses axios.get() directly for fetchOntologyMeta().
+// Mock axios so the component loads data and renders the save button.
+vi.mock("axios", () => {
+	const mockInstance = {
+		get: vi.fn().mockResolvedValue({ data: { id: "test", name: "Test Ontology", branch: "main", dirty: false } }),
+		post: vi.fn().mockResolvedValue({ data: {} }),
+		put: vi.fn().mockResolvedValue({ data: {} }),
+		delete: vi.fn().mockResolvedValue({ data: {} }),
+		interceptors: {
+			request: { use: vi.fn() },
+			response: { use: vi.fn() },
+		},
+	};
+	return {
+		default: {
+			create: vi.fn().mockReturnValue(mockInstance),
+			get: mockInstance.get,
+			post: mockInstance.post,
+			...mockInstance,
+		},
+		create: vi.fn().mockReturnValue(mockInstance),
+		get: mockInstance.get,
+		post: mockInstance.post,
+	};
+});
 
 describePage("OntologyWorkspaceSave", () => {
 	afterEach(() => {
 		resetMockResults();
+		vi.clearAllMocks();
 	});
 
 	it("should have a Save button that saves draft via useDraftState when clicked", async () => {
-		const OntologyWorkspace = (await import("@/pages/OntologyWorkspace.vue"))
-			.default;
+		setMockOperationResult("UpdateDraft", {
+			updateDraft: { success: true, timestamp: new Date().toISOString() },
+		});
+		const OntologyWorkspace = (await import("@/pages/OntologyWorkspace.vue")).default;
 		const wrapper = mountWithProviders(OntologyWorkspace);
 		await waitForQuery();
 		await nextTick();
@@ -28,8 +57,10 @@ describePage("OntologyWorkspaceSave", () => {
 	});
 
 	it("should disable Save button when there are no unsaved changes", async () => {
-		const OntologyWorkspace = (await import("@/pages/OntologyWorkspace.vue"))
-			.default;
+		setMockOperationResult("UpdateDraft", {
+			updateDraft: { success: true, timestamp: new Date().toISOString() },
+		});
+		const OntologyWorkspace = (await import("@/pages/OntologyWorkspace.vue")).default;
 		const wrapper = mountWithProviders(OntologyWorkspace);
 		await waitForQuery();
 		await nextTick();
@@ -38,8 +69,10 @@ describePage("OntologyWorkspaceSave", () => {
 	});
 
 	it("should render workspace toolbar with save button present", async () => {
-		const OntologyWorkspace = (await import("@/pages/OntologyWorkspace.vue"))
-			.default;
+		setMockOperationResult("UpdateDraft", {
+			updateDraft: { success: true, timestamp: new Date().toISOString() },
+		});
+		const OntologyWorkspace = (await import("@/pages/OntologyWorkspace.vue")).default;
 		const wrapper = mountWithProviders(OntologyWorkspace);
 		await waitForQuery();
 		await nextTick();
@@ -47,8 +80,10 @@ describePage("OntologyWorkspaceSave", () => {
 	});
 
 	it("should render workspace page layout", async () => {
-		const OntologyWorkspace = (await import("@/pages/OntologyWorkspace.vue"))
-			.default;
+		setMockOperationResult("UpdateDraft", {
+			updateDraft: { success: true, timestamp: new Date().toISOString() },
+		});
+		const OntologyWorkspace = (await import("@/pages/OntologyWorkspace.vue")).default;
 		const wrapper = mountWithProviders(OntologyWorkspace);
 		await waitForQuery();
 		await nextTick();
@@ -56,13 +91,8 @@ describePage("OntologyWorkspaceSave", () => {
 	});
 
 	it("should not crash when save fails due to API error", async () => {
-		setMockOperationResult(
-			"UpdateDraft",
-			null,
-			new Error("Failed to save draft"),
-		);
-		const OntologyWorkspace = (await import("@/pages/OntologyWorkspace.vue"))
-			.default;
+		setMockOperationResult("UpdateDraft", null, new Error("Failed to save draft"));
+		const OntologyWorkspace = (await import("@/pages/OntologyWorkspace.vue")).default;
 		const wrapper = mountWithProviders(OntologyWorkspace);
 		await waitForQuery();
 		await nextTick();
