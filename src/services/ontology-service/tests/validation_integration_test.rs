@@ -36,7 +36,9 @@ fn post_json(uri: &str, body: &str) -> Request<Body> {
 /// Creates a test class, then validates the ontology with default shapes.
 /// Expects a 200 response with `conforms` and `results` fields.
 async fn test_validate_ontology_returns_report() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("validate_ok");
 
@@ -88,7 +90,9 @@ async fn test_validate_ontology_returns_report() {
 /// Validates with custom SHACL shapes provided inline.
 /// Expects a 200 response with the validation report.
 async fn test_validate_with_custom_shacl_shapes() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("validate_custom");
 
@@ -145,7 +149,9 @@ async fn test_validate_with_custom_shacl_shapes() {
 ///
 /// Validation of a nonexistent ontology should return an error response.
 async fn test_validate_nonexistent_ontology_returns_error() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, _pool) = common::create_test_app().await;
 
     let resp = app

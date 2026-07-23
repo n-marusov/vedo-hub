@@ -63,7 +63,9 @@ fn ontology_url(o: &str) -> String {
 
 #[tokio::test]
 async fn test_create_class_creates_node_in_neo4j() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("create_class");
 
@@ -96,7 +98,9 @@ async fn test_create_class_creates_node_in_neo4j() {
 
 #[tokio::test]
 async fn test_get_class_returns_correct_data() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("get_class");
 
@@ -124,7 +128,9 @@ async fn test_get_class_returns_correct_data() {
 
 #[tokio::test]
 async fn test_update_class_modifies_node_in_neo4j() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("update_class");
 
@@ -170,7 +176,9 @@ async fn test_update_class_modifies_node_in_neo4j() {
 
 #[tokio::test]
 async fn test_delete_class_removes_node_from_neo4j() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("delete_class");
 
@@ -211,7 +219,9 @@ async fn test_delete_class_removes_node_from_neo4j() {
 
 #[tokio::test]
 async fn test_list_classes_returns_data() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("list_classes");
 
@@ -241,7 +251,9 @@ async fn test_list_classes_returns_data() {
 
 #[tokio::test]
 async fn test_create_duplicate_class_returns_error() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("duplicate_class");
 
@@ -273,7 +285,9 @@ async fn test_create_duplicate_class_returns_error() {
 
 #[tokio::test]
 async fn test_create_class_missing_fields_returns_error() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, _pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("missing_fields");
 
@@ -298,7 +312,9 @@ async fn test_create_class_missing_fields_returns_error() {
 /// Creates a parent class, then creates a child class referencing the parent,
 /// and verifies the CHILD_OF relationship exists in Neo4j.
 async fn test_create_class_with_parent_creates_hierarchy() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("hierarchy");
 
@@ -361,7 +377,9 @@ async fn test_create_class_with_parent_creates_hierarchy() {
 /// Creates a parent class with a subclass, then attempts to delete the parent
 /// without cascade=true. Expects HTTP 409 CONFLICT with ONT-CLASS-HAS-DEPENDENTS.
 async fn test_delete_class_with_dependents_returns_error() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("delete_dep");
 
@@ -427,7 +445,9 @@ async fn test_delete_class_with_dependents_returns_error() {
 ///
 /// Edge case: deleting a nonexistent class returns 404 NotFound.
 async fn test_delete_nonexistent_class_returns_404() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, _pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("delete_nope");
 

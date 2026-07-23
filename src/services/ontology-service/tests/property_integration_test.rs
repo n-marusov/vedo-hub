@@ -43,7 +43,9 @@ fn oid_url(oid: &str, path: &str) -> String {
 
 #[tokio::test]
 async fn test_create_object_property_stores_in_neo4j() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("create_obj_prop");
 
@@ -76,7 +78,9 @@ async fn test_create_object_property_stores_in_neo4j() {
 
 #[tokio::test]
 async fn test_create_datatype_property_stores_in_neo4j() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("create_dt_prop");
 
@@ -108,7 +112,9 @@ async fn test_create_datatype_property_stores_in_neo4j() {
 
 #[tokio::test]
 async fn test_get_property_with_domain_range() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("get_prop");
 
@@ -143,7 +149,9 @@ async fn test_get_property_with_domain_range() {
 
 #[tokio::test]
 async fn test_list_properties_returns_data() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("list_props");
 
@@ -162,7 +170,9 @@ async fn test_list_properties_returns_data() {
 
 #[tokio::test]
 async fn test_delete_property_removes_from_neo4j() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("delete_prop");
 
@@ -199,7 +209,9 @@ async fn test_delete_property_removes_from_neo4j() {
 
 #[tokio::test]
 async fn test_create_property_missing_required_field_returns_error() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, _pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("prop_missing");
 

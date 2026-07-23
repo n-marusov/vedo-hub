@@ -50,7 +50,9 @@ async fn seed_class(pool: &ontology_service::neo4j::Neo4jPool, oid: &str, cid: &
 
 #[tokio::test]
 async fn test_create_individual_stores_in_neo4j() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("create_indiv");
     seed_class(&pool, &oid, "Person").await;
@@ -80,7 +82,9 @@ async fn test_create_individual_stores_in_neo4j() {
 
 #[tokio::test]
 async fn test_get_individual_returns_data() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("get_indiv");
     seed_class(&pool, &oid, "Person").await;
@@ -103,7 +107,9 @@ async fn test_get_individual_returns_data() {
 
 #[tokio::test]
 async fn test_update_individual_changes_label() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("update_indiv");
     seed_class(&pool, &oid, "Person").await;
@@ -148,7 +154,9 @@ async fn test_update_individual_changes_label() {
 
 #[tokio::test]
 async fn test_list_individuals_returns_data() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("list_indiv");
     seed_class(&pool, &oid, "Person").await;
@@ -175,7 +183,9 @@ async fn test_list_individuals_returns_data() {
 
 #[tokio::test]
 async fn test_delete_individual_removes_from_neo4j() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("delete_indiv");
     seed_class(&pool, &oid, "Person").await;
@@ -227,7 +237,9 @@ async fn test_delete_individual_removes_from_neo4j() {
 /// property values. Verifies the individual is linked to the class via
 /// INSTANCE_OF and the LiteralValue node via HAS_VALUE.
 async fn test_create_individual_with_property_values() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("indiv_props");
     seed_class(&pool, &oid, "Person").await;

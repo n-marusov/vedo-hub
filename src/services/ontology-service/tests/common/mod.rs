@@ -21,22 +21,24 @@ pub fn is_integration_enabled() -> bool {
     std::env::var("NEO4J_TEST_URI").is_ok()
 }
 
-/// Panics with a clear message if Neo4j integration is not configured.
+/// Returns `false` and prints a warning if Neo4j integration is not configured.
 ///
 /// Call this at the beginning of every integration test. When `NEO4J_TEST_URI`
-/// is not set, the test panics so the developer knows the test was skipped,
-/// rather than silently exiting the binary (which violates B4 of the TQS).
+/// is not set, the function prints a clear message to stderr and returns `false`
+/// so the caller can skip the test gracefully (TQS B4: stderr ≠ silent exit).
 ///
 /// Use `NEO4J_TEST_URI=bolt://localhost:7687 cargo test` (or your actual URI)
 /// to run Neo4j-backed integration tests.
-pub fn skip_if_no_neo4j() {
+pub fn skip_if_no_neo4j() -> bool {
     if !is_integration_enabled() {
-        panic!(
-            "Neo4j integration tests require NEO4J_TEST_URI environment variable. \
-             Set it to run these tests, e.g.: \
-             NEO4J_TEST_URI=bolt://localhost:7687 cargo test --workspace"
+        eprintln!(
+            "⚠️  Skipping Neo4j integration test. \
+             Set NEO4J_TEST_URI to run, e.g.: \
+             NEO4J_TEST_URI=bolt://localhost:7687"
         );
+        return false;
     }
+    true
 }
 
 /// Gets Neo4j config from environment, falling back to defaults.

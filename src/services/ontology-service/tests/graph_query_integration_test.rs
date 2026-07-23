@@ -49,7 +49,9 @@ async fn seed_class(
 
 #[tokio::test]
 async fn test_hierarchy_tree_returns_ancestors() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("hierarchy");
     seed_class(&pool, &oid, "owl:Thing", None).await;
@@ -69,7 +71,9 @@ async fn test_hierarchy_tree_returns_ancestors() {
 
 #[tokio::test]
 async fn test_neighborhood_query() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("neighborhood");
     seed_class(&pool, &oid, "owl:Thing", None).await;
@@ -104,7 +108,9 @@ async fn test_neighborhood_query() {
 
 #[tokio::test]
 async fn test_root_classes_endpoint() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("root");
     seed_class(&pool, &oid, "owl:Thing", None).await;
@@ -120,7 +126,9 @@ async fn test_root_classes_endpoint() {
 
 #[tokio::test]
 async fn test_breadcrumb_endpoint() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("breadcrumb");
     seed_class(&pool, &oid, "owl:Thing", None).await;

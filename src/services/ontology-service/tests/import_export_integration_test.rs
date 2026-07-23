@@ -31,7 +31,9 @@ fn post_body(uri: &str, content_type: &str, body: &str) -> Request<Body> {
 
 #[tokio::test]
 async fn test_export_turtle_returns_content() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("export_ttl");
 
@@ -64,7 +66,9 @@ async fn test_export_turtle_returns_content() {
 
 #[tokio::test]
 async fn test_export_rdfxml_returns_content() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("export_rdf");
 
@@ -96,7 +100,9 @@ async fn test_export_rdfxml_returns_content() {
 
 #[tokio::test]
 async fn test_import_invalid_format_returns_error() {
-    common::skip_if_no_neo4j();
+    if !common::skip_if_no_neo4j() {
+        return;
+    }
     let (app, _pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("import_bad");
 
