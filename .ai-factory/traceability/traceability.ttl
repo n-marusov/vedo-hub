@@ -5197,6 +5197,281 @@ base:ts/pending-team a vdo:TestSuite ;
 base:ts/pending-team vdo:validates base:user/US-team.reviews.approve .
 base:ts/pending-team vdo:validates base:user/US-projects.fork .
 
+# Added 6 validates links for orphan P0 US
+base:ts/pending-browse vdo:validates base:user/US-browse.tree.graph-view .
+base:ts/pending-editor vdo:validates base:user/US-editor.classes.create-parents .
+base:ts/pending-editor vdo:validates base:user/US-editor.properties.create-datatype .
+base:ts/pending-editor vdo:validates base:user/US-editor.properties.create-object .
+base:ts/pending-io vdo:validates base:user/US-io.export.canonical-turtle .
+base:ts/pending-team vdo:validates base:user/US-team.comments.visibility .
+
+# =============================================================================
+# INSTANCES — Use Cases (UC-*.md)
+# =============================================================================
+# 52 use case specifications registered from filesystem.
+# Priority: 15 P0, 24 P1, 12 P2
+# =============================================================================
+
+base:uc/UC-abox.individuals.export-individuals-to-xlsx a vdo:UseCase ;
+    rdfs:label "UC-abox.individuals.export-individuals-to-xlsx"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/use-cases/UC-abox.individuals.export-individuals-to-xlsx.md" .
+
+base:uc/UC-abox.individuals.manage-individual-lifecycle a vdo:UseCase ;
+    rdfs:label "UC-abox.individuals.manage-individual-lifecycle"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/use-cases/UC-abox.individuals.manage-individual-lifecycle.md" .
+
+base:uc/UC-abox.individuals.navigate-linked-individuals a vdo:UseCase ;
+    rdfs:label "UC-abox.individuals.navigate-linked-individuals"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/use-cases/UC-abox.individuals.navigate-linked-individuals.md" .
+
+base:uc/UC-admin.access.manage-membership-and-permissions a vdo:UseCase ;
+    rdfs:label "UC-admin.access.manage-membership-and-permissions"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/use-cases/UC-admin.access.manage-membership-and-permissions.md" .
+
+base:uc/UC-admin.airgap.prepare-air-gapped-package-via-cli a vdo:UseCase ;
+    rdfs:label "UC-admin.airgap.prepare-air-gapped-package-via-cli"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/use-cases/UC-admin.airgap.prepare-air-gapped-package-via-cli.md" .
+
+base:uc/UC-admin.backup.manage-backup-and-restore-via-cli a vdo:UseCase ;
+    rdfs:label "UC-admin.backup.manage-backup-and-restore-via-cli"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/use-cases/UC-admin.backup.manage-backup-and-restore-via-cli.md" .
+
+base:uc/UC-admin.migration.apply-migrations-with-rollback-via-cli a vdo:UseCase ;
+    rdfs:label "UC-admin.migration.apply-migrations-with-rollback-via-cli"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/use-cases/UC-admin.migration.apply-migrations-with-rollback-via-cli.md" .
+
+base:uc/UC-admin.migration.transfer-and-diff-ontologies-via-cli a vdo:UseCase ;
+    rdfs:label "UC-admin.migration.transfer-and-diff-ontologies-via-cli"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/use-cases/UC-admin.migration.transfer-and-diff-ontologies-via-cli.md" .
+
+base:uc/UC-admin.system.manage-platform-configuration a vdo:UseCase ;
+    rdfs:label "UC-admin.system.manage-platform-configuration"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/use-cases/UC-admin.system.manage-platform-configuration.md" .
+
+base:uc/UC-api.auth.issue-and-validate-jwt-tokens a vdo:UseCase ;
+    rdfs:label "UC-api.auth.issue-and-validate-jwt-tokens"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/use-cases/UC-api.auth.issue-and-validate-jwt-tokens.md" .
+
+base:uc/UC-api.docs.view-openapi-specification a vdo:UseCase ;
+    rdfs:label "UC-api.docs.view-openapi-specification"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/use-cases/UC-api.docs.view-openapi-specification.md" .
+
+base:uc/UC-api.integration.integrate-through-platform-apis a vdo:UseCase ;
+    rdfs:label "UC-api.integration.integrate-through-platform-apis"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/use-cases/UC-api.integration.integrate-through-platform-apis.md" .
+
+base:uc/UC-api.webhooks.manage-subscriptions-and-delivery a vdo:UseCase ;
+    rdfs:label "UC-api.webhooks.manage-subscriptions-and-delivery"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/use-cases/UC-api.webhooks.manage-subscriptions-and-delivery.md" .
+
+base:uc/UC-browse.graph.view-ontology-graph-with-pagination a vdo:UseCase ;
+    rdfs:label "UC-browse.graph.view-ontology-graph-with-pagination"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/use-cases/UC-browse.graph.view-ontology-graph-with-pagination.md" .
+
+base:uc/UC-browse.public.view-published-ontology a vdo:UseCase ;
+    rdfs:label "UC-browse.public.view-published-ontology"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/use-cases/UC-browse.public.view-published-ontology.md" .
+
+base:uc/UC-browse.search.execute-sparql-query-through-gui a vdo:UseCase ;
+    rdfs:label "UC-browse.search.execute-sparql-query-through-gui"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/use-cases/UC-browse.search.execute-sparql-query-through-gui.md" .
+
+base:uc/UC-browse.search.search-ontology-elements a vdo:UseCase ;
+    rdfs:label "UC-browse.search.search-ontology-elements"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/use-cases/UC-browse.search.search-ontology-elements.md" .
+
+base:uc/UC-browse.tree.view-ontology-tree-and-graph a vdo:UseCase ;
+    rdfs:label "UC-browse.tree.view-ontology-tree-and-graph"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/use-cases/UC-browse.tree.view-ontology-tree-and-graph.md" .
+
+base:uc/UC-diagnostics.trace.diagnose-incident-by-trace-id a vdo:UseCase ;
+    rdfs:label "UC-diagnostics.trace.diagnose-incident-by-trace-id"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/use-cases/UC-diagnostics.trace.diagnose-incident-by-trace-id.md" .
+
+base:uc/UC-editor.classes.manage-class-lifecycle a vdo:UseCase ;
+    rdfs:label "UC-editor.classes.manage-class-lifecycle"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/use-cases/UC-editor.classes.manage-class-lifecycle.md" .
+
+base:uc/UC-editor.classes.manage-data-quality-rules a vdo:UseCase ;
+    rdfs:label "UC-editor.classes.manage-data-quality-rules"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/use-cases/UC-editor.classes.manage-data-quality-rules.md" .
+
+base:uc/UC-editor.classes.validate-ontology-with-shacl a vdo:UseCase ;
+    rdfs:label "UC-editor.classes.validate-ontology-with-shacl"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/use-cases/UC-editor.classes.validate-ontology-with-shacl.md" .
+
+base:uc/UC-editor.properties.manage-ontology-annotations a vdo:UseCase ;
+    rdfs:label "UC-editor.properties.manage-ontology-annotations"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/use-cases/UC-editor.properties.manage-ontology-annotations.md" .
+
+base:uc/UC-editor.properties.manage-property-lifecycle a vdo:UseCase ;
+    rdfs:label "UC-editor.properties.manage-property-lifecycle"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/use-cases/UC-editor.properties.manage-property-lifecycle.md" .
+
+base:uc/UC-git.branches.manage-branch-workflow a vdo:UseCase ;
+    rdfs:label "UC-git.branches.manage-branch-workflow"@en ;
+    vdo:priority "P2" ;
+    vdo:filePath "specs/use-cases/UC-git.branches.manage-branch-workflow.md" .
+
+base:uc/UC-git.commits.compare-ontology-versions a vdo:UseCase ;
+    rdfs:label "UC-git.commits.compare-ontology-versions"@en ;
+    vdo:priority "P2" ;
+    vdo:filePath "specs/use-cases/UC-git.commits.compare-ontology-versions.md" .
+
+base:uc/UC-git.commits.manage-commit-history a vdo:UseCase ;
+    rdfs:label "UC-git.commits.manage-commit-history"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/use-cases/UC-git.commits.manage-commit-history.md" .
+
+base:uc/UC-io.export.export-ontology-to-docx a vdo:UseCase ;
+    rdfs:label "UC-io.export.export-ontology-to-docx"@en ;
+    vdo:priority "P2" ;
+    vdo:filePath "specs/use-cases/UC-io.export.export-ontology-to-docx.md" .
+
+base:uc/UC-io.forms.configure-import-form-templates a vdo:UseCase ;
+    rdfs:label "UC-io.forms.configure-import-form-templates"@en ;
+    vdo:priority "P2" ;
+    vdo:filePath "specs/use-cases/UC-io.forms.configure-import-form-templates.md" .
+
+base:uc/UC-io.import.batch-extract-ontology a vdo:UseCase ;
+    rdfs:label "UC-io.import.batch-extract-ontology"@en ;
+    vdo:priority "P2" ;
+    vdo:filePath "specs/use-cases/UC-io.import.batch-extract-ontology.md" .
+
+base:uc/UC-io.import.extract-ontology-from-document a vdo:UseCase ;
+    rdfs:label "UC-io.import.extract-ontology-from-document"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/use-cases/UC-io.import.extract-ontology-from-document.md" .
+
+base:uc/UC-io.import.import-and-export-ontology-data a vdo:UseCase ;
+    rdfs:label "UC-io.import.import-and-export-ontology-data"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/use-cases/UC-io.import.import-and-export-ontology-data.md" .
+
+base:uc/UC-io.import.import-and-export-ontology-xlsx a vdo:UseCase ;
+    rdfs:label "UC-io.import.import-and-export-ontology-xlsx"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/use-cases/UC-io.import.import-and-export-ontology-xlsx.md" .
+
+base:uc/UC-io.import.import-structured-data a vdo:UseCase ;
+    rdfs:label "UC-io.import.import-structured-data"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/use-cases/UC-io.import.import-structured-data.md" .
+
+base:uc/UC-io.publish.publish-ontology-snapshot a vdo:UseCase ;
+    rdfs:label "UC-io.publish.publish-ontology-snapshot"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/use-cases/UC-io.publish.publish-ontology-snapshot.md" .
+
+base:uc/UC-io.reports.generate-ontology-reports a vdo:UseCase ;
+    rdfs:label "UC-io.reports.generate-ontology-reports"@en ;
+    vdo:priority "P2" ;
+    vdo:filePath "specs/use-cases/UC-io.reports.generate-ontology-reports.md" .
+
+base:uc/UC-metrics.analytics.view-ontology-complexity-trends a vdo:UseCase ;
+    rdfs:label "UC-metrics.analytics.view-ontology-complexity-trends"@en ;
+    vdo:priority "P2" ;
+    vdo:filePath "specs/use-cases/UC-metrics.analytics.view-ontology-complexity-trends.md" .
+
+base:uc/UC-metrics.analytics.view-ontology-metrics a vdo:UseCase ;
+    rdfs:label "UC-metrics.analytics.view-ontology-metrics"@en ;
+    vdo:priority "P2" ;
+    vdo:filePath "specs/use-cases/UC-metrics.analytics.view-ontology-metrics.md" .
+
+base:uc/UC-projects.fork a vdo:UseCase ;
+    rdfs:label "UC-projects.fork"@en ;
+    vdo:priority "P2" ;
+    vdo:filePath "specs/use-cases/UC-projects.fork.md" .
+
+base:uc/UC-support.community.participate-in-community-forum a vdo:UseCase ;
+    rdfs:label "UC-support.community.participate-in-community-forum"@en ;
+    vdo:priority "P2" ;
+    vdo:filePath "specs/use-cases/UC-support.community.participate-in-community-forum.md" .
+
+base:uc/UC-support.feedback.review-feedback-analytics a vdo:UseCase ;
+    rdfs:label "UC-support.feedback.review-feedback-analytics"@en ;
+    vdo:priority "P2" ;
+    vdo:filePath "specs/use-cases/UC-support.feedback.review-feedback-analytics.md" .
+
+base:uc/UC-support.feedback.submit-in-app-feedback-and-nps a vdo:UseCase ;
+    rdfs:label "UC-support.feedback.submit-in-app-feedback-and-nps"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/use-cases/UC-support.feedback.submit-in-app-feedback-and-nps.md" .
+
+base:uc/UC-support.knowledge.search-knowledge-base-and-faq a vdo:UseCase ;
+    rdfs:label "UC-support.knowledge.search-knowledge-base-and-faq"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/use-cases/UC-support.knowledge.search-knowledge-base-and-faq.md" .
+
+base:uc/UC-support.roadmap.vote-and-comment-roadmap-items a vdo:UseCase ;
+    rdfs:label "UC-support.roadmap.vote-and-comment-roadmap-items"@en ;
+    vdo:priority "P2" ;
+    vdo:filePath "specs/use-cases/UC-support.roadmap.vote-and-comment-roadmap-items.md" .
+
+base:uc/UC-support.status.view-public-status-page a vdo:UseCase ;
+    rdfs:label "UC-support.status.view-public-status-page"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/use-cases/UC-support.status.view-public-status-page.md" .
+
+base:uc/UC-support.telemetry.manage-usage-telemetry-opt-in a vdo:UseCase ;
+    rdfs:label "UC-support.telemetry.manage-usage-telemetry-opt-in"@en ;
+    vdo:priority "P2" ;
+    vdo:filePath "specs/use-cases/UC-support.telemetry.manage-usage-telemetry-opt-in.md" .
+
+base:uc/UC-support.tickets.create-and-track-support-ticket a vdo:UseCase ;
+    rdfs:label "UC-support.tickets.create-and-track-support-ticket"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/use-cases/UC-support.tickets.create-and-track-support-ticket.md" .
+
+base:uc/UC-support.tickets.manage-ticket-via-vedo-cli a vdo:UseCase ;
+    rdfs:label "UC-support.tickets.manage-ticket-via-vedo-cli"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/use-cases/UC-support.tickets.manage-ticket-via-vedo-cli.md" .
+
+base:uc/UC-team.comments.discuss-merge-request-changes a vdo:UseCase ;
+    rdfs:label "UC-team.comments.discuss-merge-request-changes"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/use-cases/UC-team.comments.discuss-merge-request-changes.md" .
+
+base:uc/UC-team.comments.enforce-comment-visibility-by-access a vdo:UseCase ;
+    rdfs:label "UC-team.comments.enforce-comment-visibility-by-access"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/use-cases/UC-team.comments.enforce-comment-visibility-by-access.md" .
+
+base:uc/UC-team.comments.view-project-comment-feed a vdo:UseCase ;
+    rdfs:label "UC-team.comments.view-project-comment-feed"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/use-cases/UC-team.comments.view-project-comment-feed.md" .
+
+base:uc/UC-team.reviews.review-merge-request a vdo:UseCase ;
+    rdfs:label "UC-team.reviews.review-merge-request"@en ;
+    vdo:priority "P1" ;
+    vdo:filePath "specs/use-cases/UC-team.reviews.review-merge-request.md" .
+
 # --- Deleted Artifacts ---
 # mutation.rs — MutationRoot removed, replaced with EmptyMutation
 # GqlOntology, GqlCommit, GqlCommitConnection, GqlBranch, GqlBranchConnection,

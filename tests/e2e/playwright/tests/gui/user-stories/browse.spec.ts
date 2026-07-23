@@ -1,4 +1,5 @@
 // Validates: US-browse.graph.paginated
+// Validates: US-browse.tree.graph-view
 // Validates: US-browse.individuals.filter-by-property
 // Validates: US-browse.individuals.list-by-class
 // Validates: US-browse.public.view
@@ -10,6 +11,10 @@ import { test, expect } from '@playwright/test';
 test.describe.skip('Browse — ontology browsing and discovery', () => {
   test('US-browse.graph.paginated: paginated graph view for large ontologies', async ({ page }) => {
     // TODO: Open large ontology → scroll graph → verify pagination loads more nodes
+  });
+
+  test('US-browse.tree.graph-view: view ontology as tree and graph', async ({ page }) => {
+    // TODO: Open ontology → verify class tree renders → switch to graph view → verify DAG renders
   });
 
   test('US-browse.individuals.filter-by-property: filter individuals by property value', async ({ page }) => {

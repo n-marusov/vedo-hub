@@ -1,5 +1,8 @@
 // Validates: US-editor.annotations.add-label
+// Validates: US-editor.classes.create-parents
 // Validates: US-editor.classes.delete
+// Validates: US-editor.properties.create-datatype
+// Validates: US-editor.properties.create-object
 // Validates: US-editor.classes.edit
 // Validates: US-editor.classes.validate-shacl
 // Validates: US-editor.properties.edit-delete
@@ -15,6 +18,10 @@ test.describe.skip('TBox / ABox Editor — ontology editing workflows', () => {
     // TODO: Open class editor → add label annotation → save → verify annotation appears
   });
 
+  test('US-editor.classes.create-parents: create class with parent hierarchy', async ({ page }) => {
+    // TODO: Open class creation → select parent class → save → verify hierarchy appears
+  });
+
   test('US-editor.classes.delete: delete class from ontology', async ({ page }) => {
     // TODO: Select class → delete → confirm → verify class removed from tree
   });
@@ -25,6 +32,14 @@ test.describe.skip('TBox / ABox Editor — ontology editing workflows', () => {
 
   test('US-editor.classes.validate-shacl: validate class against SHACL shapes', async ({ page }) => {
     // TODO: Select class → run validation → verify violations shown
+  });
+
+  test('US-editor.properties.create-datatype: create datatype property', async ({ page }) => {
+    // TODO: Open property creation → select datatype → configure range → save → verify
+  });
+
+  test('US-editor.properties.create-object: create object property', async ({ page }) => {
+    // TODO: Open property creation → select object property → set domain/range → save → verify
   });
 
   test('US-editor.properties.edit-delete: edit and delete object / data properties', async ({ page }) => {

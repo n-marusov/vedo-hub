@@ -1,3 +1,4 @@
+// Validates: US-io.export.canonical-turtle
 // Validates: US-io.export.docx
 // Validates: US-io.forms.configure-templates
 // Validates: US-io.import.turtle
@@ -7,6 +8,10 @@
 import { test, expect } from '@playwright/test';
 
 test.describe.skip('Import / Export — ontology data exchange', () => {
+  test('US-io.export.canonical-turtle: export ontology in canonical Turtle', async ({ page }) => {
+    // TODO: Open ontology → export → select canonical Turtle → verify download
+  });
+
   test('US-io.export.docx: export ontology as DOCX document', async ({ page }) => {
     // TODO: Open ontology → export → select DOCX → verify download
   });
