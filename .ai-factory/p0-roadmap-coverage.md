@@ -154,7 +154,7 @@
 | CON.* (15 reqs) | 📋 Non-testable | Архитектурные ограничения | Не тестируется автоматически |
 | **Орфаны для M5:** |
 | REQ-FUN.API.migration-guide | 📋 Non-testable | Документация по миграции |
-| REQ-FUN.API.sunset-header | ❌ Orphan (needs tests) | API sunset/deprecation — нужны новые тесты |
+| REQ-FUN.API.sunset-header | ✅ **Covered** | api-gateway deprecation middleware tests (11 tests) | API sunset/deprecation endpoint — **NEW: fully covered** |
 | REQ-FUN.INTEGRATION.cost-calculation | ❌ Orphan | Расчёт стоимости — фича не реализована |
 | REQ-FUN.INTEGRATION.credit-top-up | ❌ Orphan | Пополнение кредитов — фича не реализована |
 | REQ-FUN.INTEGRATION.full-response-storage | ❌ Orphan | Хранение полных ответов — фича не реализована |
@@ -262,7 +262,7 @@
 
 2. **M5 (текущий milestone) имеет разрывы:**
    - 5 FUN.INTEGRATION.* требований (cost, billing, saga) — не реализованы в коде, не тестируемы
-   - REQ-FUN.API.sunset-header — API sunset не реализован
+   - REQ-FUN.API.sunset-header — ✅ покрыт (api-gateway deprecation middleware)
    - REQ-USR.UI.excel-preview — нет frontend-тестов
 
 3. **NFR.Performance (M13 scope) не тестируется:**
@@ -288,7 +288,7 @@
 | **M2** Doc-to-Ontology | 12 | 12 | **100%** | — |
 | **M3** Organization | 20 | 20 | **100%** | — |
 | **M4** GUI Frontend | 41 | 39 | **95%** | excel-preview, deprecation-notification |
-| **M5** MVP Gaps | 22 | 8 | **36%** | sunset-header, 5 INTEGRATION, CON.* |
+| **M5** MVP Gaps | 22 | 9 | **41%** | 5 INTEGRATION.* (фичи не реализованы) |
 | **M7** Security/MVP | 5 | 2 | **40%** | 3 PROCESS reqs (non-testable) |
 | **M9** Document AI 1.0 | 6 | 1 | **17%** | 5 NFR latency/limits |
 | **M13** Operations 1.0 | 9 | 1 | **11%** | billing, cost, OPS procedures |
