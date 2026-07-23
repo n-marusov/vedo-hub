@@ -6,8 +6,7 @@
 //! and members are correctly wired in the schema. They use a mock auth
 //! client or real HTTP client depending on the test environment.
 
-use ontology_service::clients::auth_client::AuthClient;
-use ontology_service::graphql::types::GqlGroup;
+use ontology_service::clients::auth_client::{AuthClient, Group};
 
 /// Verifies that AppState can be constructed with neo4j: None and an AuthClient.
 /// Regression guard: if AppState gains a new required field, this test will fail
@@ -46,17 +45,17 @@ async fn test_auth_client_default_url() {
     assert!(!client.base_url().is_empty());
 }
 
-/// Verifies that GraphQL types are correctly defined (compile-time check).
+/// Verifies that Group types are correctly defined (compile-time check).
 #[test]
 fn test_org_types_defined() {
-    let group = GqlGroup {
+    let group = Group {
         id: "group/test".to_string(),
+        type_: "group".to_string(),
         name: Some("Test".to_string()),
         description: None,
-        parent_group_id: None,
+        parent_id: None,
         visibility: None,
-        member_count: None,
-        project_count: None,
+        tenant_id: None,
     };
     assert_eq!(group.id, "group/test");
 }
