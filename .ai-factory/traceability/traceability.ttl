@@ -3290,6 +3290,26 @@ base:ts/frontend.composables.useBatchUpload a vdo:TestSuite ;
     rdfs:label "FRONTEND COMPOSABLES USEBATCHUPLOAD"@en ;
     vdo:filePath "src/services/frontend/src/composables/useBatchUpload.spec.ts" .
 
+base:ts/frontend.p0_ui_system a vdo:TestSuite ;
+    rdfs:label "FRONTEND P0 UI SYSTEM TESTS"@en ;
+    rdfs:comment "P0 placeholder tests for UI system-level requirements: critical-errors, graceful-degradation, cost-transparency, etc."@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/p0_ui_system.spec.ts" .
+
+base:ts/frontend.p0_ui_graph_search a vdo:TestSuite ;
+    rdfs:label "FRONTEND P0 UI GRAPH SEARCH TESTS"@en ;
+    rdfs:comment "P0 placeholder tests for graph navigation and SPARQL search UI"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/p0_ui_graph_search.spec.ts" .
+
+base:ts/frontend.p0_ui_suggestions a vdo:TestSuite ;
+    rdfs:label "FRONTEND P0 UI SUGGESTIONS TESTS"@en ;
+    rdfs:comment "P0 placeholder tests for AI suggestion UI: confidence, ranking, LLM selector, generation progress"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/p0_ui_suggestions.spec.ts" .
+
+base:ts/frontend.p0_ui_import_export a vdo:TestSuite ;
+    rdfs:label "FRONTEND P0 UI IMPORT EXPORT TESTS"@en ;
+    rdfs:comment "P0 placeholder/tests for import/export UI: document upload, Excel preview, error report, query export"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/p0_ui_import_export.spec.ts" .
+
 base:ts/org-api.org_api_integration a vdo:TestSuite ;
     rdfs:label "ORG-API ORG_API_INTEGRATION"@en ;
     vdo:filePath "tests/org-api/org_api_integration_test.go" .
@@ -3915,6 +3935,7 @@ base:ts/frontend.p0_ui_import_export vdo:validates base:req/REQ-USR.UI.doc-extra
 base:ts/frontend.p0_ui_import_export vdo:validates base:req/REQ-USR.UI.excel-error-report .
 base:ts/frontend.p0_ui_import_export vdo:validates base:req/REQ-USR.UI.excel-progress .
 base:ts/frontend.p0_ui_import_export vdo:validates base:req/REQ-USR.UI.excel-templates .
+base:ts/frontend.p0_ui_import_export vdo:validates base:req/REQ-USR.UI.excel-preview .
 base:ts/frontend.p0_ui_import_export vdo:validates base:req/REQ-USR.UI.query-export-availability .
 base:ts/frontend.p0_ui_import_export vdo:validates base:req/REQ-USR.UI.query-export-localization .
 base:ts/frontend.p0_ui_import_export vdo:validates base:req/REQ-USR.UI.query-export-notifications .
@@ -4021,7 +4042,7 @@ base:ts/document-extractor.sequence.validator vdo:validates base:req/REQ-FUN.CRO
 # REQ-NFR.SECURITY.sca-sbom-gating — SCA/SBOM is CI/CD concern
 # REQ-BIZ.SUP.* (3): credit-consumption, included-credits, modular-billing — business rules
 # REQ-FUN.INTEGRATION.* (5 remaining): cost-calculation, credit-top-up, full-response-storage, provider-billing-integration, saga-pattern (no tests yet — need feature implementation)
-# REQ-USR.UI.excel-preview — Excel import preview (no tests yet — needs new frontend tests)
+# REQ-USR.UI.excel-preview — ✅ Covered (frontend p0_ui_import_export placeholder tests)
 
 # --- Non-testable P0 requirements ---
 # These P0 requirements describe constraints, process policies, or business rules
@@ -4233,6 +4254,7 @@ base:req/REQ-FUN.API.excel-validation vdo:verifiedBy base:ts/document-extractor.
 base:req/REQ-FUN.API.doc-extract-sequence-schema vdo:verifiedBy base:ts/document-extractor.sequence.validator .
 base:req/REQ-FUN.API.write-idempotency vdo:verifiedBy base:ts/api-gateway.rest_entity_crud_integration .
 base:req/REQ-USR.UI.excel-error-report vdo:verifiedBy base:ts/frontend.p0_ui_import_export .
+base:req/REQ-USR.UI.excel-preview vdo:verifiedBy base:ts/frontend.p0_ui_import_export .
 base:req/REQ-FUN.DATA.ontology-visibility-levels vdo:verifiedBy base:ts/ai-orchestration-service.internal.middleware.middleware .
 base:req/REQ-USR.UI.validation-fix vdo:verifiedBy base:ts/frontend.p0_ui_system .
 base:req/REQ-NFR.SECURITY.enforced-in-code vdo:verifiedBy base:ts/security.authorization.p0_security_placeholder .

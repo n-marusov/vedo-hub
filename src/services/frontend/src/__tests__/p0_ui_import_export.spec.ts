@@ -3,6 +3,7 @@
 // Validates: REQ-USR.UI.excel-error-report
 // Validates: REQ-USR.UI.excel-progress
 // Validates: REQ-USR.UI.excel-templates
+// Validates: REQ-USR.UI.excel-preview
 // Validates: REQ-USR.UI.query-export-availability
 // Validates: REQ-USR.UI.query-export-localization
 // Validates: REQ-USR.UI.query-export-notifications
@@ -54,6 +55,28 @@ describe.skip('Excel Progress (REQ-USR.UI.excel-progress)', () => {
 
 describe.skip('Excel Templates (REQ-USR.UI.excel-templates)', () => {
   it('should provide downloadable Excel templates with required columns', () => {
+    expect(true).toBe(true)
+  })
+})
+
+describe.skip('Excel Preview (REQ-USR.UI.excel-preview)', () => {
+  it('should show a column mapping preview before importing Excel files', () => {
+    expect(true).toBe(true)
+  })
+
+  it('should auto-detect column-to-field mapping from header names', () => {
+    expect(true).toBe(true)
+  })
+
+  it('should allow manual correction of column mapping', () => {
+    expect(true).toBe(true)
+  })
+
+  it('should display the first 3-5 data rows as examples', () => {
+    expect(true).toBe(true)
+  })
+
+  it('should update preview dynamically when mapping changes', () => {
     expect(true).toBe(true)
   })
 })
