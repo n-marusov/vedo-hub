@@ -1,4 +1,8 @@
-"""Tests for the sequence validator."""
+"""Tests for the sequence validator.
+
+Validates: REQ-FUN.API.doc-extract-sequence-schema
+Validates: REQ-FUN.CROSS.sequences
+"""
 
 from __future__ import annotations
 
