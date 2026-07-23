@@ -4,56 +4,44 @@
 import {
 	describePage,
 	mountWithProviders,
-	waitForQuery,
 } from "@/__tests__/setup/mock-providers";
-import { beforeEach, expect, it, vi } from "vitest";
+import { expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 
-// VersioningPage uses REST listCommits/listBranches/listTags from @/api/versioning
-vi.mock("@/api/versioning", () => ({
-	listCommits: vi.fn().mockResolvedValue({ items: [], total: 0, page: 0, perPage: 20 }),
-	listBranches: vi.fn().mockResolvedValue({ items: [], total: 0 }),
-	listTags: vi.fn().mockResolvedValue({ items: [], total: 0 }),
-}));
+// Mock only the API functions to return empty data; keep all other module exports intact.
+vi.mock("@/api/versioning", async (importOriginal) => {
+	const actual = await importOriginal<typeof import("@/api/versioning")>();
+	return {
+		...actual,
+		listCommits: vi.fn(() => Promise.resolve({ items: [], total: 0, page: 0, perPage: 20 })),
+		listBranches: vi.fn(() => Promise.resolve({ items: [], total: 0 })),
+		listTags: vi.fn(() => Promise.resolve([])),
+	};
+});
 
 describePage("VersioningPage", () => {
-	beforeEach(() => {
-		vi.clearAllMocks();
-	});
-
 	it("should render commit history from API when Commits tab is active", async () => {
-		const { listCommits, listBranches, listTags } = await import("@/api/versioning");
-		vi.mocked(listCommits).mockResolvedValue({ items: [{ author: "Alice", message: "Test", sha: "abc123", date: new Date().toISOString(), branch: "main" }], total: 1, page: 0, perPage: 20 });
-		vi.mocked(listBranches).mockResolvedValue({ items: [], total: 0 });
-		vi.mocked(listTags).mockResolvedValue({ items: [], total: 0 });
 		const VersioningPage = (await import("@/pages/VersioningPage.vue")).default;
 		const wrapper = mountWithProviders(VersioningPage);
-		await waitForQuery();
+		// Wait for async REST fetches to complete + Vue reactivity
+		await new Promise((resolve) => setTimeout(resolve, 300));
 		await nextTick();
 		expect(wrapper.text()).toContain("Commit History");
 	});
 
 	it("should switch tabs when tab button is clicked", async () => {
-		const { listCommits, listBranches, listTags } = await import("@/api/versioning");
-		vi.mocked(listCommits).mockResolvedValue({ items: [], total: 0, page: 0, perPage: 20 });
-		vi.mocked(listBranches).mockResolvedValue({ items: [], total: 0 });
-		vi.mocked(listTags).mockResolvedValue({ items: [], total: 0 });
 		const VersioningPage = (await import("@/pages/VersioningPage.vue")).default;
 		const wrapper = mountWithProviders(VersioningPage);
-		await waitForQuery();
+		await new Promise((resolve) => setTimeout(resolve, 300));
 		await nextTick();
 		const tabs = wrapper.findAll(".tab");
 		expect(tabs.length).toBeGreaterThanOrEqual(6);
 	});
 
 	it("should show empty state when no commits from API", async () => {
-		const { listCommits, listBranches, listTags } = await import("@/api/versioning");
-		vi.mocked(listCommits).mockResolvedValue({ items: [], total: 0, page: 0, perPage: 20 });
-		vi.mocked(listBranches).mockResolvedValue({ items: [], total: 0 });
-		vi.mocked(listTags).mockResolvedValue({ items: [], total: 0 });
 		const VersioningPage = (await import("@/pages/VersioningPage.vue")).default;
 		const wrapper = mountWithProviders(VersioningPage);
-		await new Promise((resolve) => setTimeout(resolve, 200));
+		await new Promise((resolve) => setTimeout(resolve, 300));
 		await nextTick();
 		expect(wrapper.text()).toContain("No commits yet");
 	});

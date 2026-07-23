@@ -40,7 +40,7 @@ const TeleportStub = { template: "<div><slot /></div>" };
 describe("CreatePropertyDialog", () => {
 	it("should render when open is true", async () => {
 		const wrapper = mountWithProviders(CreatePropertyDialog, {
-			props: { open: true },
+			props: { open: true, ontologyId: "test-onto-id" },
 			global: { stubs: { Teleport: TeleportStub } },
 		});
 		await waitForQuery();
@@ -51,7 +51,7 @@ describe("CreatePropertyDialog", () => {
 
 	it("should show config tab by default", async () => {
 		const wrapper = mountWithProviders(CreatePropertyDialog, {
-			props: { open: true },
+			props: { open: true, ontologyId: "test-onto-id" },
 			global: { stubs: { Teleport: TeleportStub } },
 		});
 		await nextTick();
@@ -61,7 +61,7 @@ describe("CreatePropertyDialog", () => {
 
 	it("should switch to preview tab", async () => {
 		const wrapper = mountWithProviders(CreatePropertyDialog, {
-			props: { open: true },
+			props: { open: true, ontologyId: "test-onto-id" },
 			global: { stubs: { Teleport: TeleportStub } },
 		});
 		await nextTick();
@@ -74,7 +74,7 @@ describe("CreatePropertyDialog", () => {
 
 	it("should validate empty name", async () => {
 		const wrapper = mountWithProviders(CreatePropertyDialog, {
-			props: { open: true },
+			props: { open: true, ontologyId: "test-onto-id" },
 			global: { stubs: { Teleport: TeleportStub } },
 		});
 		await nextTick();
@@ -86,7 +86,7 @@ describe("CreatePropertyDialog", () => {
 
 	it("should emit created on successful submit", async () => {
 		const wrapper = mountWithProviders(CreatePropertyDialog, {
-			props: { open: true },
+			props: { open: true, ontologyId: "test-onto-id" },
 			global: { stubs: { Teleport: TeleportStub } },
 		});
 		await nextTick();

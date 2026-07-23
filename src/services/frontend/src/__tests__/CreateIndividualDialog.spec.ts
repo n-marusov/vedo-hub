@@ -40,7 +40,7 @@ const TeleportStub = { template: "<div><slot /></div>" };
 describe("CreateIndividualDialog", () => {
 	it("should render when open is true", async () => {
 		const wrapper = mountWithProviders(CreateIndividualDialog, {
-			props: { open: true },
+			props: { open: true, ontologyId: "test-onto-id" },
 			global: { stubs: { Teleport: TeleportStub } },
 		});
 		await waitForQuery();
@@ -51,7 +51,7 @@ describe("CreateIndividualDialog", () => {
 
 	it("should validate empty name", async () => {
 		const wrapper = mountWithProviders(CreateIndividualDialog, {
-			props: { open: true },
+			props: { open: true, ontologyId: "test-onto-id" },
 			global: { stubs: { Teleport: TeleportStub } },
 		});
 		await nextTick();
@@ -63,7 +63,7 @@ describe("CreateIndividualDialog", () => {
 
 	it("should add property rows dynamically", async () => {
 		const wrapper = mountWithProviders(CreateIndividualDialog, {
-			props: { open: true },
+			props: { open: true, ontologyId: "test-onto-id" },
 			global: { stubs: { Teleport: TeleportStub } },
 		});
 		await nextTick();
@@ -80,7 +80,7 @@ describe("CreateIndividualDialog", () => {
 
 	it("should emit created on successful submit", async () => {
 		const wrapper = mountWithProviders(CreateIndividualDialog, {
-			props: { open: true },
+			props: { open: true, ontologyId: "test-onto-id" },
 			global: { stubs: { Teleport: TeleportStub } },
 		});
 		await nextTick();

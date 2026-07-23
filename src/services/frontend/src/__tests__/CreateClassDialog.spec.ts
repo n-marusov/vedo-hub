@@ -41,7 +41,7 @@ const TeleportStub = { template: "<div><slot /></div>" };
 describe("CreateClassDialog", () => {
 	it("should render when open is true", async () => {
 		const wrapper = mountWithProviders(CreateClassDialog, {
-			props: { open: true },
+			props: { open: true, ontologyId: "test-onto-id" },
 			global: { stubs: { Teleport: TeleportStub } },
 		});
 		await waitForQuery();
@@ -52,7 +52,7 @@ describe("CreateClassDialog", () => {
 
 	it("should not render when open is false", async () => {
 		const wrapper = mountWithProviders(CreateClassDialog, {
-			props: { open: false },
+			props: { open: false, ontologyId: "test-onto-id" },
 			global: { stubs: { Teleport: TeleportStub } },
 		});
 		await nextTick();
@@ -61,7 +61,7 @@ describe("CreateClassDialog", () => {
 
 	it("should show validation error when name is empty", async () => {
 		const wrapper = mountWithProviders(CreateClassDialog, {
-			props: { open: true },
+			props: { open: true, ontologyId: "test-onto-id" },
 			global: { stubs: { Teleport: TeleportStub } },
 		});
 		await nextTick();
@@ -74,7 +74,7 @@ describe("CreateClassDialog", () => {
 
 	it("should emit created event on successful submit", async () => {
 		const wrapper = mountWithProviders(CreateClassDialog, {
-			props: { open: true },
+			props: { open: true, ontologyId: "test-onto-id" },
 			global: { stubs: { Teleport: TeleportStub } },
 		});
 		await nextTick();
@@ -89,7 +89,7 @@ describe("CreateClassDialog", () => {
 
 	it("should emit close on cancel", async () => {
 		const wrapper = mountWithProviders(CreateClassDialog, {
-			props: { open: true },
+			props: { open: true, ontologyId: "test-onto-id" },
 			global: { stubs: { Teleport: TeleportStub } },
 		});
 		await nextTick();
