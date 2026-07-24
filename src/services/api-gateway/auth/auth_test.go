@@ -960,3 +960,66 @@ func TestKeycloak_SubWithNoUserID_Merge(t *testing.T) {
 			w.Code, w.Body.String())
 	}
 }
+
+// ============================================================
+// RBAC: Keycloak lowercase realm roles — regression test
+// @hlv FORBIDDEN_INSUFFICIENT_ROLE — fixes case mismatch between
+// Keycloak lowercase realm roles and roleWeight map
+// ============================================================
+// Keycloak realm roles are lowercase ("owner", "editor", "viewer")
+// while the original roleWeight map used PascalCase keys.
+// This test verifies that lowercase roles are properly resolved.
+func TestKeycloak_LowercaseRealmRole_OwnerCanPost(t *testing.T) {
+	claims := &AuthClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   "frank-owner-uuid",
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
+		},
+		TenantID: "tenant_A",
+		// Simulates the actual Keycloak JWT: realm_access.roles are lowercase.
+		RealmAccess: struct {
+			Roles []string `json:"roles"`
+		}{Roles: []string{"owner", "default-roles-vedo-core", "offline_access", "uma_authorization"}},
+	}
+	token := signTestToken(claims)
+
+	cfg := defaultConfig()
+	// POST requires weight >= 1. Lowercase "owner" must resolve to weight 3.
+	w := execMiddleware(cfg, "POST", "/api/v1/groups", token)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200 for lowercase realm role 'owner' doing POST, got %d (code=%s)",
+			w.Code, extractErrorCode(t, w))
+	}
+}
+
+// TestKeycloak_LowercaseRealmRole_ViewerBlocked verifies that a lowercase
+// "viewer" realm role still blocks DELETE (weight 2) — proving the
+// case-insensitive fix didn't accidentally elevate lower roles.
+func TestKeycloak_LowercaseRealmRole_ViewerBlocked(t *testing.T) {
+	claims := &AuthClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   "alice-viewer-uuid",
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
+		},
+		TenantID: "tenant_A",
+		RealmAccess: struct {
+			Roles []string `json:"roles"`
+		}{Roles: []string{"viewer", "default-roles-vedo-core"}},
+	}
+	token := signTestToken(claims)
+
+	cfg := defaultConfig()
+	// DELETE requires weight >= 2; lowercase "viewer" resolves to weight 0.
+	w := execMiddleware(cfg, "DELETE", "/api/v1/ontologies/ont-123", token)
+
+	if w.Code != http.StatusForbidden {
+		t.Errorf("expected 403 for lowercase realm role 'viewer' doing DELETE, got %d (body=%s)",
+			w.Code, w.Body.String())
+	}
+
+	code := extractErrorCode(t, w)
+	if code != ErrInsufficientRole {
+		t.Errorf("expected error code %s, got %s", ErrInsufficientRole, code)
+	}
+}

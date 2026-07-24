@@ -40,15 +40,20 @@ const (
 )
 
 // @ctx: role weight for hierarchy comparison (BFLA enforcement)
+// Keys are lowercase (matching Keycloak realm roles) — see vedo-core-realm.json.
+// resolveEffectiveRole normalizes input roles via strings.ToLower before lookup.
 var roleWeight = map[AuthRole]int{
-	RoleViewer:       0,
-	RoleEditor:       1,
-	RoleMaintainer:   2,
-	RoleOwner:        3,
-	RoleSupportEng:   2,
-	RoleSRE:          2,
-	RoleSecurityLead: 3,
-	RoleProductOwner: 2,
+	"viewer":          0,
+	"editor":          1,
+	"reviewer":        1, // writes trigger review_required instead of direct allow
+	"maintainer":      2,
+	"owner":           3,
+	"admin":           3, // full admin privileges
+	"service":         3, // system-to-system; same permissions as admin
+	"supportengineer": 2,
+	"sre":             2,
+	"securitylead":    3,
+	"productowner":    2,
 }
 
 // @hlv:sec [AUTH_BOUNDARY] — JWT claims parsed from auth header
@@ -370,15 +375,17 @@ func isAdminEndpoint(path string) bool {
 }
 
 // @ctx: resolve max role weight from user's role list (max-wins)
+// Normalizes roles to lowercase because Keycloak realm roles are lowercase
+// (e.g. "owner", "admin") while the roleWeight map uses all-lowercase keys.
 func resolveEffectiveRole(roles []string) int {
 	maxWeight := -1
 	for _, r := range roles {
-		if w, ok := roleWeight[AuthRole(r)]; ok && w > maxWeight {
+		if w, ok := roleWeight[AuthRole(strings.ToLower(r))]; ok && w > maxWeight {
 			maxWeight = w
 		}
 	}
 	if maxWeight < 0 {
-		return roleWeight[RoleViewer]
+		return 0
 	}
 	return maxWeight
 }
