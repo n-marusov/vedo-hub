@@ -23,8 +23,8 @@ This directory contains Docker Compose setup split into multiple layers:
 | Окружение | Env-файл | Смещение портов | COMPOSE_PROJECT_NAME |
 |-----------|----------|----------------|---------------------|
 | **dev** | `.env.dev` | без смещения (по умолчанию) | `vedo-core-dev` |
-| **test** | `.env.test` | +10000 | `vedo-core-test` |
-| **staging** | `.env.staging` | +20000 | `vedo-core-staging` |
+| **test** | `.env.test` | +10000 (RabbitMQ AMQP: +10001) | `vedo-core-test` |
+| **staging** | `.env.staging` | +20000 (RabbitMQ AMQP: +20002) | `vedo-core-staging` |
 
 ### Быстрый старт
 
@@ -38,6 +38,10 @@ docker compose --env-file .env.test -f deploy/docker-compose.yml up -d
 # Staging (параллельно с dev и test)
 docker compose --env-file .env.staging -f deploy/docker-compose.yml up -d
 ```
+
+> **Важно:** Внутренние сервисы (gRPC/REST) НЕ публикуются на host. Их порты доступны только внутри Docker bridge-сети (`vedo-network`).
+> Для debug-доступа к внутреннему порту используйте: `docker compose exec <service> wget -q -O- http://127.0.0.1:<port>/health`
+> или временно переопределите порт в локальном `.env.override`.
 
 ### Соглашение об именах переменных
 
@@ -103,18 +107,18 @@ docker compose \
 | Frontend (SPA) | 3000 | 3000 | HTTP |
 | Publish Browse UI | 3002 | 3002 | HTTP |
 | API Gateway | 8080 | 8080 | REST/GraphQL |
-| Auth Service (gRPC) | 9003 | 9003 | gRPC |
+| Auth Service | — (internal) | 8081 / 9003 | REST / gRPC |
 | Ontology Service | — (internal) | 8082 / 9001 | REST / gRPC |
-| Versioning Service (gRPC) | 9002 | 9002 | gRPC |
-| Metrics Service | 8084 | 8084 | HTTP |
-| Commenting Service (gRPC) | 9004 | 9004 | gRPC |
-| Publisher Service (gRPC) | 9005 | 9005 | gRPC |
-| Public Browse API (gRPC) | 9011 | 9011 | gRPC |
-| Ticket API | 8088 / 9010 | 8088 / 9010 | HTTP / gRPC |
-| Ticket Classifier | 8089 | 8089 | HTTP |
-| Ticket Telemetry Listener | 8090 | 8090 | HTTP |
-| Ticket Notifier | 8091 | 8091 | HTTP |
-| Document Extractor (gRPC) | 9013 | 9013 | gRPC |
+| Versioning Service | — (internal) | 8083 / 9002 | REST / gRPC |
+| Metrics Service | — (internal) | 8084 | HTTP |
+| Commenting Service | — (internal) | 8085 / 9004 | REST / gRPC |
+| Publisher Service | — (internal) | 8086 / 9005 | REST / gRPC |
+| Public Browse API | — (internal) | 8087 / 9011 | REST / gRPC |
+| Ticket API | — (internal) | 8088 / 9010 | HTTP / gRPC |
+| Ticket Classifier | — (internal) | 8089 | HTTP |
+| Ticket Telemetry Listener | — (internal) | 8090 | HTTP |
+| Ticket Notifier | — (internal) | 8091 | HTTP |
+| Document Extractor | — (internal) | 8092 / 9013 | HTTP / gRPC |
 | AI Orchestration | — (internal) | 8093 / 9014 | HTTP / gRPC |
 
 | Infrastructure | Host Port | Container Port |
@@ -145,6 +149,12 @@ docker compose \
 Для staging: **+20000** (RabbitMQ AMQP — **+20002**).
 
 Пример: API Gateway в dev = 8080, в test = 18080, в staging = 28080.
+
+> **Применимо только к публичным сервисам** (frontend, API Gateway, publish-browse-ui,
+> базы данных, Keycloak, observability, extras).
+> Внутренние сервисы (gRPC/REST) не имеют host-портов и доступны только
+> внутри bridge-сети Docker по container-портам.
+> Их порты одинаковы во всех окружениях.
 
 ## Useful Endpoints (dev)
 

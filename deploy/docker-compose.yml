@@ -129,10 +129,9 @@ services:
       args:
         SERVICE_DIR: src/services
         BINARY_NAME: versioning-service
-    ports:
-      - "${VERSIONING_SERVICE_GRPC_PORT:-9002}:${VERSIONING_SERVICE_CONTAINER_GRPC_PORT:-9002}"
     expose:
       - "${VERSIONING_SERVICE_REST_PORT:-8083}"
+      - "${VERSIONING_SERVICE_CONTAINER_GRPC_PORT:-9002}"
     environment:
       - HOST=${VERSIONING_SERVICE_HOST:-0.0.0.0}
       - SERVICE_PORT=${VERSIONING_SERVICE_REST_PORT:-8083}
@@ -158,10 +157,9 @@ services:
       args:
         SERVICE_DIR: src/services
         BINARY_NAME: auth-service
-    ports:
-      - "${AUTH_SERVICE_GRPC_PORT:-9003}:${AUTH_SERVICE_CONTAINER_GRPC_PORT:-9003}"
     expose:
       - "${AUTH_SERVICE_REST_PORT:-8081}"
+      - "${AUTH_SERVICE_CONTAINER_GRPC_PORT:-9003}"
     environment:
       - HOST=${AUTH_SERVICE_HOST:-0.0.0.0}
       - SERVICE_PORT=${AUTH_SERVICE_REST_PORT:-8081}
@@ -192,8 +190,8 @@ services:
       dockerfile: src/docker/Dockerfile.python
       args:
         SERVICE_DIR: src/services/metrics-service
-    ports:
-      - "${METRICS_SERVICE_REST_PORT:-8084}:${METRICS_SERVICE_CONTAINER_REST_PORT:-8084}"
+    expose:
+      - "${METRICS_SERVICE_CONTAINER_REST_PORT:-8084}"
     environment:
       - HOST=${METRICS_SERVICE_HOST:-0.0.0.0}
       - SERVICE_PORT=${METRICS_SERVICE_CONTAINER_REST_PORT:-8084}
@@ -233,10 +231,9 @@ services:
       args:
         SERVICE_DIR: src/services
         BINARY_NAME: publisher-service
-    ports:
-      - "${PUBLISHER_SERVICE_GRPC_PORT:-9005}:${PUBLISHER_SERVICE_CONTAINER_GRPC_PORT:-9005}"
     expose:
       - "${PUBLISHER_SERVICE_REST_PORT:-8086}"
+      - "${PUBLISHER_SERVICE_CONTAINER_GRPC_PORT:-9005}"
     environment:
       - HOST=${PUBLISHER_SERVICE_HOST:-0.0.0.0}
       - SERVICE_PORT=${PUBLISHER_SERVICE_REST_PORT:-8086}
@@ -258,10 +255,9 @@ services:
       args:
         SERVICE_DIR: src/services
         BINARY_NAME: public-browse-api
-    ports:
-      - "${PUBLIC_BROWSE_GRPC_PORT:-9011}:${PUBLIC_BROWSE_CONTAINER_GRPC_PORT:-9011}"
     expose:
       - "${PUBLIC_BROWSE_REST_PORT:-8087}"
+      - "${PUBLIC_BROWSE_CONTAINER_GRPC_PORT:-9011}"
     environment:
       - HOST=${PUBLIC_BROWSE_HOST:-0.0.0.0}
       - SERVICE_PORT=${PUBLIC_BROWSE_REST_PORT:-8087}
@@ -286,10 +282,9 @@ services:
       args:
         SERVICE_DIR: src/services
         BINARY_NAME: commenting-service
-    ports:
-      - "${COMMENTING_SERVICE_GRPC_PORT:-9004}:${COMMENTING_SERVICE_CONTAINER_GRPC_PORT:-9004}"
     expose:
       - "${COMMENTING_SERVICE_REST_PORT:-8085}"
+      - "${COMMENTING_SERVICE_CONTAINER_GRPC_PORT:-9004}"
     environment:
       - HOST=${COMMENTING_SERVICE_HOST:-0.0.0.0}
       - SERVICE_PORT=${COMMENTING_SERVICE_REST_PORT:-8085}
@@ -311,9 +306,9 @@ services:
       args:
         SERVICE_DIR: src/services
         BINARY_NAME: ticket-api
-    ports:
-      - "${TICKET_API_GRPC_PORT:-9010}:${TICKET_API_CONTAINER_GRPC_PORT:-9010}"
-      - "${TICKET_API_REST_PORT:-8088}:${TICKET_API_CONTAINER_REST_PORT:-8088}"
+    expose:
+      - "${TICKET_API_CONTAINER_GRPC_PORT:-9010}"
+      - "${TICKET_API_CONTAINER_REST_PORT:-8088}"
     environment:
       - HOST=${TICKET_API_HOST:-0.0.0.0}
       - STUB_PORT=${TICKET_API_CONTAINER_REST_PORT:-8088}
@@ -337,8 +332,8 @@ services:
       dockerfile: src/docker/Dockerfile.python
       args:
         SERVICE_DIR: src/services/ticket-classifier
-    ports:
-      - "${TICKET_CLASSIFIER_PORT:-8089}:${TICKET_CLASSIFIER_CONTAINER_PORT:-8089}"
+    expose:
+      - "${TICKET_CLASSIFIER_CONTAINER_PORT:-8089}"
     environment:
       - HOST=${TICKET_CLASSIFIER_HOST:-0.0.0.0}
       - SERVICE_PORT=${TICKET_CLASSIFIER_CONTAINER_PORT:-8089}
@@ -356,8 +351,8 @@ services:
       args:
         SERVICE_DIR: src/services
         BINARY_NAME: ticket-telemetry-listener
-    ports:
-      - "${TICKET_TELEMETRY_STUB_PORT:-8090}:${TICKET_TELEMETRY_CONTAINER_STUB_PORT:-8090}"
+    expose:
+      - "${TICKET_TELEMETRY_CONTAINER_STUB_PORT:-8090}"
     environment:
       - STUB_PORT=${TICKET_TELEMETRY_CONTAINER_STUB_PORT:-8090}
       - CLASSIFIER_URL=${CLASSIFIER_URL:-http://ticket-classifier:${TICKET_CLASSIFIER_CONTAINER_PORT:-8089}}
@@ -377,10 +372,9 @@ services:
       dockerfile: src/docker/Dockerfile.python
       args:
         SERVICE_DIR: src/services/document-extractor
-    ports:
-      - "${DOCUMENT_EXTRACTOR_GRPC_PORT:-9013}:${DOCUMENT_EXTRACTOR_CONTAINER_GRPC_PORT:-9013}"
     expose:
       - "${DOCUMENT_EXTRACTOR_HTTP_PORT:-8092}"
+      - "${DOCUMENT_EXTRACTOR_CONTAINER_GRPC_PORT:-9013}"
     environment:
       - HOST=${DOCUMENT_EXTRACTOR_HOST:-0.0.0.0}
       - SERVICE_PORT=${DOCUMENT_EXTRACTOR_HTTP_PORT:-8092}
@@ -437,8 +431,8 @@ services:
       args:
         SERVICE_DIR: src/services
         BINARY_NAME: ticket-notifier
-    ports:
-      - "${TICKET_NOTIFIER_STUB_PORT:-8091}:${TICKET_NOTIFIER_CONTAINER_STUB_PORT:-8091}"
+    expose:
+      - "${TICKET_NOTIFIER_CONTAINER_STUB_PORT:-8091}"
     environment:
       - STUB_PORT=${TICKET_NOTIFIER_CONTAINER_STUB_PORT:-8091}
     networks:
