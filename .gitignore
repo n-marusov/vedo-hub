@@ -49,3 +49,4 @@ __pycache__
 **/*errors.txt
 **/*out.txt
 **/*output.txt
+tests/e2e/playwright/tests/jwt-tokens.ts
