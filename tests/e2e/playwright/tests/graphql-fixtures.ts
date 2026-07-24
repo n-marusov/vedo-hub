@@ -317,9 +317,78 @@ export const test = base.extend({
     await page.route('**/api/v1/graphql', handleGuiGraphql);
     await page.route('**/graphql', handleGuiGraphql);
     await page.route('**/api/v1/sparql', handleSparqlRest);
+    await page.route('**/api/v1/groups*', handleRestGroups);
 
     await use(page);
   },
 });
 
 export { expect } from '@playwright/test';
+
+const MOCK_GROUP_RESPONSE = {
+  data: [
+    {
+      id: 'grp-001', name: 'Engineering', description: 'Engineering team',
+      visibility: 'private', parentGroupId: null,
+      childGroups: [{ id: 'grp-002', name: 'Data Science', description: 'Data science team', visibility: 'private', parentGroupId: 'grp-001', childGroups: [], memberCount: 8, projectCount: 3 }],
+      memberCount: 12, projectCount: 5,
+    },
+    {
+      id: 'grp-003', name: 'Research', description: 'Research division',
+      visibility: 'public', parentGroupId: null,
+      childGroups: [], memberCount: 5, projectCount: 2,
+    },
+  ],
+};
+
+let groupStore: { data: any[] } = JSON.parse(JSON.stringify(MOCK_GROUP_RESPONSE));
+
+async function handleRestGroups(route: Route) {
+  const request = route.request();
+
+  if (request.method() === 'GET') {
+    const url = new URL(request.url());
+    const search = url.searchParams.get('search');
+    let groups = groupStore.data;
+    if (search) {
+      groups = groups.filter((g: any) =>
+        g.name.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ data: groups }),
+    });
+  }
+
+  if (request.method() === 'POST') {
+    try {
+      const body = request.postDataJSON();
+      const newGroup = {
+        id: 'grp-new-' + Date.now(),
+        name: body.label || body.name,
+        description: body.description || '',
+        visibility: body.visibility || 'private',
+        parentGroupId: body.parent_id || null,
+        childGroups: [],
+        memberCount: 1,
+        projectCount: 0,
+      };
+      groupStore.data.push(newGroup);
+      return route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({ data: newGroup }),
+      });
+    } catch {
+      return route.fulfill({
+        status: 400,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: { code: 'INVALID_REQUEST', message: 'Invalid request body' } }),
+      });
+    }
+  }
+
+  return route.fallback();
+}
