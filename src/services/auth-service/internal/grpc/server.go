@@ -67,16 +67,20 @@ func (s *OrgGrpcServer) CreateGroup(ctx context.Context, req *authv1.CreateGroup
 	requesterID := extractUserID(ctx)
 
 	groupID := newUUID()
+	visibility := normalizeVisibility(req.GetVisibility())
 	scopeNode := org.ScopeNode{
 		ID:          groupID,
 		Type:        org.ScopeGroup,
 		TenantID:    req.OrganizationId,
 		Name:        req.Name,
 		Description: req.Description,
+		Visibility:  org.Visibility(visibility),
 	}
 	if req.ParentId != "" {
 		scopeNode.ParentID = req.ParentId
 	}
+
+	slog.Debug("grpc.org.create_group", "name", req.GetName(), "visibility", scopeNode.Visibility)
 
 	if err := s.svc.CreateScope(requesterID, scopeNode); err != nil {
 		return nil, mapOrgError(err)
@@ -87,6 +91,25 @@ func (s *OrgGrpcServer) CreateGroup(ctx context.Context, req *authv1.CreateGroup
 	return &authv1.CreateGroupResponse{
 		Group: scopeNodeToProto(scope),
 	}, nil
+}
+
+// normalizeVisibility converts a visibility string to canonical PascalCase.
+// Accepts "private", "internal", "public" (lowercase or any case) and
+// returns "Private", "Internal", "Public". Unknown values are returned unchanged.
+func normalizeVisibility(v string) string {
+	if v == "" {
+		return string(org.VisibilityPrivate)
+	}
+	switch strings.ToLower(v) {
+	case "private":
+		return string(org.VisibilityPrivate)
+	case "internal":
+		return string(org.VisibilityInternal)
+	case "public":
+		return string(org.VisibilityPublic)
+	default:
+		return v
+	}
 }
 
 func (s *OrgGrpcServer) GetGroup(ctx context.Context, req *authv1.GetGroupRequest) (*authv1.GetGroupResponse, error) {
@@ -128,8 +151,26 @@ func (s *OrgGrpcServer) UpdateGroup(ctx context.Context, req *authv1.UpdateGroup
 		return nil, status.Errorf(codes.NotFound, "SCOPE_NOT_FOUND: group %s does not exist", req.Id)
 	}
 
-	log.Printf(`{"event":"grpc.request","method":"UpdateGroup","scope":"%s"}`, req.Id)
-	return &authv1.UpdateGroupResponse{Group: scopeNodeToProto(scope)}, nil
+	if req.GetName() != "" {
+		scope.Name = req.GetName()
+	}
+	if req.GetDescription() != "" {
+		scope.Description = req.GetDescription()
+	}
+	if req.GetVisibility() != "" {
+		scope.Visibility = org.Visibility(normalizeVisibility(req.GetVisibility()))
+	}
+
+	slog.Debug("grpc.org.update_group", "id", req.GetId(), "name", scope.Name, "visibility", scope.Visibility)
+
+	if err := s.svc.Store().UpsertScope(*scope); err != nil {
+		return nil, mapOrgError(err)
+	}
+	s.svc.Cache().InvalidateScope(scope.ID)
+
+	updated, _ := s.svc.Store().GetScope(scope.ID)
+	log.Printf(`{"event":"grpc.request","method":"UpdateGroup","scope":"%s","user":"%s"}`, scope.ID, requesterID)
+	return &authv1.UpdateGroupResponse{Group: scopeNodeToProto(updated)}, nil
 }
 
 func (s *OrgGrpcServer) DeleteGroup(ctx context.Context, req *authv1.DeleteGroupRequest) (*authv1.DeleteGroupResponse, error) {

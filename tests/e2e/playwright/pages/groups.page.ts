@@ -1,7 +1,6 @@
+// Validates: REQ-FUN.ORG.group-crud
+// GroupsPage POM — hierarchy, expand/collapse, search, create group
 import { type Page, expect } from '@playwright/test';
-
-// Page Object Model for Groups page
-// Covers: screen 6 — Groups hierarchy with expand/collapse and search
 
 export class GroupsPage {
   constructor(public readonly page: Page) {}

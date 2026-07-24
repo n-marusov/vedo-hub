@@ -82,6 +82,7 @@ func (h *OrgHandler) HandleCreateGroup(c *gin.Context) {
 		Label       string `json:"label"`
 		Description string `json:"description"`
 		ParentID    string `json:"parent_id"`
+		Visibility  string `json:"visibility"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse{
@@ -90,10 +91,17 @@ func (h *OrgHandler) HandleCreateGroup(c *gin.Context) {
 		return
 	}
 
+	slog.Debug("http.org.create_group",
+		"name", req.Label,
+		"visibility", req.Visibility,
+		"parent_id", req.ParentID,
+	)
+
 	resp, err := h.orgClient.CreateGroup(c.Request.Context(), &authv1.CreateGroupRequest{
 		Name:        req.Label,
 		Description: req.Description,
 		ParentId:    req.ParentID,
+		Visibility:  req.Visibility,
 	}, token)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
@@ -125,6 +133,7 @@ func (h *OrgHandler) HandleUpdateGroup(c *gin.Context) {
 	var req struct {
 		Label       string `json:"label"`
 		Description string `json:"description"`
+		Visibility  string `json:"visibility"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse{
@@ -133,10 +142,17 @@ func (h *OrgHandler) HandleUpdateGroup(c *gin.Context) {
 		return
 	}
 
+	slog.Debug("http.org.update_group",
+		"id", id,
+		"name", req.Label,
+		"visibility", req.Visibility,
+	)
+
 	resp, err := h.orgClient.UpdateGroup(c.Request.Context(), &authv1.UpdateGroupRequest{
 		Id:          id,
 		Name:        req.Label,
 		Description: req.Description,
+		Visibility:  req.Visibility,
 	}, token)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.ErrorResponse{

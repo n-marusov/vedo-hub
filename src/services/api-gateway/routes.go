@@ -74,7 +74,7 @@ func RegisterRoutes(r *gin.Engine, grpcPool *proxy.GrpcClientPool) {
 	idemStore := middleware.NewMemIdempotencyStore()
 	idemMiddleware := middleware.Idempotency(&middleware.IdempotencyConfig{
 		Store:         idemStore,
-		CriticalPaths: []string{"/api/v1/projects/", "/api/v1/ontologies/"}, // org + draft write paths require Idempotency-Key
+		CriticalPaths: []string{"/api/v1/groups/", "/api/v1/projects/", "/api/v1/ontologies/"}, // org + draft write paths require Idempotency-Key
 	})
 
 	api.GET("/groups", orgHandler.HandleListGroups)

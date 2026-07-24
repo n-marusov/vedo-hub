@@ -631,6 +631,13 @@ base:req/REQ-FUN.INTEGRATION.collaboration a vdo:FunctionalRequirement ;
     vdo:area "Integration" ;
     vdo:filePath "specs/requirements/REQ-FUN.INTEGRATION.collaboration.md" .
 
+base:req/REQ-FUN.ORG.group-crud a vdo:FunctionalRequirement ;
+    rdfs:label "FUN ORG group crud"@en ;
+    rdfs:comment "CRUD operations for groups: create/list/get/update/delete with hierarchical structure and visibility control"@en ;
+    vdo:priority "P0" ;
+    vdo:area "ORG" ;
+    vdo:filePath "specs/requirements/REQ-FUN.ORG.group-crud.md" .
+
 # =============================================================================
 # INSTANCES — Non-Functional Requirements (P0 extensions)
 # =============================================================================
@@ -3742,6 +3749,9 @@ base:ts/e2e.playwright.tests.gui.pages.deployments-page vdo:validates base:req/R
 base:ts/e2e.playwright.tests.gui.pages.groups-page vdo:validates base:req/REQ-FUN.PROCESS.e2e-testing .
 base:ts/e2e.playwright.tests.gui.pages.groups-page vdo:validates base:req/REQ-USR.UI.gui-implementation .
 base:ts/e2e.playwright.tests.gui.pages.groups-page-wired vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
+base:ts/e2e.playwright.tests.gui.pages.groups-page vdo:validates base:req/REQ-FUN.ORG.group-crud .
+base:ts/e2e.playwright.tests.gui.pages.groups-page-wired vdo:validates base:req/REQ-FUN.ORG.group-crud .
+base:ts/frontend.__tests__.GroupsPage vdo:validates base:req/REQ-FUN.ORG.group-crud .
 base:ts/e2e.playwright.tests.gui.pages.members-page vdo:validates base:req/REQ-FUN.PROCESS.e2e-testing .
 base:ts/e2e.playwright.tests.gui.pages.members-page vdo:validates base:req/REQ-USR.UI.gui-implementation .
 base:ts/e2e.playwright.tests.gui.pages.members-page-wired vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
@@ -4977,6 +4987,25 @@ base:gui/component/publish-snapshot-dialog a vdo:CodeArtifact ;
     vdo:filePath "src/services/frontend/src/components/ontology/PublishSnapshotDialog.vue" ;
     vdo:language "Vue" .
 
+base:gui/component/create-group-dialog a vdo:CodeArtifact ;
+    rdfs:label "Create Group Dialog"@en ;
+    rdfs:comment "Create group dialog — name, slug, visibility, usage, invite members form"@en ;
+    vdo:filePath "src/services/frontend/src/components/ontology/CreateGroupDialog.vue" ;
+    vdo:language "Vue" ;
+    vdo:implements base:req/REQ-FUN.ORG.group-crud .
+
+base:gui/component/group-sidebar a vdo:CodeArtifact ;
+    rdfs:label "Group Sidebar"@en ;
+    rdfs:comment "Group sidebar — navigation within a group context: members, MRs, commits, comments, settings"@en ;
+    vdo:filePath "src/services/frontend/src/components/organisms/GroupSidebar.vue" ;
+    vdo:language "Vue" .
+
+base:gui/component/collapsed-group-sidebar a vdo:CodeArtifact ;
+    rdfs:label "Collapsed Group Sidebar"@en ;
+    rdfs:comment "Collapsed group sidebar — narrow variant of GroupSidebar at 64px"@en ;
+    vdo:filePath "src/services/frontend/src/components/organisms/CollapsedGroupSidebar.vue" ;
+    vdo:language "Vue" .
+
 # =============================================================================
 # DESIGN → GUI TRACEABILITY LINKS
 # =============================================================================
@@ -4989,6 +5018,7 @@ base:gui/page/sparql vdo:implements base:design/page/sparql-editor .
 base:gui/page/metrics vdo:implements base:design/page/metrics-dashboard .
 base:gui/page/public-ontology vdo:implements base:design/page/public-ontology .
 base:gui/page/groups vdo:implements base:design/page/groups .
+base:gui/page/groups vdo:implements base:req/REQ-FUN.ORG.group-crud .
 base:gui/page/members vdo:implements base:design/page/members .
 base:gui/page/validation vdo:implements base:design/page/validation-report .
 base:gui/page/commits vdo:implements base:design/page/commits .
@@ -5811,6 +5841,12 @@ base:user/US-team.reviews.approve a vdo:UserStory ;
     vdo:priority "P1" ;
     vdo:filePath "specs/user-stories/US-team.reviews.approve.md" .
 
+base:user/US-org.groups.create a vdo:UserStory ;
+    rdfs:label "US-org.groups.create"@en ;
+    rdfs:comment "Create group as a user — name, visibility, subgroup, validation"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/user-stories/US-org.groups.create.md" .
+
 # =============================================================================
 # INSTANCES — E2E Test Suites (Keycloak Auth)
 # =============================================================================
@@ -5864,7 +5900,8 @@ base:src/api-org-client a vdo:CodeArtifact ;
     rdfs:label "Frontend REST Client — Organization"@en ;
     rdfs:comment "axios wrapper for GET /groups, /projects, /projects/:id/members. Replaces former GraphQL groups/projects/members queries."@en ;
     vdo:filePath "src/services/frontend/src/api/org.ts" ;
-    vdo:implements base:adr/org-rest-endpoints .
+    vdo:implements base:adr/org-rest-endpoints ;
+    vdo:implements base:req/REQ-FUN.ORG.group-crud .
 
 base:src/api-comments-client a vdo:CodeArtifact ;
     rdfs:label "Frontend REST Client — Comments"@en ;
@@ -5921,6 +5958,90 @@ base:src/use-draft-state a vdo:CodeArtifact ;
     rdfs:comment "Migrated from Apollo UPDATE_DRAFT_MUTATION to PUT /api/v1/ontologies/:id/draft REST with Idempotency-Key."@en ;
     vdo:filePath "src/services/frontend/src/composables/useDraftState.ts" ;
     vdo:implements base:adr/rest-graphql-mutation-boundary .
+
+# --- API Gateway Org Handler ---
+
+base:code/api-gateway-org-handler a vdo:CodeArtifact ;
+    rdfs:label "API Gateway — Org Handler"@en ;
+    rdfs:comment "REST handler for group/project CRUD, members, visibility, policies"@en ;
+    vdo:filePath "src/services/api-gateway/handlers/org_handler.go" ;
+    vdo:language "Go" ;
+    vdo:implements base:req/REQ-FUN.ORG.group-crud .
+
+base:code/api-gateway-org-routes a vdo:CodeArtifact ;
+    rdfs:label "API Gateway — Routes (org section)"@en ;
+    rdfs:comment "Route registration for /api/v1/groups and /api/v1/projects endpoints"@en ;
+    vdo:filePath "src/services/api-gateway/routes.go" ;
+    vdo:language "Go" ;
+    vdo:implements base:req/REQ-FUN.ORG.group-crud .
+
+base:code/api-gateway-grpc-org-client a vdo:CodeArtifact ;
+    rdfs:label "API Gateway — gRPC Org Client"@en ;
+    rdfs:comment "gRPC client wrapper for OrgService — CreateGroup, ListGroups, GetGroup, UpdateGroup, DeleteGroup"@en ;
+    vdo:filePath "src/services/api-gateway/proxy/grpc_org_client.go" ;
+    vdo:language "Go" ;
+    vdo:implements base:req/REQ-FUN.ORG.group-crud .
+
+# --- Auth-service Org Implementation ---
+
+base:code/auth-service-org a vdo:CodeArtifact ;
+    rdfs:label "Auth-service — Org Service"@en ;
+    rdfs:comment "Central authorization service for groups, projects, members, RBAC"@en ;
+    vdo:filePath "src/services/auth-service/org/" ;
+    vdo:language "Go" ;
+    vdo:implements base:req/REQ-FUN.ORG.group-crud .
+
+base:code/auth-service-org-grpc-server a vdo:CodeArtifact ;
+    rdfs:label "Auth-service — Org gRPC Server"@en ;
+    rdfs:comment "gRPC server implementation for OrgService RPCs (CreateGroup, UpdateGroup, etc.)"@en ;
+    vdo:filePath "src/services/auth-service/internal/grpc/server.go" ;
+    vdo:language "Go" ;
+    vdo:implements base:req/REQ-FUN.ORG.group-crud .
+
+# --- Protobuf Contract ---
+
+base:proto/org-contract a vdo:CodeArtifact ;
+    rdfs:label "Protobuf — Org Management Contract"@en ;
+    rdfs:comment "gRPC contract: group/project CRUD, members, visibility, policies"@en ;
+    vdo:filePath "src/services/shared/proto/auth/v1/org.proto" ;
+    vdo:language "Protobuf" ;
+    vdo:implements base:req/REQ-FUN.ORG.group-crud .
+
+# --- Backend Test Suites for group CRUD ---
+
+base:test/auth-service-org a vdo:TestSuite ;
+    rdfs:label "Auth-service — Org Unit Tests"@en ;
+    rdfs:comment "Unit tests for OrgService: create/list/delete groups, membership, RBAC"@en ;
+    vdo:filePath "src/services/auth-service/org/org_test.go" ;
+    vdo:validates base:req/REQ-FUN.ORG.group-crud .
+
+base:test/auth-service-org-hierarchy a vdo:TestSuite ;
+    rdfs:label "Auth-service — Org Hierarchy Tests"@en ;
+    rdfs:comment "Tests for group hierarchy, nesting, expand/collapse"@en ;
+    vdo:filePath "src/services/auth-service/org/org_hierarchy_test.go" ;
+    vdo:validates base:req/REQ-FUN.ORG.group-crud .
+
+base:test/auth-service-org-roles a vdo:TestSuite ;
+    rdfs:label "Auth-service — Org Roles Tests"@en ;
+    rdfs:comment "Tests for role-based access on group operations"@en ;
+    vdo:filePath "src/services/auth-service/org/org_roles_test.go" ;
+    vdo:validates base:req/REQ-FUN.ORG.group-crud .
+
+base:test/auth-service-org-grpc a vdo:TestSuite ;
+    rdfs:label "Auth-service — Org gRPC Tests"@en ;
+    rdfs:comment "gRPC server integration tests for group CRUD"@en ;
+    vdo:filePath "src/services/auth-service/org/org_grpc_test.go" ;
+    vdo:validates base:req/REQ-FUN.ORG.group-crud .
+
+# --- verifiedBy links for REQ-FUN.ORG.group-crud ---
+
+base:req/REQ-FUN.ORG.group-crud vdo:verifiedBy base:ts/frontend.__tests__.GroupsPage,
+    base:ts/e2e.playwright.tests.gui.pages.groups-page,
+    base:ts/e2e.playwright.tests.gui.pages.groups-page-wired,
+    base:test/auth-service-org,
+    base:test/auth-service-org-hierarchy,
+    base:test/auth-service-org-roles,
+    base:test/auth-service-org-grpc .
 
 
 # =============================================================================
@@ -6328,6 +6449,12 @@ base:uc/UC-team.reviews.review-merge-request a vdo:UseCase ;
     rdfs:label "UC-team.reviews.review-merge-request"@en ;
     vdo:priority "P1" ;
     vdo:filePath "specs/use-cases/UC-team.reviews.review-merge-request.md" .
+
+base:uc/UC-org.groups.manage-group-lifecycle a vdo:UseCase ;
+    rdfs:label "UC-org.groups.manage-group-lifecycle"@en ;
+    vdo:comment "Manage group lifecycle: create/list/update/delete groups, hierarchy, visibility"@en ;
+    vdo:priority "P0" ;
+    vdo:filePath "specs/use-cases/UC-org.groups.manage-group-lifecycle.md" .
 
 # --- Ontology Core Test Suites (feature/test-improvements) ---
 

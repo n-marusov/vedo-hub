@@ -1,4 +1,5 @@
 // Validates: REQ-NFR.SECURITY.organization-access-model
+// Validates: REQ-FUN.ORG.group-crud
 // Groups page wired test — runs against real API (no Apollo fixtures)
 import { test, expect } from '@playwright/test';
 import { GroupsPage } from '../../../pages/groups.page';

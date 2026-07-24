@@ -1,5 +1,6 @@
 // Validates: REQ-USR.UI.gui-implementation
 // Validates: REQ-FUN.PROCESS.e2e-testing
+// Validates: REQ-FUN.ORG.group-crud
 // Groups page — hierarchy, expand/collapse, lazy loading, search
 import { test, expect } from '../../graphql-fixtures'
 import { GroupsPage } from '../../../pages/groups.page'

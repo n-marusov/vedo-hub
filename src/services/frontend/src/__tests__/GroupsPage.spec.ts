@@ -1,5 +1,6 @@
 // @m4 — GroupsPage vitest spec (GREEN: uses mountWithProviders)
 // Validates: REQ-USR.UI.gui-implementation
+// Validates: REQ-FUN.ORG.group-crud
 // Tests: groups hierarchy from REST API
 import {
 	describePage,
