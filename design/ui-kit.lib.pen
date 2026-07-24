@@ -7108,7 +7108,7 @@
           "id": "Krhxe",
           "name": "tabBar",
           "theme": {
-            "B:mode": "dark"
+            "mode": "dark"
           },
           "gap": 8,
           "padding": [
@@ -27023,7 +27023,7 @@
           "id": "Qll9VQ",
           "name": "tabBar",
           "theme": {
-            "B:mode": "dark"
+            "mode": "dark"
           },
           "gap": 8,
           "padding": [
@@ -52778,8 +52778,8 @@
       "id": "LgxGO",
       "name": "Organism/ForkDemoDialog",
       "reusable": true,
-      "width": "fill_container",
-      "height": "fill_container",
+      "width": 960,
+      "height": 660,
       "layoutPosition": "absolute",
       "x": 0,
       "y": 0,
@@ -52792,8 +52792,8 @@
           "type": "rectangle",
           "id": "fddBackdrop",
           "name": "dialogBackdrop",
-          "width": "fill_container",
-          "height": "fill_container",
+          "width": 960,
+          "height": 660,
           "fill": "#000000",
           "opacity": 0.6,
           "layoutPosition": "absolute",
@@ -52853,7 +52853,8 @@
               "slot": [],
               "width": "fill_container",
               "layout": "horizontal",
-              "gap": 12
+              "gap": 12,
+              "height": "fit_content(120)"
             },
             {
               "type": "frame",

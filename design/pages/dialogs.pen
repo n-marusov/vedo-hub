@@ -7,8 +7,8 @@
       "x": 2802,
       "y": 1046,
       "name": "Dialogs",
-      "width": 2736,
-      "height": "fill_container(10844)",
+      "width": 2100,
+      "height": 12740,
       "layout": "none",
       "children": [
         {
@@ -343,13 +343,14 @@
                 }
               }
             }
-          ]
+          ],
+          "height": 780
         },
         {
           "type": "frame",
           "id": "VCMPg",
-          "x": 600,
-          "y": 0,
+          "x": 0,
+          "y": 880,
           "name": "Create Property Dialog",
           "width": 600,
           "fill": "#00000000",
@@ -1141,13 +1142,15 @@
                 }
               }
             }
-          ]
+          ],
+          "layoutPosition": "absolute",
+          "height": 1300
         },
         {
           "type": "frame",
           "id": "VTMAa",
-          "x": 1250,
-          "y": 0,
+          "x": 0,
+          "y": 2280,
           "name": "Create Individual Dialog",
           "width": 600,
           "fill": "#00000000",
@@ -1865,13 +1868,15 @@
                 }
               }
             }
-          ]
+          ],
+          "layoutPosition": "absolute",
+          "height": 1420
         },
         {
           "type": "frame",
           "id": "vvhZM",
-          "x": 1900,
-          "y": 0,
+          "x": 0,
+          "y": 6040,
           "name": "Annotation Dialog",
           "width": 450,
           "height": 970,
@@ -2295,13 +2300,14 @@
                 }
               }
             }
-          ]
+          ],
+          "layoutPosition": "absolute"
         },
         {
           "type": "frame",
           "id": "xYAni",
           "x": 0,
-          "y": 1470,
+          "y": 7110,
           "name": "Import Dialog",
           "width": 650,
           "height": 1090,
@@ -3005,13 +3011,14 @@
                 }
               }
             }
-          ]
+          ],
+          "layoutPosition": "absolute"
         },
         {
           "type": "frame",
           "id": "L7zSD",
-          "x": 700,
-          "y": 1470,
+          "x": 0,
+          "y": 10286,
           "name": "MFA Challenge Dialog",
           "width": 400,
           "fill": "#00000000",
@@ -3207,14 +3214,16 @@
                 }
               }
             }
-          ]
+          ],
+          "layoutPosition": "absolute",
+          "height": 480
         },
         {
           "type": "frame",
           "id": "l55sH3",
           "layoutPosition": "absolute",
-          "x": 525,
-          "y": 4200,
+          "x": 0,
+          "y": 10866,
           "name": "Publish Snapshot Dialog",
           "width": 500,
           "fill": "#00000000",
@@ -3513,919 +3522,224 @@
                 }
               }
             }
-          ]
-        }
-      ]
-    },
-    {
-      "type": "frame",
-      "id": "X1HVB",
-      "x": 50,
-      "y": 6500,
-      "name": "Apply Import Dialog (4 states)",
-      "clip": true,
-      "width": 550,
-      "fill": "#00000000",
-      "layout": "vertical",
-      "children": [
-        {
-          "type": "text",
-          "id": "xvUHw",
-          "name": "_label",
-          "fill": "$B:muted-foreground",
-          "content": "APPLY IMPORT — 4 workflow states",
-          "fontFamily": "IBM Plex Mono",
-          "fontSize": 10,
-          "fontWeight": "600",
-          "letterSpacing": 1.5
+          ],
+          "height": 762
         },
         {
-          "id": "IRRBZ",
-          "type": "ref",
-          "ref": "B:aTMES",
-          "name": "State 1: Confirm",
+          "type": "frame",
+          "id": "X1HVB",
+          "x": 0,
+          "y": 8300,
+          "name": "Apply Import Dialog (4 states)",
+          "clip": true,
           "width": 550,
-          "height": 420,
-          "descendants": {
-            "B:nZTe4": {
-              "type": "frame",
-              "id": "Xe3TQ",
-              "name": "header",
-              "width": "fill_container",
-              "children": [
-                {
-                  "type": "text",
-                  "id": "NVi9j",
-                  "name": "Title",
-                  "fill": "$B:foreground",
-                  "content": "Confirm Import",
-                  "fontFamily": "IBM Plex Mono",
-                  "fontSize": 18,
-                  "fontWeight": "600"
-                }
-              ]
+          "fill": "#00000000",
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "text",
+              "id": "xvUHw",
+              "name": "_label",
+              "fill": "$B:muted-foreground",
+              "content": "APPLY IMPORT — 4 workflow states",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 10,
+              "fontWeight": "600",
+              "letterSpacing": 1.5
             },
-            "B:b17V1": {
-              "type": "frame",
-              "id": "z2eIl",
-              "name": "body",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 16,
-              "padding": [
-                0,
-                24,
-                24,
-                24
-              ],
-              "children": [
-                {
-                  "type": "text",
-                  "id": "K7lTlu",
-                  "name": "desc",
-                  "fill": "$B:foreground",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "This will import 4 ontology entities from the document extraction.",
-                  "fontFamily": "IBM Plex Mono",
-                  "fontSize": 13,
-                  "fontWeight": "normal"
-                },
-                {
+            {
+              "id": "IRRBZ",
+              "type": "ref",
+              "ref": "B:aTMES",
+              "name": "State 1: Confirm",
+              "width": 550,
+              "height": 420,
+              "descendants": {
+                "B:nZTe4": {
                   "type": "frame",
-                  "id": "zkLu7",
-                  "name": "summaryTable",
+                  "id": "Xe3TQ",
+                  "name": "header",
                   "width": "fill_container",
-                  "stroke": "$B:border",
-                  "strokeWidth": 1,
-                  "strokeAlignment": "inner",
-                  "layout": "vertical",
-                  "gap": 8,
-                  "padding": 12,
-                  "children": [
-                    {
-                      "type": "frame",
-                      "id": "KDdk0",
-                      "name": "row1",
-                      "width": "fill_container",
-                      "justifyContent": "space_between",
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "MKCkI",
-                          "name": "l1",
-                          "fill": "$B:muted-foreground",
-                          "content": "Classes",
-                          "fontFamily": "IBM Plex Mono",
-                          "fontSize": 13,
-                          "fontWeight": "normal"
-                        },
-                        {
-                          "type": "text",
-                          "id": "Qokc5",
-                          "name": "v1",
-                          "fill": "$B:foreground",
-                          "content": "2",
-                          "fontFamily": "IBM Plex Mono",
-                          "fontSize": 13,
-                          "fontWeight": "600"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "TIr7k",
-                      "name": "row2",
-                      "width": "fill_container",
-                      "justifyContent": "space_between",
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "Hy51C",
-                          "name": "l2",
-                          "fill": "$B:muted-foreground",
-                          "content": "Properties",
-                          "fontFamily": "IBM Plex Mono",
-                          "fontSize": 13,
-                          "fontWeight": "normal"
-                        },
-                        {
-                          "type": "text",
-                          "id": "nRbab",
-                          "name": "v2",
-                          "fill": "$B:foreground",
-                          "content": "1",
-                          "fontFamily": "IBM Plex Mono",
-                          "fontSize": 13,
-                          "fontWeight": "600"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "UkipS",
-                      "name": "row3",
-                      "width": "fill_container",
-                      "justifyContent": "space_between",
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "IExLN",
-                          "name": "l3",
-                          "fill": "$B:muted-foreground",
-                          "content": "Individuals",
-                          "fontFamily": "IBM Plex Mono",
-                          "fontSize": 13,
-                          "fontWeight": "normal"
-                        },
-                        {
-                          "type": "text",
-                          "id": "mCUfo",
-                          "name": "v3",
-                          "fill": "$B:foreground",
-                          "content": "1",
-                          "fontFamily": "IBM Plex Mono",
-                          "fontSize": 13,
-                          "fontWeight": "600"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "g5Gwv",
-                  "name": "commitField",
-                  "width": "fill_container",
-                  "layout": "vertical",
-                  "gap": 4,
                   "children": [
                     {
                       "type": "text",
-                      "id": "n4ISe",
-                      "name": "msgLabel",
+                      "id": "NVi9j",
+                      "name": "Title",
                       "fill": "$B:foreground",
-                      "content": "Commit message",
+                      "content": "Confirm Import",
                       "fontFamily": "IBM Plex Mono",
-                      "fontSize": 12,
-                      "fontWeight": "500"
+                      "fontSize": 18,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                "B:b17V1": {
+                  "type": "frame",
+                  "id": "z2eIl",
+                  "name": "body",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 16,
+                  "padding": [
+                    0,
+                    24,
+                    24,
+                    24
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "K7lTlu",
+                      "name": "desc",
+                      "fill": "$B:foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "This will import 4 ontology entities from the document extraction.",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
                     },
                     {
                       "type": "frame",
-                      "id": "UWPAq",
-                      "name": "msgInput",
+                      "id": "zkLu7",
+                      "name": "summaryTable",
                       "width": "fill_container",
-                      "fill": "$B:background",
-                      "stroke": "$B:input",
-                      "strokeWidth": 1,
-                      "strokeAlignment": "inner",
-                      "padding": [
-                        8,
-                        12
-                      ],
-                      "children": [
-                        {
-                          "type": "text",
-                          "id": "u79Az",
-                          "name": "msgPlaceholder",
-                          "fill": "$B:foreground",
-                          "content": "Import ontology from document extraction (4 steps)",
-                          "fontFamily": "IBM Plex Mono",
-                          "fontSize": 13,
-                          "fontWeight": "normal"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            },
-            "B:fEqy3": {
-              "type": "frame",
-              "id": "jMBoW",
-              "name": "actions",
-              "width": "fill_container",
-              "gap": 8,
-              "padding": [
-                24,
-                0,
-                0,
-                0
-              ],
-              "justifyContent": "end",
-              "children": [
-                {
-                  "id": "s3Ppvz",
-                  "type": "ref",
-                  "ref": "B:kLoW9",
-                  "name": "Cancel",
-                  "descendants": {
-                    "B:aTVi9": {
-                      "content": "Cancel"
-                    }
-                  }
-                },
-                {
-                  "id": "Ft9Kg",
-                  "type": "ref",
-                  "ref": "B:3CI7c",
-                  "name": "ImportBtn",
-                  "descendants": {
-                    "B:wMRLg": {
-                      "content": "Import 4 entities"
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        },
-        {
-          "id": "v2H8GD",
-          "type": "ref",
-          "ref": "B:aTMES",
-          "name": "State 2: Applying",
-          "width": 550,
-          "height": 260,
-          "descendants": {
-            "B:nZTe4": {
-              "type": "frame",
-              "id": "YmfCY",
-              "name": "header",
-              "width": "fill_container",
-              "children": [
-                {
-                  "type": "text",
-                  "id": "Nb7oz",
-                  "name": "Title",
-                  "fill": "$B:foreground",
-                  "content": "Importing...",
-                  "fontFamily": "IBM Plex Mono",
-                  "fontSize": 18,
-                  "fontWeight": "600"
-                }
-              ]
-            },
-            "B:b17V1": {
-              "type": "frame",
-              "id": "Mrkax",
-              "name": "body",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 12,
-              "padding": [
-                0,
-                24,
-                24,
-                24
-              ],
-              "children": [
-                {
-                  "id": "JCQif",
-                  "type": "ref",
-                  "ref": "B:BJBat",
-                  "name": "ProgressBar",
-                  "width": "fill_container",
-                  "descendants": {
-                    "B:nGPHj": {
-                      "width": 90
-                    }
-                  }
-                },
-                {
-                  "type": "text",
-                  "id": "ipqcB",
-                  "name": "progressText",
-                  "fill": "$B:muted-foreground",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "2 of 4 steps completed",
-                  "textAlign": "center",
-                  "fontFamily": "IBM Plex Mono",
-                  "fontSize": 13,
-                  "fontWeight": "normal"
-                },
-                {
-                  "type": "text",
-                  "id": "InjMB",
-                  "name": "stepLabel",
-                  "fill": "$B:muted-foreground",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Creating class: Organization...",
-                  "textAlign": "center",
-                  "fontFamily": "IBM Plex Mono",
-                  "fontSize": 12,
-                  "fontWeight": "normal"
-                }
-              ]
-            },
-            "B:fEqy3": {
-              "type": "frame",
-              "id": "ZbKrz",
-              "name": "actions",
-              "width": "fill_container",
-              "padding": [
-                16,
-                0,
-                0,
-                0
-              ],
-              "justifyContent": "center",
-              "children": [
-                {
-                  "id": "XwWqp",
-                  "type": "ref",
-                  "ref": "B:kLoW9",
-                  "name": "CancelBtn",
-                  "descendants": {
-                    "B:aTVi9": {
-                      "content": "Cancel"
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        },
-        {
-          "id": "Qoafb",
-          "type": "ref",
-          "ref": "B:aTMES",
-          "name": "State 3: Success",
-          "width": 550,
-          "height": 280,
-          "descendants": {
-            "B:nZTe4": {
-              "type": "frame",
-              "id": "w8NQOr",
-              "name": "header",
-              "width": "fill_container",
-              "children": [
-                {
-                  "type": "text",
-                  "id": "r5b2R",
-                  "name": "Title",
-                  "fill": "$B:success",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Import Successful",
-                  "textAlign": "center",
-                  "fontFamily": "IBM Plex Mono",
-                  "fontSize": 18,
-                  "fontWeight": "600"
-                }
-              ]
-            },
-            "B:b17V1": {
-              "type": "frame",
-              "id": "T5wSV",
-              "name": "body",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 12,
-              "padding": [
-                0,
-                24,
-                24,
-                24
-              ],
-              "children": [
-                {
-                  "type": "text",
-                  "id": "cg35G",
-                  "name": "resultText",
-                  "fill": "$B:foreground",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Imported 4 entities.",
-                  "textAlign": "center",
-                  "fontFamily": "IBM Plex Mono",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
-                },
-                {
-                  "type": "frame",
-                  "id": "wJORd",
-                  "name": "commitLink",
-                  "width": "fill_container",
-                  "justifyContent": "center",
-                  "children": [
-                    {
-                      "type": "frame",
-                      "id": "mSFHe",
-                      "name": "hashBadge",
                       "stroke": "$B:border",
                       "strokeWidth": 1,
                       "strokeAlignment": "inner",
-                      "gap": 6,
-                      "padding": [
-                        4,
-                        12
-                      ],
+                      "layout": "vertical",
+                      "gap": 8,
+                      "padding": 12,
                       "children": [
                         {
-                          "type": "icon",
-                          "id": "ZOhR0",
-                          "name": "gitIcon",
-                          "width": 14,
-                          "height": 14,
-                          "icon": "git-commit",
-                          "library": "lucide",
-                          "fill": "$B:primary"
+                          "type": "frame",
+                          "id": "KDdk0",
+                          "name": "row1",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "MKCkI",
+                              "name": "l1",
+                              "fill": "$B:muted-foreground",
+                              "content": "Classes",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "Qokc5",
+                              "name": "v1",
+                              "fill": "$B:foreground",
+                              "content": "2",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 13,
+                              "fontWeight": "600"
+                            }
+                          ]
                         },
                         {
-                          "type": "text",
-                          "id": "H5qgf",
-                          "name": "hash",
-                          "fill": "$B:primary",
-                          "content": "Commit abc1234",
-                          "fontFamily": "IBM Plex Mono",
-                          "fontSize": 13,
-                          "fontWeight": "normal"
+                          "type": "frame",
+                          "id": "TIr7k",
+                          "name": "row2",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Hy51C",
+                              "name": "l2",
+                              "fill": "$B:muted-foreground",
+                              "content": "Properties",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "nRbab",
+                              "name": "v2",
+                              "fill": "$B:foreground",
+                              "content": "1",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 13,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "UkipS",
+                          "name": "row3",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "IExLN",
+                              "name": "l3",
+                              "fill": "$B:muted-foreground",
+                              "content": "Individuals",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "mCUfo",
+                              "name": "v3",
+                              "fill": "$B:foreground",
+                              "content": "1",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 13,
+                              "fontWeight": "600"
+                            }
+                          ]
                         }
                       ]
-                    }
-                  ]
-                }
-              ]
-            },
-            "B:fEqy3": {
-              "type": "frame",
-              "id": "SbcOO",
-              "name": "actions",
-              "width": "fill_container",
-              "padding": [
-                16,
-                0,
-                0,
-                0
-              ],
-              "justifyContent": "center",
-              "children": [
-                {
-                  "id": "mKTwS",
-                  "type": "ref",
-                  "ref": "B:3CI7c",
-                  "name": "DoneBtn",
-                  "descendants": {
-                    "B:wMRLg": {
-                      "content": "Done"
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        },
-        {
-          "id": "jxEr6",
-          "type": "ref",
-          "ref": "B:aTMES",
-          "name": "State 4: Error",
-          "width": 550,
-          "height": 280,
-          "descendants": {
-            "B:nZTe4": {
-              "type": "frame",
-              "id": "c9svrk",
-              "name": "header",
-              "width": "fill_container",
-              "children": [
-                {
-                  "type": "text",
-                  "id": "LoNU0",
-                  "name": "Title",
-                  "fill": "$B:destructive",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Import Failed",
-                  "textAlign": "center",
-                  "fontFamily": "IBM Plex Mono",
-                  "fontSize": 18,
-                  "fontWeight": "600"
-                }
-              ]
-            },
-            "B:b17V1": {
-              "type": "frame",
-              "id": "YKHYs",
-              "name": "body",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 12,
-              "padding": [
-                0,
-                24,
-                24,
-                24
-              ],
-              "children": [
-                {
-                  "type": "text",
-                  "id": "Yx3qr",
-                  "name": "errorText",
-                  "fill": "$B:foreground",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Entity 'Person' already exists in the ontology.",
-                  "textAlign": "center",
-                  "fontFamily": "IBM Plex Mono",
-                  "fontSize": 13,
-                  "fontWeight": "normal"
-                },
-                {
-                  "type": "text",
-                  "id": "Dw8Jr",
-                  "name": "partialHint",
-                  "fill": "$B:warning",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Partially applied: 2 of 4 steps completed.",
-                  "textAlign": "center",
-                  "fontFamily": "IBM Plex Mono",
-                  "fontSize": 12,
-                  "fontWeight": "normal"
-                }
-              ]
-            },
-            "B:fEqy3": {
-              "type": "frame",
-              "id": "opohA",
-              "name": "actions",
-              "width": "fill_container",
-              "gap": 8,
-              "padding": [
-                16,
-                0,
-                0,
-                0
-              ],
-              "justifyContent": "center",
-              "children": [
-                {
-                  "id": "D7p0K",
-                  "type": "ref",
-                  "ref": "B:kLoW9",
-                  "name": "CloseBtn",
-                  "descendants": {
-                    "B:aTVi9": {
-                      "content": "Close"
-                    }
-                  }
-                },
-                {
-                  "id": "SFck7",
-                  "type": "ref",
-                  "ref": "B:3CI7c",
-                  "name": "RetryBtn",
-                  "descendants": {
-                    "B:wMRLg": {
-                      "content": "Retry"
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "type": "frame",
-      "id": "rvXJa",
-      "x": 650,
-      "y": 6500,
-      "name": "Conflict Resolver Dialog",
-      "clip": true,
-      "width": 560,
-      "fill": "#00000000",
-      "layout": "vertical",
-      "children": [
-        {
-          "type": "text",
-          "id": "u7pGf",
-          "name": "_label",
-          "fill": "$B:muted-foreground",
-          "content": "CONFLICT RESOLVER DIALOG",
-          "fontFamily": "IBM Plex Mono",
-          "fontSize": 10,
-          "fontWeight": "600",
-          "letterSpacing": 1.5
-        },
-        {
-          "id": "iSRzG",
-          "type": "ref",
-          "ref": "B:aTMES",
-          "name": "ConflictDialog",
-          "width": 560,
-          "height": 520,
-          "descendants": {
-            "B:nZTe4": {
-              "type": "frame",
-              "id": "J0uyJ",
-              "name": "header",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 2,
-              "children": [
-                {
-                  "type": "text",
-                  "id": "L7K5bq",
-                  "name": "Title",
-                  "fill": "$B:foreground",
-                  "content": "Resolve Conflicts",
-                  "fontFamily": "IBM Plex Mono",
-                  "fontSize": 18,
-                  "fontWeight": "600"
-                },
-                {
-                  "type": "text",
-                  "id": "jFR0Y",
-                  "name": "Subtitle",
-                  "fill": "$B:muted-foreground",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "2 conflicts need your attention. The same entity has different labels across files.",
-                  "fontFamily": "IBM Plex Mono",
-                  "fontSize": 12,
-                  "fontWeight": "normal"
-                }
-              ]
-            },
-            "B:b17V1": {
-              "type": "frame",
-              "id": "ScsR1",
-              "name": "body",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 16,
-              "padding": [
-                0,
-                24,
-                24,
-                24
-              ],
-              "children": [
-                {
-                  "type": "frame",
-                  "id": "qsgpu",
-                  "name": "ConflictItem1",
-                  "width": "fill_container",
-                  "stroke": "$B:border",
-                  "strokeWidth": 1,
-                  "strokeAlignment": "inner",
-                  "layout": "vertical",
-                  "gap": 8,
-                  "padding": 12,
-                  "children": [
+                    },
                     {
                       "type": "frame",
-                      "id": "oLiGD",
-                      "name": "conflictHeader",
+                      "id": "g5Gwv",
+                      "name": "commitField",
                       "width": "fill_container",
-                      "gap": 6,
+                      "layout": "vertical",
+                      "gap": 4,
                       "children": [
                         {
-                          "type": "icon",
-                          "id": "yEWXw",
-                          "name": "alertIcon",
-                          "width": 16,
-                          "height": 16,
-                          "icon": "alert-triangle",
-                          "library": "lucide",
-                          "fill": "$B:warning"
-                        },
-                        {
                           "type": "text",
-                          "id": "x1eTp",
-                          "name": "entityId",
-                          "fill": "$B:warning",
-                          "content": "Person",
+                          "id": "n4ISe",
+                          "name": "msgLabel",
+                          "fill": "$B:foreground",
+                          "content": "Commit message",
                           "fontFamily": "IBM Plex Mono",
                           "fontSize": 12,
-                          "fontWeight": "600"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "qA6yH",
-                      "name": "conflictValues",
-                      "width": "fill_container",
-                      "gap": 8,
-                      "children": [
-                        {
-                          "type": "frame",
-                          "id": "e5PnV",
-                          "name": "OptionA",
-                          "width": "fill_container",
-                          "stroke": "$B:border",
-                          "strokeWidth": 1,
-                          "strokeAlignment": "inner",
-                          "layout": "vertical",
-                          "gap": 4,
-                          "padding": 8,
-                          "children": [
-                            {
-                              "type": "text",
-                              "id": "HRKi8",
-                              "name": "fileLabel",
-                              "fill": "$B:muted-foreground",
-                              "content": "file1.md",
-                              "fontFamily": "IBM Plex Mono",
-                              "fontSize": 10,
-                              "fontWeight": "normal"
-                            },
-                            {
-                              "type": "text",
-                              "id": "RK3d5",
-                              "name": "valueLabel",
-                              "fill": "$B:foreground",
-                              "content": "Person",
-                              "fontFamily": "IBM Plex Mono",
-                              "fontSize": 13,
-                              "fontWeight": "600"
-                            },
-                            {
-                              "type": "frame",
-                              "id": "JaZU1",
-                              "name": "selectBtnA",
-                              "stroke": "$B:border",
-                              "strokeWidth": 1,
-                              "strokeAlignment": "inner",
-                              "padding": [
-                                2,
-                                8
-                              ],
-                              "children": [
-                                {
-                                  "type": "text",
-                                  "id": "SLm87",
-                                  "name": "btnText",
-                                  "fill": "$B:foreground",
-                                  "content": "Keep A",
-                                  "fontFamily": "IBM Plex Mono",
-                                  "fontSize": 11,
-                                  "fontWeight": "normal"
-                                }
-                              ]
-                            }
-                          ]
+                          "fontWeight": "500"
                         },
                         {
                           "type": "frame",
-                          "id": "QS2PB",
-                          "name": "OptionB",
-                          "width": "fill_container",
-                          "stroke": "$B:border",
-                          "strokeWidth": 1,
-                          "strokeAlignment": "inner",
-                          "layout": "vertical",
-                          "gap": 4,
-                          "padding": 8,
-                          "children": [
-                            {
-                              "type": "text",
-                              "id": "x8isr",
-                              "name": "fileLabel",
-                              "fill": "$B:muted-foreground",
-                              "content": "file2.json",
-                              "fontFamily": "IBM Plex Mono",
-                              "fontSize": 10,
-                              "fontWeight": "normal"
-                            },
-                            {
-                              "type": "text",
-                              "id": "KnH2x",
-                              "name": "valueLabel",
-                              "fill": "$B:foreground",
-                              "content": "Individual",
-                              "fontFamily": "IBM Plex Mono",
-                              "fontSize": 13,
-                              "fontWeight": "600"
-                            },
-                            {
-                              "type": "frame",
-                              "id": "QJqrd",
-                              "name": "selectBtnB",
-                              "stroke": "$B:border",
-                              "strokeWidth": 1,
-                              "strokeAlignment": "inner",
-                              "padding": [
-                                2,
-                                8
-                              ],
-                              "children": [
-                                {
-                                  "type": "text",
-                                  "id": "OVghs",
-                                  "name": "btnText",
-                                  "fill": "$B:foreground",
-                                  "content": "Keep B",
-                                  "fontFamily": "IBM Plex Mono",
-                                  "fontSize": 11,
-                                  "fontWeight": "normal"
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "type": "frame",
-                      "id": "DGDlW",
-                      "name": "customOption",
-                      "width": "fill_container",
-                      "gap": 6,
-                      "children": [
-                        {
-                          "type": "frame",
-                          "id": "R0rc4Q",
-                          "name": "radioCustom",
-                          "stroke": "$B:border",
-                          "strokeWidth": 1,
-                          "strokeAlignment": "inner",
-                          "padding": [
-                            2,
-                            6
-                          ],
-                          "children": [
-                            {
-                              "type": "text",
-                              "id": "AtGyc",
-                              "name": "radioLabel",
-                              "fill": "$B:foreground",
-                              "content": "Custom label",
-                              "fontFamily": "IBM Plex Mono",
-                              "fontSize": 11,
-                              "fontWeight": "normal"
-                            }
-                          ]
-                        },
-                        {
-                          "type": "frame",
-                          "id": "S3GAuL",
-                          "name": "customInput",
+                          "id": "UWPAq",
+                          "name": "msgInput",
                           "width": "fill_container",
                           "fill": "$B:background",
                           "stroke": "$B:input",
                           "strokeWidth": 1,
                           "strokeAlignment": "inner",
                           "padding": [
-                            6,
-                            10
+                            8,
+                            12
                           ],
                           "children": [
                             {
                               "type": "text",
-                              "id": "dwFXJ",
-                              "name": "inputPlaceholder",
-                              "fill": "$B:muted-foreground",
-                              "content": "Enter custom label...",
+                              "id": "u79Az",
+                              "name": "msgPlaceholder",
+                              "fill": "$B:foreground",
+                              "content": "Import ontology from document extraction (4 steps)",
                               "fontFamily": "IBM Plex Mono",
-                              "fontSize": 12,
+                              "fontSize": 13,
                               "fontWeight": "normal"
                             }
                           ]
@@ -4434,165 +3748,863 @@
                     }
                   ]
                 },
-                {
+                "B:fEqy3": {
                   "type": "frame",
-                  "id": "g7xbyy",
-                  "name": "ConflictItem2",
+                  "id": "jMBoW",
+                  "name": "actions",
                   "width": "fill_container",
-                  "stroke": "$B:border",
-                  "strokeWidth": 1,
-                  "strokeAlignment": "inner",
-                  "layout": "vertical",
                   "gap": 8,
-                  "padding": 12,
+                  "padding": [
+                    24,
+                    0,
+                    0,
+                    0
+                  ],
+                  "justifyContent": "end",
+                  "children": [
+                    {
+                      "id": "s3Ppvz",
+                      "type": "ref",
+                      "ref": "B:kLoW9",
+                      "name": "Cancel",
+                      "descendants": {
+                        "B:aTVi9": {
+                          "content": "Cancel"
+                        }
+                      }
+                    },
+                    {
+                      "id": "Ft9Kg",
+                      "type": "ref",
+                      "ref": "B:3CI7c",
+                      "name": "ImportBtn",
+                      "descendants": {
+                        "B:wMRLg": {
+                          "content": "Import 4 entities"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "v2H8GD",
+              "type": "ref",
+              "ref": "B:aTMES",
+              "name": "State 2: Applying",
+              "width": 550,
+              "height": 260,
+              "descendants": {
+                "B:nZTe4": {
+                  "type": "frame",
+                  "id": "YmfCY",
+                  "name": "header",
+                  "width": "fill_container",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Nb7oz",
+                      "name": "Title",
+                      "fill": "$B:foreground",
+                      "content": "Importing...",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 18,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                "B:b17V1": {
+                  "type": "frame",
+                  "id": "Mrkax",
+                  "name": "body",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": [
+                    0,
+                    24,
+                    24,
+                    24
+                  ],
+                  "children": [
+                    {
+                      "id": "JCQif",
+                      "type": "ref",
+                      "ref": "B:BJBat",
+                      "name": "ProgressBar",
+                      "width": "fill_container",
+                      "descendants": {
+                        "B:nGPHj": {
+                          "width": 90
+                        }
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "id": "ipqcB",
+                      "name": "progressText",
+                      "fill": "$B:muted-foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "2 of 4 steps completed",
+                      "textAlign": "center",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "InjMB",
+                      "name": "stepLabel",
+                      "fill": "$B:muted-foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Creating class: Organization...",
+                      "textAlign": "center",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                "B:fEqy3": {
+                  "type": "frame",
+                  "id": "ZbKrz",
+                  "name": "actions",
+                  "width": "fill_container",
+                  "padding": [
+                    16,
+                    0,
+                    0,
+                    0
+                  ],
+                  "justifyContent": "center",
+                  "children": [
+                    {
+                      "id": "XwWqp",
+                      "type": "ref",
+                      "ref": "B:kLoW9",
+                      "name": "CancelBtn",
+                      "descendants": {
+                        "B:aTVi9": {
+                          "content": "Cancel"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "Qoafb",
+              "type": "ref",
+              "ref": "B:aTMES",
+              "name": "State 3: Success",
+              "width": 550,
+              "height": 280,
+              "descendants": {
+                "B:nZTe4": {
+                  "type": "frame",
+                  "id": "w8NQOr",
+                  "name": "header",
+                  "width": "fill_container",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "r5b2R",
+                      "name": "Title",
+                      "fill": "$B:success",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Import Successful",
+                      "textAlign": "center",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 18,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                "B:b17V1": {
+                  "type": "frame",
+                  "id": "T5wSV",
+                  "name": "body",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": [
+                    0,
+                    24,
+                    24,
+                    24
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "cg35G",
+                      "name": "resultText",
+                      "fill": "$B:foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Imported 4 entities.",
+                      "textAlign": "center",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "wJORd",
+                      "name": "commitLink",
+                      "width": "fill_container",
+                      "justifyContent": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "mSFHe",
+                          "name": "hashBadge",
+                          "stroke": "$B:border",
+                          "strokeWidth": 1,
+                          "strokeAlignment": "inner",
+                          "gap": 6,
+                          "padding": [
+                            4,
+                            12
+                          ],
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "ZOhR0",
+                              "name": "gitIcon",
+                              "width": 14,
+                              "height": 14,
+                              "icon": "git-commit",
+                              "library": "lucide",
+                              "fill": "$B:primary"
+                            },
+                            {
+                              "type": "text",
+                              "id": "H5qgf",
+                              "name": "hash",
+                              "fill": "$B:primary",
+                              "content": "Commit abc1234",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "B:fEqy3": {
+                  "type": "frame",
+                  "id": "SbcOO",
+                  "name": "actions",
+                  "width": "fill_container",
+                  "padding": [
+                    16,
+                    0,
+                    0,
+                    0
+                  ],
+                  "justifyContent": "center",
+                  "children": [
+                    {
+                      "id": "mKTwS",
+                      "type": "ref",
+                      "ref": "B:3CI7c",
+                      "name": "DoneBtn",
+                      "descendants": {
+                        "B:wMRLg": {
+                          "content": "Done"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "jxEr6",
+              "type": "ref",
+              "ref": "B:aTMES",
+              "name": "State 4: Error",
+              "width": 550,
+              "height": 280,
+              "descendants": {
+                "B:nZTe4": {
+                  "type": "frame",
+                  "id": "c9svrk",
+                  "name": "header",
+                  "width": "fill_container",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "LoNU0",
+                      "name": "Title",
+                      "fill": "$B:destructive",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Import Failed",
+                      "textAlign": "center",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 18,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                "B:b17V1": {
+                  "type": "frame",
+                  "id": "YKHYs",
+                  "name": "body",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": [
+                    0,
+                    24,
+                    24,
+                    24
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Yx3qr",
+                      "name": "errorText",
+                      "fill": "$B:foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Entity 'Person' already exists in the ontology.",
+                      "textAlign": "center",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Dw8Jr",
+                      "name": "partialHint",
+                      "fill": "$B:warning",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Partially applied: 2 of 4 steps completed.",
+                      "textAlign": "center",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                "B:fEqy3": {
+                  "type": "frame",
+                  "id": "opohA",
+                  "name": "actions",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "padding": [
+                    16,
+                    0,
+                    0,
+                    0
+                  ],
+                  "justifyContent": "center",
+                  "children": [
+                    {
+                      "id": "D7p0K",
+                      "type": "ref",
+                      "ref": "B:kLoW9",
+                      "name": "CloseBtn",
+                      "descendants": {
+                        "B:aTVi9": {
+                          "content": "Close"
+                        }
+                      }
+                    },
+                    {
+                      "id": "SFck7",
+                      "type": "ref",
+                      "ref": "B:3CI7c",
+                      "name": "RetryBtn",
+                      "descendants": {
+                        "B:wMRLg": {
+                          "content": "Retry"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "layoutPosition": "absolute",
+          "height": 1253
+        },
+        {
+          "type": "frame",
+          "id": "rvXJa",
+          "x": 0,
+          "y": 9653,
+          "name": "Conflict Resolver Dialog",
+          "clip": true,
+          "width": 560,
+          "fill": "#00000000",
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "text",
+              "id": "u7pGf",
+              "name": "_label",
+              "fill": "$B:muted-foreground",
+              "content": "CONFLICT RESOLVER DIALOG",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 10,
+              "fontWeight": "600",
+              "letterSpacing": 1.5
+            },
+            {
+              "id": "iSRzG",
+              "type": "ref",
+              "ref": "B:aTMES",
+              "name": "ConflictDialog",
+              "width": 560,
+              "height": 520,
+              "descendants": {
+                "B:nZTe4": {
+                  "type": "frame",
+                  "id": "J0uyJ",
+                  "name": "header",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "L7K5bq",
+                      "name": "Title",
+                      "fill": "$B:foreground",
+                      "content": "Resolve Conflicts",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 18,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "jFR0Y",
+                      "name": "Subtitle",
+                      "fill": "$B:muted-foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "2 conflicts need your attention. The same entity has different labels across files.",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                "B:b17V1": {
+                  "type": "frame",
+                  "id": "ScsR1",
+                  "name": "body",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 16,
+                  "padding": [
+                    0,
+                    24,
+                    24,
+                    24
+                  ],
                   "children": [
                     {
                       "type": "frame",
-                      "id": "MeL7n",
-                      "name": "conflictHeader",
+                      "id": "qsgpu",
+                      "name": "ConflictItem1",
                       "width": "fill_container",
-                      "gap": 6,
+                      "stroke": "$B:border",
+                      "strokeWidth": 1,
+                      "strokeAlignment": "inner",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "padding": 12,
                       "children": [
                         {
-                          "type": "icon",
-                          "id": "S96D6p",
-                          "name": "alertIcon",
-                          "width": 16,
-                          "height": 16,
-                          "icon": "alert-triangle",
-                          "library": "lucide",
-                          "fill": "$B:warning"
+                          "type": "frame",
+                          "id": "oLiGD",
+                          "name": "conflictHeader",
+                          "width": "fill_container",
+                          "gap": 6,
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "yEWXw",
+                              "name": "alertIcon",
+                              "width": 16,
+                              "height": 16,
+                              "icon": "alert-triangle",
+                              "library": "lucide",
+                              "fill": "$B:warning"
+                            },
+                            {
+                              "type": "text",
+                              "id": "x1eTp",
+                              "name": "entityId",
+                              "fill": "$B:warning",
+                              "content": "Person",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 12,
+                              "fontWeight": "600"
+                            }
+                          ]
                         },
                         {
-                          "type": "text",
-                          "id": "k1vb54",
-                          "name": "entityId",
-                          "fill": "$B:warning",
-                          "content": "Organization",
-                          "fontFamily": "IBM Plex Mono",
-                          "fontSize": 12,
-                          "fontWeight": "600"
+                          "type": "frame",
+                          "id": "qA6yH",
+                          "name": "conflictValues",
+                          "width": "fill_container",
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "e5PnV",
+                              "name": "OptionA",
+                              "width": "fill_container",
+                              "stroke": "$B:border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "layout": "vertical",
+                              "gap": 4,
+                              "padding": 8,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "HRKi8",
+                                  "name": "fileLabel",
+                                  "fill": "$B:muted-foreground",
+                                  "content": "file1.md",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 10,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "RK3d5",
+                                  "name": "valueLabel",
+                                  "fill": "$B:foreground",
+                                  "content": "Person",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 13,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "JaZU1",
+                                  "name": "selectBtnA",
+                                  "stroke": "$B:border",
+                                  "strokeWidth": 1,
+                                  "strokeAlignment": "inner",
+                                  "padding": [
+                                    2,
+                                    8
+                                  ],
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "SLm87",
+                                      "name": "btnText",
+                                      "fill": "$B:foreground",
+                                      "content": "Keep A",
+                                      "fontFamily": "IBM Plex Mono",
+                                      "fontSize": 11,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "QS2PB",
+                              "name": "OptionB",
+                              "width": "fill_container",
+                              "stroke": "$B:border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "layout": "vertical",
+                              "gap": 4,
+                              "padding": 8,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "x8isr",
+                                  "name": "fileLabel",
+                                  "fill": "$B:muted-foreground",
+                                  "content": "file2.json",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 10,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "KnH2x",
+                                  "name": "valueLabel",
+                                  "fill": "$B:foreground",
+                                  "content": "Individual",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 13,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "QJqrd",
+                                  "name": "selectBtnB",
+                                  "stroke": "$B:border",
+                                  "strokeWidth": 1,
+                                  "strokeAlignment": "inner",
+                                  "padding": [
+                                    2,
+                                    8
+                                  ],
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "OVghs",
+                                      "name": "btnText",
+                                      "fill": "$B:foreground",
+                                      "content": "Keep B",
+                                      "fontFamily": "IBM Plex Mono",
+                                      "fontSize": 11,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "DGDlW",
+                          "name": "customOption",
+                          "width": "fill_container",
+                          "gap": 6,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "R0rc4Q",
+                              "name": "radioCustom",
+                              "stroke": "$B:border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "padding": [
+                                2,
+                                6
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "AtGyc",
+                                  "name": "radioLabel",
+                                  "fill": "$B:foreground",
+                                  "content": "Custom label",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "S3GAuL",
+                              "name": "customInput",
+                              "width": "fill_container",
+                              "fill": "$B:background",
+                              "stroke": "$B:input",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "padding": [
+                                6,
+                                10
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "dwFXJ",
+                                  "name": "inputPlaceholder",
+                                  "fill": "$B:muted-foreground",
+                                  "content": "Enter custom label...",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
                         }
                       ]
                     },
                     {
                       "type": "frame",
-                      "id": "LbUCO",
-                      "name": "conflictValues",
+                      "id": "g7xbyy",
+                      "name": "ConflictItem2",
                       "width": "fill_container",
+                      "stroke": "$B:border",
+                      "strokeWidth": 1,
+                      "strokeAlignment": "inner",
+                      "layout": "vertical",
                       "gap": 8,
+                      "padding": 12,
                       "children": [
                         {
                           "type": "frame",
-                          "id": "jouYG",
-                          "name": "OptionA",
+                          "id": "MeL7n",
+                          "name": "conflictHeader",
                           "width": "fill_container",
-                          "stroke": "$B:border",
-                          "strokeWidth": 1,
-                          "strokeAlignment": "inner",
-                          "layout": "vertical",
-                          "gap": 4,
-                          "padding": 8,
+                          "gap": 6,
                           "children": [
                             {
-                              "type": "text",
-                              "id": "iKvz4",
-                              "name": "fileLabel",
-                              "fill": "$B:muted-foreground",
-                              "content": "file1.md",
-                              "fontFamily": "IBM Plex Mono",
-                              "fontSize": 10,
-                              "fontWeight": "normal"
+                              "type": "icon",
+                              "id": "S96D6p",
+                              "name": "alertIcon",
+                              "width": 16,
+                              "height": 16,
+                              "icon": "alert-triangle",
+                              "library": "lucide",
+                              "fill": "$B:warning"
                             },
                             {
                               "type": "text",
-                              "id": "BzOho",
-                              "name": "valueLabel",
-                              "fill": "$B:foreground",
+                              "id": "k1vb54",
+                              "name": "entityId",
+                              "fill": "$B:warning",
                               "content": "Organization",
                               "fontFamily": "IBM Plex Mono",
-                              "fontSize": 13,
+                              "fontSize": 12,
                               "fontWeight": "600"
-                            },
-                            {
-                              "type": "frame",
-                              "id": "aMUQs",
-                              "name": "selectBtnA",
-                              "stroke": "$B:border",
-                              "strokeWidth": 1,
-                              "strokeAlignment": "inner",
-                              "padding": [
-                                2,
-                                8
-                              ],
-                              "children": [
-                                {
-                                  "type": "text",
-                                  "id": "AdcXd",
-                                  "name": "btnText",
-                                  "fill": "$B:foreground",
-                                  "content": "Keep A",
-                                  "fontFamily": "IBM Plex Mono",
-                                  "fontSize": 11,
-                                  "fontWeight": "normal"
-                                }
-                              ]
                             }
                           ]
                         },
                         {
                           "type": "frame",
-                          "id": "LmKSC",
-                          "name": "OptionB",
+                          "id": "LbUCO",
+                          "name": "conflictValues",
                           "width": "fill_container",
-                          "stroke": "$B:border",
-                          "strokeWidth": 1,
-                          "strokeAlignment": "inner",
-                          "layout": "vertical",
-                          "gap": 4,
-                          "padding": 8,
+                          "gap": 8,
                           "children": [
                             {
-                              "type": "text",
-                              "id": "m7zTue",
-                              "name": "fileLabel",
-                              "fill": "$B:muted-foreground",
-                              "content": "file3.xlsx",
-                              "fontFamily": "IBM Plex Mono",
-                              "fontSize": 10,
-                              "fontWeight": "normal"
-                            },
-                            {
-                              "type": "text",
-                              "id": "G6tZf",
-                              "name": "valueLabel",
-                              "fill": "$B:foreground",
-                              "content": "Company",
-                              "fontFamily": "IBM Plex Mono",
-                              "fontSize": 13,
-                              "fontWeight": "600"
-                            },
-                            {
                               "type": "frame",
-                              "id": "nEmh9",
-                              "name": "selectBtnB",
+                              "id": "jouYG",
+                              "name": "OptionA",
+                              "width": "fill_container",
                               "stroke": "$B:border",
                               "strokeWidth": 1,
                               "strokeAlignment": "inner",
-                              "padding": [
-                                2,
-                                8
-                              ],
+                              "layout": "vertical",
+                              "gap": 4,
+                              "padding": 8,
                               "children": [
                                 {
                                   "type": "text",
-                                  "id": "IM2gy",
-                                  "name": "btnText",
-                                  "fill": "$B:foreground",
-                                  "content": "Keep B",
+                                  "id": "iKvz4",
+                                  "name": "fileLabel",
+                                  "fill": "$B:muted-foreground",
+                                  "content": "file1.md",
                                   "fontFamily": "IBM Plex Mono",
-                                  "fontSize": 11,
+                                  "fontSize": 10,
                                   "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "BzOho",
+                                  "name": "valueLabel",
+                                  "fill": "$B:foreground",
+                                  "content": "Organization",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 13,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "aMUQs",
+                                  "name": "selectBtnA",
+                                  "stroke": "$B:border",
+                                  "strokeWidth": 1,
+                                  "strokeAlignment": "inner",
+                                  "padding": [
+                                    2,
+                                    8
+                                  ],
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "AdcXd",
+                                      "name": "btnText",
+                                      "fill": "$B:foreground",
+                                      "content": "Keep A",
+                                      "fontFamily": "IBM Plex Mono",
+                                      "fontSize": 11,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "LmKSC",
+                              "name": "OptionB",
+                              "width": "fill_container",
+                              "stroke": "$B:border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "layout": "vertical",
+                              "gap": 4,
+                              "padding": 8,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "m7zTue",
+                                  "name": "fileLabel",
+                                  "fill": "$B:muted-foreground",
+                                  "content": "file3.xlsx",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 10,
+                                  "fontWeight": "normal"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "G6tZf",
+                                  "name": "valueLabel",
+                                  "fill": "$B:foreground",
+                                  "content": "Company",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 13,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "nEmh9",
+                                  "name": "selectBtnB",
+                                  "stroke": "$B:border",
+                                  "strokeWidth": 1,
+                                  "strokeAlignment": "inner",
+                                  "padding": [
+                                    2,
+                                    8
+                                  ],
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "IM2gy",
+                                      "name": "btnText",
+                                      "fill": "$B:foreground",
+                                      "content": "Keep B",
+                                      "fontFamily": "IBM Plex Mono",
+                                      "fontSize": 11,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
                                 }
                               ]
                             }
@@ -4601,374 +4613,218 @@
                       ]
                     }
                   ]
-                }
-              ]
-            },
-            "B:fEqy3": {
-              "type": "frame",
-              "id": "J6YNu",
-              "name": "actions",
-              "width": "fill_container",
-              "gap": 8,
-              "padding": [
-                16,
-                24,
-                24,
-                24
-              ],
-              "justifyContent": "end",
-              "children": [
-                {
-                  "id": "PeE3q",
-                  "type": "ref",
-                  "ref": "B:kLoW9",
-                  "name": "CancelBtn",
-                  "descendants": {
-                    "B:aTVi9": {
-                      "content": "Cancel"
-                    }
-                  }
                 },
-                {
-                  "id": "XgR4N",
-                  "type": "ref",
-                  "ref": "B:3CI7c",
-                  "name": "ApplyBtn",
-                  "descendants": {
-                    "B:wMRLg": {
-                      "content": "Apply Resolutions"
+                "B:fEqy3": {
+                  "type": "frame",
+                  "id": "J6YNu",
+                  "name": "actions",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "padding": [
+                    16,
+                    24,
+                    24,
+                    24
+                  ],
+                  "justifyContent": "end",
+                  "children": [
+                    {
+                      "id": "PeE3q",
+                      "type": "ref",
+                      "ref": "B:kLoW9",
+                      "name": "CancelBtn",
+                      "descendants": {
+                        "B:aTVi9": {
+                          "content": "Cancel"
+                        }
+                      }
+                    },
+                    {
+                      "id": "XgR4N",
+                      "type": "ref",
+                      "ref": "B:3CI7c",
+                      "name": "ApplyBtn",
+                      "descendants": {
+                        "B:wMRLg": {
+                          "content": "Apply Resolutions"
+                        }
+                      }
                     }
-                  }
+                  ]
                 }
-              ]
+              }
             }
-          }
-        }
-      ]
-    },
-    {
-      "type": "frame",
-      "id": "ze4Nt",
-      "x": 50,
-      "y": 806,
-      "name": "Molecule/DemoProjectCard",
-      "reusable": true,
-      "width": 280,
-      "height": 150,
-      "fill": "$B:card",
-      "cornerRadius": 8,
-      "stroke": "$B:border",
-      "strokeWidth": 1,
-      "strokeAlignment": "inner",
-      "layout": "vertical",
-      "gap": 4,
-      "padding": 12,
-      "children": [
-        {
-          "type": "icon",
-          "id": "m8l0Zp",
-          "name": "cardIcon",
-          "width": 18,
-          "height": 18,
-          "icon": "folder",
-          "library": "lucide",
-          "fill": "$B:primary"
-        },
-        {
-          "type": "text",
-          "id": "L3t7i",
-          "name": "cardName",
-          "fill": "$B:foreground",
-          "textGrowth": "fixed-width",
-          "width": "fill_container",
-          "content": "Demo Name",
-          "fontFamily": "IBM Plex Mono",
-          "fontSize": 13,
-          "fontWeight": "600"
-        },
-        {
-          "type": "text",
-          "id": "y7bIJd",
-          "name": "cardDesc",
-          "fill": "$B:muted-foreground",
-          "textGrowth": "fixed-width",
-          "width": "fill_container",
-          "content": "Demo project description",
-          "fontFamily": "IBM Plex Mono",
-          "fontSize": 10,
-          "fontWeight": "normal"
-        },
-        {
-          "type": "frame",
-          "id": "g84Agl",
-          "name": "metaRow",
-          "width": "fill_container",
-          "gap": 6,
-          "padding": [
-            0,
-            0,
-            8,
-            0
           ],
-          "alignItems": "center",
-          "children": [
-            {
-              "type": "frame",
-              "id": "DegBE",
-              "name": "classBadge",
-              "fill": "$B:secondary",
-              "cornerRadius": 4,
-              "gap": 4,
-              "padding": [
-                4,
-                6
-              ],
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "icon",
-                  "id": "B6P73D",
-                  "name": "classIcon",
-                  "width": 10,
-                  "height": 10,
-                  "icon": "box",
-                  "library": "lucide",
-                  "fill": "$B:muted-foreground"
-                },
-                {
-                  "type": "text",
-                  "id": "w5HBj",
-                  "name": "classCount",
-                  "fill": "$B:muted-foreground",
-                  "content": "4 classes",
-                  "fontFamily": "IBM Plex Mono",
-                  "fontSize": 9,
-                  "fontWeight": "normal"
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "d8NB2C",
-              "name": "propBadge",
-              "fill": "$B:secondary",
-              "cornerRadius": 4,
-              "gap": 4,
-              "padding": [
-                4,
-                6
-              ],
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "icon",
-                  "id": "S7vtg",
-                  "name": "propIcon",
-                  "width": 10,
-                  "height": 10,
-                  "icon": "pencil",
-                  "library": "lucide",
-                  "fill": "$B:muted-foreground"
-                },
-                {
-                  "type": "text",
-                  "id": "s5ARF",
-                  "name": "propCount",
-                  "fill": "$B:muted-foreground",
-                  "content": "3 properties",
-                  "fontFamily": "IBM Plex Mono",
-                  "fontSize": 9,
-                  "fontWeight": "normal"
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "z9zS25",
-              "name": "domainBadge",
-              "fill": "$B:secondary",
-              "cornerRadius": 4,
-              "gap": 4,
-              "padding": [
-                4,
-                6
-              ],
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "icon",
-                  "id": "yglZJ",
-                  "name": "domainIcon",
-                  "width": 10,
-                  "height": 10,
-                  "icon": "tag",
-                  "library": "lucide",
-                  "fill": "$B:muted-foreground"
-                },
-                {
-                  "type": "text",
-                  "id": "haxm0",
-                  "name": "domainName",
-                  "fill": "$B:muted-foreground",
-                  "content": "Domain",
-                  "fontFamily": "IBM Plex Mono",
-                  "fontSize": 9,
-                  "fontWeight": "normal"
-                }
-              ]
-            }
-          ]
+          "layoutPosition": "absolute",
+          "height": 533
         },
         {
           "type": "frame",
-          "id": "RRNKb",
-          "name": "cardSep",
-          "width": "fill_container",
-          "height": 1,
-          "fill": "$B:border"
-        },
-        {
-          "type": "frame",
-          "id": "qEOSc",
-          "name": "forkButton",
-          "width": "fill_container",
-          "height": 28,
-          "fill": "$B:primary",
-          "cornerRadius": 6,
-          "gap": 4,
-          "justifyContent": "center",
-          "alignItems": "center",
-          "children": [
-            {
-              "type": "text",
-              "id": "A54FlC",
-              "name": "forkBtnText",
-              "fill": "$B:primary-foreground",
-              "content": "Fork",
-              "fontFamily": "IBM Plex Mono",
-              "fontSize": 12,
-              "fontWeight": "500"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "tvBhd",
-      "type": "ref",
-      "ref": "ze4Nt",
-      "name": "Molecule/DemoProjectCard (Light)",
-      "x": 50,
-      "y": 566,
-      "theme": {
-        "B:mode": "light"
-      }
-    },
-    {
-      "type": "frame",
-      "id": "LgxGO",
-      "x": 50,
-      "y": -194,
-      "name": "Organism/ForkDemoDialog",
-      "reusable": true,
-      "width": 960,
-      "height": 660,
-      "fill": "#00000080",
-      "layout": "none",
-      "children": [
-        {
-          "type": "frame",
-          "id": "XQmhp",
-          "x": 120,
-          "y": 60,
-          "name": "dialogBox",
-          "width": 720,
+          "id": "ze4Nt",
+          "x": 0,
+          "y": 12488,
+          "name": "Molecule/DemoProjectCard",
+          "reusable": true,
+          "width": 280,
+          "height": 150,
           "fill": "$B:card",
-          "cornerRadius": 12,
+          "cornerRadius": 8,
           "stroke": "$B:border",
           "strokeWidth": 1,
           "strokeAlignment": "inner",
           "layout": "vertical",
-          "gap": 20,
-          "padding": 24,
+          "gap": 4,
+          "padding": 12,
           "children": [
             {
-              "type": "frame",
-              "id": "OBpnm",
-              "name": "dialogHeader",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 4,
-              "children": [
-                {
-                  "type": "text",
-                  "id": "vPK7C",
-                  "name": "dialogTitle",
-                  "fill": "$B:foreground",
-                  "content": "Fork demo project",
-                  "fontFamily": "IBM Plex Mono",
-                  "fontSize": 20,
-                  "fontWeight": "600"
-                },
-                {
-                  "type": "text",
-                  "id": "HZWHj",
-                  "name": "dialogDesc",
-                  "fill": "$B:muted-foreground",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "Choose a demo project to fork into your workspace",
-                  "fontFamily": "IBM Plex Mono",
-                  "fontSize": 12,
-                  "fontWeight": "normal"
-                }
-              ]
-            },
-            {
               "type": "icon",
-              "id": "ltYqY",
-              "layoutPosition": "absolute",
-              "x": 684,
-              "y": 24,
-              "name": "closeIcon",
-              "width": 16,
-              "height": 16,
-              "icon": "x",
+              "id": "m8l0Zp",
+              "name": "cardIcon",
+              "width": 18,
+              "height": 18,
+              "icon": "folder",
               "library": "lucide",
-              "fill": "$B:muted-foreground"
+              "fill": "$B:primary"
+            },
+            {
+              "type": "text",
+              "id": "L3t7i",
+              "name": "cardName",
+              "fill": "$B:foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Demo Name",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 13,
+              "fontWeight": "600"
+            },
+            {
+              "type": "text",
+              "id": "y7bIJd",
+              "name": "cardDesc",
+              "fill": "$B:muted-foreground",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Demo project description",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 10,
+              "fontWeight": "normal"
             },
             {
               "type": "frame",
-              "id": "p6XI9S",
-              "name": "searchRow",
+              "id": "g84Agl",
+              "name": "metaRow",
               "width": "fill_container",
-              "gap": 8,
+              "gap": 6,
+              "padding": [
+                0,
+                0,
+                8,
+                0
+              ],
               "alignItems": "center",
               "children": [
                 {
                   "type": "frame",
-                  "id": "RuMBa",
-                  "name": "searchInput",
-                  "width": "fill_container",
-                  "height": 36,
-                  "fill": "$B:card",
-                  "stroke": "$B:input",
-                  "strokeWidth": 1,
-                  "strokeAlignment": "inner",
+                  "id": "DegBE",
+                  "name": "classBadge",
+                  "fill": "$B:secondary",
+                  "cornerRadius": 4,
+                  "gap": 4,
                   "padding": [
                     4,
-                    12
+                    6
                   ],
                   "alignItems": "center",
                   "children": [
                     {
+                      "type": "icon",
+                      "id": "B6P73D",
+                      "name": "classIcon",
+                      "width": 10,
+                      "height": 10,
+                      "icon": "box",
+                      "library": "lucide",
+                      "fill": "$B:muted-foreground"
+                    },
+                    {
                       "type": "text",
-                      "id": "k1tobX",
-                      "name": "searchText",
+                      "id": "w5HBj",
+                      "name": "classCount",
                       "fill": "$B:muted-foreground",
-                      "content": "Search demo projects...",
+                      "content": "4 classes",
                       "fontFamily": "IBM Plex Mono",
-                      "fontSize": 12,
+                      "fontSize": 9,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "d8NB2C",
+                  "name": "propBadge",
+                  "fill": "$B:secondary",
+                  "cornerRadius": 4,
+                  "gap": 4,
+                  "padding": [
+                    4,
+                    6
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "S7vtg",
+                      "name": "propIcon",
+                      "width": 10,
+                      "height": 10,
+                      "icon": "pencil",
+                      "library": "lucide",
+                      "fill": "$B:muted-foreground"
+                    },
+                    {
+                      "type": "text",
+                      "id": "s5ARF",
+                      "name": "propCount",
+                      "fill": "$B:muted-foreground",
+                      "content": "3 properties",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 9,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "z9zS25",
+                  "name": "domainBadge",
+                  "fill": "$B:secondary",
+                  "cornerRadius": 4,
+                  "gap": 4,
+                  "padding": [
+                    4,
+                    6
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "yglZJ",
+                      "name": "domainIcon",
+                      "width": 10,
+                      "height": 10,
+                      "icon": "tag",
+                      "library": "lucide",
+                      "fill": "$B:muted-foreground"
+                    },
+                    {
+                      "type": "text",
+                      "id": "haxm0",
+                      "name": "domainName",
+                      "fill": "$B:muted-foreground",
+                      "content": "Domain",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 9,
                       "fontWeight": "normal"
                     }
                   ]
@@ -4977,212 +4833,1475 @@
             },
             {
               "type": "frame",
-              "id": "RH522",
-              "name": "cardGrid",
+              "id": "RRNKb",
+              "name": "cardSep",
               "width": "fill_container",
-              "layout": "vertical",
-              "gap": 12,
-              "children": [
-                {
-                  "type": "frame",
-                  "id": "J6hZF",
-                  "name": "row1",
-                  "width": "fill_container",
-                  "gap": 12,
-                  "children": [
-                    {
-                      "id": "KJImv",
-                      "type": "ref",
-                      "ref": "ze4Nt",
-                      "name": "cardOrganization",
-                      "width": "fill_container",
-                      "descendants": {
-                        "L3t7i": {
-                          "content": "Organization"
-                        },
-                        "y7bIJd": {
-                          "content": "Departments, roles, company structure"
-                        },
-                        "w5HBj": {
-                          "content": "5 classes"
-                        },
-                        "s5ARF": {
-                          "content": "4 properties"
-                        },
-                        "haxm0": {
-                          "content": "Enterprise"
-                        }
-                      }
-                    },
-                    {
-                      "id": "e8ryt",
-                      "type": "ref",
-                      "ref": "ze4Nt",
-                      "name": "cardProduct",
-                      "width": "fill_container",
-                      "descendants": {
-                        "L3t7i": {
-                          "content": "Product"
-                        },
-                        "y7bIJd": {
-                          "content": "Catalog, manufacturers, reviews"
-                        },
-                        "w5HBj": {
-                          "content": "4 classes"
-                        },
-                        "s5ARF": {
-                          "content": "5 properties"
-                        },
-                        "haxm0": {
-                          "content": "Commerce"
-                        }
-                      }
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "mracD",
-                  "name": "row2",
-                  "width": "fill_container",
-                  "gap": 12,
-                  "children": [
-                    {
-                      "id": "UC4Lx",
-                      "type": "ref",
-                      "ref": "ze4Nt",
-                      "name": "cardProcess",
-                      "width": "fill_container",
-                      "descendants": {
-                        "L3t7i": {
-                          "content": "Process"
-                        },
-                        "y7bIJd": {
-                          "content": "Workflow steps, inputs, outputs"
-                        },
-                        "w5HBj": {
-                          "content": "5 classes"
-                        },
-                        "s5ARF": {
-                          "content": "3 properties"
-                        },
-                        "haxm0": {
-                          "content": "Operations"
-                        }
-                      }
-                    },
-                    {
-                      "id": "eDTYu",
-                      "type": "ref",
-                      "ref": "ze4Nt",
-                      "name": "cardGlossary",
-                      "width": "fill_container",
-                      "descendants": {
-                        "L3t7i": {
-                          "content": "Glossary"
-                        },
-                        "y7bIJd": {
-                          "content": "Terms, definitions, references"
-                        },
-                        "w5HBj": {
-                          "content": "4 classes"
-                        },
-                        "s5ARF": {
-                          "content": "3 properties"
-                        },
-                        "haxm0": {
-                          "content": "Knowledge"
-                        }
-                      }
-                    }
-                  ]
-                },
-                {
-                  "type": "frame",
-                  "id": "f3DOC",
-                  "name": "row3",
-                  "width": "fill_container",
-                  "gap": 12,
-                  "children": [
-                    {
-                      "id": "l9k4g",
-                      "type": "ref",
-                      "ref": "ze4Nt",
-                      "name": "cardEvent",
-                      "width": "fill_container",
-                      "descendants": {
-                        "L3t7i": {
-                          "content": "Event"
-                        },
-                        "y7bIJd": {
-                          "content": "Events, participants, locations and dates"
-                        },
-                        "w5HBj": {
-                          "content": "4 classes"
-                        },
-                        "s5ARF": {
-                          "content": "4 properties"
-                        },
-                        "haxm0": {
-                          "content": "Domain"
-                        }
-                      }
-                    }
-                  ]
-                }
-              ]
+              "height": 1,
+              "fill": "$B:border"
             },
             {
               "type": "frame",
-              "id": "q4QdW4",
-              "name": "dialogActions",
+              "id": "qEOSc",
+              "name": "forkButton",
               "width": "fill_container",
-              "gap": 8,
-              "justifyContent": "end",
+              "height": 28,
+              "fill": "$B:primary",
+              "cornerRadius": 6,
+              "gap": 4,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "A54FlC",
+                  "name": "forkBtnText",
+                  "fill": "$B:primary-foreground",
+                  "content": "Fork",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 12,
+                  "fontWeight": "500"
+                }
+              ]
+            }
+          ],
+          "layoutPosition": "absolute"
+        },
+        {
+          "id": "tvBhd",
+          "type": "ref",
+          "ref": "ze4Nt",
+          "name": "Molecule/DemoProjectCard (Light)",
+          "x": 380,
+          "y": 12488,
+          "theme": {
+            "mode": "light",
+            "B:mode": "light"
+          },
+          "layoutPosition": "absolute"
+        },
+        {
+          "type": "ref",
+          "id": "LgxGO",
+          "x": 0,
+          "y": 11728,
+          "name": "Organism/ForkDemoDialog",
+          "reusable": true,
+          "width": 960,
+          "height": 660,
+          "fill": "#00000080",
+          "layout": "none",
+          "children": [
+            {
+              "type": "frame",
+              "id": "XQmhp",
+              "x": 120,
+              "y": 60,
+              "name": "dialogBox",
+              "width": 720,
+              "fill": "$B:card",
+              "cornerRadius": 12,
+              "stroke": "$B:border",
+              "strokeWidth": 1,
+              "strokeAlignment": "inner",
+              "layout": "vertical",
+              "gap": 20,
+              "padding": 24,
               "children": [
                 {
                   "type": "frame",
-                  "id": "LfWBm",
-                  "name": "cancelButton",
-                  "stroke": "$B:border",
-                  "strokeWidth": 1,
-                  "strokeAlignment": "inner",
-                  "gap": 6,
-                  "padding": [
-                    8,
-                    16
-                  ],
-                  "justifyContent": "center",
-                  "alignItems": "center",
+                  "id": "OBpnm",
+                  "name": "dialogHeader",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
                   "children": [
                     {
                       "type": "text",
-                      "id": "YOETX",
-                      "name": "cancelText",
+                      "id": "vPK7C",
+                      "name": "dialogTitle",
                       "fill": "$B:foreground",
-                      "content": "Cancel",
+                      "content": "Fork demo project",
                       "fontFamily": "IBM Plex Mono",
-                      "fontSize": 14,
-                      "fontWeight": "500"
+                      "fontSize": 20,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "HZWHj",
+                      "name": "dialogDesc",
+                      "fill": "$B:muted-foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Choose a demo project to fork into your workspace",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "icon",
+                  "id": "ltYqY",
+                  "layoutPosition": "absolute",
+                  "x": 684,
+                  "y": 24,
+                  "name": "closeIcon",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "x",
+                  "library": "lucide",
+                  "fill": "$B:muted-foreground"
+                },
+                {
+                  "type": "frame",
+                  "id": "p6XI9S",
+                  "name": "searchRow",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "RuMBa",
+                      "name": "searchInput",
+                      "width": "fill_container",
+                      "height": 36,
+                      "fill": "$B:card",
+                      "stroke": "$B:input",
+                      "strokeWidth": 1,
+                      "strokeAlignment": "inner",
+                      "padding": [
+                        4,
+                        12
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "k1tobX",
+                          "name": "searchText",
+                          "fill": "$B:muted-foreground",
+                          "content": "Search demo projects...",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "RH522",
+                  "name": "cardGrid",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "J6hZF",
+                      "name": "row1",
+                      "width": "fill_container",
+                      "gap": 12,
+                      "children": [
+                        {
+                          "id": "KJImv",
+                          "type": "ref",
+                          "ref": "ze4Nt",
+                          "name": "cardOrganization",
+                          "width": "fill_container",
+                          "descendants": {
+                            "L3t7i": {
+                              "content": "Organization"
+                            },
+                            "y7bIJd": {
+                              "content": "Departments, roles, company structure"
+                            },
+                            "w5HBj": {
+                              "content": "5 classes"
+                            },
+                            "s5ARF": {
+                              "content": "4 properties"
+                            },
+                            "haxm0": {
+                              "content": "Enterprise"
+                            }
+                          }
+                        },
+                        {
+                          "id": "e8ryt",
+                          "type": "ref",
+                          "ref": "ze4Nt",
+                          "name": "cardProduct",
+                          "width": "fill_container",
+                          "descendants": {
+                            "L3t7i": {
+                              "content": "Product"
+                            },
+                            "y7bIJd": {
+                              "content": "Catalog, manufacturers, reviews"
+                            },
+                            "w5HBj": {
+                              "content": "4 classes"
+                            },
+                            "s5ARF": {
+                              "content": "5 properties"
+                            },
+                            "haxm0": {
+                              "content": "Commerce"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "mracD",
+                      "name": "row2",
+                      "width": "fill_container",
+                      "gap": 12,
+                      "children": [
+                        {
+                          "id": "UC4Lx",
+                          "type": "ref",
+                          "ref": "ze4Nt",
+                          "name": "cardProcess",
+                          "width": "fill_container",
+                          "descendants": {
+                            "L3t7i": {
+                              "content": "Process"
+                            },
+                            "y7bIJd": {
+                              "content": "Workflow steps, inputs, outputs"
+                            },
+                            "w5HBj": {
+                              "content": "5 classes"
+                            },
+                            "s5ARF": {
+                              "content": "3 properties"
+                            },
+                            "haxm0": {
+                              "content": "Operations"
+                            }
+                          }
+                        },
+                        {
+                          "id": "eDTYu",
+                          "type": "ref",
+                          "ref": "ze4Nt",
+                          "name": "cardGlossary",
+                          "width": "fill_container",
+                          "descendants": {
+                            "L3t7i": {
+                              "content": "Glossary"
+                            },
+                            "y7bIJd": {
+                              "content": "Terms, definitions, references"
+                            },
+                            "w5HBj": {
+                              "content": "4 classes"
+                            },
+                            "s5ARF": {
+                              "content": "3 properties"
+                            },
+                            "haxm0": {
+                              "content": "Knowledge"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "f3DOC",
+                      "name": "row3",
+                      "width": "fill_container",
+                      "gap": 12,
+                      "children": [
+                        {
+                          "id": "l9k4g",
+                          "type": "ref",
+                          "ref": "ze4Nt",
+                          "name": "cardEvent",
+                          "width": "fill_container",
+                          "descendants": {
+                            "L3t7i": {
+                              "content": "Event"
+                            },
+                            "y7bIJd": {
+                              "content": "Events, participants, locations and dates"
+                            },
+                            "w5HBj": {
+                              "content": "4 classes"
+                            },
+                            "s5ARF": {
+                              "content": "4 properties"
+                            },
+                            "haxm0": {
+                              "content": "Domain"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "q4QdW4",
+                  "name": "dialogActions",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "justifyContent": "end",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "LfWBm",
+                      "name": "cancelButton",
+                      "stroke": "$B:border",
+                      "strokeWidth": 1,
+                      "strokeAlignment": "inner",
+                      "gap": 6,
+                      "padding": [
+                        8,
+                        16
+                      ],
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "YOETX",
+                          "name": "cancelText",
+                          "fill": "$B:foreground",
+                          "content": "Cancel",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 14,
+                          "fontWeight": "500"
+                        }
+                      ]
                     }
                   ]
                 }
               ]
             }
-          ]
+          ],
+          "layoutPosition": "absolute",
+          "ref": "B:LgxGO"
+        },
+        {
+          "id": "qBrR4",
+          "type": "ref",
+          "ref": "B:LgxGO",
+          "name": "Organism/ForkDemoDialog (Light)",
+          "x": 1060,
+          "y": 11728,
+          "theme": {
+            "mode": "light",
+            "B:mode": "light"
+          },
+          "width": 960,
+          "height": 660,
+          "layoutPosition": "absolute"
+        },
+        {
+          "type": "ref",
+          "id": "NT4AbL",
+          "ref": "NT4Ab",
+          "name": "Create Class Dialog (Light)",
+          "theme": {
+            "mode": "light",
+            "B:mode": "light"
+          },
+          "x": 1060,
+          "y": 0,
+          "width": 550,
+          "height": 780,
+          "layoutPosition": "absolute"
+        },
+        {
+          "type": "ref",
+          "id": "VCMPgL",
+          "ref": "VCMPg",
+          "name": "Create Property Dialog (Light)",
+          "theme": {
+            "mode": "light",
+            "B:mode": "light"
+          },
+          "x": 1060,
+          "y": 880,
+          "width": 600,
+          "height": 1300,
+          "layoutPosition": "absolute"
+        },
+        {
+          "type": "ref",
+          "id": "VTMAaL",
+          "ref": "VTMAa",
+          "name": "Create Individual Dialog (Light)",
+          "theme": {
+            "mode": "light",
+            "B:mode": "light"
+          },
+          "x": 1060,
+          "y": 2280,
+          "width": 600,
+          "height": 1420,
+          "layoutPosition": "absolute"
+        },
+        {
+          "type": "ref",
+          "id": "vvhZML",
+          "ref": "vvhZM",
+          "name": "Annotation Dialog (Light)",
+          "theme": {
+            "mode": "light",
+            "B:mode": "light"
+          },
+          "x": 1060,
+          "y": 6040,
+          "width": 450,
+          "height": 970,
+          "layoutPosition": "absolute"
+        },
+        {
+          "type": "ref",
+          "id": "xYAniL",
+          "ref": "xYAni",
+          "name": "Import Dialog (Light)",
+          "theme": {
+            "mode": "light",
+            "B:mode": "light"
+          },
+          "x": 1060,
+          "y": 7110,
+          "width": 650,
+          "height": 1090,
+          "layoutPosition": "absolute"
+        },
+        {
+          "type": "ref",
+          "id": "X1HVBL",
+          "ref": "X1HVB",
+          "name": "Apply Import Dialog (Light)",
+          "theme": {
+            "mode": "light",
+            "B:mode": "light"
+          },
+          "x": 1060,
+          "y": 8300,
+          "width": 550,
+          "height": 1253,
+          "layoutPosition": "absolute"
+        },
+        {
+          "type": "ref",
+          "id": "rvXJaL",
+          "ref": "rvXJa",
+          "name": "Conflict Resolver Dialog (Light)",
+          "theme": {
+            "mode": "light",
+            "B:mode": "light"
+          },
+          "x": 1060,
+          "y": 9653,
+          "width": 560,
+          "height": 533,
+          "layoutPosition": "absolute"
+        },
+        {
+          "type": "ref",
+          "id": "L7zSDL",
+          "ref": "L7zSD",
+          "name": "MFA Challenge Dialog (Light)",
+          "theme": {
+            "mode": "light",
+            "B:mode": "light"
+          },
+          "x": 1060,
+          "y": 10286,
+          "width": 400,
+          "height": 480,
+          "layoutPosition": "absolute"
+        },
+        {
+          "type": "ref",
+          "id": "l55sH3L",
+          "ref": "l55sH3",
+          "name": "Publish Snapshot Dialog (Light)",
+          "theme": {
+            "mode": "light",
+            "B:mode": "light"
+          },
+          "x": 1060,
+          "y": 10866,
+          "width": 500,
+          "height": 762,
+          "layoutPosition": "absolute"
+        },
+        {
+          "type": "frame",
+          "id": "CG1",
+          "name": "Create Group Dialog",
+          "width": 620,
+          "fill": "#00000000",
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "ref",
+              "id": "L20010",
+              "ref": "B:aTMES",
+              "width": 620,
+              "height": 1180,
+              "descendants": {
+                "B:nZTe4": {
+                  "type": "frame",
+                  "id": "L20000",
+                  "name": "header",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "L20001",
+                      "fill": "$B:foreground",
+                      "content": "Create group",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 18,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "CG_headerDesc",
+                      "name": "headerDescription",
+                      "content": "Groups allow you to manage and collaborate across multiple projects. Members of a group have access to all of its projects.\n\nGroups can also be nested by creating subgroups.",
+                      "fill": "$B:muted-foreground",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 12,
+                      "fontWeight": "normal",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container"
+                    }
+                  ],
+                  "gap": 8
+                },
+                "B:b17V1": {
+                  "type": "frame",
+                  "id": "L20002",
+                  "name": "form",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 18,
+                  "padding": [
+                    0,
+                    24,
+                    24,
+                    24
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "CG_nameGroup",
+                      "name": "groupNameGroup",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "width": "fill_container",
+                      "children": [
+                        {
+                          "type": "ref",
+                          "id": "CG_nameField",
+                          "name": "groupNameField",
+                          "ref": "B:FTaL1",
+                          "width": "fill_container",
+                          "descendants": {
+                            "B:mb8pl": {
+                              "content": "Group name"
+                            },
+                            "B:d4cd2": {
+                              "content": "My group"
+                            },
+                            "B:hFKOa": {
+                              "enabled": false
+                            }
+                          }
+                        },
+                        {
+                          "type": "text",
+                          "id": "CG_nameHint1",
+                          "content": "Start with a letter, digit, emoji, or underscore.",
+                          "fill": "$B:muted-foreground",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 11,
+                          "fontWeight": "normal",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container"
+                        },
+                        {
+                          "type": "text",
+                          "id": "CG_nameHint2",
+                          "content": "Your group name must not contain a period if you intend to use SCIM integration, as it can lead to errors.",
+                          "fill": "$B:muted-foreground",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 11,
+                          "fontWeight": "normal",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "CG_urlGroup",
+                      "name": "groupUrlGroup",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "width": "fill_container",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "CG_urlLabel",
+                          "content": "Group URL",
+                          "fill": "$B:foreground",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "CG_urlRow",
+                          "name": "groupUrlRow",
+                          "alignItems": "center",
+                          "gap": 8,
+                          "width": "fill_container",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "CG_urlPrefix",
+                              "alignItems": "center",
+                              "height": 36,
+                              "padding": [
+                                4,
+                                12
+                              ],
+                              "fill": "$B:background",
+                              "stroke": "$B:input",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "CG_urlPrefixText",
+                                  "content": "https://vedo-hub.ru/",
+                                  "fill": "$B:muted-foreground",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "ref",
+                              "id": "CG_slugInput",
+                              "name": "groupSlugInput",
+                              "ref": "B:yA4l7",
+                              "width": "fill_container",
+                              "descendants": {
+                                "B:xAwdW": {
+                                  "content": "my-awesome-group"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "CG_visibilityGroup",
+                      "name": "visibilityLevelGroup",
+                      "layout": "vertical",
+                      "gap": 10,
+                      "width": "fill_container",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "CG_visibilityLabel",
+                          "content": "Visibility level",
+                          "fill": "$B:foreground",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "text",
+                          "id": "CG_visibilityHelp",
+                          "content": "Who will be able to see this group? View the documentation",
+                          "fill": "$B:muted-foreground",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 11,
+                          "fontWeight": "normal",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "CG_visPrivate",
+                          "gap": 10,
+                          "width": "fill_container",
+                          "padding": [
+                            10,
+                            12
+                          ],
+                          "fill": "$B:secondary",
+                          "stroke": "$B:border",
+                          "strokeWidth": 1,
+                          "strokeAlignment": "inner",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "CG_radioPrivate",
+                              "width": 16,
+                              "height": 16,
+                              "cornerRadius": 8,
+                              "stroke": "$B:primary",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "children": [
+                                {
+                                  "type": "ellipse",
+                                  "id": "CG_radioPrivateDot",
+                                  "width": 8,
+                                  "height": 8,
+                                  "fill": "$B:primary",
+                                  "x": 4,
+                                  "y": 4
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "CG_visPrivateText",
+                              "layout": "vertical",
+                              "gap": 3,
+                              "width": "fill_container",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "CG_visPrivateTitle",
+                                  "content": "Private",
+                                  "fill": "$B:foreground",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 13,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "CG_visPrivateDesc",
+                                  "content": "The group and its projects can only be viewed by members.",
+                                  "fill": "$B:muted-foreground",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "CG_visInternal",
+                          "gap": 10,
+                          "width": "fill_container",
+                          "padding": [
+                            10,
+                            12
+                          ],
+                          "stroke": "$B:border",
+                          "strokeWidth": 1,
+                          "strokeAlignment": "inner",
+                          "children": [
+                            {
+                              "type": "ellipse",
+                              "id": "CG_radioInternal",
+                              "width": 16,
+                              "height": 16,
+                              "stroke": "$B:border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "CG_visInternalText",
+                              "layout": "vertical",
+                              "gap": 3,
+                              "width": "fill_container",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "CG_visInternalTitle",
+                                  "content": "Internal",
+                                  "fill": "$B:foreground",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 13,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "CG_visInternalDesc",
+                                  "content": "The group and any internal projects can be viewed by any logged in user except external users.",
+                                  "fill": "$B:muted-foreground",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "CG_visPublic",
+                          "gap": 10,
+                          "width": "fill_container",
+                          "padding": [
+                            10,
+                            12
+                          ],
+                          "stroke": "$B:border",
+                          "strokeWidth": 1,
+                          "strokeAlignment": "inner",
+                          "children": [
+                            {
+                              "type": "ellipse",
+                              "id": "CG_radioPublic",
+                              "width": 16,
+                              "height": 16,
+                              "stroke": "$B:border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "CG_visPublicText",
+                              "layout": "vertical",
+                              "gap": 3,
+                              "width": "fill_container",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "CG_visPublicTitle",
+                                  "content": "Public",
+                                  "fill": "$B:foreground",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 13,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "CG_visPublicDesc",
+                                  "content": "The group and any public projects can be viewed without any authentication.",
+                                  "fill": "$B:muted-foreground",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "CG_inviteGroup",
+                      "name": "inviteMembersGroup",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "width": "fill_container",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "CG_inviteTitle",
+                          "content": "Invite Members (optional)",
+                          "fill": "$B:foreground",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 13,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "CG_inviteDesc",
+                          "content": "Invited users will be added with developer level permissions. View the documentation to see how to change this later.",
+                          "fill": "$B:muted-foreground",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 11,
+                          "fontWeight": "normal",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container"
+                        },
+                        {
+                          "type": "ref",
+                          "id": "CG_emailField",
+                          "name": "emailField1",
+                          "ref": "B:FTaL1",
+                          "width": "fill_container",
+                          "descendants": {
+                            "B:mb8pl": {
+                              "content": "Email 1"
+                            },
+                            "B:d4cd2": {
+                              "content": "member1@company.com"
+                            },
+                            "B:hFKOa": {
+                              "enabled": false
+                            }
+                          }
+                        },
+                        {
+                          "type": "ref",
+                          "id": "CG_inviteAnotherBtn",
+                          "name": "inviteAnotherMemberButton",
+                          "ref": "B:kLoW9",
+                          "width": "fit_content",
+                          "descendants": {
+                            "B:aTVi9": {
+                              "content": "+ Invite another member"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "B:fEqy3": {
+                  "type": "frame",
+                  "id": "L20007",
+                  "name": "actions",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "padding": [
+                    24,
+                    0,
+                    0,
+                    0
+                  ],
+                  "justifyContent": "end",
+                  "children": [
+                    {
+                      "type": "ref",
+                      "id": "L20008",
+                      "ref": "B:kLoW9",
+                      "descendants": {
+                        "B:aTVi9": {
+                          "content": "Cancel"
+                        }
+                      }
+                    },
+                    {
+                      "type": "ref",
+                      "id": "L20009",
+                      "ref": "B:3CI7c",
+                      "descendants": {
+                        "B:wMRLg": {
+                          "content": "Create group"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "x": 0,
+          "y": 3800,
+          "layoutPosition": "absolute",
+          "height": 1180
+        },
+        {
+          "type": "ref",
+          "id": "CG1L",
+          "ref": "CG1",
+          "name": "Create Group Dialog (Light)",
+          "theme": {
+            "mode": "light",
+            "B:mode": "light"
+          },
+          "x": 1060,
+          "y": 3800,
+          "width": 620,
+          "height": 1180,
+          "layoutPosition": "absolute"
+        },
+        {
+          "type": "frame",
+          "id": "CP1",
+          "name": "Create Project Dialog",
+          "width": 620,
+          "fill": "#00000000",
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "ref",
+              "id": "L20021",
+              "ref": "B:aTMES",
+              "width": 620,
+              "height": 860,
+              "descendants": {
+                "B:nZTe4": {
+                  "type": "frame",
+                  "id": "L20011",
+                  "name": "header",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "L20012",
+                      "fill": "$B:foreground",
+                      "content": "Create Project",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 18,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                "B:b17V1": {
+                  "type": "frame",
+                  "id": "L20013",
+                  "name": "form",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 18,
+                  "padding": [
+                    0,
+                    24,
+                    24,
+                    24
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "CP_nameGroup",
+                      "name": "projectNameGroup",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "width": "fill_container",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "CP_projectNameVisibleLabel",
+                          "name": "CP_projectNameVisibleLabel",
+                          "content": "Project name",
+                          "fill": "$B:foreground",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 12,
+                          "fontWeight": "600",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container"
+                        },
+                        {
+                          "type": "ref",
+                          "id": "CP_nameField",
+                          "name": "projectNameField",
+                          "ref": "B:FTaL1",
+                          "width": "fill_container",
+                          "descendants": {
+                            "B:mb8pl": {
+                              "content": "Project name",
+                              "enabled": false
+                            },
+                            "B:d4cd2": {
+                              "content": "My project"
+                            },
+                            "B:hFKOa": {
+                              "enabled": false
+                            }
+                          }
+                        },
+                        {
+                          "type": "text",
+                          "id": "CP_nameHint",
+                          "name": "projectNameHint",
+                          "content": "Start with a letter, digit, emoji, or underscore.",
+                          "fill": "$B:muted-foreground",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 11,
+                          "fontWeight": "normal",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "CP_urlGroup",
+                      "name": "projectUrlGroup",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "width": "fill_container",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "CP_projectUrlVisibleLabel",
+                          "name": "CP_projectUrlVisibleLabel",
+                          "content": "Project URL",
+                          "fill": "$B:foreground",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 12,
+                          "fontWeight": "600",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "CP_urlRow",
+                          "name": "projectUrlRow",
+                          "alignItems": "center",
+                          "gap": 8,
+                          "width": "fill_container",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "CP_urlPrefix",
+                              "name": "urlPrefix",
+                              "alignItems": "center",
+                              "height": 36,
+                              "padding": [
+                                4,
+                                12
+                              ],
+                              "fill": "$B:background",
+                              "stroke": "$B:input",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "CP_urlPrefixText",
+                                  "content": "https://vedo-hub.ru/",
+                                  "fill": "$B:muted-foreground",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "ref",
+                              "id": "CP_namespaceSelect",
+                              "name": "namespaceDropdown",
+                              "ref": "B:K5sXB",
+                              "width": 170,
+                              "descendants": {
+                                "B:SKPVU": {
+                                  "content": "vedo-core"
+                                },
+                                "B:3Fqj2": {
+                                  "content": "vedo-core"
+                                },
+                                "B:AJyq3": {
+                                  "content": "personal"
+                                },
+                                "B:ZSVhE": {
+                                  "content": "team"
+                                }
+                              }
+                            },
+                            {
+                              "type": "text",
+                              "id": "CP_urlSlash",
+                              "content": "/",
+                              "fill": "$B:muted-foreground",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 16,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "ref",
+                              "id": "CP_slugInput",
+                              "name": "projectSlugInput",
+                              "ref": "B:yA4l7",
+                              "width": "fill_container",
+                              "descendants": {
+                                "B:xAwdW": {
+                                  "content": "Project slug"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "CP_visibilityGroup",
+                      "name": "visibilityLevelGroup",
+                      "layout": "vertical",
+                      "gap": 10,
+                      "width": "fill_container",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "CP_visibilityVisibleLabel",
+                          "name": "CP_visibilityVisibleLabel",
+                          "content": "Visibility Level",
+                          "fill": "$B:foreground",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 12,
+                          "fontWeight": "600",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "CP_visPrivate",
+                          "name": "visibilityPrivate",
+                          "gap": 10,
+                          "width": "fill_container",
+                          "padding": [
+                            10,
+                            12
+                          ],
+                          "fill": "$B:secondary",
+                          "stroke": "$B:border",
+                          "strokeWidth": 1,
+                          "strokeAlignment": "inner",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "CP_radioPrivate",
+                              "name": "radioPrivate",
+                              "width": 16,
+                              "height": 16,
+                              "cornerRadius": 8,
+                              "stroke": "$B:primary",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "children": [
+                                {
+                                  "type": "ellipse",
+                                  "id": "CP_radioPrivateDot",
+                                  "name": "radioPrivateDot",
+                                  "width": 8,
+                                  "height": 8,
+                                  "fill": "$B:primary",
+                                  "x": 4,
+                                  "y": 4
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "CP_visPrivateText",
+                              "layout": "vertical",
+                              "gap": 3,
+                              "width": "fill_container",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "CP_visPrivateTitle",
+                                  "content": "Private",
+                                  "fill": "$B:foreground",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 13,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "CP_visPrivateDesc",
+                                  "content": "Project access must be granted explicitly to each user. If this project is part of a group, access is granted to members of the group.",
+                                  "fill": "$B:muted-foreground",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "CP_visInternal",
+                          "name": "visibilityInternal",
+                          "gap": 10,
+                          "width": "fill_container",
+                          "padding": [
+                            10,
+                            12
+                          ],
+                          "stroke": "$B:border",
+                          "strokeWidth": 1,
+                          "strokeAlignment": "inner",
+                          "children": [
+                            {
+                              "type": "ellipse",
+                              "id": "CP_radioInternal",
+                              "name": "radioInternal",
+                              "width": 16,
+                              "height": 16,
+                              "stroke": "$B:border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "CP_visInternalText",
+                              "layout": "vertical",
+                              "gap": 3,
+                              "width": "fill_container",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "CP_visInternalTitle",
+                                  "content": "Internal",
+                                  "fill": "$B:foreground",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 13,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "CP_visInternalDesc",
+                                  "content": "The project can be accessed by any logged in user except external users.",
+                                  "fill": "$B:muted-foreground",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "CP_visPublic",
+                          "name": "visibilityPublic",
+                          "gap": 10,
+                          "width": "fill_container",
+                          "padding": [
+                            10,
+                            12
+                          ],
+                          "stroke": "$B:border",
+                          "strokeWidth": 1,
+                          "strokeAlignment": "inner",
+                          "children": [
+                            {
+                              "type": "ellipse",
+                              "id": "CP_radioPublic",
+                              "name": "radioPublic",
+                              "width": 16,
+                              "height": 16,
+                              "stroke": "$B:border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "CP_visPublicText",
+                              "layout": "vertical",
+                              "gap": 3,
+                              "width": "fill_container",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "CP_visPublicTitle",
+                                  "content": "Public",
+                                  "fill": "$B:foreground",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 13,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "CP_visPublicDesc",
+                                  "content": "The project can be accessed without any authentication.",
+                                  "fill": "$B:muted-foreground",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "B:fEqy3": {
+                  "type": "frame",
+                  "id": "L20018",
+                  "name": "actions",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "padding": [
+                    24,
+                    0,
+                    0,
+                    0
+                  ],
+                  "justifyContent": "end",
+                  "children": [
+                    {
+                      "type": "ref",
+                      "id": "L20019",
+                      "ref": "B:kLoW9",
+                      "descendants": {
+                        "B:aTVi9": {
+                          "content": "Cancel"
+                        }
+                      }
+                    },
+                    {
+                      "type": "ref",
+                      "id": "L20020",
+                      "ref": "B:3CI7c",
+                      "descendants": {
+                        "B:wMRLg": {
+                          "content": "Create"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "x": 0,
+          "y": 5080,
+          "layoutPosition": "absolute",
+          "height": 860
+        },
+        {
+          "type": "ref",
+          "id": "CP1L",
+          "ref": "CP1",
+          "name": "Create Project Dialog (Light)",
+          "theme": {
+            "mode": "light",
+            "B:mode": "light"
+          },
+          "x": 1060,
+          "y": 5080,
+          "width": 620,
+          "height": 860,
+          "layoutPosition": "absolute"
         }
       ]
-    },
-    {
-      "id": "qBrR4",
-      "type": "ref",
-      "ref": "LgxGO",
-      "name": "Organism/ForkDemoDialog (Light)",
-      "x": 50,
-      "y": -954,
-      "theme": {
-        "B:mode": "light"
-      }
     }
   ],
   "imports": {
