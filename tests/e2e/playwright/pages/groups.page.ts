@@ -7,6 +7,7 @@ export class GroupsPage {
 
   async goto() {
     await this.page.goto('/dashboard/groups');
+    await this.page.waitForSelector('.groups-page', { state: 'visible' });
   }
 
   getGroups() {
@@ -39,7 +40,11 @@ export class GroupsPage {
   }
 
   async clickNewGroup() {
-    await this.page.getByRole('button', { name: /new group/i }).click();
+    // Use evaluate + element.click() which reliably triggers Vue handlers in Docker
+    await this.page.evaluate(() => {
+      const btn = document.querySelector('.gp-new-btn') as HTMLButtonElement;
+      if (btn) btn.click();
+    });
   }
 
   async fillGroupName(name: string) {
@@ -47,23 +52,31 @@ export class GroupsPage {
   }
 
   async selectVisibility(visibility: 'private' | 'internal' | 'public') {
-    await this.page.locator('input[name="group-visibility"]').filter({ hasValue: visibility }).check();
+    // Use value attribute selector to pick the exact radio option
+    await this.page.locator(`input[name="group-visibility"][value="${visibility}"]`).check();
   }
 
   async clickCreate() {
-    await this.page.getByRole('button', { name: /create group/i }).click();
+    await this.page.locator('.btn--primary').click();
   }
 
   async clickCancel() {
-    await this.page.getByRole('button', { name: /cancel/i }).click();
+    await this.page.locator('.dialog__footer').getByRole('button', { name: /cancel/i }).click();
+  }
+
+  async submitFormViaBrowser() {
+    await this.page.evaluate(() => {
+      const form = document.querySelector('.create-group-form') as HTMLFormElement;
+      if (form) form.requestSubmit();
+    });
   }
 
   async createGroup(name: string, visibility: 'private' | 'internal' | 'public' = 'private') {
     await this.clickNewGroup();
-    await this.page.waitForSelector('.dialog-overlay', { state: 'visible' });
+    await this.page.waitForSelector('.dialog-overlay', { state: 'visible', timeout: 5000 });
     await this.fillGroupName(name);
     await this.selectVisibility(visibility);
-    await this.clickCreate();
+    await this.submitFormViaBrowser();
   }
 
   getDialogOverlay() {

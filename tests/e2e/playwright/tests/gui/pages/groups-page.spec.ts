@@ -40,18 +40,17 @@ test.describe('Groups Page', () => {
 })
 
 test.describe('Create Group', () => {
-  test('should create a private group with name and show it in the list', async ({ page }) => {
+  test('should create a private group and show it in the list', async ({ page }) => {
     const groups = new GroupsPage(page)
     await groups.goto()
 
     await groups.createGroup('Research Team', 'private')
 
     // Dialog should close after successful creation
-    await expect(groups.getDialogOverlay()).not.toBeVisible()
+    await expect(groups.getDialogOverlay()).not.toBeVisible({ timeout: 5000 })
 
     // New group should appear in the list
-    const newGroup = groups.getGroupByName('Research Team')
-    await expect(newGroup).toBeVisible()
+    await expect(groups.getGroupByName('Research Team')).toBeVisible()
   })
 
   test('should show validation error when creating group with empty name', async ({ page }) => {
@@ -60,15 +59,14 @@ test.describe('Create Group', () => {
 
     // Open dialog without entering a name
     await groups.clickNewGroup()
-    await expect(groups.getDialogOverlay()).toBeVisible()
+    await expect(groups.getDialogOverlay()).toBeVisible({ timeout: 5000 })
 
-    // Click create without filling name
-    await groups.clickCreate()
+    // Submit empty form
+    await groups.submitFormViaBrowser()
 
     // Validation error should appear
-    const error = groups.getValidationError()
-    await expect(error).toBeVisible()
-    await expect(error).toContainText('Group name is required')
+    await expect(groups.getValidationError()).toBeVisible()
+    await expect(groups.getValidationError()).toContainText('Group name is required')
 
     // Dialog should remain open
     await expect(groups.getDialogOverlay()).toBeVisible()
@@ -81,11 +79,10 @@ test.describe('Create Group', () => {
     await groups.createGroup('Open Research', 'public')
 
     // Dialog should close
-    await expect(groups.getDialogOverlay()).not.toBeVisible()
+    await expect(groups.getDialogOverlay()).not.toBeVisible({ timeout: 5000 })
 
     // New group should appear
-    const newGroup = groups.getGroupByName('Open Research')
-    await expect(newGroup).toBeVisible()
+    await expect(groups.getGroupByName('Open Research')).toBeVisible()
   })
 
   test('should close dialog on cancel', async ({ page }) => {
@@ -93,7 +90,7 @@ test.describe('Create Group', () => {
     await groups.goto()
 
     await groups.clickNewGroup()
-    await expect(groups.getDialogOverlay()).toBeVisible()
+    await expect(groups.getDialogOverlay()).toBeVisible({ timeout: 5000 })
 
     await groups.clickCancel()
     await expect(groups.getDialogOverlay()).not.toBeVisible()

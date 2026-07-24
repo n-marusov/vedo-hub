@@ -4697,7 +4697,8 @@ base:test/m2.5/pom-projects a vdo:TestSuite ;
 base:test/m2.5/pom-groups a vdo:TestSuite ;
     rdfs:label "M2.5 Groups POM"@en ;
     rdfs:comment "Playwright Page Object Model for Groups page"@en ;
-    vdo:filePath "tests/e2e/playwright/pages/groups.page.ts" .
+    vdo:filePath "tests/e2e/playwright/pages/groups.page.ts" ;
+    vdo:validates base:req/REQ-FUN.ORG.group-crud .
 
 base:test/m2.5/pom-members a vdo:TestSuite ;
     rdfs:label "M2.5 Members POM"@en ;
@@ -4736,8 +4737,9 @@ base:test/m2.5/pom-merge-requests a vdo:TestSuite ;
 
 base:test/m2.5/mock-auth-fixtures a vdo:TestSuite ;
     rdfs:label "E2E Mock Auth Fixtures"@en ;
-    rdfs:comment "E2E test fixtures for mock auth injection"@en ;
-    vdo:filePath "tests/e2e/playwright/tests/graphql-fixtures.ts" .
+    rdfs:comment "E2E test fixtures for mock auth injection and REST group mock handler"@en ;
+    vdo:filePath "tests/e2e/playwright/tests/graphql-fixtures.ts" ;
+    vdo:validates base:req/REQ-FUN.ORG.group-crud .
 
 base:test/m2.5/stub-server a vdo:TestSuite ;
     rdfs:label "M2.5 E2E Stub API Server"@en ;
