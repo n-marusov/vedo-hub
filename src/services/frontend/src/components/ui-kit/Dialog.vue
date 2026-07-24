@@ -18,34 +18,85 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed } from "vue";
 const props = defineProps<{
-  open: boolean
-  title: string
-  size?: 'sm' | 'md' | 'lg'
-  modal?: boolean
-}>()
-const emit = defineEmits<{ close: [] }>()
-const titleId = computed(() => `dialog-title-${props.title.toLowerCase().replace(/\s+/g, '-')}`)
+	open: boolean;
+	title: string;
+	size?: "sm" | "md" | "lg" | "xl";
+	modal?: boolean;
+}>();
+const emit = defineEmits<{ close: [] }>();
+const titleId = computed(
+	() => `dialog-title-${props.title.toLowerCase().replace(/\s+/g, "-")}`,
+);
 function onOverlayClick() {
-  if (props.modal) return
-  emit('close')
+	if (props.modal) return;
+	emit("close");
 }
 </script>
 
 <style scoped>
 .dialog-overlay {
-  position: fixed; inset: 0; background: var(--surface-overlay);
-  display: flex; align-items: center; justify-content: center; z-index: var(--z-modal);
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  z-index: var(--z-modal);
 }
 .dialog {
-  background: var(--surface-primary); border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-xl); max-height: 90vh; overflow: auto;
+  width: min(calc(100vw - 32px), 600px);
+  background: var(--surface);
+  color: var(--foreground);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  max-height: 90vh;
+  overflow: auto;
 }
-.dialog--sm { width: 400px; } .dialog--md { width: 600px; } .dialog--lg { width: 800px; }
-.dialog__header { display: flex; align-items: center; justify-content: space-between; padding: var(--spacing-4) var(--spacing-6); border-bottom: 1px solid var(--border-default); }
-.dialog__title { font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); }
-.dialog__close { font-size: var(--font-size-lg); color: var(--text-muted); cursor: pointer; }
-.dialog__body { padding: var(--spacing-6); }
-.dialog__footer { padding: var(--spacing-4) var(--spacing-6); border-top: 1px solid var(--border-default); display: flex; justify-content: flex-end; gap: var(--spacing-2); }
+.dialog--sm { width: min(calc(100vw - 32px), 400px); }
+.dialog--md { width: min(calc(100vw - 32px), 600px); }
+.dialog--lg { width: min(calc(100vw - 32px), 800px); }
+.dialog--xl { width: min(calc(100vw - 32px), 960px); }
+.dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--border-default);
+}
+.dialog__title {
+  margin: 0;
+  color: var(--foreground);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+}
+.dialog__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  font-size: var(--font-size-lg);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.dialog__close:hover {
+  background: var(--surface-variant);
+  color: var(--foreground);
+}
+.dialog__body { padding: var(--space-6); }
+.dialog__footer {
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--border-default);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
 </style>

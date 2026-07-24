@@ -13,7 +13,7 @@
                 <button class="pp-fork-btn" type="button" @click="showForkDialog = true">
                     <GitFork :size="14" />Fork demo project
                 </button>
-                <button class="pp-new-btn" type="button">
+                <button class="pp-new-btn" type="button" @click="showCreateProjectDialog = true">
                     <Plus :size="14" />New project
                 </button>
             </div>
@@ -126,11 +126,17 @@
             </article>
         </section>
         <ForkDemoDialog v-model="showForkDialog" />
+        <CreateProjectDialog
+            :open="showCreateProjectDialog"
+            @close="showCreateProjectDialog = false"
+            @created="onProjectCreated"
+        />
     </div>
 </template>
 
 <script setup lang="ts">
 import { listProjects } from "@/api/org";
+import CreateProjectDialog from "@/components/projects/CreateProjectDialog.vue";
 import ForkDemoDialog from "@/components/projects/ForkDemoDialog.vue";
 import {
 	BadgeCheck,
@@ -152,6 +158,7 @@ import { useRouter } from "vue-router";
 const router = useRouter();
 
 const showForkDialog = ref(false);
+const showCreateProjectDialog = ref(false);
 
 const searchQuery = ref("");
 const sortField = ref("Name");
@@ -204,8 +211,6 @@ interface ProjectRow {
 
 const loading = ref(false);
 const error = ref<string | null>(null);
-const projectsData = ref<any[]>([]);
-
 async function fetchProjects() {
 	loading.value = true;
 	error.value = null;
@@ -218,14 +223,31 @@ async function fetchProjects() {
 			perPage: 50,
 		});
 		projectsData.value = result.items;
-	} catch (e: any) {
-		error.value = e.message ?? String(e);
+	} catch (e: unknown) {
+		error.value = e instanceof Error ? e.message : String(e);
 	} finally {
 		loading.value = false;
 	}
 }
 
-onMounted(() => { fetchProjects(); });
+const projectsData = ref<Record<string, unknown>[]>([]);
+
+function onProjectCreated(name: string): void {
+	showCreateProjectDialog.value = false;
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "Projects.projectCreated",
+			projectName: name,
+			ts: new Date().toISOString(),
+		}),
+	);
+	fetchProjects();
+}
+
+onMounted(() => {
+	fetchProjects();
+});
 
 const projects = computed<ProjectRow[]>(() => {
 	const items = projectsData.value;

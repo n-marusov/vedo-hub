@@ -6,7 +6,7 @@ import {
 	mountWithProviders,
 	waitForQuery,
 } from "@/__tests__/setup/mock-providers";
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 
 // GroupsPage uses REST listGroups from @/api/org — mock for test control
@@ -23,8 +23,12 @@ const mockGroups = [
 	{
 		id: "group-1",
 		name: "Test Group",
-		type: "group",
 		description: "A test group",
+		parentGroupId: null,
+		visibility: "private",
+		memberCount: 1,
+		projectCount: 0,
+		childGroups: [],
 	},
 ];
 
@@ -135,7 +139,12 @@ describe("GroupsPage - Create Group Dialog", () => {
 
 		// Dialog should now be open
 		expect(wrapper.find(".dialog-overlay").exists()).toBe(true);
-		expect(wrapper.text()).toContain("Create Group");
+		expect(wrapper.text()).toContain("Create group");
+		expect(wrapper.text()).toContain("Group name");
+		expect(wrapper.text()).toContain("Group URL");
+		expect(wrapper.text()).toContain("Visibility level");
+		expect(wrapper.text()).toContain("Invite Members (optional)");
+		expect(wrapper.text()).toContain("+ Invite another member");
 	});
 
 	it("should close dialog on cancel", async () => {

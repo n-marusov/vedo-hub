@@ -20,6 +20,23 @@ api.interceptors.request.use((config) => {
 	return config;
 });
 
+// ── Error helper ──────────────────────────────────────────────────────────────────
+
+function extractErrorMessage(err: unknown, fallback: string): string {
+	if (axios.isAxiosError(err)) {
+		const data = err.response?.data as Record<string, unknown> | undefined;
+		return (
+			(data?.error as Record<string, string> | undefined)?.message ??
+			err.message ??
+			fallback
+		);
+	}
+	if (err instanceof Error) {
+		return err.message;
+	}
+	return fallback;
+}
+
 // ── Types ──────────────────────────────────────────────────────────────────────────
 
 export interface GroupInfo {
@@ -75,11 +92,8 @@ export async function listGroups(q?: string): Promise<GroupInfo[]> {
 			}),
 		);
 		return data.data ?? [];
-	} catch (err: any) {
-		const msg =
-			err.response?.data?.error?.message ??
-			err.message ??
-			"Failed to list groups";
+	} catch (err: unknown) {
+		const msg = extractErrorMessage(err, "Failed to list groups");
 		console.error(
 			JSON.stringify({
 				level: "error",
@@ -121,11 +135,8 @@ export async function createGroup(params: {
 			}),
 		);
 		return data.data ?? data;
-	} catch (err: any) {
-		const msg =
-			err.response?.data?.error?.message ??
-			err.message ??
-			"Failed to create group";
+	} catch (err: unknown) {
+		const msg = extractErrorMessage(err, "Failed to create group");
 		console.error(
 			JSON.stringify({
 				level: "error",
@@ -151,11 +162,8 @@ export async function getGroup(id: string): Promise<GroupInfo> {
 	try {
 		const { data } = await api.get(`/groups/${id}`);
 		return data.data ?? data;
-	} catch (err: any) {
-		const msg =
-			err.response?.data?.error?.message ??
-			err.message ??
-			"Failed to get group";
+	} catch (err: unknown) {
+		const msg = extractErrorMessage(err, "Failed to get group");
 		console.error(
 			JSON.stringify({
 				level: "error",
@@ -197,7 +205,7 @@ export async function listProjects(params?: {
 		if (params?.perPage !== undefined)
 			searchParams.set("per_page", String(params.perPage));
 		const qs = searchParams.toString();
-		const { data } = await api.get(`/projects${qs ? "?" + qs : ""}`);
+		const { data } = await api.get(`/projects${qs ? `?${qs}` : ""}`);
 		console.info(
 			JSON.stringify({
 				level: "info",
@@ -207,15 +215,57 @@ export async function listProjects(params?: {
 			}),
 		);
 		return { items: data.data ?? [], total: data.total ?? 0 };
-	} catch (err: any) {
-		const msg =
-			err.response?.data?.error?.message ??
-			err.message ??
-			"Failed to list projects";
+	} catch (err: unknown) {
+		const msg = extractErrorMessage(err, "Failed to list projects");
 		console.error(
 			JSON.stringify({
 				level: "error",
 				msg: "org.projects.list.failed",
+				error: msg,
+				ts: new Date().toISOString(),
+			}),
+		);
+		throw new Error(msg);
+	}
+}
+
+export async function createProject(params: {
+	name: string;
+	description?: string;
+	groupId?: string | null;
+}): Promise<ProjectInfo> {
+	console.info(
+		JSON.stringify({
+			level: "info",
+			msg: "org.projects.create.request",
+			name: params.name,
+			groupId: params.groupId,
+			ts: new Date().toISOString(),
+		}),
+	);
+
+	try {
+		const { data } = await api.post("/projects", {
+			label: params.name,
+			description: params.description,
+			group_id: params.groupId ?? undefined,
+		});
+		console.info(
+			JSON.stringify({
+				level: "info",
+				msg: "org.projects.create.success",
+				id: data.data?.id ?? data.id,
+				name: params.name,
+				ts: new Date().toISOString(),
+			}),
+		);
+		return data.data ?? data;
+	} catch (err: unknown) {
+		const msg = extractErrorMessage(err, "Failed to create project");
+		console.error(
+			JSON.stringify({
+				level: "error",
+				msg: "org.projects.create.failed",
 				error: msg,
 				ts: new Date().toISOString(),
 			}),
@@ -237,11 +287,8 @@ export async function getProject(id: string): Promise<ProjectInfo> {
 	try {
 		const { data } = await api.get(`/projects/${id}`);
 		return data.data ?? data;
-	} catch (err: any) {
-		const msg =
-			err.response?.data?.error?.message ??
-			err.message ??
-			"Failed to get project";
+	} catch (err: unknown) {
+		const msg = extractErrorMessage(err, "Failed to get project");
 		console.error(
 			JSON.stringify({
 				level: "error",
@@ -279,11 +326,8 @@ export async function listMembers(projectId: string): Promise<MemberInfo[]> {
 			}),
 		);
 		return data.data ?? [];
-	} catch (err: any) {
-		const msg =
-			err.response?.data?.error?.message ??
-			err.message ??
-			"Failed to list members";
+	} catch (err: unknown) {
+		const msg = extractErrorMessage(err, "Failed to list members");
 		console.error(
 			JSON.stringify({
 				level: "error",

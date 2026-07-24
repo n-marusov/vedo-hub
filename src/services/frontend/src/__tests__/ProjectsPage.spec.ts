@@ -13,9 +13,26 @@ import { nextTick } from "vue";
 vi.mock("@/api/org", () => ({
 	listProjects: vi.fn(),
 	listGroups: vi.fn(),
+	createProject: vi.fn(),
 }));
 
-const mockProjects = { items: [{ id: "proj-1", name: "Test Project", description: "A test", visibility: "private", ownerId: "user-1" }], total: 1 };
+// Teleport stub: renders slot inline instead of moving to document.body
+const TeleportStub = { template: "<div><slot /></div>" };
+
+const mockProjects = {
+	items: [
+		{
+			id: "proj-1",
+			name: "Test Project",
+			description: "A test",
+			visibility: "private",
+			ontologyId: "ontology-1",
+			memberCount: 1,
+			updatedAt: null,
+		},
+	],
+	total: 1,
+};
 
 describePage("ProjectsPage", () => {
 	afterEach(() => {
@@ -87,9 +104,66 @@ describePage("ProjectsPage", () => {
 		expect(newBtn.text()).toContain("New project");
 	});
 
+	it("should open create project dialog with required fields", async () => {
+		const { listProjects } = await import("@/api/org");
+		vi.mocked(listProjects).mockResolvedValue(mockProjects);
+		const ProjectsPage = (await import("@/pages/ProjectsPage.vue")).default;
+		const wrapper = mountWithProviders(ProjectsPage, {
+			global: { stubs: { Teleport: TeleportStub } },
+		});
+		await waitForQuery();
+		await nextTick();
+
+		await wrapper.find(".pp-new-btn").trigger("click");
+		await nextTick();
+
+		expect(wrapper.find(".dialog-overlay").exists()).toBe(true);
+		expect(wrapper.text()).toContain("Create project");
+		expect(wrapper.text()).toContain("Project name");
+		expect(wrapper.text()).toContain("Project URL");
+		expect(wrapper.text()).toContain("Visibility Level");
+	});
+
+	it("should create project and refresh list", async () => {
+		const { listProjects, createProject } = await import("@/api/org");
+		vi.mocked(listProjects).mockResolvedValue(mockProjects);
+		vi.mocked(createProject).mockResolvedValue({
+			id: "new-project-1",
+			name: "My project",
+			description: null,
+			visibility: "private",
+			ontologyId: "ontology-1",
+			memberCount: 0,
+			updatedAt: null,
+		});
+		const ProjectsPage = (await import("@/pages/ProjectsPage.vue")).default;
+		const wrapper = mountWithProviders(ProjectsPage, {
+			global: { stubs: { Teleport: TeleportStub } },
+		});
+		await waitForQuery();
+		await nextTick();
+
+		await wrapper.find(".pp-new-btn").trigger("click");
+		await nextTick();
+		await wrapper.find("#project-name").setValue("My project");
+		await wrapper.find(".btn--primary").trigger("click");
+		await new Promise((resolve) => setTimeout(resolve, 100));
+		await nextTick();
+
+		expect(createProject).toHaveBeenCalledWith({
+			name: "My project",
+			description: undefined,
+			groupId: undefined,
+		});
+		expect(listProjects).toHaveBeenCalled();
+		expect(wrapper.find(".dialog-overlay").exists()).toBe(false);
+	});
+
 	it("should not crash when projects API fails", async () => {
 		const { listProjects } = await import("@/api/org");
-		vi.mocked(listProjects).mockRejectedValue(new Error("Failed to load projects"));
+		vi.mocked(listProjects).mockRejectedValue(
+			new Error("Failed to load projects"),
+		);
 		const ProjectsPage = (await import("@/pages/ProjectsPage.vue")).default;
 		const wrapper = mountWithProviders(ProjectsPage);
 		await new Promise((resolve) => setTimeout(resolve, 200));

@@ -19,13 +19,13 @@
 
 <script setup lang="ts">
 defineProps<{
-  disabled?: boolean
-  loading?: boolean
-}>()
+	disabled?: boolean;
+	loading?: boolean;
+}>();
 
 defineEmits<{
-  click: [event: MouseEvent]
-}>()
+	click: [event: MouseEvent];
+}>();
 </script>
 
 <style scoped>
@@ -33,11 +33,13 @@ defineEmits<{
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-2) var(--spacing-4);
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   border-radius: var(--radius-md);
+  border: 0;
+  font-family: var(--font-family-mono);
   transition: all var(--transition-fast);
   cursor: pointer;
 }
