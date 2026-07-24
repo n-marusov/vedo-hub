@@ -7,7 +7,10 @@
     <div v-if="open" class="dialog-overlay" @click.self="onOverlayClick" role="dialog" :aria-modal="modal" :aria-labelledby="titleId">
       <div class="dialog" :class="`dialog--${size}`">
         <div class="dialog__header">
-          <h2 :id="titleId" class="dialog__title">{{ title }}</h2>
+          <div class="dialog__heading">
+            <h2 :id="titleId" class="dialog__title">{{ title }}</h2>
+            <p v-if="description" class="dialog__description">{{ description }}</p>
+          </div>
           <button class="dialog__close" aria-label="Close dialog" @click="$emit('close')">✕</button>
         </div>
         <div class="dialog__body"><slot /></div>
@@ -22,7 +25,8 @@ import { computed } from "vue";
 const props = defineProps<{
 	open: boolean;
 	title: string;
-	size?: "sm" | "md" | "lg" | "xl";
+	description?: string;
+	size?: "sm" | "md" | "form" | "lg" | "xl";
 	modal?: boolean;
 }>();
 const emit = defineEmits<{ close: [] }>();
@@ -58,21 +62,36 @@ function onOverlayClick() {
 }
 .dialog--sm { width: min(calc(100vw - 32px), 400px); }
 .dialog--md { width: min(calc(100vw - 32px), 600px); }
+.dialog--form { width: min(calc(100vw - 32px), 620px); }
 .dialog--lg { width: min(calc(100vw - 32px), 800px); }
 .dialog--xl { width: min(calc(100vw - 32px), 960px); }
 .dialog__header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-4);
   padding: var(--space-4) var(--space-6);
   border-bottom: 1px solid var(--border-default);
+}
+.dialog__heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
 }
 .dialog__title {
   margin: 0;
   color: var(--foreground);
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
+}
+.dialog__description {
+  margin: 0;
+  white-space: pre-line;
+  color: var(--muted-foreground);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-normal);
 }
 .dialog__close {
   display: inline-flex;

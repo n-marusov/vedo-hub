@@ -1,15 +1,15 @@
 <!-- @m4 — Create Group Dialog -->
 <!-- @hlv:artifact create-group-dialog implements GUI-OW-001 -->
 <template>
-  <Dialog :open="open" title="Create group" size="lg" :modal="true" @close="$emit('close')">
+  <Dialog
+    :open="open"
+    title="Create group"
+    :description="groupDescription"
+    size="form"
+    :modal="true"
+    @close="$emit('close')"
+  >
     <form class="create-group-form" @submit.prevent="submit">
-      <section class="intro-section">
-        <p>
-          Groups allow you to manage and collaborate across multiple projects. Members of a group have access to all of its projects.
-        </p>
-        <p>Groups can also be nested by creating subgroups.</p>
-      </section>
-
       <div class="form-group">
         <label class="form-label" for="group-name">Group name</label>
         <input
@@ -52,18 +52,6 @@
             <span class="visibility-title">{{ option.label }}</span>
             <span class="visibility-description">{{ option.description }}</span>
           </span>
-        </label>
-      </fieldset>
-
-      <fieldset class="form-group radio-fieldset">
-        <legend class="form-label">Who will be using this group?</legend>
-        <label class="compact-option">
-          <input v-model="usage" type="radio" name="group-usage" value="team" :disabled="submitting" />
-          <span>My company or team</span>
-        </label>
-        <label class="compact-option">
-          <input v-model="usage" type="radio" name="group-usage" value="solo" :disabled="submitting" />
-          <span>Just me</span>
         </label>
       </fieldset>
 
@@ -111,11 +99,13 @@ const emit = defineEmits<{ close: []; created: [groupName: string] }>();
 
 const { addError } = useErrorPresentation();
 
+const groupDescription =
+	"Groups allow you to manage and collaborate across multiple projects. Members of a group have access to all of its projects.\n\nGroups can also be nested by creating subgroups.";
+
 const groupName = ref("");
 const groupSlug = ref("my-awesome-group");
 const description = ref("");
 const visibility = ref("private");
-const usage = ref("team");
 const inviteEmail = ref("");
 const submitting = ref(false);
 const validationError = ref<{ field: string; message: string } | null>(null);
@@ -217,7 +207,6 @@ function reset(): void {
 	groupSlug.value = "my-awesome-group";
 	description.value = "";
 	visibility.value = "private";
-	usage.value = "team";
 	inviteEmail.value = "";
 	validationError.value = null;
 }
@@ -227,20 +216,9 @@ function reset(): void {
 .create-group-form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: 18px;
 }
 
-.intro-section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  color: var(--text-secondary);
-  font-family: var(--font-family-mono);
-  font-size: var(--font-size-sm);
-  line-height: var(--line-height-normal);
-}
-
-.intro-section p,
 .form-help,
 .form-error {
   margin: 0;
@@ -261,7 +239,7 @@ function reset(): void {
 
 .form-input {
   width: 100%;
-  height: 40px;
+  height: 36px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-default);
   background: var(--surface);
@@ -294,27 +272,24 @@ function reset(): void {
   display: grid;
   grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
-  overflow: hidden;
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  background: var(--surface);
+  gap: var(--space-2);
 }
 
 .url-prefix {
-  height: 40px;
+  height: 36px;
   display: inline-flex;
   align-items: center;
   padding: 0 var(--space-3);
-  border-right: 1px solid var(--border-default);
-  background: var(--surface-variant);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--background);
   color: var(--text-secondary);
   font-family: var(--font-family-mono);
   font-size: var(--font-size-sm);
 }
 
 .url-input {
-  border: 0;
-  border-radius: 0;
+  border-radius: var(--radius-md);
 }
 
 .url-input:focus {
@@ -327,27 +302,21 @@ function reset(): void {
   border: 0;
 }
 
-.visibility-option,
-.compact-option {
+.visibility-option {
   display: flex;
-  gap: var(--space-3);
+  gap: 10px;
   align-items: flex-start;
-  border: 1px solid var(--border-default);
+  border: 1px solid transparent;
   border-radius: var(--radius-lg);
-  padding: var(--space-3);
-  background: var(--surface);
+  padding: 10px 12px;
+  background: transparent;
   color: var(--foreground);
   cursor: pointer;
 }
 
-.compact-option {
-  align-items: center;
-}
-
-.visibility-option:has(input:checked),
-.compact-option:has(input:checked) {
-  border-color: var(--primary);
-  background: var(--primary-muted);
+.visibility-option:has(input:checked) {
+  border-color: var(--border-default);
+  background: var(--surface-variant);
 }
 
 .visibility-copy {
@@ -363,8 +332,7 @@ function reset(): void {
   font-weight: var(--font-weight-semibold);
 }
 
-.visibility-description,
-.compact-option span {
+.visibility-description {
   color: var(--text-secondary);
   font-family: var(--font-family-mono);
   font-size: var(--font-size-xs);
@@ -374,9 +342,7 @@ function reset(): void {
 .invite-section {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--border-default);
+  gap: var(--space-2);
 }
 
 .section-title {
@@ -409,8 +375,7 @@ function reset(): void {
   }
 
   .url-prefix {
-    border-right: 0;
-    border-bottom: 1px solid var(--border-default);
+    border-right: 1px solid var(--border-default);
   }
 }
 </style>

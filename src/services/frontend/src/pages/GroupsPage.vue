@@ -107,7 +107,7 @@
 
 <script setup lang="ts">
 import { listGroups } from "@/api/org";
-import CreateGroupDialog from "@/components/ontology/CreateGroupDialog.vue";
+import CreateGroupDialog from "@/components/groups/CreateGroupDialog.vue";
 import {
 	ChevronDown,
 	ChevronRight,
