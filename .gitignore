@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# Lefthook — local config overrides (personal, not committed)
+lefthook-local.yml
+
 # IDE
 .vscode/
 .idea/

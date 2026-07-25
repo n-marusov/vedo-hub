@@ -11,6 +11,7 @@
 4. **Use `$aif-plan` for new features** — plan before implementing.
 5. **Use `$aif-fix` for bugs** — structured bug fix workflow.
 6. **Keep AGENTS.md updated** — structural changes require AGENTS.md updates.
+7. **Use Lefthook for pre-commit hooks** — all pre-commit validation (linting, formatting, type-checking) must be configured via `lefthook.yml` at the project root. Run `lefthook install` after cloning. See `.ai-factory/references/lefthook.md` for configuration reference.
 
 ## Code Quality
 
@@ -37,6 +38,7 @@
 - `.ai-factory/DESCRIPTION.md` — Project specification
 - `.ai-factory/ARCHITECTURE.md` — Architecture guidelines
 - `.ai-factory/rules/base.md` — Codebase conventions
+- `.ai-factory/references/lefthook.md` — Lefthook Git hooks manager reference (install, configuration, commands, scripts, best practices)
 - `.ai-factory/traceability/traceability.ttl` — Artifact traceability graph (RDF Turtle)
 - `AGENTS.md` — Project structure map for AI agents
 

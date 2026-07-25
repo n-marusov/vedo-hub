@@ -251,5 +251,33 @@ dev-frontend: ## Start frontend dev server with hot reload
 dev-api: ## Start API gateway in development mode
 	cd $(ROOT)/services/api-gateway && go run .
 
+##@ Hooks — Git hooks management (Lefthook)
+.PHONY: install-hooks uninstall-hooks run-hooks validate-hooks
+
+install-hooks: ## Install Git hooks via Lefthook
+	@echo "[Hooks] installing..."
+	@LEFTHOOK_BIN=$$(ls src/services/frontend/node_modules/.bin/lefthook 2>/dev/null || which lefthook 2>/dev/null || echo ""); \
+	if [ -z "$$LEFTHOOK_BIN" ]; then \
+		echo "Lefthook not found. Install via: cd src/services/frontend && pnpm install"; \
+		exit 1; \
+	fi; \
+	$$LEFTHOOK_BIN install
+
+uninstall-hooks: ## Remove all Lefthook hooks
+	@LEFTHOOK_BIN=$$(ls src/services/frontend/node_modules/.bin/lefthook 2>/dev/null || which lefthook 2>/dev/null || echo ""); \
+	if [ -n "$$LEFTHOOK_BIN" ]; then \
+		$$LEFTHOOK_BIN uninstall; \
+	fi
+
+run-hooks: ## Run all pre-commit hooks on staged files
+	@LEFTHOOK_BIN=$$(ls src/services/frontend/node_modules/.bin/lefthook 2>/dev/null || which lefthook 2>/dev/null || echo ""); \
+	if [ -z "$$LEFTHOOK_BIN" ]; then echo "Lefthook not found"; exit 1; fi; \
+	$$LEFTHOOK_BIN run pre-commit
+
+validate-hooks: ## Validate lefthook.yml configuration
+	@LEFTHOOK_BIN=$$(ls src/services/frontend/node_modules/.bin/lefthook 2>/dev/null || which lefthook 2>/dev/null || echo ""); \
+	if [ -z "$$LEFTHOOK_BIN" ]; then echo "Lefthook not found"; exit 1; fi; \
+	$$LEFTHOOK_BIN validate
+
 ##@ Cleanup
 clean: clean-rust clean-go clean-python clean-typescript ## Clean all build artifacts
