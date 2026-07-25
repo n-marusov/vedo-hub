@@ -15,9 +15,9 @@ services:
   frontend:
     build:
       context: ..
-      dockerfile: src/docker/Dockerfile.typescript
+      dockerfile: tools/dockerfiles/Dockerfile.typescript
       args:
-        SERVICE_DIR: src/services/frontend
+        SERVICE_DIR: apps/services/frontend
         VITE_KEYCLOAK_REALM: ${VITE_KEYCLOAK_REALM:-vedo-core}
         VITE_KEYCLOAK_CLIENT_ID: ${VITE_KEYCLOAK_CLIENT_ID:-vedo-core-frontend}
         VITE_KEYCLOAK_URL: ${VITE_KEYCLOAK_URL:-http://localhost:${KC_HOSTNAME_PORT:-8180}}
@@ -40,9 +40,9 @@ services:
   api-gateway:
     build:
       context: ..
-      dockerfile: src/docker/Dockerfile.go
+      dockerfile: tools/dockerfiles/Dockerfile.go
       args:
-        SERVICE_DIR: src/services
+        SERVICE_DIR: apps/services
         BINARY_NAME: api-gateway
     ports:
       - "${API_GATEWAY_PORT:-8080}:${API_GATEWAY_CONTAINER_PORT:-8080}"
@@ -96,9 +96,9 @@ services:
   ontology-service:
     build:
       context: ..
-      dockerfile: src/docker/Dockerfile.rust
+      dockerfile: tools/dockerfiles/Dockerfile.rust
       args:
-        SERVICE_DIR: src/services
+        SERVICE_DIR: apps/services
         BINARY_NAME: ontology-service
     expose:
       - "${ONTOLOGY_SERVICE_REST_PORT:-8082}"
@@ -125,9 +125,9 @@ services:
   versioning-service:
     build:
       context: ..
-      dockerfile: src/docker/Dockerfile.rust
+      dockerfile: tools/dockerfiles/Dockerfile.rust
       args:
-        SERVICE_DIR: src/services
+        SERVICE_DIR: apps/services
         BINARY_NAME: versioning-service
     expose:
       - "${VERSIONING_SERVICE_REST_PORT:-8083}"
@@ -153,9 +153,9 @@ services:
   auth-service:
     build:
       context: ..
-      dockerfile: src/docker/Dockerfile.go
+      dockerfile: tools/dockerfiles/Dockerfile.go
       args:
-        SERVICE_DIR: src/services
+        SERVICE_DIR: apps/services
         BINARY_NAME: auth-service
     expose:
       - "${AUTH_SERVICE_REST_PORT:-8081}"
@@ -187,9 +187,9 @@ services:
   metrics-service:
     build:
       context: ..
-      dockerfile: src/docker/Dockerfile.python
+      dockerfile: tools/dockerfiles/Dockerfile.python
       args:
-        SERVICE_DIR: src/services/metrics-service
+        SERVICE_DIR: apps/services/metrics-service
     expose:
       - "${METRICS_SERVICE_CONTAINER_REST_PORT:-8084}"
     environment:
@@ -212,9 +212,9 @@ services:
   publish-browse-ui:
     build:
       context: ..
-      dockerfile: src/docker/Dockerfile.typescript
+      dockerfile: tools/dockerfiles/Dockerfile.typescript
       args:
-        SERVICE_DIR: src/services/publish-browse-ui
+        SERVICE_DIR: apps/services/publish-browse-ui
     ports:
       - "${PUBLISH_BROWSE_UI_PORT:-3002}:${PUBLISH_BROWSE_UI_CONTAINER_PORT:-3002}"
     networks:
@@ -227,9 +227,9 @@ services:
   publisher-service:
     build:
       context: ..
-      dockerfile: src/docker/Dockerfile.rust
+      dockerfile: tools/dockerfiles/Dockerfile.rust
       args:
-        SERVICE_DIR: src/services
+        SERVICE_DIR: apps/services
         BINARY_NAME: publisher-service
     expose:
       - "${PUBLISHER_SERVICE_REST_PORT:-8086}"
@@ -251,9 +251,9 @@ services:
   public-browse-api:
     build:
       context: ..
-      dockerfile: src/docker/Dockerfile.rust
+      dockerfile: tools/dockerfiles/Dockerfile.rust
       args:
-        SERVICE_DIR: src/services
+        SERVICE_DIR: apps/services
         BINARY_NAME: public-browse-api
     expose:
       - "${PUBLIC_BROWSE_REST_PORT:-8087}"
@@ -278,9 +278,9 @@ services:
   commenting-service:
     build:
       context: ..
-      dockerfile: src/docker/Dockerfile.go
+      dockerfile: tools/dockerfiles/Dockerfile.go
       args:
-        SERVICE_DIR: src/services
+        SERVICE_DIR: apps/services
         BINARY_NAME: commenting-service
     expose:
       - "${COMMENTING_SERVICE_REST_PORT:-8085}"
@@ -302,9 +302,9 @@ services:
   ticket-api:
     build:
       context: ..
-      dockerfile: src/docker/Dockerfile.go
+      dockerfile: tools/dockerfiles/Dockerfile.go
       args:
-        SERVICE_DIR: src/services
+        SERVICE_DIR: apps/services
         BINARY_NAME: ticket-api
     expose:
       - "${TICKET_API_CONTAINER_GRPC_PORT:-9010}"
@@ -329,9 +329,9 @@ services:
   ticket-classifier:
     build:
       context: ..
-      dockerfile: src/docker/Dockerfile.python
+      dockerfile: tools/dockerfiles/Dockerfile.python
       args:
-        SERVICE_DIR: src/services/ticket-classifier
+        SERVICE_DIR: apps/services/ticket-classifier
     expose:
       - "${TICKET_CLASSIFIER_CONTAINER_PORT:-8089}"
     environment:
@@ -347,9 +347,9 @@ services:
   ticket-telemetry-listener:
     build:
       context: ..
-      dockerfile: src/docker/Dockerfile.go
+      dockerfile: tools/dockerfiles/Dockerfile.go
       args:
-        SERVICE_DIR: src/services
+        SERVICE_DIR: apps/services
         BINARY_NAME: ticket-telemetry-listener
     expose:
       - "${TICKET_TELEMETRY_CONTAINER_STUB_PORT:-8090}"
@@ -369,9 +369,9 @@ services:
   document-extractor:
     build:
       context: ..
-      dockerfile: src/docker/Dockerfile.python
+      dockerfile: tools/dockerfiles/Dockerfile.python
       args:
-        SERVICE_DIR: src/services/document-extractor
+        SERVICE_DIR: apps/services/document-extractor
     expose:
       - "${DOCUMENT_EXTRACTOR_HTTP_PORT:-8092}"
       - "${DOCUMENT_EXTRACTOR_CONTAINER_GRPC_PORT:-9013}"
@@ -399,9 +399,9 @@ services:
   ai-orchestration-service:
     build:
       context: ..
-      dockerfile: src/docker/Dockerfile.go
+      dockerfile: tools/dockerfiles/Dockerfile.go
       args:
-        SERVICE_DIR: src/services
+        SERVICE_DIR: apps/services
         BINARY_NAME: ai-orchestration-service
     expose:
       - "${AI_ORCH_HEALTH_PORT:-8093}"
@@ -427,9 +427,9 @@ services:
   ticket-notifier:
     build:
       context: ..
-      dockerfile: src/docker/Dockerfile.go
+      dockerfile: tools/dockerfiles/Dockerfile.go
       args:
-        SERVICE_DIR: src/services
+        SERVICE_DIR: apps/services
         BINARY_NAME: ticket-notifier
     expose:
       - "${TICKET_NOTIFIER_CONTAINER_STUB_PORT:-8091}"

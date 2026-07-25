@@ -34,22 +34,22 @@ test-quality-gate:
   before_script:
     - apk add --no-cache grep findutils
   script:
-    - chmod +x src/scripts/test-quality-gate.sh
-    - src/scripts/test-quality-gate.sh src/services
+    - chmod +x tools/scripts/test-quality-gate.sh
+    - tools/scripts/test-quality-gate.sh src/services
   allow_failure: false
   rules:
     - changes:
-        - src/services/**/*_test.go
-        - src/services/**/*_test.rs
-        - src/services/**/tests/*.rs
-        - src/services/**/test_*.py
-        - src/services/**/*_test.py
-        - src/services/**/*.spec.ts
-        - src/services/**/*.test.ts
-        - src/services/**/*.go
-        - src/services/**/*.rs
-        - src/services/**/*.py
-        - src/services/**/*.ts
+        - apps/services/**/*_test.go
+        - apps/services/**/*_test.rs
+        - apps/services/**/tests/*.rs
+        - apps/services/**/test_*.py
+        - apps/services/**/*_test.py
+        - apps/services/**/*.spec.ts
+        - apps/services/**/*.test.ts
+        - apps/services/**/*.go
+        - apps/services/**/*.rs
+        - apps/services/**/*.py
+        - apps/services/**/*.ts
 
 frontend-lint:
   stage: lint
@@ -57,47 +57,47 @@ frontend-lint:
   before_script:
     - npm install -g pnpm@9
   script:
-    - cd src/services/frontend
+    - cd apps/services/frontend
     - pnpm install --frozen-lockfile --ignore-scripts
     - pnpm run lint
     - pnpm run typecheck
   rules:
     - changes:
-        - src/services/frontend/**/*
+        - apps/services/frontend/**/*
 
 rust-lint:
   stage: lint
   image: rust:1.77-slim-bookworm
   script:
-    - cd src/services/ontology-service && cargo clippy --lib -- -D warnings
-    - cd src/services/versioning-service && cargo clippy --lib -- -D warnings
+    - cd apps/services/ontology-service && cargo clippy --lib -- -D warnings
+    - cd apps/services/versioning-service && cargo clippy --lib -- -D warnings
   rules:
     - changes:
-        - src/services/**/Cargo.toml
-        - src/services/**/*.rs
+        - apps/services/**/Cargo.toml
+        - apps/services/**/*.rs
 
 go-lint:
   stage: lint
   image: golang:1.22-alpine
   script:
-    - cd src/services/api-gateway && go vet ./...
-    - cd src/services/auth-service && go vet ./...
+    - cd apps/services/api-gateway && go vet ./...
+    - cd apps/services/auth-service && go vet ./...
   rules:
     - changes:
-        - src/cli/**/*.go, src/services/**/*.go
+        - apps/vedo-cli/**/*.go, apps/services/**/*.go
 
 document-extractor-lint:
   stage: lint
   image: python:3.12-slim
   script:
-    - cd src/services/document-extractor
+    - cd apps/services/document-extractor
     - pip install -e ".[dev]"
     - ruff check .
     - pip install basedpyright
     - basedpyright main.py config.py
   rules:
     - changes:
-        - src/services/document-extractor/**/*.py
+        - apps/services/document-extractor/**/*.py
 
 docs-lint:
   stage: lint
@@ -105,23 +105,23 @@ docs-lint:
   script:
     - npm install -g @antora/cli@3.1 @antora/site-generator-default@3.1 asciidoctor-kroki
     - cd src/docs && for pb in playbook-admin-guides.yml playbook-developer-guides.yml playbook-operator-runbooks.yml playbook-user-guides.yml; do antora --fetch "$pb"; done
-    - node src/docs/scripts/check-links.mjs
-    - node src/docs/scripts/check-style.mjs
-    - node src/docs/scripts/check-snippets.mjs
+    - node docs/scripts/check-links.mjs
+    - node docs/scripts/check-style.mjs
+    - node docs/scripts/check-snippets.mjs
   rules:
     - changes:
         - docs/**/*.adoc
         - docs/**/*.md
-        - src/docs/**/*
+        - docs/**/*
 
 proto-lint:
   stage: lint
   image: bufbuild/buf:latest
   script:
-    - cd src/services/shared/proto && buf lint
+    - cd apps/shared/proto && buf lint
   rules:
     - changes:
-        - src/services/shared/proto/**/*.proto
+        - apps/shared/proto/**/*.proto
 
 tls-certs:
   stage: build
@@ -147,11 +147,11 @@ proto-breaking:
   stage: lint
   image: bufbuild/buf:latest
   script:
-    - cd src/services/shared/proto && buf breaking --against '.git#branch=main'
+    - cd apps/shared/proto && buf breaking --against '.git#branch=main'
   rules:
     - changes:
-        - src/services/shared/proto/**/*.proto
-        - src/services/shared/proto/buf.yaml
+        - apps/shared/proto/**/*.proto
+        - apps/shared/proto/buf.yaml
 
 # --- Test Stage ---
 
@@ -161,57 +161,57 @@ contract-tests-frontend:
   before_script:
     - npm install -g pnpm@9
   script:
-    - cd src/services/frontend
+    - cd apps/services/frontend
     - pnpm install --frozen-lockfile --ignore-scripts
     - pnpm test -- --run
   artifacts:
     reports:
-      junit: src/services/frontend/junit.xml
+      junit: apps/services/frontend/junit.xml
 
 contract-tests-rust:
   stage: test
   image: rust:1.77-slim-bookworm
   script:
-    - cd src/services/ontology-service && cargo test --lib
-    - cd src/services/versioning-service && cargo test --lib
+    - cd apps/services/ontology-service && cargo test --lib
+    - cd apps/services/versioning-service && cargo test --lib
   artifacts:
     reports:
-      junit: src/services/versioning-service/target/nextest/junit.xml
+      junit: apps/services/versioning-service/target/nextest/junit.xml
 
 contract-tests-go:
   stage: test
   image: golang:1.22-alpine
   script:
-    - cd src/services/api-gateway && go test ./...
-    - cd src/services/auth-service && go test ./...
+    - cd apps/services/api-gateway && go test ./...
+    - cd apps/services/auth-service && go test ./...
   artifacts:
     reports:
-      junit: src/services/**/junit.xml
+      junit: apps/services/**/junit.xml
 
 contract-tests-python:
   stage: test
   image: python:3.12-slim
   script:
-    - cd src/services/metrics-service
+    - cd apps/services/metrics-service
     - pip install -e ".[test]"
     - pytest tests/
   artifacts:
     reports:
-      junit: src/services/metrics-service/junit.xml
+      junit: apps/services/metrics-service/junit.xml
 
 document-extractor-test:
   stage: test
   image: python:3.12-slim
   script:
-    - cd src/services/document-extractor
+    - cd apps/services/document-extractor
     - pip install -e ".[dev]"
     - pytest tests/
   artifacts:
     reports:
-      junit: src/services/document-extractor/junit.xml
+      junit: apps/services/document-extractor/junit.xml
   rules:
     - changes:
-        - src/services/document-extractor/**/*.py
+        - apps/services/document-extractor/**/*.py
 
 vitest-contract-tests:
   stage: test
@@ -228,16 +228,16 @@ docs-build:
   image: node:20-alpine
   script:
     - npm install -g @antora/cli@3.1 @antora/site-generator-default@3.1 asciidoctor-kroki
-    - node src/docs/scripts/build-docs.mjs
+    - node docs/scripts/build-docs.mjs
   artifacts:
     paths:
-      - src/docs/_site/
-      - src/docs/_offline-bundle/
+      - docs/_site/
+      - docs/_offline-bundle/
     expire_in: 30 days
   rules:
     - changes:
         - docs/**/*
-        - src/docs/**/*
+        - docs/**/*
 
 # --- Build Stage ---
 
@@ -247,7 +247,7 @@ build-frontend:
   services:
     - docker:24.0-dind
   script:
-    - docker build -t ${REGISTRY}/vedo-frontend:${CI_COMMIT_SHORT_SHA} -t ${REGISTRY}/vedo-frontend:latest src/services/frontend
+    - docker build -t ${REGISTRY}/vedo-frontend:${CI_COMMIT_SHORT_SHA} -t ${REGISTRY}/vedo-frontend:latest apps/services/frontend
     - docker push ${REGISTRY}/vedo-frontend:${CI_COMMIT_SHORT_SHA}
     - docker push ${REGISTRY}/vedo-frontend:latest
   rules:
@@ -259,7 +259,7 @@ build-api-gateway:
   services:
     - docker:24.0-dind
   script:
-    - docker build -t ${REGISTRY}/vedo-api-gateway:${CI_COMMIT_SHORT_SHA} -t ${REGISTRY}/vedo-api-gateway:latest -f Dockerfile src/services/api-gateway
+    - docker build -t ${REGISTRY}/vedo-api-gateway:${CI_COMMIT_SHORT_SHA} -t ${REGISTRY}/vedo-api-gateway:latest -f Dockerfile apps/services/api-gateway
     - docker push ${REGISTRY}/vedo-api-gateway:${CI_COMMIT_SHORT_SHA}
     - docker push ${REGISTRY}/vedo-api-gateway:latest
   rules:
@@ -271,7 +271,7 @@ build-ontology-service:
   services:
     - docker:24.0-dind
   script:
-    - docker build -t ${REGISTRY}/vedo-ontology-service:${CI_COMMIT_SHORT_SHA} -t ${REGISTRY}/vedo-ontology-service:latest src/services/ontology-service
+    - docker build -t ${REGISTRY}/vedo-ontology-service:${CI_COMMIT_SHORT_SHA} -t ${REGISTRY}/vedo-ontology-service:latest apps/services/ontology-service
     - docker push ${REGISTRY}/vedo-ontology-service:${CI_COMMIT_SHORT_SHA}
     - docker push ${REGISTRY}/vedo-ontology-service:latest
   rules:
@@ -283,7 +283,7 @@ build-versioning-service:
   services:
     - docker:24.0-dind
   script:
-    - docker build -t ${REGISTRY}/vedo-versioning-service:${CI_COMMIT_SHORT_SHA} -t ${REGISTRY}/vedo-versioning-service:latest src/services/versioning-service
+    - docker build -t ${REGISTRY}/vedo-versioning-service:${CI_COMMIT_SHORT_SHA} -t ${REGISTRY}/vedo-versioning-service:latest apps/services/versioning-service
     - docker push ${REGISTRY}/vedo-versioning-service:${CI_COMMIT_SHORT_SHA}
     - docker push ${REGISTRY}/vedo-versioning-service:latest
   rules:
@@ -295,7 +295,7 @@ build-auth-service:
   services:
     - docker:24.0-dind
   script:
-    - docker build -t ${REGISTRY}/vedo-auth-service:${CI_COMMIT_SHORT_SHA} -t ${REGISTRY}/vedo-auth-service:latest src/services/auth-service
+    - docker build -t ${REGISTRY}/vedo-auth-service:${CI_COMMIT_SHORT_SHA} -t ${REGISTRY}/vedo-auth-service:latest apps/services/auth-service
     - docker push ${REGISTRY}/vedo-auth-service:${CI_COMMIT_SHORT_SHA}
     - docker push ${REGISTRY}/vedo-auth-service:latest
   rules:
@@ -307,7 +307,7 @@ build-metrics-service:
   services:
     - docker:24.0-dind
   script:
-    - docker build -t ${REGISTRY}/vedo-metrics-service:${CI_COMMIT_SHORT_SHA} -t ${REGISTRY}/vedo-metrics-service:latest src/services/metrics-service
+    - docker build -t ${REGISTRY}/vedo-metrics-service:${CI_COMMIT_SHORT_SHA} -t ${REGISTRY}/vedo-metrics-service:latest apps/services/metrics-service
     - docker push ${REGISTRY}/vedo-metrics-service:${CI_COMMIT_SHORT_SHA}
     - docker push ${REGISTRY}/vedo-metrics-service:latest
   rules:
@@ -319,7 +319,7 @@ document-extractor-build:
   services:
     - docker:24.0-dind
   script:
-    - docker build -t ${REGISTRY}/vedo-document-extractor:${CI_COMMIT_SHORT_SHA} -t ${REGISTRY}/vedo-document-extractor:latest src/services/document-extractor
+    - docker build -t ${REGISTRY}/vedo-document-extractor:${CI_COMMIT_SHORT_SHA} -t ${REGISTRY}/vedo-document-extractor:latest apps/services/document-extractor
     - docker push ${REGISTRY}/vedo-document-extractor:${CI_COMMIT_SHORT_SHA}
     - docker push ${REGISTRY}/vedo-document-extractor:latest
   rules:
@@ -333,7 +333,7 @@ integration-tests:
   before_script:
     - npm install -g pnpm@9
   script:
-    - cd src/services/frontend
+    - cd apps/services/frontend
     - pnpm install --frozen-lockfile --ignore-scripts
     - pnpm test -- --run tests/api-compatibility/api-compatibility.spec.ts tests/backup-restore/backup-restore-integration.spec.ts tests/observability/observability.spec.ts tests/data-lifecycle/data-lifecycle.spec.ts tests/administration/administration.spec.ts tests/deployment/deployment-operations.spec.ts
   needs:
@@ -346,8 +346,8 @@ property-based-tests:
   stage: integration
   image: rust:1.77-slim-bookworm
   script:
-    - cd src/services/ontology-service && cargo test --lib
-    - cd src/services/versioning-service && cargo test --lib
+    - cd apps/services/ontology-service && cargo test --lib
+    - cd apps/services/versioning-service && cargo test --lib
   needs:
     - contract-tests-frontend
     - contract-tests-rust
@@ -411,7 +411,7 @@ security-dependency-scan:
   stage: security
   image: node:20-alpine
   script:
-    - cd src/services/frontend && npm audit --audit-level=high
+    - cd apps/services/frontend && npm audit --audit-level=high
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
   allow_failure: true
@@ -445,7 +445,7 @@ deploy-docs:
   image: alpine:latest
   script:
     - echo "Deploying documentation site..."
-    - cp -r src/docs/_site/* public/
+    - cp -r docs/_site/* public/
   environment:
     name: docs
     url: https://docs.vedo.dev
