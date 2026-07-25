@@ -26,12 +26,12 @@ BUILD_TIME := $(shell date -u '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || echo "unknown
 
 ROOT := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 
-include $(ROOT)/build/rust.mk
-include $(ROOT)/build/go.mk
-include $(ROOT)/build/python.mk
-include $(ROOT)/build/typescript.mk
-include $(ROOT)/build/docker.mk
-include $(ROOT)/build/yaml.mk
+include tools/build/rust.mk
+include tools/build/go.mk
+include tools/build/python.mk
+include tools/build/typescript.mk
+include tools/build/docker.mk
+include tools/build/yaml.mk
 
 .DEFAULT_GOAL := help
 
@@ -46,7 +46,7 @@ STUB_SERVICES := api-gateway auth-service ontology-service versioning-service me
 
 ##@ Proto — gRPC code generation
 
-PROTO_DIR := $(ROOT)/services/shared/proto
+PROTO_DIR := apps/shared/proto
 
 .PHONY: proto-generate
 proto-generate: ## Generate gRPC code from .proto files (Go + Rust)
@@ -73,11 +73,11 @@ proto-generate-python: ## Generate Python gRPC stubs for document-extractor
 	@echo "[Proto] generating Python code..."
 	@cd $(PROTO_DIR) && python -m grpc_tools.protoc \
 		--proto_path=. \
-		--python_out=../../../../services/document-extractor/grpc_client \
-		--grpc_python_out=../../../../services/document-extractor/grpc_client \
+		--python_out=../../services/document-extractor/grpc_client \
+		--grpc_python_out=../../services/document-extractor/grpc_client \
 		common/v1/common.proto \
 		ontology/v1/ontology.proto
-	@echo "[Proto] Python code generated to src/services/document-extractor/grpc_client/"
+	@echo "[Proto] Python code generated to apps/services/document-extractor/grpc_client/"
 	@echo "[Proto] Note: run 'pip install grpcio-tools' if grpc_tools is not available"
 
 .PHONY: proto-generate-ai-orchestration
@@ -91,11 +91,11 @@ proto-generate-ai-orchestration-python: ## Generate Python gRPC stubs for ai-orc
 	@echo "[Proto] generating ai-orchestration Python code..."
 	@cd $(PROTO_DIR) && python -m grpc_tools.protoc \
 		--proto_path=. \
-		--python_out=../../../../services/document-extractor/grpc_client \
-		--grpc_python_out=../../../../services/document-extractor/grpc_client \
+		--python_out=../../services/document-extractor/grpc_client \
+		--grpc_python_out=../../services/document-extractor/grpc_client \
 		common/v1/common.proto \
 		ai-orchestration/v1/ai_orchestration.proto
-	@echo "[Proto] ai-orchestration Python code generated to src/services/document-extractor/grpc_client/"
+	@echo "[Proto] ai-orchestration Python code generated to apps/services/document-extractor/grpc_client/"
 
 ##@ Build
 build: build-rust build-go build-python build-typescript ## Build all services (Rust, Go, Python, TypeScript)

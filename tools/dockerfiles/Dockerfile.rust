@@ -1,8 +1,8 @@
 # @ctx: Centralized multi-stage Rust builder — workspace-aware
 #
 # Build (from project root):
-#   docker build -f src/docker/Dockerfile.rust \
-#     --build-arg BINARY_NAME=<name> --build-arg SERVICE_DIR=src/services \
+#   docker build -f tools/dockerfiles/Dockerfile.rust \
+#     --build-arg BINARY_NAME=<name> --build-arg SERVICE_DIR=apps/services \
 #     -t vedo-core/<name>:latest .
 #
 # Args:
@@ -13,6 +13,7 @@
 #
 # NOTE: The COPY commands below list ALL workspace members explicitly.
 # When [workspace.members] in Cargo.toml changes, update these lists.
+# NOTE: shared crate is at apps/shared/ — must be copied separately.
 # Current members: ontology-service, versioning-service, shared,
 #                  publisher-service, public-browse-api
 

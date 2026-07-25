@@ -5,10 +5,10 @@
 -include $(ROOT)/.env
 export
 
-DOCKER_DIR := $(ROOT)/docker
+DOCKER_DIR := tools/dockerfiles
 
 # Build context: project root (aligns with docker-compose.yml)
-PROJECT_ROOT := $(realpath $(ROOT)/..)
+PROJECT_ROOT := $(realpath $(ROOT))
 
 # ── Docker image defaults ────────────────────────────────────────────────────────
 # Each variable matches the corresponding ARG in the language-specific Dockerfile.
@@ -36,7 +36,7 @@ docker-build-rust:
 		echo "[Docker] building Rust image: vedo-core/$$svc:latest"; \
 		docker build \
 			--build-arg BINARY_NAME=$$svc \
-			--build-arg SERVICE_DIR=src/services \
+			--build-arg SERVICE_DIR=apps/services \
 			--build-arg CARGO_CHEF_IMAGE=$(CARGO_CHEF_IMAGE) \
 			--build-arg RUST_BASE_IMAGE=$(RUST_BASE_IMAGE) \
 			--build-arg RUST_RUNTIME_IMAGE=$(RUST_RUNTIME_IMAGE) \
@@ -58,7 +58,7 @@ docker-build-go:
 		echo "[Docker] building Go image: vedo-core/$$svc:latest"; \
 		docker build \
 			--build-arg BINARY_NAME=$$svc \
-			--build-arg SERVICE_DIR=src/services \
+			--build-arg SERVICE_DIR=apps/services \
 			--build-arg GO_BASE_IMAGE=$(GO_BASE_IMAGE) \
 			--build-arg GO_RUNTIME_IMAGE=$(GO_RUNTIME_IMAGE) \
 			-f $(DOCKER_DIR)/Dockerfile.go \

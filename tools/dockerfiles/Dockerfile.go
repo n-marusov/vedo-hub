@@ -1,15 +1,15 @@
 # @ctx: Centralized multi-stage Go builder
 #
 # Build (from project root):
-#   docker build -f src/docker/Dockerfile.go \
-#     --build-arg BINARY_NAME=<name> --build-arg SERVICE_DIR=src/services \
+#   docker build -f tools/dockerfiles/Dockerfile.go \
+#     --build-arg BINARY_NAME=<name> --build-arg SERVICE_DIR=apps/services \
 #     -t vedo-core/<name>:latest .
 #
 # Args:
 #   GO_BASE_IMAGE    — builder image (default: golang:1.22-alpine)
 #   GO_RUNTIME_IMAGE — runtime image (default: alpine:3.19)
 #   BINARY_NAME      — service directory name under SERVICE_DIR, e.g. "api-gateway"
-#   SERVICE_DIR      — workspace root containing service dirs + shared/ (default: src/services)
+#   SERVICE_DIR      — workspace root containing service directories
 
 ARG GO_BASE_IMAGE=golang:1.24-alpine
 ARG GO_RUNTIME_IMAGE=alpine:3.19
@@ -27,17 +27,17 @@ ARG SERVICE_DIR
 
 # WORKDIR uses the Go module path so that replace directives (../shared/* etc.)
 # resolve to the correct absolute paths.
-WORKDIR /vedo-core/src/services/${BINARY_NAME}
+WORKDIR /vedo-core/apps/services/${BINARY_NAME}
 
 # Copy dependency files first for layer caching
 COPY ${SERVICE_DIR}/${BINARY_NAME}/go.mod ${SERVICE_DIR}/${BINARY_NAME}/go.sum ./
 
 # Copy shared/ modules required by replace ../shared/* directives
 # (absolute destination matches module path resolution)
-COPY ${SERVICE_DIR}/shared /vedo-core/src/services/shared/
+COPY apps/shared /vedo-core/apps/shared/
 
 # Copy ticket-api (needed by ticket-telemetry-listener's replace ../ticket-api)
-COPY ${SERVICE_DIR}/ticket-api /vedo-core/src/services/ticket-api/
+COPY apps/services/ticket-api /vedo-core/apps/services/ticket-api/
 
 # Copy vendor directory if it exists (for offline builds — checked before go mod download)
 # The --link flag is omitted because COPY --link with optional sources fails silently

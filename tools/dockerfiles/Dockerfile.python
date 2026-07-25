@@ -1,8 +1,8 @@
 # @ctx: Centralized multi-stage Python builder — uv-based
 #
 # Build (from project root):
-#   docker build -f src/docker/Dockerfile.python \
-#     --build-arg SERVICE_DIR=src/services/<name> \
+#   docker build -f tools/dockerfiles/Dockerfile.python \
+#     --build-arg SERVICE_DIR=apps/services/<name> \
 #     -t vedo-core/<name>:latest .
 #
 # Args:
