@@ -2,7 +2,7 @@
 # Property-based gate checks with generation counters
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "$0")/../.." "$(cd "$(dirname "$0")/.." && pwd)""$(cd "$(dirname "$0")/.." && pwd)" pwd)"
+ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 COMPOSE_PATH="$ROOT_DIR/deploy/docker-compose.yml"
 OBS_COMPOSE_PATH="$ROOT_DIR/deploy/docker-compose.observability.yml"
 DOCS_COMPOSE_PATH="$ROOT_DIR/deploy/docker-compose.docs.yaml"

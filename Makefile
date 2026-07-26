@@ -221,10 +221,17 @@ test-e2e-gui: ## Run E2E GUI tests via Playwright (requires Docker test stack)
 
 .PHONY: test-gates
 test-gates: ## Run all gate-level test scripts (contracts, BOLA/BFLA, etc.)
+	@failed=0
 	@echo "[Gates] running contract tests..."
-	@bash $(ROOT)/tests/gates/test_contract_gate.sh 2>&1 || true
+	@bash $(ROOT)/tests/gates/test_contract_gate.sh 2>&1 || failed=1
 	@echo "[Gates] running BOLA/BFLA security tests..."
-	@bash $(ROOT)/tests/gates/test_bola_bfla_gate.sh 2>&1 || true
+	@bash $(ROOT)/tests/gates/test_bola_bfla_gate.sh 2>&1 || failed=1
+	@if [ $$failed -ne 0 ]; then \
+		echo ""; \
+		echo "!!! Gates FAILED !!!"; \
+		exit 1; \
+	fi
+	@echo "[Gates] all gates passed"
 
 .PHONY: coverage
 coverage: ## Run tests with coverage (Go only)
@@ -463,14 +470,39 @@ dev-api: ## Start API gateway in development mode
 
 .PHONY: ci
 
-ci: proto-all build lint test typecheck ## Run full CI pipeline (proto + build + lint + unit tests + typecheck)
+ci: ## Run full CI pipeline (proto + build + lint + unit tests + typecheck)
+	@failed=0
+	@echo "=== CI Pipeline Started ==="
+	@$(MAKE) proto-all || failed=1
+	@$(MAKE) build || failed=1
+	@$(MAKE) lint || failed=1
+	@$(MAKE) test || failed=1
+	@$(MAKE) typecheck || failed=1
+	@if [ $$failed -ne 0 ]; then \
+		echo ""; \
+		echo "!!! CI Pipeline FAILED !!!"; \
+		exit 1; \
+	fi
 	@echo ""
 	@echo "=== CI pipeline passed (proto + build + lint + unit tests + typecheck) ==="
 	@echo "To run integration tests:  make test-integration"
 	@echo "To run E2E tests:          make test-e2e (requires Docker test stack)"
 	@echo "To run gate tests:         make test-gates"
 
-ci-full: ci test-integration test-e2e test-gates ## Run full CI pipeline including integration, E2E, and gate tests
+ci-full: ## Run full CI pipeline including integration, E2E, and gate tests
+	@failed=0
+	@echo "=== Full CI Pipeline Started ==="
+	@$(MAKE) ci || failed=1
+	@$(MAKE) test-integration || failed=1
+	@$(MAKE) test-e2e || failed=1
+	@$(MAKE) test-gates || failed=1
+	@if [ $$failed -ne 0 ]; then \
+		echo ""; \
+		echo "!!! Full CI Pipeline FAILED !!!"; \
+		exit 1; \
+	fi
+	@echo ""
+	@echo "=== Full CI pipeline passed (integration + E2E + gates) ==="
 
 # ==============================================================================
 # HOOKS — Git hooks management via Lefthook

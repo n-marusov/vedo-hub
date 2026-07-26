@@ -2,7 +2,7 @@
 # Stage 5 contract checks for runnable stubs and repository layout
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "$0")/../.." "$(cd "$(dirname "$0")/.." && pwd)""$(cd "$(dirname "$0")/.." && pwd)" pwd)"
+ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 SERVICES_DIR="$ROOT_DIR/apps/services"
 MAKEFILE="$ROOT_DIR/Makefile"
 

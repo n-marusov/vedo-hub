@@ -10,7 +10,11 @@ check_merge_conflict() {
     return 0
   fi
 
-  conflicts=$(echo "$files" | xargs grep -n '<<<<<<< \|=======$\|>>>>>>> ' 2>/dev/null | head -30 || true)
+  # Build pattern without literal conflict markers to avoid self-flagging
+  left=$(printf '\074\074\074\074\074\074\074 ')
+  right=$(printf '\076\076\076\076\076\076\076 ')
+  mid='^=======$'
+  conflicts=$(echo "$files" | xargs grep -n "${left}\|${mid}\|${right}" 2>/dev/null | head -30 || true)
   if [ -n "$conflicts" ]; then
     echo "✖ Merge conflict markers found:"
     echo "$conflicts"

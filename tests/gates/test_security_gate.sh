@@ -2,7 +2,7 @@
 # Security gate checks for stage 2 artifacts
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "$0")/../.." "$(cd "$(dirname "$0")/.." && pwd)""$(cd "$(dirname "$0")/.." && pwd)" pwd)"
+ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 SRC_DIR="$ROOT_DIR/src"
 REPORT_PATH="$ROOT_DIR/../validation/gate-results/security-runtime.json"
 

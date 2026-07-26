@@ -2,7 +2,7 @@
 # @ctx: Observability gate checks for marker and capability coverage
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "$0")/../.." "$(cd "$(dirname "$0")/.." && pwd)""$(cd "$(dirname "$0")/.." && pwd)" pwd)"
+ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 REPORT_PATH="$ROOT_DIR/../validation/gate-results/observability-runtime.json"
 PROM_CFG="$ROOT_DIR/src/infra/observability/prometheus/prometheus.yml"
 OBS_COMPOSE_FILE="$ROOT_DIR/deploy/docker-compose.observability.yml"

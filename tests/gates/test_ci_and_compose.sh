@@ -2,7 +2,7 @@
 # Stage 2 contract checks for CI pipeline and Docker Compose profile
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "$0")/../.." "$(cd "$(dirname "$0")/.." && pwd)""$(cd "$(dirname "$0")/.." && pwd)" pwd)"
+ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 SERVICES_DIR="$ROOT_DIR/apps/services"
 CI_FILE="$ROOT_DIR/deploy/ci/gitlab-ci.yml"
 COMPOSE_FILE="$ROOT_DIR/deploy/docker-compose.yml"
@@ -113,7 +113,7 @@ run_all() {
         fi
     done
     local native_rc=0
-    bash "$ROOT_DIR/tests/test_native_stubs.sh" || native_rc=$?
+    bash "$ROOT_DIR/tests/gates/test_native_stubs.sh" || native_rc=$?
     if [ "$native_rc" -ne 0 ]; then
         echo "FAIL: test_native_stubs.sh (exit $native_rc)"
         failed=$((failed + 1))

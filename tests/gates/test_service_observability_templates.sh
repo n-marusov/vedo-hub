@@ -2,7 +2,7 @@
 # Stage 4 checks for service observability templates
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "$0")/../.." "$(cd "$(dirname "$0")/.." && pwd)""$(cd "$(dirname "$0")/.." && pwd)" pwd)"
+ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 TEMPLATES_DIR="$ROOT_DIR/src/templates"
 
 test_all_templates_have_metrics_endpoint() {

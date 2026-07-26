@@ -2,7 +2,8 @@
 # Integration tests for Docker build commands
 set -euo pipefail
 
-MAKEFILE_DIR="$(cd "$(dirname "$0")/../src" && pwd)"
+ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
+MAKEFILE_DIR="$ROOT_DIR"
 
 test_compose_failed_error_path() {
     echo "TEST: compose failure error path exists"
@@ -21,7 +22,7 @@ test_compose_failed_error_path() {
 
 test_port_conflict_error_path() {
     echo "TEST: port conflict error path exists"
-    local compose_file="$(cd "$(dirname "$0")/.." && pwd)/deploy/docker-compose.yml"
+    local compose_file="$ROOT_DIR/deploy/docker-compose.yml"
     if [ ! -f "$compose_file" ]; then
         echo "FAIL: compose file not found at $compose_file"
         return 1

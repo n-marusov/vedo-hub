@@ -2,11 +2,11 @@
 # Performance gate checks for stage 2 scripts
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "$0")/../.." "$(cd "$(dirname "$0")/.." && pwd)""$(cd "$(dirname "$0")/.." && pwd)" pwd)"
+ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 REPORT_PATH="$ROOT_DIR/../validation/gate-results/performance-runtime.json"
 
 start_ts=$(date +%s)
-bash "$ROOT_DIR/tests/test_ci_and_compose.sh" > /tmp/vedo_perf_test.log
+bash "$ROOT_DIR/tests/gates/test_ci_and_compose.sh" > /tmp/vedo_perf_test.log
 end_ts=$(date +%s)
 
 duration=$((end_ts - start_ts))

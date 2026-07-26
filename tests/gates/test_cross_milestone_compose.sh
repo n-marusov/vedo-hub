@@ -2,7 +2,7 @@
 # Cross-milestone docker compose build + health check scenario
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "$0")/../.." "$(cd "$(dirname "$0")/.." && pwd)""$(cd "$(dirname "$0")/.." && pwd)" pwd)"
+ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 SRC_DIR="$ROOT_DIR/src"
 COMPOSE_FILE="$SRC_DIR/docker-compose.yaml"
 

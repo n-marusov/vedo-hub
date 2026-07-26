@@ -2,8 +2,8 @@
 # Integration tests for build commands
 set -euo pipefail
 
-MAKEFILE_DIR="$(cd "$(dirname "$0")/../src" && pwd)"
-ROOT_DIR="$(cd "$MAKEFILE_DIR/../.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
+MAKEFILE_DIR="$ROOT_DIR"
 
 test_build_fails_on_error() {
     echo "TEST: build exits non-zero when a Rust build fails"

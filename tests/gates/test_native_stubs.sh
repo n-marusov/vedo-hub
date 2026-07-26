@@ -2,8 +2,9 @@
 # Native service layout and production-readiness checks
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "$0")/../.." "$(cd "$(dirname "$0")/.." && pwd)""$(cd "$(dirname "$0")/.." && pwd)" pwd)"
+ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 SERVICES_DIR="$ROOT_DIR/apps/services"
+DOCKERFILES_DIR="$ROOT_DIR/tools/dockerfiles"
 
 go_services=(api-gateway auth-service commenting-service ticket-api ticket-telemetry-listener ticket-notifier)
 rust_services=(ontology-service versioning-service publisher-service public-browse-api)
@@ -24,31 +25,27 @@ check() {
 }
 
 check_go_base_images() {
-  for svc in "${go_services[@]}"; do
-    grep -q '^FROM golang:1.22-alpine AS builder$' "$SERVICES_DIR/$svc/Dockerfile"
-    grep -q '^FROM alpine:3.19$' "$SERVICES_DIR/$svc/Dockerfile"
-  done
+  test -f "$DOCKERFILES_DIR/Dockerfile.go" && \
+    grep -Eq 'FROM \$\{GO_BASE_IMAGE\}' "$DOCKERFILES_DIR/Dockerfile.go" && \
+    grep -Eq 'FROM \$\{GO_RUNTIME_IMAGE\}' "$DOCKERFILES_DIR/Dockerfile.go"
 }
 
 check_rust_base_images() {
-  for svc in "${rust_services[@]}"; do
-    grep -q '^FROM rust:1.77 AS builder$' "$SERVICES_DIR/$svc/Dockerfile"
-    grep -q '^FROM debian:bookworm-slim$' "$SERVICES_DIR/$svc/Dockerfile"
-  done
+  test -f "$DOCKERFILES_DIR/Dockerfile.rust" && \
+    grep -Eq 'FROM \$\{RUST_BASE_IMAGE\}' "$DOCKERFILES_DIR/Dockerfile.rust" && \
+    grep -Eq 'FROM \$\{RUST_RUNTIME_IMAGE\}' "$DOCKERFILES_DIR/Dockerfile.rust"
 }
 
 check_python_base_images() {
-  for svc in "${python_services[@]}"; do
-    grep -q '^FROM python:3.12-slim AS builder$' "$SERVICES_DIR/$svc/Dockerfile"
-    grep -q '^FROM python:3.12-slim$' "$SERVICES_DIR/$svc/Dockerfile"
-  done
+  test -f "$DOCKERFILES_DIR/Dockerfile.python" && \
+    grep -Eq 'FROM \$\{PYTHON_IMAGE\}' "$DOCKERFILES_DIR/Dockerfile.python" && \
+    grep -Eq 'FROM \$\{PYTHON_RUNTIME_IMAGE\}' "$DOCKERFILES_DIR/Dockerfile.python"
 }
 
 check_typescript_base_images() {
-  for svc in "${ts_services[@]}"; do
-    grep -q '^FROM node:20 AS builder$' "$SERVICES_DIR/$svc/Dockerfile"
-    grep -q '^FROM nginx:1.25-alpine$' "$SERVICES_DIR/$svc/Dockerfile"
-  done
+  test -f "$DOCKERFILES_DIR/Dockerfile.typescript" && \
+    grep -Eq 'FROM \$\{NODE_IMAGE\}' "$DOCKERFILES_DIR/Dockerfile.typescript" && \
+    grep -Eq 'FROM \$\{NGINX_IMAGE\}' "$DOCKERFILES_DIR/Dockerfile.typescript"
 }
 
 check_language_manifests() {
@@ -85,9 +82,10 @@ check_entrypoints_exist() {
 check_compose_builds_native_services() {
   local compose="$ROOT_DIR/deploy/docker-compose.yml"
   local built_services=(api-gateway auth-service ontology-service versioning-service metrics-service frontend)
+  test -f "$compose" || return 1
+  grep -q 'dockerfile: tools/dockerfiles/Dockerfile\.' "$compose" || return 1
   for svc in "${built_services[@]}"; do
-    grep -q "^  ${svc}:" "$compose"
-    grep -q "context: ../apps/services/${svc}" "$compose"
+    grep -q "^  ${svc}:" "$compose" || return 1
   done
 }
 

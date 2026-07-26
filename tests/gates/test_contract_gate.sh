@@ -2,7 +2,7 @@
 # Contract gate runner — native stub and milestone 003 contract checks
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/../.." "$(cd "$(dirname "$0")/.." && pwd)""$(cd "$(dirname "$0")/.." && pwd)" pwd)"
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 
 # detect Go across platforms (Linux, macOS, Windows/Git Bash, WSL)
 detect_go() {
@@ -36,8 +36,8 @@ else
 fi
 
 # existing milestone 001/002 contract tests
-bash "$ROOT/tests/test_build_commands.sh"
-bash "$ROOT/tests/test_docker_build.sh"
-bash "$ROOT/tests/test_ci_and_compose.sh"
-bash "$ROOT/tests/test_health_metadata.sh"
-bash "$ROOT/tests/test_native_stubs.sh"
+bash "$ROOT/tests/gates/test_build_commands.sh"
+bash "$ROOT/tests/gates/test_docker_build.sh"
+bash "$ROOT/tests/gates/test_ci_and_compose.sh"
+bash "$ROOT/tests/gates/test_health_metadata.sh"
+bash "$ROOT/tests/gates/test_native_stubs.sh"
