@@ -9,7 +9,7 @@
 
 set -euo pipefail
 
-TARGET_DIR="${1:-src/services}"
+TARGET_DIR="${1:-apps/services}"
 STRICT="${2:-}"
 EXIT_CODE=0
 BLOCK_COUNT=0

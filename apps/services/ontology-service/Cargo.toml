@@ -25,7 +25,7 @@ async-graphql.workspace = true
 async-graphql-axum.workspace = true
 reqwest.workspace = true
 chrono.workspace = true
-vedo-shared = { path = "../shared" }
+vedo-shared = { path = "../../shared" }
 
 [lints.clippy]
 pedantic = { level = "warn", priority = -1 }

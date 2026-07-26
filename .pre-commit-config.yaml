@@ -1,0 +1,77 @@
+# Pre-commit hooks for VEDO Core
+# Managed by https://pre-commit.com
+# Install: pre-commit install
+
+repos:
+  # ============================================================================
+  # General — trailing whitespace, EOF fixer
+  # ============================================================================
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^apps/services/frontend/.*\.css$
+      - id: end-of-file-fixer
+        exclude: ^apps/services/frontend/.*\.css$
+
+  # ============================================================================
+  # Python — ruff (lint + format)
+  # Uses per-service pyproject.toml configuration
+  # ============================================================================
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: [--fix]
+        files: ^apps/services/(metrics-service|document-extractor|ticket-classifier)/
+      - id: ruff-format
+        files: ^apps/services/(metrics-service|document-extractor|ticket-classifier)/
+
+  # ============================================================================
+  # TypeScript / Vue — biome (lint + format)
+  # Uses per-service biome.json configuration
+  # ============================================================================
+  - repo: https://github.com/biomejs/pre-commit
+    rev: v0.6.1
+    hooks:
+      - id: biome-check
+        additional_dependencies: ["@biomejs/biome@1.9.4"]
+        files: ^apps/services/(frontend|publish-browse-ui)/
+
+  # ============================================================================
+  # Go — gofmt + go vet + golangci-lint (per-service)
+  # golangci-lint uses per-service .golangci.yml configuration
+  # ============================================================================
+  - repo: local
+    hooks:
+      - id: gofmt
+        name: go fmt + vet
+        entry: sh tools/scripts/pre-commit-gofmt.sh
+        language: system
+        files: ^(apps/services|apps/shared|apps/vedo-cli)/.*\.go$
+        pass_filenames: false
+      - id: golangci-lint
+        name: golangci-lint
+        entry: sh tools/scripts/pre-commit-golangci-lint.sh
+        language: system
+        files: ^(apps/services|apps/shared|apps/vedo-cli)/.*\.go$
+        pass_filenames: false
+
+  # ============================================================================
+  # Rust — cargo fmt + cargo clippy (per-service)
+  # Clippy uses per-service [lints.clippy] in Cargo.toml
+  # ============================================================================
+  - repo: local
+    hooks:
+      - id: cargo-fmt
+        name: cargo fmt
+        entry: sh tools/scripts/pre-commit-cargo-fmt.sh
+        language: system
+        files: ^apps/services/.*\.rs$
+        pass_filenames: false
+      - id: cargo-clippy
+        name: cargo clippy
+        entry: sh tools/scripts/pre-commit-cargo-clippy.sh
+        language: system
+        files: ^apps/services/.*\.rs$
+        pass_filenames: false

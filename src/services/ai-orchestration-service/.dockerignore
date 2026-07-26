@@ -1,0 +1,9 @@
+# .dockerignore for ai-orchestration-service
+.git/
+**/.git/
+**/node_modules/
+**/target/
+**/__pycache__/
+*.md
+Dockerfile
+.dockerignore

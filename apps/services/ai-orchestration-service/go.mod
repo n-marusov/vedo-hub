@@ -27,6 +27,6 @@ require (
 	google.golang.org/protobuf v1.34.1 // indirect
 )
 
-replace vedo-core/src/services/shared/llm => ../shared/llm
+replace vedo-core/src/services/shared/llm => ../../shared/llm
 
-replace vedo-core/src/services/shared/proto => ../shared/proto
+replace vedo-core/src/services/shared/proto => ../../shared/proto

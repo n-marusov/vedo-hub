@@ -1,0 +1,97 @@
+// Publisher Service gRPC contract.
+// Ontology snapshot publishing and retrieval.
+syntax = "proto3";
+
+package vedo.publisher.v1;
+
+option go_package = "vedo-core/src/services/shared/proto/publisher/v1;publisherv1";
+option java_multiple_files = true;
+option java_package = "com.vedo.publisher.v1";
+
+import "common/v1/common.proto";
+
+// =============================================================================
+// Published Snapshot Model
+// =============================================================================
+
+message PublishedSnapshot {
+  string id = 1;
+  string ontology_id = 2;
+  string version_tag = 3;   // e.g., "v1.0.0"
+  string commit_id = 4;     // source commit hash
+  string doi = 5;           // optional DOI
+  bool is_latest = 6;
+  string created_at = 7;
+  string published_by = 8;
+}
+
+// =============================================================================
+// PublishSnapshot
+// =============================================================================
+
+message PublishSnapshotRequest {
+  string ontology_id = 1;
+  string commit_id = 2;
+  string version_tag = 3;
+  string published_by = 4;
+}
+
+message PublishSnapshotResponse {
+  PublishedSnapshot snapshot = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
+// =============================================================================
+// GetPublished
+// =============================================================================
+
+message GetPublishedRequest {
+  string ontology_id = 1;
+  string version_tag = 2;   // empty = latest
+}
+
+message GetPublishedResponse {
+  PublishedSnapshot snapshot = 1;
+  string ontology_ttl = 2;  // Turtle serialization of the ontology at this snapshot
+  vedo.common.v1.ErrorDetail error = 3;
+}
+
+// =============================================================================
+// ListPublished
+// =============================================================================
+
+message ListPublishedRequest {
+  string ontology_id = 1;
+  vedo.common.v1.PaginationRequest pagination = 2;
+}
+
+message ListPublishedResponse {
+  repeated PublishedSnapshot snapshots = 1;
+  vedo.common.v1.PaginationResponse pagination = 2;
+  vedo.common.v1.ErrorDetail error = 3;
+}
+
+// =============================================================================
+// UnpublishSnapshot
+// =============================================================================
+
+message UnpublishSnapshotRequest {
+  string ontology_id = 1;
+  string snapshot_id = 2;
+}
+
+message UnpublishSnapshotResponse {
+  bool success = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
+// =============================================================================
+// Publisher Service
+// =============================================================================
+
+service PublisherService {
+  rpc PublishSnapshot(PublishSnapshotRequest) returns (PublishSnapshotResponse);
+  rpc GetPublished(GetPublishedRequest) returns (GetPublishedResponse);
+  rpc ListPublished(ListPublishedRequest) returns (ListPublishedResponse);
+  rpc UnpublishSnapshot(UnpublishSnapshotRequest) returns (UnpublishSnapshotResponse);
+}

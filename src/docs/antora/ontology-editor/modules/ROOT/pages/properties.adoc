@@ -1,0 +1,83 @@
+= Working with Properties
+:toc: left
+:icons: font
+:source-highlighter: rouge
+
+Properties define relationships between classes (ObjectProperty) or between classes
+and literal values (DatatypeProperty).
+
+== Property Types
+
+=== ObjectProperty
+Relates individuals to other individuals. Examples:
+* `hasEmployee` — domain: Organization, range: Person
+* `worksFor` — domain: Person, range: Organization
+
+ObjectProperties have characteristics:
+* *Functional* — each individual has at most one value
+* *Inverse Functional* — each individual is the value for at most one
+* *Transitive* — if A relates to B and B relates to C, then A relates to C
+* *Symmetric* — if A relates to B, then B relates to A
+
+=== DatatypeProperty
+Relates individuals to literal values with an XSD type. Examples:
+* `age` — domain: Person, xsd type: integer
+* `name` — domain: Person, xsd type: string
+* `birthDate` — domain: Person, xsd type: date
+
+Valid XSD types: `string`, `integer`, `boolean`, `date`, `float`.
+
+== Creating Properties
+
+. Navigate to the *Properties* section in the ontology workspace.
+. Click *Create Property*.
+. Set the property ID and label.
+. Choose the property type (Object or Datatype).
+. Set domain classes (which classes this property applies to).
+. For ObjectProperty: set range classes.
+. For DatatypeProperty: set the XSD type.
+. Configure characteristics (ObjectProperty only).
+. Click *Create*.
+
+== Property Domains and Ranges
+
+Properties in a class hierarchy are inherited by subclasses:
+
+* A property with domain `Person` is also available for `Employee` (if Employee is a subclass of Person)
+* Properties can have multiple domain/range classes
+
+== Editing Properties
+
+. Select the property from the list.
+. Click *Edit*.
+. Modify any field (note: property type cannot be changed after creation).
+. Click *Save*.
+
+== Deleting Properties
+
+. Select the property.
+. Click *Delete*.
+. If other entities reference this property, a warning is shown.
+. Confirm deletion.
+
+== Annotations
+
+Custom annotation properties can be added to any ontology property:
+
+. In the property edit dialog, expand the *Annotations* section.
+. Click *Add Annotation*.
+. Enter the annotation property IRI (e.g., `skos:definition`).
+. Enter the annotation value.
+. Click *Save*.
+
+== Property Operations Summary
+
+[cols="2,3,5"]
+|===
+| Operation | REST Endpoint | Description
+| Create | `POST /api/v1/ontologies/{id}/properties` | Create a new property
+| Read | `GET /api/v1/ontologies/{id}/properties/{propId}` | Get property details
+| Update | `PUT /api/v1/ontologies/{id}/properties/{propId}` | Update property
+| Delete | `DELETE /api/v1/ontologies/{id}/properties/{propId}` | Delete property
+| List | `GET /api/v1/ontologies/{id}/properties` | List properties with type filter
+|===

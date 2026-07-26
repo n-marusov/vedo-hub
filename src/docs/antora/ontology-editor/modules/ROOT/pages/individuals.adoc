@@ -1,0 +1,89 @@
+= Working with Individuals
+:toc: left
+:icons: font
+:source-highlighter: rouge
+
+Individuals (ABox — Assertional Box) are instances of classes. They represent
+specific objects in the domain being modeled.
+
+== Creating Individuals
+
+. Select a class in the *Class Tree* (e.g., `Person`).
+. In the right panel, click *Add Individual*.
+. Enter a label for the individual (e.g., `Alice_Johnson`).
+. Optionally enter an ID (auto-generated if omitted).
+. Optionally add property values:
+   * *Literal values* — for DatatypeProperties (e.g., name, age)
+   * *Reference values* — for ObjectProperties (e.g., worksFor → Organization)
+. Click *Create*.
+
+== Reading Individuals
+
+Select an individual to view its full card:
+
+* ID and label
+* Class type
+* All literal property values (property → value)
+* All reference property values (property → linked individual)
+* Direct links to navigate to linked individuals
+
+== Editing Individuals
+
+To modify an individual:
+
+. Select the individual.
+. Click *Edit*.
+. Modify the label or comment.
+. Add/remove literal values and reference values.
+. Click *Save*.
+
+=== Adding Literal Values
+
+. In the edit dialog, locate *Literal Values*.
+. Select a DatatypeProperty from the dropdown.
+. Enter the value.
+. Click *Add*.
+. The value is saved immediately.
+
+=== Adding Reference Values
+
+. In the edit dialog, locate *Reference Values*.
+. Select an ObjectProperty from the dropdown.
+. Search for the target individual.
+. Select the target.
+. Click *Add*.
+
+== Deleting Individuals
+
+. Select the individual.
+. Click *Delete*.
+. If other individuals reference this one, a warning shows the count.
+. Optionally cascade delete (removes incoming references).
+. Confirm deletion.
+
+== Filtering Individuals
+
+The individual list supports:
+
+* *Class filter* — show only individuals of a specific class
+* *Text search* — search by label and ID
+* *Property filter* — filter by literal value in format `property_id:operator:value`
+
+Example property filter: `age:eq:30` — shows individuals with age equal to 30.
+
+== Cross-Link Navigation
+
+Reference values are clickable links. Click a linked individual to navigate
+to its full card, enabling exploration of the ontology graph.
+
+== Individual Operations Summary
+
+[cols="2,3,5"]
+|===
+| Operation | REST Endpoint | Description
+| Create | `POST /api/v1/ontologies/{id}/individuals` | Create a new individual
+| Read | `GET /api/v1/ontologies/{id}/individuals/{indId}` | Get individual card
+| Update | `PUT /api/v1/ontologies/{id}/individuals/{indId}` | Update individual
+| Delete | `DELETE /api/v1/ontologies/{id}/individuals/{indId}` | Delete individual
+| List | `GET /api/v1/ontologies/{id}/individuals` | List with class filter
+|===

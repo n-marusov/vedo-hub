@@ -52,6 +52,6 @@ require (
 	vedo-core/src/services/shared/llm v0.0.0-00010101000000-000000000000 // indirect
 )
 
-replace vedo-core/src/services/shared/llm => ../shared/llm
+replace vedo-core/src/services/shared/llm => ../../shared/llm
 
-replace vedo-core/src/services/shared/proto => ../shared/proto
+replace vedo-core/src/services/shared/proto => ../../shared/proto

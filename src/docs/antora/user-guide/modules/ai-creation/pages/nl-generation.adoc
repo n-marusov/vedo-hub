@@ -1,0 +1,38 @@
+= NL→OWL Generation
+:description: Convert natural language descriptions into OWL ontology axioms.
+
+== Overview
+
+The NL→OWL (Natural Language to OWL) feature lets you describe ontology structures in plain language and converts them into formal OWL axioms. This is useful for rapid prototyping and iterating on ontology designs.
+
+== How It Works
+
+. Enter a natural language description of your ontology in the text input
+. Describe classes, properties, relationships, and constraints in plain English
+. The LLM generates a structured sequence of ontology operations
+. Review the generated axioms in the preview table
+. Edit, refine, or apply the sequence to your ontology
+
+== Example
+
+Entering:
+
+[source]
+....
+Create a class Person with properties: name (string), age (integer), and email (string).
+Person can have a property "worksAt" pointing to Organization.
+Organization has properties: name and industry.
+....
+
+Generates:
+
+* Class: `Person` with data properties `name` (xsd:string), `age` (xsd:integer), `email` (xsd:string)
+* Class: `Organization` with data properties `name` (xsd:string), `industry` (xsd:string)
+* Object property: `worksAt` with domain `Person` and range `Organization`
+
+== Best Practices
+
+* Be specific about data types (string, integer, date, etc.)
+* Mention relationship direction explicitly
+* Use consistent naming throughout the description
+* Break complex ontologies into smaller descriptions and refine iteratively

@@ -1,0 +1,5 @@
+name: admin-guide
+title: Admin Guide
+version: ~
+nav:
+  - modules/ROOT/nav.adoc

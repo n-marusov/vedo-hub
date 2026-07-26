@@ -1,0 +1,78 @@
+= Import & Export
+:toc: left
+:icons: font
+:source-highlighter: rouge
+
+VEDO Core supports importing and exporting ontologies in standard
+RDF serialization formats.
+
+== Supported Formats
+
+|===
+| Format | Extension | MIME Type | Import | Export
+| Turtle | `.ttl` | `text/turtle` | ✅ | ✅
+| RDF/XML | `.rdf` | `application/rdf+xml` | ✅ | ✅
+|===
+
+== Exporting Ontologies
+
+. Open the ontology you want to export.
+. Click the *Export* button in the toolbar.
+. Select the format (Turtle or RDF/XML).
+. The file downloads automatically.
+
+=== Export via REST API
+
+[source,http]
+----
+GET /api/v1/ontologies/{id}/export?format=turtle
+Accept: text/turtle
+----
+
+Response: The ontology serialized as Turtle (or RDF/XML).
+
+=== Export Performance
+
+* Up to 100K triples → exported in under 10 seconds
+* Streaming for large ontologies (chunks of 10K triples)
+* Canonical sorting for deterministic output
+
+== Importing Ontologies
+
+. Click *Import* in the toolbar.
+. Select a Turtle or RDF/XML file.
+. The system validates the file:
+   * Checks that referenced classes exist
+   * Configurable: create stubs for missing classes or reject
+. Click *Import*.
+. Review the import report:
+   * Entities created, updated, skipped
+   * Warnings and errors
+. A commit is created automatically after successful import.
+
+=== Import via REST API
+
+[source,http]
+----
+POST /api/v1/ontologies/{id}/import
+Content-Type: multipart/form-data
+
+file=@ontology.ttl
+----
+
+Response:
+[source,json]
+----
+{
+  "entities_created": 15,
+  "entities_updated": 0,
+  "warnings": ["Class 'UnknownType' not found, created as stub"],
+  "errors": []
+}
+----
+
+=== Import Performance
+
+* Up to 100K triples → imported in under 15 seconds
+* Streaming parser — no full file buffering
+* Validation pass before application

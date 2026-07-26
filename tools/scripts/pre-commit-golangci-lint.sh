@@ -4,14 +4,14 @@
 # Uses per-service .golangci.yml configuration.
 set -e
 
-changed=$(git diff --cached --name-only --diff-filter=ACM | grep '\.go$' | grep '^src/services/' || true)
+changed=$(git diff --cached --name-only --diff-filter=ACM | grep '\.go$' | grep '^apps/services/' || true)
 
 if [ -z "$changed" ]; then
   exit 0
 fi
 
 # Derive unique Go service directories from changed files
-dirs=$(echo "$changed" | sed 's|^\(src/services/[^/]*\)/.*|\1|' | sort -u)
+dirs=$(echo "$changed" | sed 's|^\(apps/services/[^/]*\)/.*|\1|' | sort -u)
 
 for dir in $dirs; do
   if [ -f "$dir/go.mod" ] && [ -f "$dir/.golangci.yml" ]; then

@@ -3,7 +3,6 @@ resolver = "2"
 members = [
     "ontology-service",
     "versioning-service",
-    "shared",
     "publisher-service",
     "public-browse-api",
 ]

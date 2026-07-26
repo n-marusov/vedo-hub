@@ -1,0 +1,24 @@
+{
+	"name": "publish-browse-ui-stub",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "vite build",
+		"lint": "biome check --write .",
+		"lint:ci": "biome ci .",
+		"test": "vitest run",
+		"test:watch": "vitest"
+	},
+	"dependencies": {
+		"vue": "^3.5.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^1.9.4",
+		"typescript": "^5.5.4",
+		"vite": "^5.3.5",
+		"vitest": "^2.1.0",
+		"@vue/test-utils": "^2.4.0",
+		"jsdom": "^25.0.0"
+	}
+}

@@ -33,14 +33,14 @@ RUN apt-get update && apt-get install -y protobuf-compiler && rm -rf /var/lib/ap
 
 # ── Step 1: Workspace manifests ────────────────────────────────────────────────
 # Copy workspace root Cargo.toml
-COPY ${SERVICE_DIR}/Cargo.toml ./
+COPY apps/services/Cargo.toml ./
 
 # Copy ALL workspace member Cargo.toml files so cargo can validate the workspace
-COPY ${SERVICE_DIR}/shared/Cargo.toml ./shared/
-COPY ${SERVICE_DIR}/ontology-service/Cargo.toml ./ontology-service/
-COPY ${SERVICE_DIR}/versioning-service/Cargo.toml ./versioning-service/
-COPY ${SERVICE_DIR}/publisher-service/Cargo.toml ./publisher-service/
-COPY ${SERVICE_DIR}/public-browse-api/Cargo.toml ./public-browse-api/
+COPY apps/shared/Cargo.toml ./shared/
+COPY apps/services/ontology-service/Cargo.toml ./ontology-service/
+COPY apps/services/versioning-service/Cargo.toml ./versioning-service/
+COPY apps/services/publisher-service/Cargo.toml ./publisher-service/
+COPY apps/services/public-browse-api/Cargo.toml ./public-browse-api/
 
 # ── Step 2: Dummy sources for dependency caching ──────────────────────────────
 # Create placeholder files so `cargo build` can generate dependency lock
@@ -58,9 +58,9 @@ RUN cargo build --package ${BINARY_NAME} --release 2>/dev/null || true
 
 # ── Step 3: Real sources ───────────────────────────────────────────────────────
 # Copy real shared crate (includes proto files for tonic_build)
-COPY ${SERVICE_DIR}/shared/src/ ./shared/src/
-COPY ${SERVICE_DIR}/shared/proto/ ./shared/proto/
-COPY ${SERVICE_DIR}/shared/build.rs ./shared/
+COPY apps/shared/src/ ./shared/src/
+COPY apps/shared/proto/ ./shared/proto/
+COPY apps/shared/build.rs ./shared/
 
 # Copy real service source (overwrites dummy src/ and includes optional build.rs)
 COPY ${SERVICE_DIR}/${BINARY_NAME}/ ./${BINARY_NAME}/

@@ -1,0 +1,32 @@
+= AI-Assisted Ontology Creation
+:description: Overview of AI-assisted ontology creation features in VEDO Core.
+
+== Overview
+
+VEDO Core provides AI-assisted ontology creation tools that help you build knowledge graphs faster and more efficiently. These tools include:
+
+* xref:document-extraction.adoc[Document Extraction] — Extract ontology structures from documents (MD, TXT, PDF, DOCX, JSON, XML, CSV, XLSX)
+* xref:nl-generation.adoc[NL→OWL Generation] — Convert natural language descriptions into OWL ontology axioms
+* xref:batch-upload.adoc[Batch Upload] — Upload and process multiple documents at once
+* xref:refinement.adoc[Iterative Refinement] — Refine generated ontologies with natural language feedback
+
+== Prerequisites
+
+To use AI-assisted features, you need:
+
+* An LLM provider configured (OpenAI-compatible API, Anthropic, or local Ollama)
+* For document extraction: documents in supported formats
+* For NL→OWL: clear natural language descriptions of your ontology requirements
+
+== Getting Started
+
+. Navigate to the **AI Creation** section in the left sidebar
+. Choose one of the available features:
+   * *Upload Document* — to extract from an existing document
+   * *NL to OWL* — to generate from natural language
+
+. Follow the on-screen instructions for each feature
+
+== Configuration
+
+AI features require LLM provider configuration. See the xref:developer-guide::document-extractor:index.adoc[Document Extractor Service Architecture] and the xref:integrator-guide::api:llm-config.adoc[LLM Provider Configuration] for details.

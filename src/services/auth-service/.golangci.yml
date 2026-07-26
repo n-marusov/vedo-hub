@@ -1,0 +1,94 @@
+# yaml-language-server: $schema=https://golangci-lint.run/jsonschema/golangci.v1.jsonschema.json
+# golangci-lint configuration for Go services
+
+run:
+  timeout: 5m
+  modules-download-mode: readonly
+
+linters:
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - gofmt
+    - misspell
+    - unconvert
+    - bodyclose
+    - noctx
+    - gocritic
+    - revive
+    - stylecheck
+    - whitespace
+    - wastedassign
+    - durationcheck
+    - makezero
+    - tparallel
+    - unparam
+    - gocyclo
+    - nakedret
+    - copyloopvar
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: false
+  govet:
+    enable:
+      - shadow
+  gofmt:
+    simplify: true
+  gocyclo:
+    min-complexity: 20
+  nakedret:
+    max-func-lines: 30
+  revive:
+    rules:
+      - name: exported
+        severity: warning
+      - name: var-naming
+        severity: warning
+      - name: error-return
+        severity: warning
+      - name: blank-imports
+        severity: warning
+  gocritic:
+    enabled-checks:
+      - rangeExprCopy
+      - rangeValCopy
+      - hugeParam
+      - emptyFallthrough
+      - commentedOutCode
+  unparam:
+    check-exported: false
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - errcheck
+        - govet
+        - unused
+        - gocyclo
+        - noctx
+        - unparam
+    - path: main\.go
+      linters:
+        - gochecknoglobals
+    - text: "type name will be used as auth\\.Auth(Role|Claims) by other packages"
+      linters:
+        - revive
+    - text: "hugeParam:"
+      linters:
+        - gocritic
+    - text: "rangeValCopy:"
+      linters:
+        - gocritic
+  max-issues-per-linter: 50
+  max-same-issues: 10
+
+output:
+  formats:
+    - format: colored-line-number

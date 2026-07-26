@@ -1,0 +1,44 @@
+= Ontology Editor
+:toc: left
+:icons: font
+:source-highlighter: rouge
+
+The VEDO Ontology Editor is a web-based tool for creating and managing OWL ontologies.
+It supports class hierarchies (TBox), property definitions, individual instances (ABox),
+Git-like versioning, and multiple import/export formats.
+
+== Architecture Overview
+
+The ontology editor follows a three-panel layout:
+
+* *Class Tree (left)* — hierarchical browser for OWL classes
+* *Graph Panel (center)* — displays individuals and their property values
+* *Property Panel (right)* — detailed view of selected entities
+
+== Getting Started
+
+xref:quickstart.adoc[Quick Start Guide] walks through creating your first ontology,
+adding classes and properties, and making your first commit.
+
+== Features
+
+=== TBox Editor
+Create and manage class hierarchies with multiple inheritance, define Object and
+Datatype properties with domain/range constraints. See xref:classes.adoc[Classes]
+and xref:properties.adoc[Properties].
+
+=== ABox Editor
+Create individual instances of classes, assign property values (literals and references),
+and navigate linked individuals. See xref:individuals.adoc[Individuals].
+
+=== Versioning
+Built-in Git-like versioning with commits, branches, checkout, and rollback.
+All changes are tracked as deltas. See xref:versioning.adoc[Versioning].
+
+=== Import & Export
+Import ontologies from Turtle/RDF/XML files and export to canonical Turtle format.
+xref:import-export.adoc[Learn more →]
+
+=== REST API
+Full REST API for integration: CRUD on classes, properties, individuals, SPARQL and
+CYPHER query endpoints, and OpenAPI documentation. See xref:api-reference.adoc[API Reference].

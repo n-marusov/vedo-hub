@@ -34,4 +34,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace vedo-core/src/services/ticket-api => ../../src/services/ticket-api
+replace vedo-core/src/services/ticket-api => ../../apps/services/ticket-api

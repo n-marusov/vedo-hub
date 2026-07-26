@@ -1,0 +1,9 @@
+= User Guide
+
+Welcome to the VEDO Core user guide. Learn how to create, edit, and version ontologies in the cloud-based knowledge graph editor.
+
+== Guides
+
+* xref:quick-start.adoc[Quick Start] — access the platform and create your first ontology
+* xref:ontology-editing.adoc[Ontology Editing] — work with classes, properties, and relationships
+* xref:versioning.adoc[Versioning] — commits, branches, and merge requests

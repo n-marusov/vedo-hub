@@ -1,0 +1,255 @@
+// Versioning Service gRPC contract.
+// Git-like commits, branches, diff, merge, rollback, checkout operations.
+syntax = "proto3";
+
+package vedo.versioning.v1;
+
+option go_package = "vedo-core/src/services/shared/proto/versioning/v1;versioningv1";
+option java_multiple_files = true;
+option java_package = "com.vedo.versioning.v1";
+
+import "common/v1/common.proto";
+
+// =============================================================================
+// Commit Operations
+// =============================================================================
+
+message Commit {
+  string id = 1;              // SHA-like hash
+  string ontology_id = 2;
+  string branch_id = 3;
+  string message = 4;
+  string author_id = 5;
+  string parent_id = 6;       // previous commit hash
+  repeated string diff_ids = 7;
+  string created_at = 8;      // ISO 8601
+  map<string, string> metadata = 9; // extensible metadata (e.g., source_file from ApplySequence)
+}
+
+message CreateCommitRequest {
+  string ontology_id = 1;
+  string branch_id = 2;
+  string message = 3;
+  string author_id = 4;
+  string parent_id = 5;
+  map<string, string> metadata = 6;
+}
+
+message CreateCommitResponse {
+  Commit commit = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
+message GetCommitRequest {
+  string ontology_id = 1;
+  string commit_id = 2;
+}
+
+message GetCommitResponse {
+  Commit commit = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
+message ListCommitsRequest {
+  string ontology_id = 1;
+  string branch_id = 2;
+  vedo.common.v1.PaginationRequest pagination = 3;
+}
+
+message ListCommitsResponse {
+  repeated Commit commits = 1;
+  vedo.common.v1.PaginationResponse pagination = 2;
+  vedo.common.v1.ErrorDetail error = 3;
+}
+
+// =============================================================================
+// Branch Operations
+// =============================================================================
+
+message Branch {
+  string id = 1;
+  string ontology_id = 2;
+  string name = 3;
+  string head_commit_id = 4;
+  bool is_protected = 5;
+  bool is_default = 6;
+  string created_at = 7;
+  string created_by = 8;
+}
+
+message CreateBranchRequest {
+  string ontology_id = 1;
+  string name = 2;
+  string source_branch_id = 3; // branch to fork from
+  string source_commit_id = 4; // optional — specific commit to branch from
+}
+
+message CreateBranchResponse {
+  Branch branch = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
+message GetBranchRequest {
+  string ontology_id = 1;
+  string branch_id = 2;
+}
+
+message GetBranchResponse {
+  Branch branch = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
+message ListBranchesRequest {
+  string ontology_id = 1;
+  vedo.common.v1.PaginationRequest pagination = 2;
+}
+
+message ListBranchesResponse {
+  repeated Branch branches = 1;
+  vedo.common.v1.PaginationResponse pagination = 2;
+  vedo.common.v1.ErrorDetail error = 3;
+}
+
+message DeleteBranchRequest {
+  string ontology_id = 1;
+  string branch_id = 2;
+}
+
+message DeleteBranchResponse {
+  bool success = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
+message SwitchBranchRequest {
+  string ontology_id = 1;
+  string branch_id = 2;
+}
+
+message SwitchBranchResponse {
+  bool success = 1;
+  string new_head_commit_id = 2;
+  vedo.common.v1.ErrorDetail error = 3;
+}
+
+// =============================================================================
+// Diff Operations
+// =============================================================================
+
+message DiffEntry {
+  enum ChangeType {
+    CHANGE_TYPE_UNSPECIFIED = 0;
+    CHANGE_TYPE_ADDED = 1;
+    CHANGE_TYPE_MODIFIED = 2;
+    CHANGE_TYPE_DELETED = 3;
+  }
+  ChangeType change_type = 1;
+  string entity_id = 2;
+  string entity_type = 3;    // "class", "property", "individual"
+  string before_json = 4;    // JSON snapshot before change
+  string after_json = 5;     // JSON snapshot after change
+}
+
+message GetDiffRequest {
+  string ontology_id = 1;
+  string base_commit_id = 2;
+  string target_commit_id = 3;
+}
+
+message GetDiffResponse {
+  repeated DiffEntry entries = 1;
+  int32 total_changes = 2;
+  vedo.common.v1.ErrorDetail error = 3;
+}
+
+message GetCommitDeltaRequest {
+  string ontology_id = 1;
+  string commit_id = 2;
+}
+
+message GetCommitDeltaResponse {
+  repeated DiffEntry entries = 1;
+  string commit_id = 2;
+  vedo.common.v1.ErrorDetail error = 3;
+}
+
+// =============================================================================
+// Merge Operations
+// =============================================================================
+
+message MergeRequest {
+  string ontology_id = 1;
+  string source_branch_id = 2;
+  string target_branch_id = 3;
+  string commit_message = 4;
+  string author_id = 5;
+}
+
+message MergeResponse {
+  bool success = 1;
+  string merge_commit_id = 2;
+  repeated string conflicts = 3; // list of entity IDs with conflicts
+  vedo.common.v1.ErrorDetail error = 4;
+}
+
+// =============================================================================
+// Rollback Operations
+// =============================================================================
+
+message RollbackRequest {
+  string ontology_id = 1;
+  string branch_id = 2;
+  string target_commit_id = 3; // rollback to this commit
+  string author_id = 4;
+}
+
+message RollbackResponse {
+  bool success = 1;
+  string new_head_commit_id = 2;
+  vedo.common.v1.ErrorDetail error = 3;
+}
+
+// =============================================================================
+// Checkout Operations
+// =============================================================================
+
+message CheckoutRequest {
+  string ontology_id = 1;
+  string commit_id = 2;
+  string branch_id = 3;
+}
+
+message CheckoutResponse {
+  bool success = 1;
+  vedo.common.v1.ErrorDetail error = 2;
+}
+
+// =============================================================================
+// Versioning Service
+// =============================================================================
+
+service VersioningService {
+  // Commits
+  rpc CreateCommit(CreateCommitRequest) returns (CreateCommitResponse);
+  rpc GetCommit(GetCommitRequest) returns (GetCommitResponse);
+  rpc ListCommits(ListCommitsRequest) returns (ListCommitsResponse);
+
+  // Branches
+  rpc CreateBranch(CreateBranchRequest) returns (CreateBranchResponse);
+  rpc GetBranch(GetBranchRequest) returns (GetBranchResponse);
+  rpc ListBranches(ListBranchesRequest) returns (ListBranchesResponse);
+  rpc DeleteBranch(DeleteBranchRequest) returns (DeleteBranchResponse);
+  rpc SwitchBranch(SwitchBranchRequest) returns (SwitchBranchResponse);
+
+  // Diff
+  rpc GetDiff(GetDiffRequest) returns (GetDiffResponse);
+  rpc GetCommitDelta(GetCommitDeltaRequest) returns (GetCommitDeltaResponse);
+
+  // Merge
+  rpc Merge(MergeRequest) returns (MergeResponse);
+
+  // Rollback
+  rpc Rollback(RollbackRequest) returns (RollbackResponse);
+
+  // Checkout
+  rpc Checkout(CheckoutRequest) returns (CheckoutResponse);
+}

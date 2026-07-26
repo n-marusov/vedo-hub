@@ -1,0 +1,7 @@
+name: developer-guide
+title: Developer Guide
+version: ~
+nav:
+  - modules/ROOT/nav.adoc
+  - modules/document-extractor/nav.adoc
+  - modules/gRPC/nav.adoc

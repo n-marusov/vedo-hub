@@ -1,0 +1,37 @@
+= Batch Upload
+:description: Upload and process multiple documents for ontology extraction.
+
+== Overview
+
+The batch upload feature allows you to upload multiple documents at once and process them together. The extracted structures are merged into a combined preview, with deduplication and conflict resolution.
+
+== How Batch Processing Works
+
+. Select multiple files (up to 10 at a time)
+. Each document is processed independently by the Document Extractor
+. Results are combined into a single preview sequence
+. Duplicate classes and properties are detected and merged
+. Conflicts (e.g., same property with different types) are flagged for resolution
+
+== Conflict Resolution
+
+When conflicts are detected between extracted structures:
+
+* *Type conflicts:* Same property name with different data types — choose which type to keep
+* *Relationship conflicts:* Same relationship with different domains/ranges — review and select
+* *Naming conflicts:* Similar class names that may represent the same concept — merge or keep separate
+
+== Step-by-Step Guide
+
+. Click **Batch Upload** in the AI Creation section
+. Select multiple documents (hold Ctrl/Cmd to select multiple)
+. Wait for all documents to be processed
+. Review the combined preview with source attribution
+. Resolve any conflicts flagged by the system
+. Click **Apply** to commit all changes
+
+== Limitations
+
+* Maximum 10 files per batch
+* Each file must be under 20 MB
+* Total batch processing time depends on LLM provider response times
