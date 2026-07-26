@@ -8,11 +8,11 @@ import { defineConfig, devices } from '@playwright/test';
  *   pnpm exec playwright test --config=playwright.api.config.ts
  */
 export default defineConfig({
-  globalSetup: './global-setup',
-  testDir: './tests/api',
+  globalSetup: '../scripts/global-setup',
+  testDir: '../specs/api',
   timeout: 30_000,
   retries: 2,
-  reporter: [['list'], ['html'], ['json', { outputFile: 'test-results/api-results.json' }]],
+  reporter: [['list'], ['html'], ['json', { outputFile: '../test-results/api-results.json' }]],
   use: {
     baseURL: 'http://localhost:3000',
     trace: 'retain-on-failure',

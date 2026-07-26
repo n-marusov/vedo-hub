@@ -8,12 +8,12 @@ import { defineConfig, devices } from '@playwright/test';
  *   pnpm exec playwright test --config=playwright.gui.config.ts
  */
 export default defineConfig({
-  testDir: './tests/gui',
+  testDir: '../specs/gui',
   testIgnore: '**/*-wired.spec.ts',
   timeout: 30_000,
   retries: 0,           // no retries — first failure stops the run
   maxFailures: 1,        // stop entire run after 1 failure
-  reporter: [['list'], ['html'], ['json', { outputFile: 'test-results/gui-results.json' }]],
+  reporter: [['list'], ['html'], ['json', { outputFile: '../test-results/gui-results.json' }]],
   use: {
     baseURL: 'http://localhost:3000',
     trace: 'retain-on-failure',

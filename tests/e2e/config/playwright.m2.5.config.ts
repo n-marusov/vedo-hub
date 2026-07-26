@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 // @ctx: M2.5 E2E test config — starts Vite dev server + stub API server
 export default defineConfig({
-  testDir: './tests/m2.5',
+  testDir: '../specs/m2.5',
   timeout: 30_000,
   retries: 0,
   reporter: [['list']],
@@ -12,7 +12,7 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: 'node stub-server.mjs',
+      command: 'node ../scripts/stub-server.mjs',
       port: 3001,
       reuseExistingServer: false,
       timeout: 10_000,
@@ -22,7 +22,7 @@ export default defineConfig({
       port: 3000,
       reuseExistingServer: false,
       timeout: 15_000,
-      cwd: '../../../src/services/frontend',
+      cwd: '../../../apps/services/frontend',
     },
   ],
   projects: [

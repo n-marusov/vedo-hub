@@ -1,10 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
-  testDir: './tests',
+  testDir: '../specs',
   timeout: 30_000,
   retries: 2,
-  reporter: [['html'], ['json', { outputFile: 'test-results/results.json' }]],
+  reporter: [['html'], ['json', { outputFile: '../test-results/results.json' }]],
   use: {
     baseURL: 'http://localhost:3000',
     trace: 'retain-on-failure',

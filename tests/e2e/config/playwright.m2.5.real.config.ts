@@ -8,7 +8,7 @@ import { defineConfig, devices } from '@playwright/test';
  *   pnpm exec playwright test --config=playwright.m2.5.real.config.ts
  */
 export default defineConfig({
-  testDir: './tests',
+  testDir: '../specs',
   timeout: 30_000,
   retries: 0,
   reporter: [['list']],
