@@ -1,5 +1,5 @@
 import { type Page } from '@playwright/test';
-import { OWNER_JWT } from '../tests/jwt-tokens';
+import { OWNER_JWT } from '../specs/jwt-tokens';
 
 // Page Object Model for Document Extraction and AI Ontology Creation
 // Covers: US-io.document.extract-*, US-io.document.batch-extract, US-io.document.preview-sequence
@@ -36,6 +36,27 @@ export class DocumentUploadPage {
 
   async openDocumentUpload(ontologyName: string) {
     await this.setupBrowserAuth();
+
+    // Mock ontology REST endpoint to avoid 404 when backend doesn't have the ontology.
+    // The workspace page fetches /api/v1/ontologies/${ontologyName} on mount and
+    // shows an error if it 404s, preventing the AI Import button from rendering.
+    await this.page.route(`**/api/v1/ontologies/${ontologyName}`, async (route) => {
+      if (route.request().method() === 'GET') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            id: ontologyName,
+            name: ontologyName,
+            branch: 'main',
+            dirty: false,
+          }),
+        });
+      } else {
+        await route.continue();
+      }
+    });
+
     await this.page.goto(`/project/${ontologyName}/workspace`);
     await this.page.getByRole('button', { name: /ai import/i }).click();
     await this.page.getByRole('region', { name: /document upload zone|batch document upload/i }).waitFor({ state: 'visible' });
