@@ -23,32 +23,7 @@ See `.ai-factory/DESCRIPTION.md` for detailed project specification.
 .
 ├── .ai-factory/          # AI Factory configuration and artifacts
 ├── .agents/              # AI Factory agent skills (installed via npx skills)
-├── deploy/               # Deployment configuration
-│   ├── ci/               #   GitLab CI pipeline (gitlab-ci.yml)
-│   ├── helm/             #   Helm chart values
-│   ├── keycloak/         #   Keycloak realm configuration
-│   ├── observability/    #   Grafana, Loki, Prometheus, Tempo, OTEL configs
-│   └── postgres/         #   PostgreSQL init scripts (org database)
-├── design/               # UI/UX design files (Pencil .pen format)
-│   ├── pages/            #   Page-level design files
-│   ├── frontend.pen      #   Main frontend design
-│   └── ui-kit.lib.pen    #   UI component library
-├── specs/                # Project specifications (git submodule)
-│   ├── adr/              #   Architecture Decision Records
-│   ├── c4/               #   C4 model diagrams
-│   ├── requirements/     #   Functional and non-functional requirements
-│   ├── ui/               #   UI specifications
-│   ├── use-cases/        #   Use case specifications
-│   └── user-stories/     #   User stories
-├── src/                  # Source code root
-│   ├── build/            #   Makefile build includes (docker.mk, go.mk, rust.mk, etc.)
-│   ├── cli/              #   vedo-cli Go module (operator CLI tool)
-│   │   ├── cmd/ticket/   #     Ticket management commands
-│   │   ├── commands/     #     Command implementations
-│   │   └── internal/     #     Internal packages (audit, auth)
-│   ├── docker/           #   Multi-stage Dockerfile templates by language
-│   ├── docs/antora/      #   Antora documentation source
-│   ├── scripts/          #   Utility scripts
+├── apps/                 # Application source code
 │   ├── services/         #   Microservices (15 services)
 │   │   ├── api-gateway/         # Go — REST API Gateway
 │   │   ├── auth-service/        # Go — Authentication & authorization
@@ -74,12 +49,42 @@ See `.ai-factory/DESCRIPTION.md` for detailed project specification.
 │   │   ├── ticket-sync/         # Go — Ticket synchronization
 │   │   ├── ticket-telemetry-listener/ # Go — Telemetry ingestion
 │   │   └── versioning-service/  # Rust — Git-like versioning engine
-│   └── templates/        #   Service scaffolds by language
+│   └── vedo-cli/         #   vedo-cli Go module (operator CLI tool)
+│       ├── cmd/ticket/   #     Ticket management commands
+│       ├── commands/     #     Command implementations
+│       └── internal/     #     Internal packages (audit, auth)
+├── config/               # Environment configuration
+│   ├── .env.dev          #   Dev environment — default ports
+│   ├── .env.test         #   Test environment — ports +10000
+│   └── .env.staging      #   Staging environment — ports +20000
+├── deploy/               # Deployment configuration
+│   ├── ci/               #   GitLab CI pipeline (gitlab-ci.yml)
+│   ├── helm/             #   Helm chart values
+│   ├── keycloak/         #   Keycloak realm configuration
+│   ├── observability/    #   Grafana, Loki, Prometheus, Tempo, OTEL configs
+│   └── postgres/         #   PostgreSQL init scripts (org database)
+├── design/               # UI/UX design files (Pencil .pen format)
+│   ├── pages/            #   Page-level design files
+│   ├── frontend.pen      #   Main frontend design
+│   └── ui-kit.lib.pen    #   UI component library
+├── docs/                 # Documentation
+│   └── antora/           #   Antora documentation source
+├── specs/                # Project specifications (git submodule)
+│   ├── adr/              #   Architecture Decision Records
+│   ├── c4/               #   C4 model diagrams
+│   ├── requirements/     #   Functional and non-functional requirements
+│   ├── ui/               #   UI specifications
+│   ├── use-cases/        #   Use case specifications
+│   └── user-stories/     #   User stories
 ├── tests/                # Test suites
-│   ├── cli/              #   CLI integration tests
+│   ├── gates/            #   CI quality gates
+│   ├── suites/           #   Integration test suites
 │   ├── e2e/playwright/   #   Playwright end-to-end tests
-│   ├── security/         #   Authorization test suites (BOLA/BFLA)
-│   └── ticket-api/       #   Ticket API tests
+│   └── security/         #   Authorization test suites (BOLA/BFLA)
+├── tools/                # Build and development tools
+│   ├── build/            #   Makefile build includes (docker.mk, go.mk, rust.mk, etc.)
+│   ├── dockerfiles/      #   Multi-stage Dockerfile templates by language
+│   └── scaffolds/        #   Service scaffolds by language
 ├── .ai-factory.json      # Codex agent configuration (installed skills, MCP)
 ├── .dockerignore         # Docker build context exclusions
 ├── .gitignore            # Git ignore rules
@@ -91,34 +96,34 @@ See `.ai-factory/DESCRIPTION.md` for detailed project specification.
 
 | File | Purpose |
 |------|---------|
-| `src/services/api-gateway/main.go` | API Gateway entry point — routes all external requests |
-| `src/services/frontend/index.html` | Frontend app entry point |
-| `src/services/ontology-service/src/main.rs` | Ontology service — core graph operations |
-| `src/services/versioning-service/src/main.rs` | Versioning engine — Git-like commits/branches |
-| `src/services/document-extractor/main.py` | Document extractor — AI-assisted ontology extraction from documents |
-| `src/services/metrics-service/main.py` | Metrics & analytics service |
-| `src/cli/command.go` | CLI command dispatcher |
-| `src/Makefile` | Root build orchestrator |
+| `apps/services/api-gateway/main.go` | API Gateway entry point — routes all external requests |
+| `apps/services/frontend/index.html` | Frontend app entry point |
+| `apps/services/ontology-service/src/main.rs` | Ontology service — core graph operations |
+| `apps/services/versioning-service/src/main.rs` | Versioning engine — Git-like commits/branches |
+| `apps/services/document-extractor/main.py` | Document extractor — AI-assisted ontology extraction from documents |
+| `apps/services/metrics-service/main.py` | Metrics & analytics service |
+| `apps/vedo-cli/command.go` | CLI command dispatcher |
+| `Makefile` | Root build orchestrator |
 | `deploy/docker-compose.yml` | All-services Docker Compose (28 services) |
 | `deploy/ci/gitlab-ci.yml` | GitLab CI pipeline definition |
 
 ## Documentation
 
-Antora documentation source in `src/docs/antora/`. Build with `cd src/docs/antora && antora antora-playbook.yml`.
+Antora documentation source in `docs/antora/`. Build with `cd docs/antora && antora antora-playbook.yml`.
 
 | Document | Path | Description |
 |----------|------|-------------|
 | README | `README.md` | Project landing page |
-| User Guide | `src/docs/antora/user-guide/` | Quick start, ontology editing, versioning |
-| Developer Guide | `src/docs/antora/developer-guide/` | Getting started, architecture, config, testing |
-| Org Model | `src/docs/antora/developer-guide/modules/ROOT/pages/organization-model.adoc` | Multi-team organization model (groups, projects, members, RBAC) |
-| Admin Guide | `src/docs/antora/admin-guide/` | Deployment, port reference, observability, security |
-| Integrator Guide | `src/docs/antora/integrator-guide/` | API reference, authentication, integration config |
-| Antora Playbook | `src/docs/antora/antora-playbook.yml` | Site build configuration |
+| User Guide | `docs/antora/user-guide/` | Quick start, ontology editing, versioning |
+| Developer Guide | `docs/antora/developer-guide/` | Getting started, architecture, config, testing |
+| Org Model | `docs/antora/developer-guide/modules/ROOT/pages/organization-model.adoc` | Multi-team organization model (groups, projects, members, RBAC) |
+| Admin Guide | `docs/antora/admin-guide/` | Deployment, port reference, observability, security |
+| Integrator Guide | `docs/antora/integrator-guide/` | API reference, authentication, integration config |
+| Antora Playbook | `docs/antora/antora-playbook.yml` | Site build configuration |
 | Deploy Guide | `deploy/README.md` | Docker Compose, multi-env setup, port reference |
-| Env: dev | `.env.dev` | Dev environment — default ports |
-| Env: test | `.env.test` | Test environment — ports +10000 |
-| Env: staging | `.env.staging` | Staging environment — ports +20000 |
+| Env: dev | `config/.env.dev` | Dev environment — default ports |
+| Env: test | `config/.env.test` | Test environment — ports +10000 |
+| Env: staging | `config/.env.staging` | Staging environment — ports +20000 |
 | License | `LICENSE` | Project license |
 | Project Specs | `specs/context.md` | Project context and overview |
 | Tech Stack | `specs/stack.md` | Technology stack decisions and rationale |

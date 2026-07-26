@@ -16,8 +16,8 @@ This architecture was chosen because the project requires polyglot persistence (
 
 ```
 vedo-core/
-├── src/
-│   ├── services/                 # Microservices (15+ services, polyglot)
+├── apps/
+│   ├── services/                 # Microservices (18 services, polyglot)
 │   │   ├── api-gateway/          # Go — Entry point, auth, routing
 │   │   ├── auth-service/         # Go — Keycloak integration, RBAC
 │   │   ├── ontology-service/     # Rust — Neo4j CRUD, graph operations
@@ -35,18 +35,30 @@ vedo-core/
 │   │   ├── support-service/      # Go — Support operations
 │   │   ├── frontend/             # Vue 3 — Main web UI (BFF pattern)
 │   │   └── publish-browse-ui/    # Vue 3 — Public ontology viewer
-│   ├── cli/                      # Go — Operator CLI (vedo-cli)
-│   ├── docker/                   # Multi-stage Dockerfile templates
-│   ├── templates/                # Service scaffolds by language
-│   └── build/                    # Makefile includes per language
-├── deploy/                       # Infrastructure-as-Code
+│   ├── vedo-cli/                  # Go — Operator CLI (vedo-cli)
+│   └── shared/                    # Shared libraries (llm, proto, rust)
+├── tools/
+│   ├── build/                    # Makefile includes per language
+│   ├── dockerfiles/              # Multi-stage Dockerfile templates
+│   └── scaffolds/                # Service scaffolds by language
+├── docs/                          # Antora documentation
+├── deploy/                        # Infrastructure-as-Code
 │   ├── docker-compose.yml        # All-services orchestration
 │   ├── ci/gitlab-ci.yml          # CI/CD pipeline
 │   ├── helm/                     # Kubernetes Helm values
 │   ├── keycloak/                 # Realm configuration
 │   └── observability/            # OTEL, Grafana, Prometheus, Loki, Tempo
-├── tests/                        # Cross-service test suites
-└── specs/                        # Specifications (submodule)
+├── config/                        # Environment configuration
+│   ├── .env.dev
+│   ├── .env.test
+│   └── .env.staging
+├── tests/                         # Cross-service test suites
+│   ├── cli/
+│   ├── e2e/
+│   ├── security/
+│   ├── integration/
+│   └── gates/
+└── specs/                         # Specifications (submodule)
 ```
 
 ## Dependency Rules

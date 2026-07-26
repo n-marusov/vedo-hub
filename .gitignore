@@ -31,10 +31,10 @@ coverage/
 
 **/*.exe
 **/target/
-src/services/frontend/dist/
-src/services/publish-browse-ui/dist/
-tests/e2e/playwright/test-results/
-tests/e2e/playwright/playwright-report/
+apps/services/frontend/dist/
+apps/services/publish-browse-ui/dist/
+tests/e2e/test-results/
+tests/e2e/playwright-report/
 **/debug/
 nul
 .playwright-mcp/
@@ -52,4 +52,4 @@ __pycache__
 **/*errors.txt
 **/*out.txt
 **/*output.txt
-tests/e2e/playwright/tests/jwt-tokens.ts
+tests/e2e/specs/helpers/jwt-tokens.ts
