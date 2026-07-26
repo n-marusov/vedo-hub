@@ -180,7 +180,7 @@ vedo-hub/
 
 ### Phase 4: Update test infrastructure
 
-- [ ] **Task 4 — Gate scripts + test directory restructuring**
+- [x] **Task 4 — Gate scripts + test directory restructuring**
 
   **Subtask 4.1 — Move and update gate scripts**
   - Create `tests/gates/` directory
@@ -238,7 +238,7 @@ vedo-hub/
 
 ### Phase 5: Update service internals
 
-- [ ] **Task 5 — Go modules, Cargo workspace, intra-service references**
+- [x] **Task 5 — Go modules, Cargo workspace, intra-service references**
 
   **Subtask 5.1 — Cargo workspace**
   - `apps/services/Cargo.toml`: workspace members use relative directory names (`ontology-service`, `shared`, etc.) — **no change needed** since services stay in same relative positions
@@ -263,7 +263,7 @@ vedo-hub/
 
 ### Phase 6: Update documentation and config files
 
-- [ ] **Task 6 — AGENTS.md, ARCHITECTURE.md, .gitignore, .dockerignore**
+- [x] **Task 6 — AGENTS.md, ARCHITECTURE.md, .gitignore, .dockerignore**
 
   **Subtask 6.1 — `AGENTS.md`**
   - Replace all `src/services/` → `apps/services/` in Key Entry Points table
@@ -292,7 +292,7 @@ vedo-hub/
 
 ### Phase 7: Verification
 
-- [ ] **Task 7 — Verify everything works**
+- [x] **Task 7 — Verify everything works**
 
   **Subtask 7.1 — Structural checks**
   - Verify no `src/` directory remains
