@@ -10,13 +10,13 @@
 # This script sets the env vars to actually run against a developer database.
 #
 # This script is a thin wrapper that delegates to the canonical script at
-# src/services/scripts/run_integration_rust.sh. Keep the canonical version
+# apps/services/scripts/run_integration_rust.sh. Keep the canonical version
 # in sync with the CI pipeline.
 set -euo pipefail
 
-# Delegate to the canonical script under src/services/ scripts/
+# Delegate to the canonical script under apps/services/scripts/
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-CANONICAL="${SCRIPT_DIR}/../src/services/scripts/run_integration_rust.sh"
+CANONICAL="${SCRIPT_DIR}/../apps/services/scripts/run_integration_rust.sh"
 
 if [ -f "$CANONICAL" ]; then
     exec "$CANONICAL" "$@"
@@ -24,7 +24,7 @@ fi
 
 # Fallback: run integration tests directly with required env vars.
 # These defaults MUST be overridden in CI via environment variables.
-cd "${SCRIPT_DIR}/../src/services"
+cd "${SCRIPT_DIR}/../apps/services"
 
 : "${NEO4J_TEST_URI:=bolt://localhost:7687}"
 : "${NEO4J_TEST_USER:=neo4j}"
