@@ -23,11 +23,11 @@ services:
     environment:
       JWT_DEV_PUBLIC_KEY_PEM: |
         -----BEGIN PUBLIC KEY-----
-        MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7KRKYjWhkiD9Zk+yYAzz
-        eK0+feO2EsbLcr7gAq21lV0QcnE1v6pCeU6DLsp5KQXYFbWskYsbZb5c4ZTploGG
-        En39vt68aaQHImUbsklDnHPg/I1oG9eKGjwfrK2jcQhJM17+Q5d1VVbGDpkUKw67
-        bQk6OXkA9f5EkI0SAatO3T50TuTETno0nWdl97IRat9Z9eTRRlbqSKhIOmPyhC1G
-        Yhj1IHcIlc3M0krMD2/hAzkp15K2KAPxZuH4D/pj/jPZnMOOXDonmOBwBBcjUZRl
-        jahrd7wBIAyAbSbhgO3ggYfjuhubE+qO1bPMtvwLIId5ib0HBjQhdOwjW5PX3URw
-        cQIDAQAB
+        MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmmscOz8ovHi1a7WzwJdZ
+        Y55rwiv4yTTfqwWlI5m7ecwJBexyPc8lHXIxlYCZfnyvUAVzjzlxRVbwRvsiyKUr
+        PhXxeKA+NbsRoab8wH7K7OXjmBcDknZlcibmrQe6rwt6P8KmOKQZdnEFjusw504L
+        jH2cEoLUfNQixfH7jBQ9+raoPlH1IlDENr1E0IDdtem+5Po4W2dWIo59ytJgF4Vy
+        6ctnyHw1lOLvXuG3boUwLPUffAITTZIMoMeTCftxBa0R2UAOjVNJWqKyDY4dw3PF
+        77KytZdl92c+XRG4tsfm3viNfCQxiGpKR977wPklREtS1OnQv2KadbaL54J1LH4V
+        ZwIDAQAB
         -----END PUBLIC KEY-----

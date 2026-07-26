@@ -13,7 +13,7 @@ import { resolve } from 'path';
 const jwt = require('jsonwebtoken');
 
 const KEY_PATH = resolve(__dirname, 'test-jwt-key.pem');
-const OUTPUT_PATH = resolve(__dirname, 'tests', 'jwt-tokens.ts');
+const OUTPUT_PATH = resolve(__dirname, '..', 'specs', 'jwt-tokens.ts');
 
 /**
  * Decode the base64 payload of a JWT without verifying the signature.
