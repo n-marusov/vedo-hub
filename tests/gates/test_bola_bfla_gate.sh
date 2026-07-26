@@ -2,7 +2,7 @@
 # BOLA/BFLA gate — runs auth middleware BOLA/BFLA negative tests
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../.." "$(cd "$(dirname "$0")/.." && pwd)""$(cd "$(dirname "$0")/.." && pwd)" pwd)"
 
 # detect Go across platforms (Linux, macOS, Windows/Git Bash, WSL)
 detect_go() {
@@ -38,10 +38,10 @@ fi
 echo "=== Running BOLA/BFLA/RBAC negative test suite with $GO_CMD ===
 
 # run auth middleware tests with BOLA/BFLA focus (all CT-SEC-* tests)
-cd "$ROOT/src/services/api-gateway" && "$GO_CMD" test ./auth/... -v -count=1 -run "TestCT_SEC|TestProperty|TestInvariant" 2>&1
+cd "$ROOT/apps/services/api-gateway" && "$GO_CMD" test ./auth/... -v -count=1 -run "TestCT_SEC|TestProperty|TestInvariant" 2>&1
 
 # run org-level access control tests (membership, policies, visibility enforcement)
-cd "$ROOT/src/services/auth-service/org" && "$GO_CMD" test ./... -v -count=1 2>&1
+cd "$ROOT/apps/services/auth-service/org" && "$GO_CMD" test ./... -v -count=1 2>&1
 
 # run existing BOLA/BFLA fixture tests and comprehensive RBAC suite
 cd "$ROOT/tests/security/authorization" && "$GO_CMD" test ./... -v -count=1 2>&1

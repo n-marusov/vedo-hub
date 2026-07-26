@@ -2,7 +2,7 @@
 # Contract checks for Antora documentation infrastructure
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "$0")/../.." "$(cd "$(dirname "$0")/.." && pwd)""$(cd "$(dirname "$0")/.." && pwd)" pwd)"
 DOCS_ROOT="$ROOT_DIR/src/docs/antora"
 DOCS_COMPOSE="$ROOT_DIR/deploy/docker-compose.docs.yaml"
 

@@ -2,7 +2,7 @@
 # Contract gate runner — native stub and milestone 003 contract checks
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../.." "$(cd "$(dirname "$0")/.." && pwd)""$(cd "$(dirname "$0")/.." && pwd)" pwd)"
 
 # detect Go across platforms (Linux, macOS, Windows/Git Bash, WSL)
 detect_go() {
@@ -22,7 +22,7 @@ GO_CMD=$(detect_go) || true
 if [ -n "$GO_CMD" ]; then
   echo "=== Running Go contract tests with $GO_CMD ==="
   # each Go module has its own go.mod — run from module root
-  for mod in "$ROOT/src/services/api-gateway" "$ROOT/src/cli" "$ROOT/src/services/auth-service" "$ROOT/src/services/auth-service/org" "$ROOT/src/services/ticket-api" "$ROOT/src/services/ticket-telemetry-listener" "$ROOT/src/services/ticket-notifier" "$ROOT/src/services/ticket-sync"; do
+  for mod in "$ROOT/apps/services/api-gateway" "$ROOT/apps/vedo-cli" "$ROOT/apps/services/auth-service" "$ROOT/apps/services/auth-service/org" "$ROOT/apps/services/ticket-api" "$ROOT/apps/services/ticket-telemetry-listener" "$ROOT/apps/services/ticket-notifier" "$ROOT/apps/services/ticket-sync"; do
     echo "  testing: $mod"
     (cd "$mod" && "$GO_CMD" test ./... -count=1)
   done

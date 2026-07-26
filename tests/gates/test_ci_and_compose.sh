@@ -2,8 +2,8 @@
 # Stage 2 contract checks for CI pipeline and Docker Compose profile
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-SERVICES_DIR="$ROOT_DIR/src/services"
+ROOT_DIR="$(cd "$(dirname "$0")/../.." "$(cd "$(dirname "$0")/.." && pwd)""$(cd "$(dirname "$0")/.." && pwd)" pwd)"
+SERVICES_DIR="$ROOT_DIR/apps/services"
 CI_FILE="$ROOT_DIR/deploy/ci/gitlab-ci.yml"
 COMPOSE_FILE="$ROOT_DIR/deploy/docker-compose.yml"
 COMPOSE_OBS_FILE="$ROOT_DIR/deploy/docker-compose.observability.yml"

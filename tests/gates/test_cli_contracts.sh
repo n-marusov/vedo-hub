@@ -4,5 +4,5 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 echo "=== CLI Contract Tests ==="
-go -C src/cli test ./... -v
+go -C apps/vedo-cli test ./... -v
 echo "=== CLI Contract Tests: ALL PASSED ==="

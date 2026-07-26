@@ -2,7 +2,7 @@
 # Performance gate checks for stage 2 scripts
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "$0")/../.." "$(cd "$(dirname "$0")/.." && pwd)""$(cd "$(dirname "$0")/.." && pwd)" pwd)"
 REPORT_PATH="$ROOT_DIR/../validation/gate-results/performance-runtime.json"
 
 start_ts=$(date +%s)

@@ -2,9 +2,9 @@
 # Contract checks for health, ready, root metadata, and endpoint conventions
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "$0")/../.." "$(cd "$(dirname "$0")/.." && pwd)""$(cd "$(dirname "$0")/.." && pwd)" pwd)"
 COMPOSE_FILE="$ROOT_DIR/deploy/docker-compose.yml"
-SERVICES_DIR="$ROOT_DIR/src/services"
+SERVICES_DIR="$ROOT_DIR/apps/services"
 
 ALL_PASS=1
 

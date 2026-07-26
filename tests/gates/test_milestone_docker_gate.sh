@@ -9,7 +9,7 @@
 #   ./test_milestone_docker_gate.sh --skip-cleanup # leave containers running
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "$0")/../.." "$(cd "$(dirname "$0")/.." && pwd)""$(cd "$(dirname "$0")/.." && pwd)" pwd)"
 COMPOSE_DIR="$ROOT_DIR/deploy"
 COMPOSE_FILE="$COMPOSE_DIR/docker-compose.yml"
 
@@ -89,7 +89,7 @@ test_dockerfiles_exist() {
             local full_path="$ROOT_DIR/$ctx/$df"
             if [ ! -f "$full_path" ]; then
                 # try alternative path — context might be relative
-                full_path="$ROOT_DIR/src/services/$df"
+                full_path="$ROOT_DIR/apps/services/$df"
             fi
             if [ ! -f "$full_path" ]; then
                 fail "Dockerfile not found for service '$svc' (looked: $full_path)"

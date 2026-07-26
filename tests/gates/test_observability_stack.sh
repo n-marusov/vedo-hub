@@ -2,7 +2,7 @@
 # Contract checks for OTel, Prometheus, Loki, Tempo, and Grafana
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "$0")/../.." "$(cd "$(dirname "$0")/.." && pwd)""$(cd "$(dirname "$0")/.." && pwd)" pwd)"
 OBS_COMPOSE_FILE="$ROOT_DIR/deploy/docker-compose.observability.yml"
 OTEL_CFG="$ROOT_DIR/deploy/observability/otel-collector/config.yml"
 PROM_CFG="$ROOT_DIR/deploy/observability/prometheus/prometheus.yml"

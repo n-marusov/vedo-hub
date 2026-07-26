@@ -2,7 +2,7 @@
 # Contract checks for Playwright E2E infrastructure
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "$0")/../.." "$(cd "$(dirname "$0")/.." && pwd)""$(cd "$(dirname "$0")/.." && pwd)" pwd)"
 E2E_ROOT="$ROOT_DIR/tests/e2e/playwright"
 
 test_playwright_config_exists() {

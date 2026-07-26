@@ -2,8 +2,8 @@
 # Native service layout and production-readiness checks
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-SERVICES_DIR="$ROOT_DIR/src/services"
+ROOT_DIR="$(cd "$(dirname "$0")/../.." "$(cd "$(dirname "$0")/.." && pwd)""$(cd "$(dirname "$0")/.." && pwd)" pwd)"
+SERVICES_DIR="$ROOT_DIR/apps/services"
 
 go_services=(api-gateway auth-service commenting-service ticket-api ticket-telemetry-listener ticket-notifier)
 rust_services=(ontology-service versioning-service publisher-service public-browse-api)
@@ -87,7 +87,7 @@ check_compose_builds_native_services() {
   local built_services=(api-gateway auth-service ontology-service versioning-service metrics-service frontend)
   for svc in "${built_services[@]}"; do
     grep -q "^  ${svc}:" "$compose"
-    grep -q "context: ../src/services/${svc}" "$compose"
+    grep -q "context: ../apps/services/${svc}" "$compose"
   done
 }
 
