@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ontology xmlns="http://vedo.example.org/ontology"
+          name="LibraryManagement"
+          namespace="http://vedo.example.org/library#">
+  <classes>
+    <class id="LibraryItem" label="Library Item" parent="owl:Thing">
+      <comment>An item in the library collection</comment>
+    </class>
+    <class id="Book" label="Book" parent="LibraryItem">
+      <comment>A written work published in print or digital form</comment>
+    </class>
+    <class id="Magazine" label="Magazine" parent="LibraryItem">
+      <comment>A periodical publication</comment>
+    </class>
+    <class id="Author" label="Author" parent="owl:Thing">
+      <comment>A person who creates written works</comment>
+    </class>
+    <class id="Member" label="Member" parent="owl:Thing">
+      <comment>A library member who can borrow items</comment>
+    </class>
+  </classes>
+  <objectProperties>
+    <property id="writtenBy" label="written by" domain="Book" range="Author">
+      <comment>Indicates the author of a book</comment>
+    </property>
+    <property id="borrowedBy" label="borrowed by" domain="LibraryItem" range="Member">
+      <comment>Indicates which member has borrowed an item</comment>
+    </property>
+  </objectProperties>
+  <datatypeProperties>
+    <property id="isbn" label="ISBN" domain="Book" range="xsd:string">
+      <comment>International Standard Book Number</comment>
+    </property>
+    <property id="publishedDate" label="published date" domain="Book" range="xsd:date">
+      <comment>Date when the book was published</comment>
+    </property>
+  </datatypeProperties>
+</ontology>

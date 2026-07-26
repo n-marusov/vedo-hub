@@ -1,0 +1,68 @@
+{
+  "ontology": "ECommerce",
+  "namespace": "http://vedo.example.org/ecommerce#",
+  "classes": [
+    {
+      "id": "Product",
+      "label": "Product",
+      "parent": "owl:Thing",
+      "comment": "An item available for purchase"
+    },
+    {
+      "id": "Book",
+      "label": "Book",
+      "parent": "Product",
+      "comment": "A published written work"
+    },
+    {
+      "id": "Electronics",
+      "label": "Electronics",
+      "parent": "Product",
+      "comment": "Electronic devices and accessories"
+    },
+    {
+      "id": "Customer",
+      "label": "Customer",
+      "parent": "owl:Thing",
+      "comment": "A person who purchases products"
+    },
+    {
+      "id": "Order",
+      "label": "Order",
+      "parent": "owl:Thing",
+      "comment": "A purchase transaction"
+    }
+  ],
+  "objectProperties": [
+    {
+      "id": "purchases",
+      "label": "purchases",
+      "domain": "Customer",
+      "range": "Product",
+      "comment": "Links a customer to products they purchased"
+    },
+    {
+      "id": "contains",
+      "label": "contains",
+      "domain": "Order",
+      "range": "Product",
+      "comment": "Links an order to the products it contains"
+    }
+  ],
+  "datatypeProperties": [
+    {
+      "id": "price",
+      "label": "price",
+      "domain": "Product",
+      "range": "xsd:decimal",
+      "comment": "The price of a product"
+    },
+    {
+      "id": "quantity",
+      "label": "quantity",
+      "domain": "Order",
+      "range": "xsd:integer",
+      "comment": "Number of items in an order"
+    }
+  ]
+}
