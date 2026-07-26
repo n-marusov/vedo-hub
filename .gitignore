@@ -53,3 +53,4 @@ __pycache__
 **/*out.txt
 **/*output.txt
 tests/e2e/specs/helpers/jwt-tokens.ts
+src/services/frontend/dist/*
