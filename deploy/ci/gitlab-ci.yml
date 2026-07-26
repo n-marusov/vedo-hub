@@ -241,6 +241,23 @@ docs-build:
 
 # --- Build Stage ---
 
+vendor-go:
+  stage: build
+  image: golang:1.24-alpine
+  before_script:
+    - apk add --no-cache make
+  script:
+    - make vendor-go
+  artifacts:
+    paths:
+      - apps/services/*/vendor/
+    expire_in: 1 hour
+  rules:
+    - changes:
+        - apps/services/*/go.mod
+        - apps/services/*/go.sum
+        - apps/services/*/*.go
+
 build-frontend:
   stage: build
   image: docker:24.0-cli
@@ -258,6 +275,8 @@ build-api-gateway:
   image: docker:24.0-cli
   services:
     - docker:24.0-dind
+  needs:
+    - vendor-go
   script:
     - docker build -t ${REGISTRY}/vedo-api-gateway:${CI_COMMIT_SHORT_SHA} -t ${REGISTRY}/vedo-api-gateway:latest -f Dockerfile apps/services/api-gateway
     - docker push ${REGISTRY}/vedo-api-gateway:${CI_COMMIT_SHORT_SHA}
@@ -294,6 +313,8 @@ build-auth-service:
   image: docker:24.0-cli
   services:
     - docker:24.0-dind
+  needs:
+    - vendor-go
   script:
     - docker build -t ${REGISTRY}/vedo-auth-service:${CI_COMMIT_SHORT_SHA} -t ${REGISTRY}/vedo-auth-service:latest apps/services/auth-service
     - docker push ${REGISTRY}/vedo-auth-service:${CI_COMMIT_SHORT_SHA}

@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+apps/services/*/vendor/
 
 # Lefthook — local config overrides (personal, not committed)
 lefthook-local.yml
