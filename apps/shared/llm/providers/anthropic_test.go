@@ -13,25 +13,6 @@ import (
 )
 
 // anthropicResponse is a minimal Anthropic Messages API response.
-type anthropicResponse struct {
-	ID         string             `json:"id"`
-	Type       string             `json:"type"`
-	Role       string             `json:"role"`
-	Content    []anthropicContent `json:"content"`
-	Model      string             `json:"model"`
-	StopReason string             `json:"stop_reason"`
-	Usage      anthropicUsage     `json:"usage"`
-}
-
-type anthropicContent struct {
-	Type string `json:"type"`
-	Text string `json:"text"`
-}
-
-type anthropicUsage struct {
-	InputTokens  int `json:"input_tokens"`
-	OutputTokens int `json:"output_tokens"`
-}
 
 func TestNewAnthropicProvider(t *testing.T) {
 	cfg := llm.Config{
@@ -73,7 +54,7 @@ func TestAnthropicProviderComplete(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	}))
 	defer server.Close()
 
@@ -106,7 +87,7 @@ func TestAnthropicProviderRateLimit(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusTooManyRequests)
 		w.Header().Set("Retry-After", "60")
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"error": map[string]interface{}{
 				"type":    "rate_limit_error",
 				"message": "Number of request tokens has exceeded your rate limit.",
@@ -150,7 +131,7 @@ func TestAnthropicProviderServerError(t *testing.T) {
 func TestAnthropicProviderEmptyContent(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"id":          "msg_empty",
 			"type":        "message",
 			"role":        "assistant",
@@ -182,7 +163,7 @@ func TestAnthropicProviderSystemPrompt(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Verify system prompt handling
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"id":   "msg_sys",
 			"type": "message",
 			"role": "assistant",

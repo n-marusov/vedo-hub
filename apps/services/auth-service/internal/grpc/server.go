@@ -496,7 +496,7 @@ func (s *OrgGrpcServer) ForkProject(ctx context.Context, req *authv1.ForkProject
 		OntologyID:   ontologyID,
 	}); err != nil {
 		// Compensating action: delete new scope
-		s.svc.Store().DeleteScope(newProjectID)
+		_ = s.svc.Store().DeleteScope(newProjectID)
 		return nil, status.Errorf(codes.Internal, "FORK_ONTOLOGY_PAIRING_FAILED: %v", err)
 	}
 
@@ -507,7 +507,7 @@ func (s *OrgGrpcServer) ForkProject(ctx context.Context, req *authv1.ForkProject
 		Role:   "Owner",
 	}
 	if err := s.svc.Store().UpsertMembership(mem); err != nil {
-		s.svc.Store().DeleteScope(newProjectID)
+		_ = s.svc.Store().DeleteScope(newProjectID)
 		return nil, status.Errorf(codes.Internal, "FORK_MEMBERSHIP_FAILED: %v", err)
 	}
 

@@ -21,7 +21,7 @@ const ALLOWED_FORMATS: &[&str] = &["turtle", "rdf/xml", "owl", "n-triples", "jso
 /// [FIX] Validates `ontology_id` against `^[A-Za-z0-9_-]+$` and returns a
 /// `(StatusCode, Json<ApiErrorResponse>)` tuple on mismatch. This blocks path
 /// traversal attempts like `../../etc/passwd` from reaching the storage layer
-/// (which builds a filesystem path from the ontology_id) or the upstream
+/// (which builds a filesystem path from the `ontology_id`) or the upstream
 /// ontology-service URL path.
 fn validate_ontology_id(ontology_id: &str) -> Result<(), (StatusCode, Json<ApiErrorResponse>)> {
     let valid = !ontology_id.is_empty()
@@ -70,7 +70,7 @@ pub struct ListSnapshotsQuery {
     pub commit_id: Option<String>,
 }
 
-/// POST /api/v1/ontologies/{ontology_id}/publish
+/// `POST /api/v1/ontologies/{ontology_id}/publish`
 ///
 /// Creates a published snapshot of an ontology. The payload is the serialized
 /// ontology in the requested format (default: turtle).
@@ -142,7 +142,7 @@ pub async fn publish_snapshot_handler(
     }))
 }
 
-/// GET /api/v1/ontologies/{ontology_id}/snapshots
+/// `GET /api/v1/ontologies/{ontology_id}/snapshots`
 ///
 /// Lists all snapshots for a given ontology.
 pub async fn list_snapshots_handler(
@@ -166,7 +166,7 @@ pub async fn list_snapshots_handler(
     }))
 }
 
-/// GET /api/v1/snapshots/{snapshot_id}
+/// `GET /api/v1/snapshots/{snapshot_id}`
 ///
 /// Retrieves details of a specific snapshot.
 pub async fn get_snapshot_handler(
@@ -187,7 +187,7 @@ pub async fn get_snapshot_handler(
     }
 }
 
-/// DELETE /api/v1/snapshots/{snapshot_id}
+/// `DELETE /api/v1/snapshots/{snapshot_id}`
 ///
 /// Retires (soft-deletes) a snapshot.
 pub async fn retire_snapshot_handler(
@@ -245,7 +245,7 @@ async fn fetch_ontology_data(
     let response = state
         .http_client
         .get(&url)
-        .header("X-Trace-Id", format!("publish-{}", ontology_id))
+        .header("X-Trace-Id", format!("publish-{ontology_id}"))
         .send()
         .await
         .map_err(|e| format!("HTTP request failed: {e}"))?;

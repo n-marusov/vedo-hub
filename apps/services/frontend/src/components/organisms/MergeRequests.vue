@@ -30,82 +30,80 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive } from "vue";
-import MergeRequestCard from "./MergeRequestCard.vue";
+import { computed, reactive } from 'vue'
+import MergeRequestCard from './MergeRequestCard.vue'
 
 // @m4 — MR entry from LIST_MERGE_REQUESTS_QUERY
 interface MREntry {
-	id: string;
-	title: string;
-	description: string;
-	sourceBranch: string;
-	targetBranch: string;
-	authorName: string;
-	status: string;
-	mergeStatus: string;
-	createdAt: string;
-	commentCount: number;
+  id: string
+  title: string
+  description: string
+  sourceBranch: string
+  targetBranch: string
+  authorName: string
+  status: string
+  mergeStatus: string
+  createdAt: string
+  commentCount: number
 }
 
 const props = defineProps<{
-	mergeRequests: MREntry[];
-}>();
+  mergeRequests: MREntry[]
+}>()
 
 interface MRSection {
-	title: string;
-	open: boolean;
-	count?: number;
-	emptyText: string;
+  title: string
+  open: boolean
+  count?: number
+  emptyText: string
 }
 
 // @m4 — Compute section counts from API data
-const openCount = computed(
-	() => props.mergeRequests.filter((mr) => mr.status === "open").length,
-);
+const openCount = computed(() => props.mergeRequests.filter((mr) => mr.status === 'open').length)
 
 const sections: MRSection[] = reactive([
-	{
-		title: "Returned to you",
-		open: true,
-		count: 0,
-		emptyText: "No merge requests match this list.",
-	},
-	{
-		title: "Review requested",
-		open: true,
-		count: openCount,
-		emptyText: "No merge requests match this list.",
-	},
-	{
-		title: "Your merge requests",
-		open: true,
-		count: 0,
-		emptyText: "No merge requests match this list.",
-	},
-]);
+  {
+    title: 'Returned to you',
+    open: true,
+    count: 0,
+    emptyText: 'No merge requests match this list.'
+  },
+  {
+    title: 'Review requested',
+    open: true,
+    count: openCount,
+    emptyText: 'No merge requests match this list.'
+  },
+  {
+    title: 'Your merge requests',
+    open: true,
+    count: 0,
+    emptyText: 'No merge requests match this list.'
+  }
+])
 
 const secondarySections: MRSection[] = reactive([
-	{
-		title: "Waiting for author or assignee",
-		open: true,
-		emptyText: "No merge requests match this list.",
-	},
-	{
-		title: "Waiting for approvals",
-		open: true,
-		emptyText: "No merge requests match this list.",
-	},
-	{
-		title: "Approved by you",
-		open: true,
-		emptyText: "No merge requests match this list.",
-	},
-	{
-		title: "Approved by others",
-		open: true,
-		emptyText: "No merge requests match this list.",
-	},
-]);
+  {
+    title: 'Waiting for author or assignee',
+    open: true,
+    emptyText: 'No merge requests match this list.'
+  },
+  {
+    title: 'Waiting for approvals',
+    open: true,
+    emptyText: 'No merge requests match this list.'
+  },
+  {
+    title: 'Approved by you',
+    open: true,
+    emptyText: 'No merge requests match this list.'
+  },
+  {
+    title: 'Approved by others',
+    open: true,
+    emptyText: 'No merge requests match this list.'
+  }
+])
 </script>
 
 <style scoped>

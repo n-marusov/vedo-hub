@@ -3,6 +3,7 @@
 package auth
 
 import (
+	"context"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
@@ -216,7 +217,9 @@ func (j *jwksKeyFunc) verify(token *jwt.Token) (any, error) {
 
 // refresh fetches the JWKS document and rebuilds the in-memory key index.
 func (j *jwksKeyFunc) refresh() error {
-	req, err := http.NewRequest(http.MethodGet, j.url, nil)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, j.url, nil)
 	if err != nil {
 		return err
 	}

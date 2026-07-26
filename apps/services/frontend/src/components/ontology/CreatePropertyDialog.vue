@@ -81,105 +81,105 @@
 <script setup lang="ts">
 // @aif — Migrated from Apollo GraphQL `CREATE_PROPERTY_MUTATION` to REST
 // `POST /api/v1/ontologies/:id/properties` per ADR-DES.API.rest-graphql-mutation-boundary.md.
-import { createProperty } from "@/api/ontology";
-import Dialog from "@/components/ui-kit/Dialog.vue";
-import GhostButton from "@/components/ui-kit/GhostButton.vue";
-import PrimaryButton from "@/components/ui-kit/PrimaryButton.vue";
-import { useErrorPresentation } from "@/composables/useErrorPresentation";
-import { ref } from "vue";
+import { createProperty } from '@/api/ontology'
+import Dialog from '@/components/ui-kit/Dialog.vue'
+import GhostButton from '@/components/ui-kit/GhostButton.vue'
+import PrimaryButton from '@/components/ui-kit/PrimaryButton.vue'
+import { useErrorPresentation } from '@/composables/useErrorPresentation'
+import { ref } from 'vue'
 
-const props = defineProps<{ open: boolean; ontologyId: string }>();
-const emit = defineEmits<{ close: []; created: [propertyName: string] }>();
+const props = defineProps<{ open: boolean; ontologyId: string }>()
+const emit = defineEmits<{ close: []; created: [propertyName: string] }>()
 
-const { addError } = useErrorPresentation();
+const { addError } = useErrorPresentation()
 
-const activeTab = ref<"config" | "preview">("config");
-const propertyName = ref("");
-const propertyType = ref("object");
-const domain = ref("");
-const range = ref("");
-const submitting = ref(false);
-const validationError = ref<{ field: string; message: string } | null>(null);
+const activeTab = ref<'config' | 'preview'>('config')
+const propertyName = ref('')
+const propertyType = ref('object')
+const domain = ref('')
+const range = ref('')
+const submitting = ref(false)
+const validationError = ref<{ field: string; message: string } | null>(null)
 
 function typeToRdf(type: string): string {
-	switch (type) {
-		case "object":
-			return "owl:ObjectProperty";
-		case "datatype":
-			return "owl:DatatypeProperty";
-		case "annotation":
-			return "owl:AnnotationProperty";
-		default:
-			return "rdf:Property";
-	}
+  switch (type) {
+    case 'object':
+      return 'owl:ObjectProperty'
+    case 'datatype':
+      return 'owl:DatatypeProperty'
+    case 'annotation':
+      return 'owl:AnnotationProperty'
+    default:
+      return 'rdf:Property'
+  }
 }
 
 async function submit(): Promise<void> {
-	console.debug(
-		JSON.stringify({
-			level: "debug",
-			msg: "CreateProperty.submitted",
-			propName: propertyName.value,
-			propType: propertyType.value,
-			ontologyId: props.ontologyId,
-			ts: new Date().toISOString(),
-		}),
-	);
+  console.debug(
+    JSON.stringify({
+      level: 'debug',
+      msg: 'CreateProperty.submitted',
+      propName: propertyName.value,
+      propType: propertyType.value,
+      ontologyId: props.ontologyId,
+      ts: new Date().toISOString()
+    })
+  )
 
-	validationError.value = null;
+  validationError.value = null
 
-	if (!propertyName.value.trim()) {
-		validationError.value = {
-			field: "name",
-			message: "Property name is required",
-		};
-		return;
-	}
+  if (!propertyName.value.trim()) {
+    validationError.value = {
+      field: 'name',
+      message: 'Property name is required'
+    }
+    return
+  }
 
-	submitting.value = true;
-	try {
-		const property = await createProperty({
-			ontologyId: props.ontologyId,
-			label: propertyName.value.trim(),
-			propertyType: propertyType.value,
-			domain: domain.value.trim() || undefined,
-			range: range.value.trim() || undefined,
-		});
+  submitting.value = true
+  try {
+    const property = await createProperty({
+      ontologyId: props.ontologyId,
+      label: propertyName.value.trim(),
+      propertyType: propertyType.value,
+      domain: domain.value.trim() || undefined,
+      range: range.value.trim() || undefined
+    })
 
-		console.info(
-			JSON.stringify({
-				level: "info",
-				msg: "CreateProperty.success",
-				propName: propertyName.value,
-				propId: property.id,
-				ts: new Date().toISOString(),
-			}),
-		);
-		emit("created", propertyName.value);
-		reset();
-	} catch (e) {
-		const msg = e instanceof Error ? e.message : String(e);
-		addError("CREATE-PROPERTY-FAILED", msg);
-		console.error(
-			JSON.stringify({
-				level: "error",
-				msg: "CreateProperty.failed",
-				error: msg,
-				ts: new Date().toISOString(),
-			}),
-		);
-	} finally {
-		submitting.value = false;
-	}
+    console.info(
+      JSON.stringify({
+        level: 'info',
+        msg: 'CreateProperty.success',
+        propName: propertyName.value,
+        propId: property.id,
+        ts: new Date().toISOString()
+      })
+    )
+    emit('created', propertyName.value)
+    reset()
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    addError('CREATE-PROPERTY-FAILED', msg)
+    console.error(
+      JSON.stringify({
+        level: 'error',
+        msg: 'CreateProperty.failed',
+        error: msg,
+        ts: new Date().toISOString()
+      })
+    )
+  } finally {
+    submitting.value = false
+  }
 }
 
 function reset(): void {
-	propertyName.value = "";
-	propertyType.value = "object";
-	domain.value = "";
-	range.value = "";
-	activeTab.value = "config";
-	validationError.value = null;
+  propertyName.value = ''
+  propertyType.value = 'object'
+  domain.value = ''
+  range.value = ''
+  activeTab.value = 'config'
+  validationError.value = null
 }
 </script>
 

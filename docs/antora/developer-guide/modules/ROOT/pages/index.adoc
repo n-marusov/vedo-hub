@@ -5,6 +5,10 @@ Development workflows, build system, architecture, and local environment guidanc
 == Guides
 
 * xref:getting-started.adoc[Getting Started] — prerequisites, build, and local environment
+* xref:deployment.adoc[Deployment] — Docker Compose, environments, container management
+* xref:development.adoc[Development] — native builds, per-service operations, linting, hooks
 * xref:architecture.adoc[Architecture] — microservices structure and communication
 * xref:configuration.adoc[Configuration] — environment variables and defaults
 * xref:testing.adoc[Testing] — test suites and how to run them
+* xref:organization-model.adoc[Organizational Model] — groups, projects, membership, RBAC
+* xref:project-ontology-model.adoc[Project ↔ Ontology Model] — ontology lifecycle management

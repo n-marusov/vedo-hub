@@ -10,13 +10,16 @@ from __future__ import annotations
 import logging
 import os
 import time
-from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import TYPE_CHECKING
 
 from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse
 
 from config import settings
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
 
 SERVICE_NAME = settings.SERVICE_NAME
 SERVICE_VERSION = settings.SERVICE_VERSION
@@ -113,7 +116,6 @@ async def ready() -> dict:
 @app.get("/metrics")
 async def metrics() -> PlainTextResponse:
     """Prometheus metrics endpoint."""
-    global request_count
     text = (
         f"# HELP vedo_service_requests_total Total service requests\n"
         f"# TYPE vedo_service_requests_total counter\n"

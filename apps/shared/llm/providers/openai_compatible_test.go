@@ -14,6 +14,10 @@ import (
 )
 
 // openAIResponse is a minimal OpenAI chat completion response.
+// Note: types below are kept for documentation but not used (tests use map[string]interface{}).
+// The nolint directives suppress unused-type warnings.
+//
+//nolint:unused
 type openAIResponse struct {
 	ID      string         `json:"id"`
 	Object  string         `json:"object"`
@@ -21,17 +25,20 @@ type openAIResponse struct {
 	Usage   openAIUsage    `json:"usage"`
 }
 
+//nolint:unused
 type openAIChoice struct {
 	Index        int           `json:"index"`
 	Message      openAIMessage `json:"message"`
 	FinishReason string        `json:"finish_reason"`
 }
 
+//nolint:unused
 type openAIMessage struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
 }
 
+//nolint:unused
 type openAIUsage struct {
 	PromptTokens     int `json:"prompt_tokens"`
 	CompletionTokens int `json:"completion_tokens"`
@@ -95,7 +102,7 @@ func TestOpenAIProviderComplete(t *testing.T) {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	}))
 	defer server.Close()
 
@@ -128,7 +135,7 @@ func TestOpenAIProviderRateLimit(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusTooManyRequests)
 		w.Header().Set("Retry-After", "30")
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"error": map[string]interface{}{
 				"message": "Rate limit exceeded",
 				"type":    "rate_limit_error",
@@ -182,7 +189,7 @@ func TestOpenAIProviderServerError(t *testing.T) {
 func TestOpenAIProviderEmptyChoices(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"id":      "chatcmpl-empty",
 			"object":  "chat.completion",
 			"choices": []interface{}{},
@@ -211,7 +218,7 @@ func TestOpenAIProviderEmptyChoices(t *testing.T) {
 func TestOpenAIProviderStreamComplete(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
 			"id":     "chatcmpl-s",
 			"object": "chat.completion",
 			"choices": []map[string]interface{}{

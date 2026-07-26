@@ -56,93 +56,93 @@
 </template>
 
 <script setup lang="ts">
-import Dialog from "@/components/ui-kit/Dialog.vue";
-import GhostButton from "@/components/ui-kit/GhostButton.vue";
-import PrimaryButton from "@/components/ui-kit/PrimaryButton.vue";
-import { useErrorPresentation } from "@/composables/useErrorPresentation";
-import { computed, ref } from "vue";
+import Dialog from '@/components/ui-kit/Dialog.vue'
+import GhostButton from '@/components/ui-kit/GhostButton.vue'
+import PrimaryButton from '@/components/ui-kit/PrimaryButton.vue'
+import { useErrorPresentation } from '@/composables/useErrorPresentation'
+import { computed, ref } from 'vue'
 
 const props = defineProps<{
-	open: boolean;
-	ontologyId?: string;
-	ontologyName?: string;
-}>();
-const emit = defineEmits<{ close: []; published: [versionName: string] }>();
+  open: boolean
+  ontologyId?: string
+  ontologyName?: string
+}>()
+const emit = defineEmits<{ close: []; published: [versionName: string] }>()
 
-const { addError } = useErrorPresentation();
+const { addError } = useErrorPresentation()
 
-const versionName = ref("");
-const visibility = ref("public");
-const description = ref("");
-const publishing = ref(false);
-const copied = ref(false);
+const versionName = ref('')
+const visibility = ref('public')
+const description = ref('')
+const publishing = ref(false)
+const copied = ref(false)
 
 const generatedUrl = computed(() => {
-	const slug = versionName.value.trim() || "latest";
-	return `https://vedo.app/public/${props.ontologyId || "{ontology}"}/v/${slug}`;
-});
+  const slug = versionName.value.trim() || 'latest'
+  return `https://vedo.app/public/${props.ontologyId || '{ontology}'}/v/${slug}`
+})
 
 async function publish(): Promise<void> {
-	if (!versionName.value.trim()) return;
+  if (!versionName.value.trim()) return
 
-	console.debug(
-		JSON.stringify({
-			level: "debug",
-			msg: "PublishSnapshot.submitted",
-			version: versionName.value,
-			visibility: visibility.value,
-			ts: new Date().toISOString(),
-		}),
-	);
+  console.debug(
+    JSON.stringify({
+      level: 'debug',
+      msg: 'PublishSnapshot.submitted',
+      version: versionName.value,
+      visibility: visibility.value,
+      ts: new Date().toISOString()
+    })
+  )
 
-	publishing.value = true;
-	try {
-		// [bookmark] Full publish flow not in M4 scope — mock publish
-		await new Promise((resolve) => setTimeout(resolve, 800));
-		console.debug(
-			JSON.stringify({
-				level: "debug",
-				msg: "PublishSnapshot.success",
-				version: versionName.value,
-				url: generatedUrl.value,
-				ts: new Date().toISOString(),
-			}),
-		);
-		emit("published", versionName.value);
-		reset();
-	} catch (e) {
-		const msg = e instanceof Error ? e.message : String(e);
-		addError("PUBLISH-FAILED", msg);
-		console.error(
-			JSON.stringify({
-				level: "error",
-				msg: "PublishSnapshot.failed",
-				error: msg,
-				ts: new Date().toISOString(),
-			}),
-		);
-	} finally {
-		publishing.value = false;
-	}
+  publishing.value = true
+  try {
+    // [bookmark] Full publish flow not in M4 scope — mock publish
+    await new Promise((resolve) => setTimeout(resolve, 800))
+    console.debug(
+      JSON.stringify({
+        level: 'debug',
+        msg: 'PublishSnapshot.success',
+        version: versionName.value,
+        url: generatedUrl.value,
+        ts: new Date().toISOString()
+      })
+    )
+    emit('published', versionName.value)
+    reset()
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    addError('PUBLISH-FAILED', msg)
+    console.error(
+      JSON.stringify({
+        level: 'error',
+        msg: 'PublishSnapshot.failed',
+        error: msg,
+        ts: new Date().toISOString()
+      })
+    )
+  } finally {
+    publishing.value = false
+  }
 }
 
 async function copyUrl(): Promise<void> {
-	try {
-		await navigator.clipboard.writeText(generatedUrl.value);
-		copied.value = true;
-		setTimeout(() => {
-			copied.value = false;
-		}, 2000);
-	} catch {
-		addError("CLIPBOARD-FAILED", "Failed to copy URL to clipboard");
-	}
+  try {
+    await navigator.clipboard.writeText(generatedUrl.value)
+    copied.value = true
+    setTimeout(() => {
+      copied.value = false
+    }, 2000)
+  } catch {
+    addError('CLIPBOARD-FAILED', 'Failed to copy URL to clipboard')
+  }
 }
 
 function reset(): void {
-	versionName.value = "";
-	visibility.value = "public";
-	description.value = "";
-	copied.value = false;
+  versionName.value = ''
+  visibility.value = 'public'
+  description.value = ''
+  copied.value = false
 }
 </script>
 

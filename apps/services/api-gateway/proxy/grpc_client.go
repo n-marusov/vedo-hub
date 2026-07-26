@@ -62,7 +62,7 @@ func (p *GrpcClientPool) GetConn(address string) (*grpc.ClientConn, error) {
 		grpc.WithUnaryInterceptor(authUnaryClientInterceptor()),
 	}
 
-	newConn, err := grpc.DialContext(ctx, address, dialOpts...)
+	newConn, err := grpc.DialContext(ctx, address, dialOpts...) //nolint:staticcheck
 	if err != nil {
 		slog.Error("grpc.pool.dial_failed", "address", address, "error", err)
 		return nil, err

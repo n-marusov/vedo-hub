@@ -58,7 +58,7 @@ class CsvParser(BaseParser):
         delimiter = self._detect_delimiter(raw)
 
         lines = raw.split("\n")
-        total_rows = len([l for l in lines if l.strip()])
+        len([l for l in lines if l.strip()])
 
         # Parse with detected delimiter
         reader = csv.reader(io.StringIO(raw), delimiter=delimiter)

@@ -58,123 +58,122 @@
 </template>
 
 <script setup lang="ts">
-import { createProject } from "@/api/org";
-import Dialog from "@/components/ui-kit/Dialog.vue";
-import GhostButton from "@/components/ui-kit/GhostButton.vue";
-import PrimaryButton from "@/components/ui-kit/PrimaryButton.vue";
-import { useErrorPresentation } from "@/composables/useErrorPresentation";
-import { ref } from "vue";
+import { createProject } from '@/api/org'
+import Dialog from '@/components/ui-kit/Dialog.vue'
+import GhostButton from '@/components/ui-kit/GhostButton.vue'
+import PrimaryButton from '@/components/ui-kit/PrimaryButton.vue'
+import { useErrorPresentation } from '@/composables/useErrorPresentation'
+import { ref } from 'vue'
 
-defineProps<{ open: boolean }>();
-const emit = defineEmits<{ close: []; created: [projectName: string] }>();
+defineProps<{ open: boolean }>()
+const emit = defineEmits<{ close: []; created: [projectName: string] }>()
 
-const { addError } = useErrorPresentation();
+const { addError } = useErrorPresentation()
 
-const projectName = ref("");
-const projectSlug = ref("project-slug");
-const namespace = ref("workspace");
-const visibility = ref("private");
-const submitting = ref(false);
-const validationError = ref<{ field: string; message: string } | null>(null);
+const projectName = ref('')
+const projectSlug = ref('project-slug')
+const namespace = ref('workspace')
+const visibility = ref('private')
+const submitting = ref(false)
+const validationError = ref<{ field: string; message: string } | null>(null)
 
 const visibilityOptions = [
-	{
-		value: "private",
-		label: "Private",
-		description:
-			"Project access must be granted explicitly to each user. If this project is part of a group, access is granted to members of the group.",
-	},
-	{
-		value: "internal",
-		label: "Internal",
-		description:
-			"The project can be accessed by any logged in user except external users.",
-	},
-	{
-		value: "public",
-		label: "Public",
-		description: "The project can be accessed without any authentication.",
-	},
-];
+  {
+    value: 'private',
+    label: 'Private',
+    description:
+      'Project access must be granted explicitly to each user. If this project is part of a group, access is granted to members of the group.'
+  },
+  {
+    value: 'internal',
+    label: 'Internal',
+    description: 'The project can be accessed by any logged in user except external users.'
+  },
+  {
+    value: 'public',
+    label: 'Public',
+    description: 'The project can be accessed without any authentication.'
+  }
+]
 
 function slugify(value: string): string {
-	return value
-		.trim()
-		.toLowerCase()
-		.replace(/[^a-z0-9_\s-]/g, "")
-		.replace(/[\s_]+/g, "-")
-		.replace(/-+/g, "-")
-		.replace(/^-|-$/g, "");
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_\s-]/g, '')
+    .replace(/[\s_]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
 }
 
 function syncSlugFromName(): void {
-	const slug = slugify(projectName.value);
-	projectSlug.value = slug || projectSlug.value;
+  const slug = slugify(projectName.value)
+  projectSlug.value = slug || projectSlug.value
 }
 
 async function submit(): Promise<void> {
-	console.debug(
-		JSON.stringify({
-			level: "debug",
-			msg: "CreateProject.submitted",
-			projectName: projectName.value,
-			namespace: namespace.value,
-			projectSlug: projectSlug.value,
-			visibility: visibility.value,
-			ts: new Date().toISOString(),
-		}),
-	);
+  console.debug(
+    JSON.stringify({
+      level: 'debug',
+      msg: 'CreateProject.submitted',
+      projectName: projectName.value,
+      namespace: namespace.value,
+      projectSlug: projectSlug.value,
+      visibility: visibility.value,
+      ts: new Date().toISOString()
+    })
+  )
 
-	validationError.value = null;
+  validationError.value = null
 
-	if (!projectName.value.trim()) {
-		validationError.value = {
-			field: "name",
-			message: "Project name is required",
-		};
-		return;
-	}
+  if (!projectName.value.trim()) {
+    validationError.value = {
+      field: 'name',
+      message: 'Project name is required'
+    }
+    return
+  }
 
-	submitting.value = true;
-	try {
-		await createProject({
-			name: projectName.value.trim(),
-			description: undefined,
-			groupId: undefined,
-		});
+  submitting.value = true
+  try {
+    await createProject({
+      name: projectName.value.trim(),
+      description: undefined,
+      groupId: undefined
+    })
 
-		console.debug(
-			JSON.stringify({
-				level: "debug",
-				msg: "CreateProject.success",
-				projectName: projectName.value,
-				ts: new Date().toISOString(),
-			}),
-		);
-		emit("created", projectName.value);
-		reset();
-	} catch (e) {
-		const msg = e instanceof Error ? e.message : String(e);
-		addError("CREATE-PROJECT-FAILED", msg);
-		console.error(
-			JSON.stringify({
-				level: "error",
-				msg: "CreateProject.failed",
-				error: msg,
-				ts: new Date().toISOString(),
-			}),
-		);
-	} finally {
-		submitting.value = false;
-	}
+    console.debug(
+      JSON.stringify({
+        level: 'debug',
+        msg: 'CreateProject.success',
+        projectName: projectName.value,
+        ts: new Date().toISOString()
+      })
+    )
+    emit('created', projectName.value)
+    reset()
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    addError('CREATE-PROJECT-FAILED', msg)
+    console.error(
+      JSON.stringify({
+        level: 'error',
+        msg: 'CreateProject.failed',
+        error: msg,
+        ts: new Date().toISOString()
+      })
+    )
+  } finally {
+    submitting.value = false
+  }
 }
 
 function reset(): void {
-	projectName.value = "";
-	projectSlug.value = "project-slug";
-	namespace.value = "workspace";
-	visibility.value = "private";
-	validationError.value = null;
+  projectName.value = ''
+  projectSlug.value = 'project-slug'
+  namespace.value = 'workspace'
+  visibility.value = 'private'
+  validationError.value = null
 }
 </script>
 

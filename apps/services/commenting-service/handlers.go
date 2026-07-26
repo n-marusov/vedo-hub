@@ -405,12 +405,11 @@ func (h *commentHandlers) sseCommentStream(w http.ResponseWriter, r *http.Reques
 
 	broker := newSSEBroker(h.bus)
 	eventCh := make(chan SSEEvent, 50)
-	errCh := make(chan error, 1)
 
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
-	go broker.ServeSSE(ctx, ontologyID, eventCh, errCh)
+	go broker.ServeSSE(ctx, ontologyID, eventCh)
 
 	slog.Info("SSE stream started", "ontology_id", ontologyID)
 

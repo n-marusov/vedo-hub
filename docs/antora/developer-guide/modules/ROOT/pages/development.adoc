@@ -1,0 +1,128 @@
+= Development
+:description: Native builds, per-service operations, linting, formatting, Git hooks, and cleanup.
+
+== Native Build (without Docker)
+
+Build or test individual services locally using host toolchains (Git, Rust, Python, Node.js must be installed):
+
+[source,bash]
+----
+# Per-service native builds (detects language automatically)
+make build-api-gateway      # Go
+make build-ontology-service  # Rust
+make build-frontend          # TypeScript
+make build-document-extractor # Python
+
+# By language (all services of that language)
+make build-rust
+make build-go
+make build-python
+make build-typescript
+
+# All services
+make build
+----
+
+Each service detects its language from project files in its directory (Cargo.toml, go.mod, pyproject.toml, package.json).
+
+== Linting
+
+[source,bash]
+----
+make lint                        # All linters
+make lint-rust                   # Rust only (cargo clippy)
+make lint-go                     # Go only (golangci-lint)
+make lint-python                 # Python only (ruff check)
+make lint-typescript             # TypeScript only (biome check)
+
+# Per-service linting
+make lint-api-gateway
+make lint-ontology-service
+----
+
+== Formatting
+
+[source,bash]
+----
+make fmt                         # All languages
+make fmt-rust                    # cargo fmt
+make fmt-go                      # gofmt
+make fmt-python                  # ruff format
+make fmt-typescript              # biome check --write
+----
+
+== Dev Servers
+
+[source,bash]
+----
+make dev-frontend     # Vue 3 frontend with hot reload (Vite)
+make dev-api          # API gateway with go run
+----
+
+== Local Native Development
+
+Running a service outside Docker (for debugging / hot-reload): start only infrastructure, then point the service at `localhost`:
+
+[source,bash]
+----
+# Start infra only
+make infra-up
+
+# Example: run API Gateway natively
+export API_GATEWAY_PORT=8080
+export ONTOLOGY_SERVICE_URL=http://localhost:8082
+export AUTH_SERVICE_URL=http://localhost:8081
+export KEYCLOAK_JWKS_URL=http://localhost:8180/realms/vedo-core/protocol/openid-connect/certs
+cd apps/services/api-gateway && go run .
+----
+
+Each service reads its config from env vars — see the `environment:` block in `deploy/docker-compose.yml`.
+
+== Git Hooks
+
+Git hooks management via Lefthook:
+
+[source,bash]
+----
+make install-hooks      # Install Git hooks
+make uninstall-hooks    # Remove hooks
+make run-hooks          # Run pre-commit hooks on staged files
+make validate-hooks     # Validate lefthook.yml configuration
+----
+
+== Vendoring
+
+Go services require a `vendor/` directory for offline Docker builds:
+
+[source,bash]
+----
+make vendor-go    # Populate vendor/ for all Go services
+----
+
+== TypeScript Type Checking
+
+[source,bash]
+----
+make typecheck    # vue-tsc --noEmit for all TypeScript services
+----
+
+== Cleanup
+
+[source,bash]
+----
+make clean        # Remove build artifacts
+make clean-all    # Deep clean: artifacts + vendor/ + .venv + node_modules
+----
+
+== List Services
+
+[source,bash]
+----
+make list-services    # Show all services grouped by language
+----
+
+== See Also
+
+* xref:deployment.adoc[Deployment] — Docker setup and environments
+* xref:configuration.adoc[Configuration] — environment variables and ports
+* xref:testing.adoc[Testing] — test suite reference

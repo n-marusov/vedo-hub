@@ -121,14 +121,14 @@ class JsonParser(BaseParser):
             # Check if all elements have the same type
             types = {type(v).__name__ for v in value}
             if len(types) == 1:
-                elem_type = list(types)[0]
+                elem_type = next(iter(types))
                 lines.append(f"{indent}List<{elem_type}> ({len(value)} items)")
             else:
                 types_str = ", ".join(sorted(types))
                 lines.append(f"{indent}List<mixed> ({len(value)} items, types: {types_str})")
 
             # Traverse first few elements as examples
-            for i, item in enumerate(value[:3]):
+            for _i, item in enumerate(value[:3]):
                 self._traverse(item, lines, depth + 1)
             if len(value) > 3:
                 lines.append(f"{indent}  ... and {len(value) - 3} more items")

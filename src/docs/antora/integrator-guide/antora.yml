@@ -1,6 +1,0 @@
-name: integrator-guide
-title: Integrator Guide
-version: ~
-nav:
-  - modules/ROOT/nav.adoc
-  - modules/api/nav.adoc

@@ -1,4 +1,0 @@
-* xref:index.adoc[User Guide Home]
-* xref:quick-start.adoc[Quick Start]
-* xref:ontology-editing.adoc[Ontology Editing]
-* xref:versioning.adoc[Versioning]

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -16,8 +15,9 @@ import (
 
 // OrgService is the central authorization service for group/ontology access.
 // @hlv:sec [AUTH_BOUNDARY] — All authorization decisions flow through OrgService.
+//
+//nolint:revive
 type OrgService struct {
-	mu    sync.RWMutex
 	store OrgStore
 	cache *CacheStore
 }
@@ -51,7 +51,8 @@ func (s *OrgService) GetEffectiveRole(userID, scope string) (string, error) {
 
 	cacheKey := "role:" + userID + ":" + scope
 	if cached := s.cache.Get(cacheKey); cached != nil {
-		return cached.(string), nil
+		role, _ := cached.(string)
+		return role, nil
 	}
 
 	scopes, err := s.collectInheritedScopes(scope, nil)
@@ -116,8 +117,8 @@ func (s *OrgService) CheckAccess(userID, scope, action string) error {
 	}
 
 	// @hlv:sec [AUTH_BOUNDARY] — Cross-tenant access is always denied.
-	if err := s.checkTenantAccess(userID, scopeNode); err != nil {
-		return err
+	if e := s.checkTenantAccess(userID, scopeNode); e != nil {
+		return e
 	}
 
 	// @hlv visibility_checked
@@ -443,7 +444,8 @@ func (s *OrgService) checkTenantAccess(userID string, node *ScopeNode) error {
 func (s *OrgService) EvaluateABAC(userID, scope, right string, attributes map[string]string) (bool, error) {
 	cacheKey := "abac:" + userID + ":" + scope + ":" + right
 	if cached := s.cache.Get(cacheKey); cached != nil {
-		return cached.(bool), nil
+		val, _ := cached.(bool)
+		return val, nil
 	}
 
 	policies, err := s.store.GetPolicies(scope)

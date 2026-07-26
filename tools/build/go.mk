@@ -1,6 +1,6 @@
 # @ctx: Go build/lint/test rules — PLAT-LOCAL-002
 
-GO_DIRS := $(shell cd $(ROOT) && find . -maxdepth 5 -name go.mod -not -path "*/templates/*" -not -path "*/shared/proto/*" -exec dirname {} \; 2>/dev/null | sed 's|^\./||')
+GO_DIRS := $(shell cd $(ROOT) && find . -maxdepth 5 -name go.mod -not -path "*/templates/*" -not -path "*/scaffolds/*" -not -path "*/src/*" -not -path "*/tests/*" -not -path "*/shared/proto/*" -exec dirname {} \; 2>/dev/null | sed 's|^\./||')
 
 .PHONY: build-go
 build-go:

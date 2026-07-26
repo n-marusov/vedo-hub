@@ -87,128 +87,127 @@
 </template>
 
 <script setup lang="ts">
-import { createGroup } from "@/api/org";
-import Dialog from "@/components/ui-kit/Dialog.vue";
-import GhostButton from "@/components/ui-kit/GhostButton.vue";
-import PrimaryButton from "@/components/ui-kit/PrimaryButton.vue";
-import { useErrorPresentation } from "@/composables/useErrorPresentation";
-import { ref } from "vue";
+import { createGroup } from '@/api/org'
+import Dialog from '@/components/ui-kit/Dialog.vue'
+import GhostButton from '@/components/ui-kit/GhostButton.vue'
+import PrimaryButton from '@/components/ui-kit/PrimaryButton.vue'
+import { useErrorPresentation } from '@/composables/useErrorPresentation'
+import { ref } from 'vue'
 
-defineProps<{ open: boolean }>();
-const emit = defineEmits<{ close: []; created: [groupName: string] }>();
+defineProps<{ open: boolean }>()
+const emit = defineEmits<{ close: []; created: [groupName: string] }>()
 
-const { addError } = useErrorPresentation();
+const { addError } = useErrorPresentation()
 
 const groupDescription =
-	"Groups allow you to manage and collaborate across multiple projects. Members of a group have access to all of its projects.\n\nGroups can also be nested by creating subgroups.";
+  'Groups allow you to manage and collaborate across multiple projects. Members of a group have access to all of its projects.\n\nGroups can also be nested by creating subgroups.'
 
-const groupName = ref("");
-const groupSlug = ref("my-awesome-group");
-const description = ref("");
-const visibility = ref("private");
-const inviteEmail = ref("");
-const submitting = ref(false);
-const validationError = ref<{ field: string; message: string } | null>(null);
+const groupName = ref('')
+const groupSlug = ref('my-awesome-group')
+const description = ref('')
+const visibility = ref('private')
+const inviteEmail = ref('')
+const submitting = ref(false)
+const validationError = ref<{ field: string; message: string } | null>(null)
 
 const visibilityOptions = [
-	{
-		value: "private",
-		label: "Private",
-		description: "The group and its projects can only be viewed by members.",
-	},
-	{
-		value: "internal",
-		label: "Internal",
-		description:
-			"The group and any internal projects can be viewed by any logged in user except external users.",
-	},
-	{
-		value: "public",
-		label: "Public",
-		description:
-			"The group and any public projects can be viewed without any authentication.",
-	},
-];
+  {
+    value: 'private',
+    label: 'Private',
+    description: 'The group and its projects can only be viewed by members.'
+  },
+  {
+    value: 'internal',
+    label: 'Internal',
+    description:
+      'The group and any internal projects can be viewed by any logged in user except external users.'
+  },
+  {
+    value: 'public',
+    label: 'Public',
+    description: 'The group and any public projects can be viewed without any authentication.'
+  }
+]
 
 function slugify(value: string): string {
-	return value
-		.trim()
-		.toLowerCase()
-		.replace(/[^a-z0-9_\s-]/g, "")
-		.replace(/[\s_]+/g, "-")
-		.replace(/-+/g, "-")
-		.replace(/^-|-$/g, "");
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_\s-]/g, '')
+    .replace(/[\s_]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
 }
 
 function syncSlugFromName(): void {
-	const slug = slugify(groupName.value);
-	groupSlug.value = slug || groupSlug.value;
+  const slug = slugify(groupName.value)
+  groupSlug.value = slug || groupSlug.value
 }
 
 async function submit(): Promise<void> {
-	console.debug(
-		JSON.stringify({
-			level: "debug",
-			msg: "CreateGroup.submitted",
-			groupName: groupName.value,
-			groupSlug: groupSlug.value,
-			visibility: visibility.value,
-			inviteEmail: inviteEmail.value || undefined,
-			ts: new Date().toISOString(),
-		}),
-	);
+  console.debug(
+    JSON.stringify({
+      level: 'debug',
+      msg: 'CreateGroup.submitted',
+      groupName: groupName.value,
+      groupSlug: groupSlug.value,
+      visibility: visibility.value,
+      inviteEmail: inviteEmail.value || undefined,
+      ts: new Date().toISOString()
+    })
+  )
 
-	validationError.value = null;
+  validationError.value = null
 
-	if (!groupName.value.trim()) {
-		validationError.value = {
-			field: "name",
-			message: "Group name is required",
-		};
-		return;
-	}
+  if (!groupName.value.trim()) {
+    validationError.value = {
+      field: 'name',
+      message: 'Group name is required'
+    }
+    return
+  }
 
-	submitting.value = true;
-	try {
-		await createGroup({
-			name: groupName.value.trim(),
-			description: description.value.trim() || undefined,
-			visibility: visibility.value,
-		});
+  submitting.value = true
+  try {
+    await createGroup({
+      name: groupName.value.trim(),
+      description: description.value.trim() || undefined,
+      visibility: visibility.value
+    })
 
-		console.debug(
-			JSON.stringify({
-				level: "debug",
-				msg: "CreateGroup.success",
-				groupName: groupName.value,
-				ts: new Date().toISOString(),
-			}),
-		);
-		emit("created", groupName.value);
-		reset();
-	} catch (e) {
-		const msg = e instanceof Error ? e.message : String(e);
-		addError("CREATE-GROUP-FAILED", msg);
-		console.error(
-			JSON.stringify({
-				level: "error",
-				msg: "CreateGroup.failed",
-				error: msg,
-				ts: new Date().toISOString(),
-			}),
-		);
-	} finally {
-		submitting.value = false;
-	}
+    console.debug(
+      JSON.stringify({
+        level: 'debug',
+        msg: 'CreateGroup.success',
+        groupName: groupName.value,
+        ts: new Date().toISOString()
+      })
+    )
+    emit('created', groupName.value)
+    reset()
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    addError('CREATE-GROUP-FAILED', msg)
+    console.error(
+      JSON.stringify({
+        level: 'error',
+        msg: 'CreateGroup.failed',
+        error: msg,
+        ts: new Date().toISOString()
+      })
+    )
+  } finally {
+    submitting.value = false
+  }
 }
 
 function reset(): void {
-	groupName.value = "";
-	groupSlug.value = "my-awesome-group";
-	description.value = "";
-	visibility.value = "private";
-	inviteEmail.value = "";
-	validationError.value = null;
+  groupName.value = ''
+  groupSlug.value = 'my-awesome-group'
+  description.value = ''
+  visibility.value = 'private'
+  inviteEmail.value = ''
+  validationError.value = null
 }
 </script>
 

@@ -106,7 +106,7 @@ func RequestLogger() gin.HandlerFunc {
 		}
 
 		if status >= 500 {
-			c.Error(nil) // trigger error handling
+			_ = c.Error(nil) // trigger error handling
 		}
 
 		// Structured log entry

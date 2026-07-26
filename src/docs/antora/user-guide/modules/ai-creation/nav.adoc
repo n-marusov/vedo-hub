@@ -1,5 +1,0 @@
-* xref:index.adoc[Overview]
-* xref:document-extraction.adoc[Document Extraction]
-* xref:nl-generation.adoc[NL→OWL Generation]
-* xref:batch-upload.adoc[Batch Upload]
-* xref:refinement.adoc[Iterative Refinement]

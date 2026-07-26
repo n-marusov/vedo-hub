@@ -17,12 +17,12 @@
 
 <script setup lang="ts">
 defineProps<{
-	disabled?: boolean;
-}>();
+  disabled?: boolean
+}>()
 
 defineEmits<{
-	click: [event: MouseEvent];
-}>();
+  click: [event: MouseEvent]
+}>()
 </script>
 
 <style scoped>

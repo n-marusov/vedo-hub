@@ -140,6 +140,9 @@ func TestIntrospect_KeycloakUnreachable_DegradesIdP(t *testing.T) {
 
 // @hlv [AUTH-RBAC-001] Synthetic `vtok_` tokens stay local when Keycloak env unset
 func TestIntrospect_SyntheticToken_NoKeycloakEnv_LocalLookup(t *testing.T) {
+	// Ensure KEYCLOAK_URL is not set (may have been leaked by another test)
+	reset := withEnv("KEYCLOAK_URL", "")
+	t.Cleanup(reset)
 	setupTest()
 	// KEYCLOAK_URL unset — synthetic token must use local store only.
 	if keycloakIntrospectURL() != "" {

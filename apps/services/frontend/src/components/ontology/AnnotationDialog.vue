@@ -47,70 +47,70 @@
 </template>
 
 <script setup lang="ts">
-import Dialog from "@/components/ui-kit/Dialog.vue";
-import GhostButton from "@/components/ui-kit/GhostButton.vue";
-import PrimaryButton from "@/components/ui-kit/PrimaryButton.vue";
-import { useErrorPresentation } from "@/composables/useErrorPresentation";
-import { ref } from "vue";
+import Dialog from '@/components/ui-kit/Dialog.vue'
+import GhostButton from '@/components/ui-kit/GhostButton.vue'
+import PrimaryButton from '@/components/ui-kit/PrimaryButton.vue'
+import { useErrorPresentation } from '@/composables/useErrorPresentation'
+import { ref } from 'vue'
 
-defineProps<{ open: boolean }>();
-const emit = defineEmits<{ close: []; saved: [] }>();
+defineProps<{ open: boolean }>()
+const emit = defineEmits<{ close: []; saved: [] }>()
 
-const { addError } = useErrorPresentation();
+const { addError } = useErrorPresentation()
 
-const annotationProperty = ref("");
-const value = ref("");
-const language = ref("");
-const submitting = ref(false);
+const annotationProperty = ref('')
+const value = ref('')
+const language = ref('')
+const submitting = ref(false)
 
 async function submit(): Promise<void> {
-	console.debug(
-		JSON.stringify({
-			level: "debug",
-			msg: "Annotation.submitted",
-			property: annotationProperty.value,
-			ts: new Date().toISOString(),
-		}),
-	);
+  console.debug(
+    JSON.stringify({
+      level: 'debug',
+      msg: 'Annotation.submitted',
+      property: annotationProperty.value,
+      ts: new Date().toISOString()
+    })
+  )
 
-	if (!annotationProperty.value || !value.value.trim()) {
-		addError("ANNOTATION-VALIDATION", "Property and value are required");
-		return;
-	}
+  if (!annotationProperty.value || !value.value.trim()) {
+    addError('ANNOTATION-VALIDATION', 'Property and value are required')
+    return
+  }
 
-	submitting.value = true;
-	try {
-		await new Promise((resolve) => setTimeout(resolve, 500));
-		console.debug(
-			JSON.stringify({
-				level: "debug",
-				msg: "Annotation.success",
-				property: annotationProperty.value,
-				ts: new Date().toISOString(),
-			}),
-		);
-		emit("saved");
-		reset();
-	} catch (e) {
-		const msg = e instanceof Error ? e.message : String(e);
-		addError("ANNOTATION-FAILED", msg);
-		console.error(
-			JSON.stringify({
-				level: "error",
-				msg: "Annotation.failed",
-				error: msg,
-				ts: new Date().toISOString(),
-			}),
-		);
-	} finally {
-		submitting.value = false;
-	}
+  submitting.value = true
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 500))
+    console.debug(
+      JSON.stringify({
+        level: 'debug',
+        msg: 'Annotation.success',
+        property: annotationProperty.value,
+        ts: new Date().toISOString()
+      })
+    )
+    emit('saved')
+    reset()
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    addError('ANNOTATION-FAILED', msg)
+    console.error(
+      JSON.stringify({
+        level: 'error',
+        msg: 'Annotation.failed',
+        error: msg,
+        ts: new Date().toISOString()
+      })
+    )
+  } finally {
+    submitting.value = false
+  }
 }
 
 function reset(): void {
-	annotationProperty.value = "";
-	value.value = "";
-	language.value = "";
+  annotationProperty.value = ''
+  value.value = ''
+  language.value = ''
 }
 </script>
 

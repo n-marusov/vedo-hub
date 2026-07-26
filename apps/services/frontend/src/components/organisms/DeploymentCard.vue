@@ -42,22 +42,22 @@
 </template>
 
 <script setup lang="ts">
-import { Trash2 } from "lucide-vue-next";
+import { Trash2 } from 'lucide-vue-next'
 
 defineProps<{
-	status: string;
-	url: string;
-	classes: string;
-	individuals: string;
-	created: string;
-	updated: string;
-	expiry: string;
-	stopped?: boolean;
-}>();
+  status: string
+  url: string
+  classes: string
+  individuals: string
+  created: string
+  updated: string
+  expiry: string
+  stopped?: boolean
+}>()
 
 defineEmits<{
-	delete: [];
-}>();
+  delete: []
+}>()
 </script>
 
 <style scoped>

@@ -1,31 +1,35 @@
 # =============================================================================
 # VEDO Core — Build Orchestrator
 # =============================================================================
-# Root Makefile for polyglot microservices monorepo.
-# Delegates to language-specific includes in build/*.mk
+# Root Makefile for polyglot microservices monorepo (Go, Rust, Python, TypeScript).
+# Delegates to language-specific rules in tools/build/*.mk
 # =============================================================================
 
-# --- Preamble ---
-.SHELLFLAGS := -eu -o pipefail -c
-.DELETE_ON_ERROR:
-MAKEFLAGS += --warn-undefined-variables
-MAKEFLAGS += --no-builtin-rules
-
-# Use Git Bash on Windows, /bin/bash on Unix
+# --- Preamble ----------------------------------------------------------------
+# Strict mode: fail on errors, undefined vars, pipe failures.
+# Disable implicit rules for faster, predictable execution.
 ifeq ($(OS),Windows_NT)
   SHELL := C:/Program Files/Git/bin/bash.exe
 else
   SHELL := /bin/bash
 endif
 .ONESHELL:
+.SHELLFLAGS := -eu -o pipefail -c
+.DELETE_ON_ERROR:
+MAKEFLAGS += --warn-undefined-variables
+MAKEFLAGS += --no-builtin-rules
 
-# --- Project Metadata ---
-VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
-COMMIT  ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+# --- Project Metadata --------------------------------------------------------
+VERSION    ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
+COMMIT     ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 BUILD_TIME := $(shell date -u '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || echo "unknown")
+ROOT       := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 
-ROOT := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
+# --- Service Paths -----------------------------------------------------------
+SERVICE_DIR     := apps/services
+SRC_SERVICE_DIR := src/services
 
+# --- Include Language-Specific Rules -----------------------------------------
 include tools/build/rust.mk
 include tools/build/go.mk
 include tools/build/python.mk
@@ -33,37 +37,59 @@ include tools/build/typescript.mk
 include tools/build/docker.mk
 include tools/build/yaml.mk
 
+# --- Default Goal ------------------------------------------------------------
 .DEFAULT_GOAL := help
+
+# ==============================================================================
+# HELP
+# ==============================================================================
 
 .PHONY: help
 help: ## Show this help message
-	@awk 'BEGIN {FS = ":.*##"; printf "Usage: make \\033[36m<target>\\033[0m\\n"} \
-		/^[a-zA-Z_-]+:.*## / {printf "  \\033[36m%-22s\\033[0m %s\\n", $$1, $$2} \
-		/^##@/ {printf "\\n\\033[1m%s\\033[0m\\n", substr($$0, 5)}' $(MAKEFILE_LIST)
+	@awk 'BEGIN{printf "Usage: make \\033[36m<target>\\033[0m\\n"} \
+		/^[-a-zA-Z_0-9]+:.*## /{n=substr($$1,1,match($$1,/:/)-1);gsub(/^[-a-zA-Z_0-9]+:.*## /,"",$$0);printf "  \\033[36m%-25s\\033[0m %s\\n",n,$$0} \
+		/^##@/{printf "\\n\\033[1m%s\\033[0m\\n",substr($$0,5)}' $(MAKEFILE_LIST)
 
-STUB_SERVICES := api-gateway auth-service ontology-service versioning-service metrics-service publisher-service public-browse-api commenting-service ticket-api ticket-classifier ticket-telemetry-listener ticket-notifier frontend publish-browse-ui document-extractor ai-orchestration-service
+.PHONY: list-services
+list-services: ## List all registered services and their language
+	@echo "=== Go Services ==="
+	@for d in $(GO_DIRS); do printf "%s\n" "$$(basename $$d)"; done | sort -u | while read s; do printf "  %s\n" "$$s"; done
+	@echo ""
+	@echo "=== Rust Services ==="
+	@for d in $(RUST_DIRS); do \
+		bn=$$(basename $$d); \
+		[ "$$bn" = "shared" ] && continue; \
+		printf "%s\n" "$$bn"; \
+	done | sort -u | while read s; do printf "  %s\n" "$$s"; done
+	@echo ""
+	@echo "=== Python Services ==="
+	@for d in $(PYTHON_DIRS); do printf "%s\n" "$$(basename $$d)"; done | sort -u | while read s; do printf "  %s\n" "$$s"; done
+	@echo ""
+	@echo "=== TypeScript Services ==="
+	@for d in $(TS_DIRS); do printf "%s\n" "$$(basename $$d)"; done | sort -u | while read s; do printf "  %s\n" "$$s"; done
 
-
-##@ Proto — gRPC code generation
+# ==============================================================================
+# PROTO — gRPC code generation
+# ==============================================================================
 
 PROTO_DIR := apps/shared/proto
 
 .PHONY: proto-generate
 proto-generate: ## Generate gRPC code from .proto files (Go + Rust)
 	@echo "[Proto] generating Go code..."
-	@cd $(PROTO_DIR) && buf generate
+	@cd $(ROOT)/$(PROTO_DIR) && buf generate
 	@echo "[Proto] Go code generated"
 	@echo "[Proto] Rust code is generated at build-time via tonic_build"
 
 .PHONY: proto-lint
 proto-lint: ## Lint .proto files with buf
 	@echo "[Proto] linting..."
-	@cd $(PROTO_DIR) && buf lint
+	@cd $(ROOT)/$(PROTO_DIR) && buf lint
 
 .PHONY: proto-breaking
 proto-breaking: ## Check .proto breaking changes with buf
 	@echo "[Proto] checking breaking changes..."
-	@cd $(PROTO_DIR) && buf breaking --against '.git#branch=main'
+	@cd $(ROOT)/$(PROTO_DIR) && buf breaking --against '.git#branch=main'
 
 .PHONY: proto-all
 proto-all: proto-lint proto-generate ## Run all proto checks (lint + generate)
@@ -71,87 +97,137 @@ proto-all: proto-lint proto-generate ## Run all proto checks (lint + generate)
 .PHONY: proto-generate-python
 proto-generate-python: ## Generate Python gRPC stubs for document-extractor
 	@echo "[Proto] generating Python code..."
-	@cd $(PROTO_DIR) && python -m grpc_tools.protoc \
+	@cd $(ROOT)/$(PROTO_DIR) && python -m grpc_tools.protoc \
 		--proto_path=. \
-		--python_out=../../services/document-extractor/grpc_client \
-		--grpc_python_out=../../services/document-extractor/grpc_client \
+		--python_out=$(ROOT)/$(SERVICE_DIR)/document-extractor/grpc_client \
+		--grpc_python_out=$(ROOT)/$(SERVICE_DIR)/document-extractor/grpc_client \
 		common/v1/common.proto \
 		ontology/v1/ontology.proto
-	@echo "[Proto] Python code generated to apps/services/document-extractor/grpc_client/"
+	@echo "[Proto] Python code generated to $(SERVICE_DIR)/document-extractor/grpc_client/"
 	@echo "[Proto] Note: run 'pip install grpcio-tools' if grpc_tools is not available"
 
 .PHONY: proto-generate-ai-orchestration
 proto-generate-ai-orchestration: ## Generate Go gRPC stubs for ai-orchestration-service
 	@echo "[Proto] generating ai-orchestration Go code..."
-	@cd $(PROTO_DIR) && buf generate ai-orchestration/v1/ai_orchestration.proto
+	@cd $(ROOT)/$(PROTO_DIR) && buf generate ai-orchestration/v1/ai_orchestration.proto
 	@echo "[Proto] ai-orchestration Go code generated"
 
 .PHONY: proto-generate-ai-orchestration-python
-proto-generate-ai-orchestration-python: ## Generate Python gRPC stubs for ai-orchestration (document-extractor)
+proto-generate-ai-orchestration-python: ## Generate Python gRPC stubs for ai-orchestration
 	@echo "[Proto] generating ai-orchestration Python code..."
-	@cd $(PROTO_DIR) && python -m grpc_tools.protoc \
+	@cd $(ROOT)/$(PROTO_DIR) && python -m grpc_tools.protoc \
 		--proto_path=. \
-		--python_out=../../services/document-extractor/grpc_client \
-		--grpc_python_out=../../services/document-extractor/grpc_client \
+		--python_out=$(ROOT)/$(SERVICE_DIR)/document-extractor/grpc_client \
+		--grpc_python_out=$(ROOT)/$(SERVICE_DIR)/document-extractor/grpc_client \
 		common/v1/common.proto \
 		ai-orchestration/v1/ai_orchestration.proto
-	@echo "[Proto] ai-orchestration Python code generated to apps/services/document-extractor/grpc_client/"
+	@echo "[Proto] ai-orchestration Python code generated to $(SERVICE_DIR)/document-extractor/grpc_client/"
 
-##@ Build
-build: build-rust build-go build-python build-typescript ## Build all services (Rust, Go, Python, TypeScript)
+# ==============================================================================
+# BUILD — Compile all services natively (without Docker)
+# ==============================================================================
 
-.PHONY: docker-build-ai-orchestration
-docker-build-ai-orchestration: ## Build ai-orchestration-service Docker image
-	@echo "[Docker] building ai-orchestration-service image"
-	@docker build \
-		-t vedo-core/ai-orchestration-service:latest \
-		-f $(ROOT)/services/ai-orchestration-service/Dockerfile \
-		$(ROOT)/services/ai-orchestration-service 2>&1 || { echo "BUILD_FAILED: docker build for ai-orchestration-service"; exit 1; }
-	@echo "[Docker] ai-orchestration-service image built"
+##@ Build — Native (all)
 
-##@ Lint
-lint: lint-rust lint-go lint-python lint-typescript lint-yaml ## Run all linters
+build: build-rust build-go build-python build-typescript ## Build all services natively (Rust, Go, Python, TypeScript)
 
-##@ Format
-.PHONY: fmt-rust fmt-go fmt-python fmt-typescript fmt
+build-all: build ## Alias for build
 
-fmt-rust:
-	@if [ -z "$(RUST_DIRS)" ]; then echo "No Rust services found"; exit 0; fi
-	@for dir in $(RUST_DIRS); do \
-		echo "[Rust] formatting $$(basename $$dir)"; \
-		cd $$dir && cargo fmt 2>&1 || true; \
+##@ Build — Native (per-service)
+
+# Build a single service natively (usage: make build-api-gateway)
+# @desc: Detects language automatically from service directory contents.
+#   Works for services under apps/services/ and src/services/.
+#   For per-language builds use: build-rust, build-go, build-python, build-typescript
+.PHONY: build-%
+build-%:
+	@svc="$*"
+	dir=""
+	for d in "$(ROOT)/$(SERVICE_DIR)/$$svc" "$(ROOT)/$(SRC_SERVICE_DIR)/$$svc"; do \
+		if [ -d "$$d" ]; then dir="$$d"; break; fi; \
 	done
+	if [ -z "$$dir" ]; then \
+		echo "Unknown service: $$svc"; \
+		echo "Run 'make list-services' to see available services."; \
+		exit 1; \
+	fi
+	if [ -f "$$dir/Cargo.toml" ]; then \
+		echo "[Rust] building $$svc"
+		cd "$$dir" && cargo build --release 2>&1
+	elif [ -f "$$dir/go.mod" ]; then \
+		echo "[Go] building $$svc"
+		cd "$$dir" && go build ./... 2>&1
+	elif [ -f "$$dir/pyproject.toml" ]; then \
+		echo "[Python] installing deps for $$svc"
+		cd "$$dir" && uv sync 2>&1
+	elif [ -f "$$dir/package.json" ]; then \
+		echo "[TypeScript] building $$svc"
+		cd "$$dir" && pnpm install 2>&1 && pnpm build 2>&1
+	else
+		echo "Cannot determine language for $$svc — no Cargo.toml, go.mod, pyproject.toml, or package.json"
+		exit 1
+	fi
 
-fmt-go:
-	@if [ -z "$(GO_DIRS)" ]; then echo "No Go services found"; exit 0; fi
-	@for dir in $(GO_DIRS); do \
-		echo "[Go] formatting $$(basename $$dir)"; \
-		cd $(ROOT)/$$dir && gofmt -l -w . 2>&1 || true; \
-	done
 
-fmt-python:
-	@if [ -z "$(PYTHON_DIRS)" ]; then echo "No Python services found"; exit 0; fi
-	@for dir in $(PYTHON_DIRS); do \
-		echo "[Python] formatting $$(basename $$dir)"; \
-		cd $$dir && ruff format . 2>&1 || true; \
-	done
 
-fmt-typescript:
-	@if [ -z "$(TS_DIRS)" ]; then echo "No TypeScript services found"; exit 0; fi
-	@for dir in $(TS_DIRS); do \
-		echo "[TypeScript] formatting $$(basename $$dir)"; \
-		cd $(ROOT)/$$dir && npx biome check --write . 2>&1 || true; \
-	done
+# ==============================================================================
+# TEST — Unit tests (runs natively, no Docker required)
+# ==============================================================================
 
-fmt: fmt-rust fmt-go fmt-python fmt-typescript ## Format all source code
+##@ Test — Unit
 
-##@ Test
-test: test-rust-unit test-go test-python test-typescript ## Run all unit tests (T0)
+test: test-rust-unit test-go test-python test-typescript ## Run all unit tests (T0) natively
 
 test-all: test-rust test-go test-python test-typescript ## Run all tests including integration (T0+T1)
 
+##@ Test — Integration
+
+test-integration: test-integration-rust test-integration-go ## Run integration tests (requires live infra: Neo4j, Postgres, etc.)
+
+.PHONY: test-integration-rust
+test-integration-rust: ## Run Rust integration tests (requires NEO4J_URI, DATABASE_URL)
+	@bash $(ROOT)/tests/run_integration_rust.sh
+
+.PHONY: test-integration-go
+test-integration-go: ## Run Go integration tests in tests/integration/
+	@if [ -d "$(ROOT)/tests/integration/ticket-api" ]; then \
+		echo "[Go] integration tests — ticket-api"
+		cd "$(ROOT)/tests/integration/ticket-api" && go test ./... 2>&1 || true; \
+	fi
+	@if [ -d "$(ROOT)/tests/integration/org-api" ]; then \
+		echo "[Go] integration tests — org-api"
+		cd "$(ROOT)/tests/integration/org-api" && go test ./... 2>&1 || true; \
+	fi
+
+##@ Test — E2E (requires Docker test stack)
+
+test-e2e: test-e2e-api test-e2e-gui ## Run all E2E tests (API + GUI)
+
+.PHONY: test-e2e-api
+test-e2e-api: ## Run E2E API tests via Playwright (requires Docker test stack)
+	@echo "[E2E] installing dependencies..."
+	@cd "$(ROOT)/tests/e2e" && pnpm install --frozen-lockfile 2>&1 || pnpm install 2>&1
+	@cd "$(ROOT)/tests/e2e" && npx playwright install chromium 2>&1 || true
+	@echo "[E2E] running API tests..."
+	@cd "$(ROOT)/tests/e2e" && pnpm exec playwright test --config=config/playwright.api.config.ts
+
+.PHONY: test-e2e-gui
+test-e2e-gui: ## Run E2E GUI tests via Playwright (requires Docker test stack)
+	@echo "[E2E] installing dependencies..."
+	@cd "$(ROOT)/tests/e2e" && pnpm install --frozen-lockfile 2>&1 || pnpm install 2>&1
+	@cd "$(ROOT)/tests/e2e" && npx playwright install chromium 2>&1 || true
+	@echo "[E2E] running GUI tests..."
+	@cd "$(ROOT)/tests/e2e" && pnpm exec playwright test --config=config/playwright.gui.config.ts
+
+.PHONY: test-gates
+test-gates: ## Run all gate-level test scripts (contracts, BOLA/BFLA, etc.)
+	@echo "[Gates] running contract tests..."
+	@bash $(ROOT)/tests/gates/test_contract_gate.sh 2>&1 || true
+	@echo "[Gates] running BOLA/BFLA security tests..."
+	@bash $(ROOT)/tests/gates/test_bola_bfla_gate.sh 2>&1 || true
+
 .PHONY: coverage
-coverage: ## Run tests with coverage
+coverage: ## Run tests with coverage (Go only)
 	@echo "[Coverage] running tests with coverage..."
 	@if [ -n "$(GO_DIRS)" ]; then \
 		for dir in $(GO_DIRS); do \
@@ -160,124 +236,305 @@ coverage: ## Run tests with coverage
 		done; \
 	fi
 
-##@ TypeScript
-typecheck: typecheck-typescript ## Run TypeScript type checking
+# ==============================================================================
+# LINT — All linters
+# ==============================================================================
 
-##@ CI
-ci: build lint test typecheck ## Run all CI checks (build + lint + test + typecheck)
+##@ Lint
 
-##@ Docker — Build
-docker-build: docker-build-rust docker-build-go docker-build-python docker-build-typescript ## Build Docker images for all services
+lint: lint-rust lint-go lint-python lint-typescript lint-yaml ## Run all linters
 
-docker-build-stubs: $(addprefix docker-build-,$(STUB_SERVICES)) ## Build stub service images
-
-docker-build-%:
-	@if echo "$(STUB_SERVICES)" | grep -Eq "(^| )$*( |$$)"; then \
-		echo "[Docker] building stub image vedo-core/$*:latest"; \
-		docker build -f "$(ROOT)/services/$*/Dockerfile" -t "vedo-core/$*:latest" "$(ROOT)"; \
-	else \
-		echo "BUILD_FAILED: unknown service '$*'"; \
+.PHONY: lint-%
+lint-%: ## Lint a single service (usage: make lint-api-gateway)
+	@svc="$*"
+	dir=""
+	for d in "$(ROOT)/$(SERVICE_DIR)/$$svc" "$(ROOT)/$(SRC_SERVICE_DIR)/$$svc"; do \
+		if [ -d "$$d" ]; then dir="$$d"; break; fi; \
+	done
+	if [ -z "$$dir" ]; then \
+		echo "Unknown service: $$svc"; \
+		echo "Run 'make list-services' to see available services."; \
 		exit 1; \
 	fi
+	if [ -f "$$dir/Cargo.toml" ]; then \
+		echo "[Rust] linting $$svc"
+		cd "$$dir" && cargo clippy -- -D warnings 2>&1
+	elif [ -f "$$dir/go.mod" ]; then \
+		echo "[Go] linting $$svc"
+		cd "$$dir" && golangci-lint run ./... 2>&1
+	elif [ -f "$$dir/pyproject.toml" ]; then \
+		echo "[Python] linting $$svc"
+		cd "$$dir" && ruff check . 2>&1
+	elif [ -f "$$dir/package.json" ]; then \
+		echo "[TypeScript] linting $$svc"
+		cd "$$dir" && npx biome check . 2>&1
+	else
+		echo "Cannot determine language for $$svc"
+		exit 1
+	fi
+
+# ==============================================================================
+# FORMAT — Code formatting
+# ==============================================================================
+
+##@ Format
+
+.PHONY: fmt-rust fmt-go fmt-python fmt-typescript fmt
+
+fmt-rust: ## Format all Rust code with cargo fmt
+	@if [ -z "$(RUST_DIRS)" ]; then echo "No Rust services found"; exit 0; fi
+	@for dir in $(RUST_DIRS); do \
+		echo "[Rust] formatting $$(basename $$dir)"; \
+		cd $$dir && cargo fmt 2>&1 || true; \
+	done
+
+fmt-go: ## Format all Go code with gofmt
+	@if [ -z "$(GO_DIRS)" ]; then echo "No Go services found"; exit 0; fi
+	@for dir in $(GO_DIRS); do \
+		echo "[Go] formatting $$(basename $$dir)"; \
+		cd $(ROOT)/$$dir && gofmt -l -w . 2>&1 || true; \
+	done
+
+fmt-python: ## Format all Python code with ruff
+	@if [ -z "$(PYTHON_DIRS)" ]; then echo "No Python services found"; exit 0; fi
+	@for dir in $(PYTHON_DIRS); do \
+		echo "[Python] formatting $$(basename $$dir)"; \
+		cd $$dir && ruff format . 2>&1 || true; \
+	done
+
+fmt-typescript: ## Format all TypeScript code with biome
+	@if [ -z "$(TS_DIRS)" ]; then echo "No TypeScript services found"; exit 0; fi
+	@for dir in $(TS_DIRS); do \
+		echo "[TypeScript] formatting $$(basename $$dir)"; \
+		cd $(ROOT)/$$dir && npx biome check --write . 2>&1 || true; \
+	done
+
+fmt: fmt-rust fmt-go fmt-python fmt-typescript ## Format all source code
+
+# ==============================================================================
+# DOCKER — Build images
+# ==============================================================================
+
+##@ Docker — Build
+
+docker-build: docker-build-rust docker-build-go docker-build-python docker-build-typescript ## Build Docker images for all services (by language)
+
+docker-build-all: docker-build ## Alias for docker-build
+
+# Build a single service Docker image via compose (usage: make docker-build-api-gateway)
+# NOTE: per-service builds use `docker compose build` which reads the compose file
+# to determine build context and Dockerfile.
+docker-build-%:
+	@docker compose \
+		--env-file $(ROOT)/.env.$(ENV) \
+		-f $(ROOT)/$(COMPOSE_FILE) \
+		build $*
 
 ##@ Docker — Compose Lifecycle
+
 ENV                 ?= dev
-COMPOSE_FILE        ?= ../deploy/docker-compose.yml
+COMPOSE_FILE        ?= deploy/docker-compose.yml
 COMPOSE_PROFILE     ?=
 
-.PHONY: docker-up docker-down docker-logs docker-ps docker-shell
+.PHONY: docker-up docker-down docker-logs docker-ps docker-shell docker-config
+.PHONY: docker-up-dev docker-up-test docker-up-staging
+.PHONY: docker-down-dev docker-down-test docker-down-staging
 
-docker-up: ## Start all services via Docker Compose (use ENV=dev|test|staging)
+docker-up: ## Start all services via Docker Compose (usage: make docker-up [ENV=dev|test|staging])
 	docker compose \
-		$(if $(ENV),--env-file ../.env.$(ENV)) \
-		-f $(COMPOSE_FILE) \
+		--env-file $(ROOT)/.env.$(ENV) \
+		-f $(ROOT)/$(COMPOSE_FILE) \
 		$(if $(COMPOSE_PROFILE),--profile $(COMPOSE_PROFILE)) \
 		up -d
 
-docker-down: ## Stop all services (use ENV=dev|test|staging)
+docker-up-dev: ## Start dev environment (alias for make docker-up ENV=dev)
+	$(MAKE) docker-up ENV=dev
+
+docker-up-test: ## Start test environment (includes JWT dev keys for Playwright)
+	$(MAKE) docker-up ENV=test
+
+docker-up-staging: ## Start staging environment
+	$(MAKE) docker-up ENV=staging
+
+docker-down: ## Stop all services (usage: make docker-down [ENV=dev|test|staging])
 	docker compose \
-		$(if $(ENV),--env-file ../.env.$(ENV)) \
-		-f $(COMPOSE_FILE) \
+		--env-file $(ROOT)/.env.$(ENV) \
+		-f $(ROOT)/$(COMPOSE_FILE) \
 		down
 
-docker-logs: ## Tail logs from all services (use ENV=dev|test|staging)
+docker-down-dev: ## Stop dev environment
+	$(MAKE) docker-down ENV=dev
+
+docker-down-test: ## Stop test environment
+	$(MAKE) docker-down ENV=test
+
+docker-down-staging: ## Stop staging environment
+	$(MAKE) docker-down ENV=staging
+
+docker-restart: docker-down docker-up ## Restart the current environment
+
+docker-logs: ## Tail logs from all services (usage: make docker-logs [ENV=dev|test|staging])
 	docker compose \
-		$(if $(ENV),--env-file ../.env.$(ENV)) \
-		-f $(COMPOSE_FILE) \
+		--env-file $(ROOT)/.env.$(ENV) \
+		-f $(ROOT)/$(COMPOSE_FILE) \
 		logs -f
 
-docker-ps: ## List running service containers (use ENV=dev|test|staging)
+docker-ps: ## List running service containers (usage: make docker-ps [ENV=dev|test|staging])
 	docker compose \
-		$(if $(ENV),--env-file ../.env.$(ENV)) \
-		-f $(COMPOSE_FILE) \
+		--env-file $(ROOT)/.env.$(ENV) \
+		-f $(ROOT)/$(COMPOSE_FILE) \
 		ps
 
-docker-shell: ## Open shell in a service container (usage: make docker-shell SVC=<name> ENV=dev)
+docker-shell: ## Open shell in a service container (usage: make docker-shell SVC=<name> [ENV=dev])
 	@if [ -z "$(SVC)" ]; then echo "Usage: make docker-shell SVC=<service-name>"; exit 1; fi
 	docker compose \
-		$(if $(ENV),--env-file ../.env.$(ENV)) \
-		-f $(COMPOSE_FILE) \
+		--env-file $(ROOT)/.env.$(ENV) \
+		-f $(ROOT)/$(COMPOSE_FILE) \
 		exec $(SVC) sh
 
-docker-config: ## Validate compose config (use ENV=dev|test|staging)
+docker-config: ## Validate compose configuration (usage: make docker-config [ENV=dev|test|staging])
 	docker compose \
-		$(if $(ENV),--env-file ../.env.$(ENV)) \
-		-f $(COMPOSE_FILE) \
+		--env-file $(ROOT)/.env.$(ENV) \
+		-f $(ROOT)/$(COMPOSE_FILE) \
 		config > /dev/null && echo "Config OK"
 
 ##@ Docker — Status
+
 .PHONY: docker-status docker-status-full
 
 docker-status: ## Brief health table (Name, Health, Ports)
-	@COMPOSE_FILE="$(COMPOSE_FILE)"
-	docker compose -f "$$COMPOSE_FILE" ps --format "table {{.Name}}\t{{.Health}}\t{{.Ports}}" 2>/dev/null
+	docker compose \
+		--env-file $(ROOT)/.env.$(ENV) \
+		-f $(ROOT)/$(COMPOSE_FILE) ps --format "table {{.Name}}\t{{.Health}}\t{{.Ports}}" 2>/dev/null
 
 docker-status-full: ## Full machine-readable JSON with all container details
-	@COMPOSE_FILE="$(COMPOSE_FILE)"
-	docker compose -f "$$COMPOSE_FILE" ps --format json 2>/dev/null || echo '[]'
+	docker compose \
+		--env-file $(ROOT)/.env.$(ENV) \
+		-f $(ROOT)/$(COMPOSE_FILE) ps --format json 2>/dev/null || echo '[]'
+
+##@ Docker — Infrastructure (standalone infra services without app stack)
+
+.PHONY: infra-up infra-down
+
+infra-up: ## Start only infrastructure services (Neo4j, Postgres, Redis, RabbitMQ, Keycloak, MinIO)
+	docker compose \
+		--env-file $(ROOT)/.env.$(ENV) \
+		-f $(ROOT)/$(COMPOSE_FILE) up -d neo4j postgres redis rabbitmq keycloak minio
+
+infra-down: ## Stop infrastructure services
+	docker compose \
+		--env-file $(ROOT)/.env.$(ENV) \
+		-f $(ROOT)/$(COMPOSE_FILE) down neo4j postgres redis rabbitmq keycloak minio
+
+# ==============================================================================
+# TYPECHECK
+# ==============================================================================
+
+##@ TypeScript
+
+.PHONY: typecheck
+typecheck: typecheck-typescript ## Run TypeScript type checking
+
+# ==============================================================================
+# DEVELOPMENT — Local dev targets for individual services
+# ==============================================================================
 
 ##@ Development
+
 .PHONY: dev dev-frontend dev-api
 
-dev: ## Start development environment (hint: use docker-up or run services individually)
+dev: ## Start development environment
 	@echo "Use 'make docker-up' to start all services via Docker Compose."
 	@echo "Or run individual services:"
 	@echo "  make dev-frontend  - Start frontend dev server"
-	@echo "  make dev-api       - Start API gateway"
+	@echo "  make dev-api       - Start API gateway natively"
 
 dev-frontend: ## Start frontend dev server with hot reload
-	cd $(ROOT)/services/frontend && pnpm dev
+	cd $(ROOT)/$(SERVICE_DIR)/frontend && pnpm dev
 
 dev-api: ## Start API gateway in development mode
-	cd $(ROOT)/services/api-gateway && go run .
+	cd $(ROOT)/$(SERVICE_DIR)/api-gateway && go run .
 
-##@ Hooks — Git hooks management (Lefthook)
+# ==============================================================================
+# CI — Full pipeline aggregate target
+# ==============================================================================
+
+##@ CI
+
+.PHONY: ci
+
+ci: proto-all build lint test typecheck ## Run full CI pipeline (proto + build + lint + unit tests + typecheck)
+	@echo ""
+	@echo "=== CI pipeline passed (proto + build + lint + unit tests + typecheck) ==="
+	@echo "To run integration tests:  make test-integration"
+	@echo "To run E2E tests:          make test-e2e (requires Docker test stack)"
+	@echo "To run gate tests:         make test-gates"
+
+ci-full: ci test-integration test-e2e test-gates ## Run full CI pipeline including integration, E2E, and gate tests
+
+# ==============================================================================
+# HOOKS — Git hooks management via Lefthook
+# ==============================================================================
+
+##@ Hooks
+
 .PHONY: install-hooks uninstall-hooks run-hooks validate-hooks
 
 install-hooks: ## Install Git hooks via Lefthook
 	@echo "[Hooks] installing..."
-	@LEFTHOOK_BIN=$$(ls src/services/frontend/node_modules/.bin/lefthook 2>/dev/null || which lefthook 2>/dev/null || echo ""); \
+	@LEFTHOOK_BIN=$$(ls $(ROOT)/$(SERVICE_DIR)/frontend/node_modules/.bin/lefthook 2>/dev/null || which lefthook 2>/dev/null || echo ""); \
 	if [ -z "$$LEFTHOOK_BIN" ]; then \
-		echo "Lefthook not found. Install via: cd src/services/frontend && pnpm install"; \
+		echo "Lefthook not found. Install via: cd $(ROOT)/$(SERVICE_DIR)/frontend && pnpm install"; \
 		exit 1; \
 	fi; \
 	$$LEFTHOOK_BIN install
 
 uninstall-hooks: ## Remove all Lefthook hooks
-	@LEFTHOOK_BIN=$$(ls src/services/frontend/node_modules/.bin/lefthook 2>/dev/null || which lefthook 2>/dev/null || echo ""); \
+	@LEFTHOOK_BIN=$$(ls $(ROOT)/$(SERVICE_DIR)/frontend/node_modules/.bin/lefthook 2>/dev/null || which lefthook 2>/dev/null || echo ""); \
 	if [ -n "$$LEFTHOOK_BIN" ]; then \
 		$$LEFTHOOK_BIN uninstall; \
 	fi
 
 run-hooks: ## Run all pre-commit hooks on staged files
-	@LEFTHOOK_BIN=$$(ls src/services/frontend/node_modules/.bin/lefthook 2>/dev/null || which lefthook 2>/dev/null || echo ""); \
+	@LEFTHOOK_BIN=$$(ls $(ROOT)/$(SERVICE_DIR)/frontend/node_modules/.bin/lefthook 2>/dev/null || which lefthook 2>/dev/null || echo ""); \
 	if [ -z "$$LEFTHOOK_BIN" ]; then echo "Lefthook not found"; exit 1; fi; \
 	$$LEFTHOOK_BIN run pre-commit
 
 validate-hooks: ## Validate lefthook.yml configuration
-	@LEFTHOOK_BIN=$$(ls src/services/frontend/node_modules/.bin/lefthook 2>/dev/null || which lefthook 2>/dev/null || echo ""); \
+	@LEFTHOOK_BIN=$$(ls $(ROOT)/$(SERVICE_DIR)/frontend/node_modules/.bin/lefthook 2>/dev/null || which lefthook 2>/dev/null || echo ""); \
 	if [ -z "$$LEFTHOOK_BIN" ]; then echo "Lefthook not found"; exit 1; fi; \
 	$$LEFTHOOK_BIN validate
 
-##@ Cleanup
+# ==============================================================================
+# CLEAN — Remove all build artifacts
+# ==============================================================================
+
+##@ Clean
+
+.PHONY: clean
 clean: clean-rust clean-go clean-python clean-typescript ## Clean all build artifacts
+
+.PHONY: clean-all
+clean-all: clean ## Deep clean (all artifacts + vendor dirs)
+	@echo "[Clean] removing Go vendor directories..."
+	@for dir in $(GO_DIRS); do \
+		if [ -d "$(ROOT)/$$dir/vendor" ]; then \
+			echo "  removing $$dir/vendor"; \
+			rm -rf "$(ROOT)/$$dir/vendor"; \
+		fi; \
+	done
+	@echo "[Clean] removing .venv directories..."
+	@for dir in $(PYTHON_DIRS); do \
+		if [ -d "$$dir/.venv" ]; then \
+			echo "  removing $$dir/.venv"; \
+			rm -rf "$$dir/.venv"; \
+		fi; \
+	done
+	@echo "[Clean] removing node_modules..."
+	@for dir in $(TS_DIRS); do \
+		if [ -d "$(ROOT)/$$dir/node_modules" ]; then \
+			echo "  removing $$dir/node_modules"; \
+			rm -rf "$(ROOT)/$$dir/node_modules"; \
+		fi; \
+	done
+	@echo "[Clean] deep clean complete"

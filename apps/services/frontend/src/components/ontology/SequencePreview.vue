@@ -118,109 +118,102 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronRight, FileText } from "lucide-vue-next";
-import { computed, ref, watch } from "vue";
-import type { SequenceStep } from "../../types/extraction";
-import SequencePreviewRow from "./SequencePreviewRow.vue";
+import { ChevronRight, FileText } from 'lucide-vue-next'
+import { computed, ref, watch } from 'vue'
+import type { SequenceStep } from '../../types/extraction'
+import SequencePreviewRow from './SequencePreviewRow.vue'
 
 const props = defineProps<{
-	steps: SequenceStep[];
-	ontologyId: string;
-	sourceFiles?: string[];
-}>();
+  steps: SequenceStep[]
+  ontologyId: string
+  sourceFiles?: string[]
+}>()
 
 defineEmits<{
-	apply: [steps: SequenceStep[]];
-	cancel: [];
-}>();
+  apply: [steps: SequenceStep[]]
+  cancel: []
+}>()
 
 // ── Reactive state for local step modifications ─────────────────────────────
 
-const localSteps = ref<SequenceStep[]>(props.steps.map((s) => ({ ...s })));
+const localSteps = ref<SequenceStep[]>(props.steps.map((s) => ({ ...s })))
 
 watch(
-	() => props.steps,
-	(steps) => {
-		localSteps.value = steps.map((s) => ({ ...s }));
-	},
-	{ deep: true },
-);
+  () => props.steps,
+  (steps) => {
+    localSteps.value = steps.map((s) => ({ ...s }))
+  },
+  { deep: true }
+)
 
 // ── Computed ────────────────────────────────────────────────────────────────
 
-const includedCount = computed(
-	() => localSteps.value.filter((s) => s.included).length,
-);
-const duplicateCount = computed(
-	() => localSteps.value.filter((s) => s.isDuplicate).length,
-);
-const filteredIncluded = computed(() =>
-	localSteps.value.filter((s) => s.included),
-);
+const includedCount = computed(() => localSteps.value.filter((s) => s.included).length)
+const duplicateCount = computed(() => localSteps.value.filter((s) => s.isDuplicate).length)
+const filteredIncluded = computed(() => localSteps.value.filter((s) => s.included))
 
 // Group by source file for batch mode
 interface StepGroup {
-	sourceFile: string;
-	steps: SequenceStep[];
-	expanded: boolean;
+  sourceFile: string
+  steps: SequenceStep[]
+  expanded: boolean
 }
 
-const expandedGroups = ref<Set<string>>(new Set());
+const expandedGroups = ref<Set<string>>(new Set())
 
 const groupedSteps = computed<StepGroup[]>(() => {
-	const groups = new Map<string, SequenceStep[]>();
-	for (const step of localSteps.value) {
-		const key = step.sourceFile || "unknown";
-		if (!groups.has(key)) {
-			groups.set(key, []);
-		}
-		groups.get(key)?.push(step);
-	}
+  const groups = new Map<string, SequenceStep[]>()
+  for (const step of localSteps.value) {
+    const key = step.sourceFile || 'unknown'
+    if (!groups.has(key)) {
+      groups.set(key, [])
+    }
+    groups.get(key)?.push(step)
+  }
 
-	return Array.from(groups.entries()).map(([sourceFile, steps]) => ({
-		sourceFile,
-		steps,
-		expanded:
-			expandedGroups.value.size === 0 || expandedGroups.value.has(sourceFile),
-	}));
-});
+  return Array.from(groups.entries()).map(([sourceFile, steps]) => ({
+    sourceFile,
+    steps,
+    expanded: expandedGroups.value.size === 0 || expandedGroups.value.has(sourceFile)
+  }))
+})
 
 // ── Handlers ────────────────────────────────────────────────────────────────
 
 function onToggleInclude(stepId: string) {
-	const step = localSteps.value.find((s) => s.id === stepId);
-	if (step) {
-		step.included = !step.included;
-	}
+  const step = localSteps.value.find((s) => s.id === stepId)
+  if (step) {
+    step.included = !step.included
+  }
 }
 
 function onUpdateLabel(stepId: string, label: string) {
-	const step = localSteps.value.find((s) => s.id === stepId);
-	if (step) {
-		step.label = label;
-	}
+  const step = localSteps.value.find((s) => s.id === stepId)
+  if (step) {
+    step.label = label
+  }
 }
 
 function toggleGroup(sourceFile: string) {
-	if (expandedGroups.value.has(sourceFile)) {
-		expandedGroups.value.delete(sourceFile);
-	} else {
-		expandedGroups.value.add(sourceFile);
-	}
+  if (expandedGroups.value.has(sourceFile)) {
+    expandedGroups.value.delete(sourceFile)
+  } else {
+    expandedGroups.value.add(sourceFile)
+  }
 }
 
 function selectAll() {
-	console.debug("[SequencePreview] select all steps");
-	for (const step of localSteps.value) {
-		step.included = true;
-	}
+  console.debug('[SequencePreview] select all steps')
+  for (const step of localSteps.value) {
+    step.included = true
+  }
 }
 
 function deselectAll() {
-	console.debug("[SequencePreview] deselect all steps");
-	for (const step of localSteps.value) {
-		step.included = false;
-	}
+  console.debug('[SequencePreview] deselect all steps')
+  for (const step of localSteps.value) {
+    step.included = false
+  }
 }
 </script>
 

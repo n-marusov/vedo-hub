@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/lib/pq"
+	_ "github.com/lib/pq" // pq driver registered via blank import for database/sql
 )
 
 // PostgresOrgStore implements OrgStore using PostgreSQL.
@@ -462,10 +462,4 @@ func nullString(s string) interface{} {
 		return nil
 	}
 	return s
-}
-
-// extractName derives a display name from the scope ID if no explicit name is set.
-func extractName(id string) string {
-	parts := strings.Split(id, "/")
-	return parts[len(parts)-1]
 }

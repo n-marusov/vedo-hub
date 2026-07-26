@@ -88,7 +88,7 @@ class PdfParser(BaseParser):
                 except Exception:
                     pass
 
-                for page_num, page in enumerate(pdf.pages):
+                for _page_num, page in enumerate(pdf.pages):
                     # Extract tables
                     tables = page.extract_tables()
                     if tables:
@@ -119,7 +119,7 @@ class PdfParser(BaseParser):
 
                         try:
                             chars = page.chars
-                            line_chars = [
+                            [
                                 c
                                 for c in chars
                                 if abs(c.get("top", 0) - chars[0].get("top", 0)) < 5

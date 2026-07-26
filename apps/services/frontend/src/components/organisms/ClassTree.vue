@@ -110,147 +110,145 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import SearchInput from "../ui-kit/SearchInput.vue";
+import { computed, ref } from 'vue'
+import SearchInput from '../ui-kit/SearchInput.vue'
 
 interface TreeNode {
-	id: string;
-	label: string;
-	expanded?: boolean;
-	children?: TreeNode[];
-	childrenCount?: number;
+  id: string
+  label: string
+  expanded?: boolean
+  children?: TreeNode[]
+  childrenCount?: number
 }
 
 interface UndoState {
-	sourceId: string;
-	targetParentId: string | null;
-	oldParentId: string | null;
-	sourceNode: TreeNode;
+  sourceId: string
+  targetParentId: string | null
+  oldParentId: string | null
+  sourceNode: TreeNode
 }
 
 const props = defineProps<{
-	nodes: TreeNode[];
-	selectedId?: string;
-	readonly?: boolean;
-}>();
+  nodes: TreeNode[]
+  selectedId?: string
+  readonly?: boolean
+}>()
 
 const emit = defineEmits<{
-	select: [node: TreeNode];
-	"move-class": [sourceId: string, newParentId: string | null];
-}>();
+  select: [node: TreeNode]
+  'move-class': [sourceId: string, newParentId: string | null]
+}>()
 
-const filter = ref("");
-const draggingId = ref<string | null>(null);
-const dropTargetId = ref<string | null>(null);
-const lastUndo = ref<UndoState | null>(null);
+const filter = ref('')
+const draggingId = ref<string | null>(null)
+const dropTargetId = ref<string | null>(null)
+const lastUndo = ref<UndoState | null>(null)
 
 const filteredNodes = computed(() => {
-	if (!filter.value) return props.nodes;
-	const q = filter.value.toLowerCase();
-	return filterTree(props.nodes, q);
-});
+  if (!filter.value) return props.nodes
+  const q = filter.value.toLowerCase()
+  return filterTree(props.nodes, q)
+})
 
 function filterTree(nodes: TreeNode[], query: string): TreeNode[] {
-	return nodes.reduce<TreeNode[]>((acc, node) => {
-		const matches = node.label.toLowerCase().includes(query);
-		const filteredChildren = node.children
-			? filterTree(node.children, query)
-			: [];
-		if (matches || filteredChildren.length > 0) {
-			acc.push({ ...node, children: filteredChildren, expanded: true });
-		}
-		return acc;
-	}, []);
+  return nodes.reduce<TreeNode[]>((acc, node) => {
+    const matches = node.label.toLowerCase().includes(query)
+    const filteredChildren = node.children ? filterTree(node.children, query) : []
+    if (matches || filteredChildren.length > 0) {
+      acc.push({ ...node, children: filteredChildren, expanded: true })
+    }
+    return acc
+  }, [])
 }
 
 function selectNode(node: TreeNode) {
-	emit("select", node);
+  emit('select', node)
 }
 
 function toggleNode(node: TreeNode) {
-	node.expanded = !node.expanded;
+  node.expanded = !node.expanded
 }
 
 // ── Drag-and-drop ──────────────────────────────────────────────────────────
 
 function onDragStart(event: DragEvent, node: TreeNode) {
-	if (props.readonly) return;
-	draggingId.value = node.id;
-	event.dataTransfer?.setData("text/plain", node.id);
-	if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
+  if (props.readonly) return
+  draggingId.value = node.id
+  event.dataTransfer?.setData('text/plain', node.id)
+  if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'
 }
 
 function onDragOver(event: DragEvent, node: TreeNode) {
-	if (props.readonly || draggingId.value === node.id) return;
-	// Prevent dropping on self or own descendants (cycle prevention)
-	const dragId = draggingId.value;
-	if (!dragId || isDescendant(node, dragId)) return;
-	dropTargetId.value = node.id;
-	if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+  if (props.readonly || draggingId.value === node.id) return
+  // Prevent dropping on self or own descendants (cycle prevention)
+  const dragId = draggingId.value
+  if (!dragId || isDescendant(node, dragId)) return
+  dropTargetId.value = node.id
+  if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
 }
 
 function onDragLeave(_event: DragEvent, _node: TreeNode) {
-	dropTargetId.value = null;
+  dropTargetId.value = null
 }
 
 function onDrop(_event: DragEvent, targetNode: TreeNode) {
-	dropTargetId.value = null;
-	const sourceId = draggingId.value;
-	draggingId.value = null;
+  dropTargetId.value = null
+  const sourceId = draggingId.value
+  draggingId.value = null
 
-	if (!sourceId || props.readonly) return;
+  if (!sourceId || props.readonly) return
 
-	// Prevent cycle: cannot drop on self or own descendant
-	if (sourceId === targetNode.id || isDescendant(targetNode, sourceId)) return;
+  // Prevent cycle: cannot drop on self or own descendant
+  if (sourceId === targetNode.id || isDescendant(targetNode, sourceId)) return
 
-	emit("move-class", sourceId, targetNode.id);
-	lastUndo.value = {
-		sourceId,
-		targetParentId: targetNode.id,
-		oldParentId: findParentId(props.nodes, sourceId),
-		sourceNode: findNode(props.nodes, sourceId) ?? { id: sourceId, label: "" },
-	};
+  emit('move-class', sourceId, targetNode.id)
+  lastUndo.value = {
+    sourceId,
+    targetParentId: targetNode.id,
+    oldParentId: findParentId(props.nodes, sourceId),
+    sourceNode: findNode(props.nodes, sourceId) ?? { id: sourceId, label: '' }
+  }
 }
 
 function undoDrop() {
-	if (!lastUndo.value) return;
-	// Re-emit the move with the old parent (null = root level)
-	emit("move-class", lastUndo.value.sourceId, lastUndo.value.oldParentId);
-	lastUndo.value = null;
+  if (!lastUndo.value) return
+  // Re-emit the move with the old parent (null = root level)
+  emit('move-class', lastUndo.value.sourceId, lastUndo.value.oldParentId)
+  lastUndo.value = null
 }
 
 /// Checks if `targetId` is a descendant of `node` (cycle detection).
 function isDescendant(node: TreeNode, targetId: string): boolean {
-	if (!node.children) return false;
-	for (const child of node.children) {
-		if (child.id === targetId) return true;
-		if (isDescendant(child, targetId)) return true;
-	}
-	return false;
+  if (!node.children) return false
+  for (const child of node.children) {
+    if (child.id === targetId) return true
+    if (isDescendant(child, targetId)) return true
+  }
+  return false
 }
 
 /// Finds the parent ID of a node by searching the tree.
 function findParentId(nodes: TreeNode[], targetId: string): string | null {
-	for (const node of nodes) {
-		if (node.children?.some((c) => c.id === targetId)) return node.id;
-		if (node.children) {
-			const found = findParentId(node.children, targetId);
-			if (found) return found;
-		}
-	}
-	return null;
+  for (const node of nodes) {
+    if (node.children?.some((c) => c.id === targetId)) return node.id
+    if (node.children) {
+      const found = findParentId(node.children, targetId)
+      if (found) return found
+    }
+  }
+  return null
 }
 
 /// Finds a node by ID anywhere in the tree.
 function findNode(nodes: TreeNode[], targetId: string): TreeNode | null {
-	for (const node of nodes) {
-		if (node.id === targetId) return node;
-		if (node.children) {
-			const found = findNode(node.children, targetId);
-			if (found) return found;
-		}
-	}
-	return null;
+  for (const node of nodes) {
+    if (node.id === targetId) return node
+    if (node.children) {
+      const found = findNode(node.children, targetId)
+      if (found) return found
+    }
+  }
+  return null
 }
 </script>
 

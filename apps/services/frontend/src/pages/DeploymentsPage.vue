@@ -34,61 +34,61 @@
 </template>
 
 <script setup lang="ts">
-import { listDeployments, type DeploymentInfo } from "@/api/deployments";
-import Deployments from "@/components/organisms/Deployments.vue";
-import { ChevronRight } from "lucide-vue-next";
-import { computed, onMounted, ref } from "vue";
+import { type DeploymentInfo, listDeployments } from '@/api/deployments'
+import Deployments from '@/components/organisms/Deployments.vue'
+import { ChevronRight } from 'lucide-vue-next'
+import { computed, onMounted, ref } from 'vue'
 
 // @m4 — Wire deployments via REST client
-const loading = ref(false);
-const error = ref<string | null>(null);
-const depsData = ref<DeploymentInfo[]>([]);
+const loading = ref(false)
+const error = ref<string | null>(null)
+const depsData = ref<DeploymentInfo[]>([])
 
 async function fetchDeployments() {
-	loading.value = true;
-	error.value = null;
-	try {
-		depsData.value = await listDeployments(true);
-	} catch (e: unknown) {
-		error.value = e instanceof Error ? e.message : "Failed to load deployments";
-	} finally {
-		loading.value = false;
-	}
+  loading.value = true
+  error.value = null
+  try {
+    depsData.value = await listDeployments(true)
+  } catch (e: unknown) {
+    error.value = e instanceof Error ? e.message : 'Failed to load deployments'
+  } finally {
+    loading.value = false
+  }
 }
 
-onMounted(fetchDeployments);
+onMounted(fetchDeployments)
 
 interface DeploymentEntry {
-	id: string;
-	status: string;
-	url: string;
-	version: string;
-	ontologyId: string;
-	ontologyName: string;
-	deployedAt: string;
-	deployedBy: string;
-	stopped?: boolean;
+  id: string
+  status: string
+  url: string
+  version: string
+  ontologyId: string
+  ontologyName: string
+  deployedAt: string
+  deployedBy: string
+  stopped?: boolean
 }
 
 const resolvedDeployments = computed<DeploymentEntry[]>(() => {
-	return depsData.value.map((d) => ({
-		...d,
-		stopped: d.status === "stopped",
-	}));
-});
+  return depsData.value.map((d) => ({
+    ...d,
+    stopped: d.status === 'stopped'
+  }))
+})
 
 function handleDelete(deploymentId: string): void {
-	console.debug(
-		JSON.stringify({
-			level: "debug",
-			msg: "deployments.delete",
-			deploymentId,
-			ts: new Date().toISOString(),
-		}),
-	);
-	// In a full implementation, this would call a DELETE endpoint
-	// For now, refetch the list to reflect the deletion
-	fetchDeployments();
+  console.debug(
+    JSON.stringify({
+      level: 'debug',
+      msg: 'deployments.delete',
+      deploymentId,
+      ts: new Date().toISOString()
+    })
+  )
+  // In a full implementation, this would call a DELETE endpoint
+  // For now, refetch the list to reflect the deletion
+  fetchDeployments()
 }
 </script>
 

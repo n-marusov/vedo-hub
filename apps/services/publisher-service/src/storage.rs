@@ -9,10 +9,10 @@ use uuid::Uuid;
 
 use crate::models::{Snapshot, SnapshotStatus};
 
-/// SnapshotStore manages snapshot metadata and payload storage.
+/// `SnapshotStore` manages snapshot metadata and payload storage.
 ///
 /// For MVP, metadata is kept in-memory. A future iteration will add a
-/// PostgreSQL/JSONB backend and migrate payloads to MinIO (S3-compatible).
+/// PostgreSQL/JSONB backend and migrate payloads to `MinIO` (S3-compatible).
 #[derive(Clone)]
 pub struct SnapshotStore {
     /// In-memory snapshot metadata store (keyed by snapshot ID).
@@ -22,7 +22,7 @@ pub struct SnapshotStore {
 }
 
 impl SnapshotStore {
-    /// Creates a new empty SnapshotStore.
+    /// Creates a new empty `SnapshotStore`.
     pub fn new() -> Self {
         SnapshotStore {
             snapshots: Arc::new(RwLock::new(HashMap::new())),
@@ -42,7 +42,7 @@ impl SnapshotStore {
     ) -> Snapshot {
         let id = format!("snap_{}", Uuid::new_v4());
         let now = Utc::now();
-        let size = payload_bytes.len() as i64;
+        let size: i64 = payload_bytes.len().try_into().unwrap_or(i64::MAX);
 
         let storage_path = format!(
             "snapshots/{}/{}_{}.{}",
@@ -55,8 +55,8 @@ impl SnapshotStore {
         let snapshot = Snapshot {
             id: id.clone(),
             ontology_id: ontology_id.to_string(),
-            branch_id: branch_id.map(|s| s.to_string()),
-            commit_id: commit_id.map(|s| s.to_string()),
+            branch_id: branch_id.map(ToString::to_string),
+            commit_id: commit_id.map(ToString::to_string),
             status: SnapshotStatus::Published,
             created_at: now,
             size_bytes: size,
@@ -95,14 +95,14 @@ impl SnapshotStore {
             .filter(|s| s.ontology_id == ontology_id)
             .cloned()
             .collect();
-        snapshots.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+        snapshots.sort_by_key(|b| std::cmp::Reverse(b.created_at));
         snapshots
     }
 
     /// Lists all snapshots across all ontologies.
     pub async fn list_all_snapshots(&self) -> Vec<Snapshot> {
         let mut snapshots: Vec<Snapshot> = self.snapshots.read().await.values().cloned().collect();
-        snapshots.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+        snapshots.sort_by_key(|b| std::cmp::Reverse(b.created_at));
         snapshots
     }
 

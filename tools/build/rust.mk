@@ -1,6 +1,6 @@
 # @ctx: Rust build/lint/test rules — PLAT-LOCAL-002
 
-RUST_DIRS := $(shell find $(ROOT) -maxdepth 4 -name Cargo.toml -not -path "*/target/*" -not -path "*/templates/*" -not -path "*/services/Cargo.toml" -exec dirname {} \; 2>/dev/null)
+RUST_DIRS := $(shell find $(ROOT) -maxdepth 4 -name Cargo.toml -not -path "*/target/*" -not -path "*/templates/*" -not -path "*/scaffolds/*" -not -path "*/src/services/*" -not -path "*/services/Cargo.toml" -exec dirname {} \; 2>/dev/null)
 
 .PHONY: build-rust
 build-rust:

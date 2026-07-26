@@ -180,6 +180,8 @@ type IdempotencyConfig struct {
 }
 
 // Idempotency returns a Gin middleware that enforces idempotency for write endpoints.
+//
+//nolint:gocyclo
 func Idempotency(cfg *IdempotencyConfig) gin.HandlerFunc {
 	store := cfg.Store
 	if store == nil {

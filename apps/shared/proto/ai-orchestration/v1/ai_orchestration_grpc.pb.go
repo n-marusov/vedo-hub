@@ -1,6 +1,6 @@
 // AI Orchestration Service gRPC contract.
 // Central gateway for LLM-powered features: NL→OWL generation,
-// AI-assisted completion, refinement workflow, template management,
+// AI-assisted completion, refinement workflow,
 // LLM policy enforcement, and usage auditing.
 //
 // All AI business logic lives here — the API Gateway proxies to this service.
@@ -30,8 +30,6 @@ const (
 	AIOrchestrationService_NaturalLanguageQuery_FullMethodName = "/vedo.ai_orchestration.v1.AIOrchestrationService/NaturalLanguageQuery"
 	AIOrchestrationService_RefineOntology_FullMethodName       = "/vedo.ai_orchestration.v1.AIOrchestrationService/RefineOntology"
 	AIOrchestrationService_Complete_FullMethodName             = "/vedo.ai_orchestration.v1.AIOrchestrationService/Complete"
-	AIOrchestrationService_ListTemplates_FullMethodName        = "/vedo.ai_orchestration.v1.AIOrchestrationService/ListTemplates"
-	AIOrchestrationService_GetTemplate_FullMethodName          = "/vedo.ai_orchestration.v1.AIOrchestrationService/GetTemplate"
 	AIOrchestrationService_CheckPolicy_FullMethodName          = "/vedo.ai_orchestration.v1.AIOrchestrationService/CheckPolicy"
 	AIOrchestrationService_LogLLMUsage_FullMethodName          = "/vedo.ai_orchestration.v1.AIOrchestrationService/LogLLMUsage"
 )
@@ -48,9 +46,6 @@ type AIOrchestrationServiceClient interface {
 	RefineOntology(ctx context.Context, in *RefineOntologyRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[RefineOntologyResponse], error)
 	// Complete — AI-assisted completion with server-streaming tokens
 	Complete(ctx context.Context, in *CompleteRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[CompleteResponse], error)
-	// Template management
-	ListTemplates(ctx context.Context, in *ListTemplatesRequest, opts ...grpc.CallOption) (*ListTemplatesResponse, error)
-	GetTemplate(ctx context.Context, in *GetTemplateRequest, opts ...grpc.CallOption) (*GetTemplateResponse, error)
 	// Policy check — Used by document-extractor (Hybrid Model)
 	CheckPolicy(ctx context.Context, in *CheckPolicyRequest, opts ...grpc.CallOption) (*CheckPolicyResponse, error)
 	// LLM usage audit — Centralized usage logging
@@ -123,26 +118,6 @@ func (c *aIOrchestrationServiceClient) Complete(ctx context.Context, in *Complet
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type AIOrchestrationService_CompleteClient = grpc.ServerStreamingClient[CompleteResponse]
 
-func (c *aIOrchestrationServiceClient) ListTemplates(ctx context.Context, in *ListTemplatesRequest, opts ...grpc.CallOption) (*ListTemplatesResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListTemplatesResponse)
-	err := c.cc.Invoke(ctx, AIOrchestrationService_ListTemplates_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *aIOrchestrationServiceClient) GetTemplate(ctx context.Context, in *GetTemplateRequest, opts ...grpc.CallOption) (*GetTemplateResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetTemplateResponse)
-	err := c.cc.Invoke(ctx, AIOrchestrationService_GetTemplate_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *aIOrchestrationServiceClient) CheckPolicy(ctx context.Context, in *CheckPolicyRequest, opts ...grpc.CallOption) (*CheckPolicyResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CheckPolicyResponse)
@@ -175,9 +150,6 @@ type AIOrchestrationServiceServer interface {
 	RefineOntology(*RefineOntologyRequest, grpc.ServerStreamingServer[RefineOntologyResponse]) error
 	// Complete — AI-assisted completion with server-streaming tokens
 	Complete(*CompleteRequest, grpc.ServerStreamingServer[CompleteResponse]) error
-	// Template management
-	ListTemplates(context.Context, *ListTemplatesRequest) (*ListTemplatesResponse, error)
-	GetTemplate(context.Context, *GetTemplateRequest) (*GetTemplateResponse, error)
 	// Policy check — Used by document-extractor (Hybrid Model)
 	CheckPolicy(context.Context, *CheckPolicyRequest) (*CheckPolicyResponse, error)
 	// LLM usage audit — Centralized usage logging
@@ -203,12 +175,6 @@ func (UnimplementedAIOrchestrationServiceServer) RefineOntology(*RefineOntologyR
 }
 func (UnimplementedAIOrchestrationServiceServer) Complete(*CompleteRequest, grpc.ServerStreamingServer[CompleteResponse]) error {
 	return status.Error(codes.Unimplemented, "method Complete not implemented")
-}
-func (UnimplementedAIOrchestrationServiceServer) ListTemplates(context.Context, *ListTemplatesRequest) (*ListTemplatesResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListTemplates not implemented")
-}
-func (UnimplementedAIOrchestrationServiceServer) GetTemplate(context.Context, *GetTemplateRequest) (*GetTemplateResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetTemplate not implemented")
 }
 func (UnimplementedAIOrchestrationServiceServer) CheckPolicy(context.Context, *CheckPolicyRequest) (*CheckPolicyResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CheckPolicy not implemented")
@@ -296,42 +262,6 @@ func _AIOrchestrationService_Complete_Handler(srv interface{}, stream grpc.Serve
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type AIOrchestrationService_CompleteServer = grpc.ServerStreamingServer[CompleteResponse]
 
-func _AIOrchestrationService_ListTemplates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListTemplatesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AIOrchestrationServiceServer).ListTemplates(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AIOrchestrationService_ListTemplates_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AIOrchestrationServiceServer).ListTemplates(ctx, req.(*ListTemplatesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AIOrchestrationService_GetTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetTemplateRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AIOrchestrationServiceServer).GetTemplate(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AIOrchestrationService_GetTemplate_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AIOrchestrationServiceServer).GetTemplate(ctx, req.(*GetTemplateRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _AIOrchestrationService_CheckPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CheckPolicyRequest)
 	if err := dec(in); err != nil {
@@ -382,14 +312,6 @@ var AIOrchestrationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "NaturalLanguageQuery",
 			Handler:    _AIOrchestrationService_NaturalLanguageQuery_Handler,
-		},
-		{
-			MethodName: "ListTemplates",
-			Handler:    _AIOrchestrationService_ListTemplates_Handler,
-		},
-		{
-			MethodName: "GetTemplate",
-			Handler:    _AIOrchestrationService_GetTemplate_Handler,
 		},
 		{
 			MethodName: "CheckPolicy",

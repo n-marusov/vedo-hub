@@ -19,13 +19,13 @@
 
 <script setup lang="ts">
 defineProps<{
-	disabled?: boolean;
-	loading?: boolean;
-}>();
+  disabled?: boolean
+  loading?: boolean
+}>()
 
 defineEmits<{
-	click: [event: MouseEvent];
-}>();
+  click: [event: MouseEvent]
+}>()
 </script>
 
 <style scoped>

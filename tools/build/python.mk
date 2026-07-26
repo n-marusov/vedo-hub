@@ -1,6 +1,6 @@
 # @ctx: Python build/lint/test rules — PLAT-LOCAL-002
 
-PYTHON_DIRS := $(shell find $(ROOT) -maxdepth 4 -name pyproject.toml -not -path "*/node_modules/*" -not -path "*/templates/*" -exec dirname {} \; 2>/dev/null | sort -u)
+PYTHON_DIRS := $(shell find $(ROOT) -maxdepth 4 -name pyproject.toml -not -path "*/node_modules/*" -not -path "*/templates/*" -not -path "*/scaffolds/*" -not -path "*/src/services/*" -exec dirname {} \; 2>/dev/null | sort -u)
 
 .PHONY: build-python
 build-python:
@@ -15,7 +15,7 @@ lint-python:
 	@if [ -z "$(PYTHON_DIRS)" ]; then echo "No Python services found"; exit 0; fi
 	@for dir in $(PYTHON_DIRS); do \
 		echo "[Python] linting $$(basename $$dir)"; \
-		cd $$dir && ruff check . 2>&1 || { echo "LINT_FAILED: ruff check failed in $$dir"; exit 1; }; \
+		cd $$dir && uv run ruff check . 2>&1 || { echo "LINT_FAILED: ruff check failed in $$dir"; exit 1; }; \
 	done
 
 .PHONY: test-python

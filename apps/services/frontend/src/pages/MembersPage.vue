@@ -102,148 +102,146 @@
 </template>
 
 <script setup lang="ts">
-import { type MemberInfo, listMembers } from "@/api/org";
-import Dialog from "@/components/ui-kit/Dialog.vue";
-import { Folder, Pencil, Shield, Trash2, Users } from "lucide-vue-next";
-import { computed, onMounted, ref, watch } from "vue";
-import { useRoute } from "vue-router";
+import { type MemberInfo, listMembers } from '@/api/org'
+import Dialog from '@/components/ui-kit/Dialog.vue'
+import { Folder, Pencil, Shield, Trash2, Users } from 'lucide-vue-next'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
-const route = useRoute();
-const projectId = computed(() => String(route.params.id || ""));
+const route = useRoute()
+const projectId = computed(() => String(route.params.id || ''))
 
 interface MemberRow {
-	name: string;
-	role: string;
-	mail: string;
+  name: string
+  role: string
+  mail: string
 }
 
-const loading = ref(false);
-const error = ref<string | null>(null);
-const rawMembers = ref<MemberInfo[]>([]);
+const loading = ref(false)
+const error = ref<string | null>(null)
+const rawMembers = ref<MemberInfo[]>([])
 
 function mapMember(m: MemberInfo): MemberRow {
-	return {
-		name: String(m.username || m.userId || ""),
-		role: String(m.role || "Viewer"),
-		mail: `${String(m.username || "").toLowerCase()}@vedo.local`,
-	};
+  return {
+    name: String(m.username || m.userId || ''),
+    role: String(m.role || 'Viewer'),
+    mail: `${String(m.username || '').toLowerCase()}@vedo.local`
+  }
 }
 
-const members = computed<MemberRow[]>(() => rawMembers.value.map(mapMember));
+const members = computed<MemberRow[]>(() => rawMembers.value.map(mapMember))
 
 async function fetchMembers() {
-	if (!projectId.value) return;
-	loading.value = true;
-	error.value = null;
-	try {
-		rawMembers.value = await listMembers(projectId.value);
-	} catch (e: unknown) {
-		error.value = e instanceof Error ? e.message : String(e);
-	} finally {
-		loading.value = false;
-	}
+  if (!projectId.value) return
+  loading.value = true
+  error.value = null
+  try {
+    rawMembers.value = await listMembers(projectId.value)
+  } catch (e: unknown) {
+    error.value = e instanceof Error ? e.message : String(e)
+  } finally {
+    loading.value = false
+  }
 }
 
 onMounted(() => {
-	fetchMembers();
-});
+  fetchMembers()
+})
 
 watch(projectId, () => {
-	fetchMembers();
-});
+  fetchMembers()
+})
 
 // ── @m4 Inline Edit State ─────────────────────────────────────────────────────
 
-const editingMemberName = ref<string | null>(null);
-const notifyMessage = ref<string | null>(null);
+const editingMemberName = ref<string | null>(null)
+const notifyMessage = ref<string | null>(null)
 
 function startEdit(member: MemberRow): void {
-	editingMemberName.value = member.name;
-	notifyMessage.value = null;
+  editingMemberName.value = member.name
+  notifyMessage.value = null
 }
 
 function onRoleChange(member: MemberRow, newRole: string): void {
-	member.role = newRole;
-	editingMemberName.value = null;
-	notifyMessage.value = "role updated";
-	setTimeout(() => {
-		notifyMessage.value = null;
-	}, 3000);
-	console.debug(
-		JSON.stringify({
-			level: "debug",
-			msg: "Members.edit",
-			member: member.name,
-			newRole,
-			ts: new Date().toISOString(),
-		}),
-	);
+  member.role = newRole
+  editingMemberName.value = null
+  notifyMessage.value = 'role updated'
+  setTimeout(() => {
+    notifyMessage.value = null
+  }, 3000)
+  console.debug(
+    JSON.stringify({
+      level: 'debug',
+      msg: 'Members.edit',
+      member: member.name,
+      newRole,
+      ts: new Date().toISOString()
+    })
+  )
 }
 
 function onRoleBlur(_member: MemberRow): void {
-	editingMemberName.value = null;
+  editingMemberName.value = null
 }
 
 // ── @m4 Remove Member ─────────────────────────────────────────────────────────
 
-const removeDialogOpen = ref(false);
-const removingMemberName = ref("");
+const removeDialogOpen = ref(false)
+const removingMemberName = ref('')
 
 function isLastOwner(name: string): boolean {
-	const owners = members.value.filter((m) => m.role.toLowerCase() === "owner");
-	return owners.length <= 1 && owners.some((m) => m.name === name);
+  const owners = members.value.filter((m) => m.role.toLowerCase() === 'owner')
+  return owners.length <= 1 && owners.some((m) => m.name === name)
 }
 
 function confirmRemove(member: MemberRow): void {
-	if (isLastOwner(member.name)) {
-		notifyMessage.value = "Cannot remove last owner";
-		setTimeout(() => {
-			notifyMessage.value = null;
-		}, 3000);
-		return;
-	}
-	removingMemberName.value = member.name;
-	removeDialogOpen.value = true;
+  if (isLastOwner(member.name)) {
+    notifyMessage.value = 'Cannot remove last owner'
+    setTimeout(() => {
+      notifyMessage.value = null
+    }, 3000)
+    return
+  }
+  removingMemberName.value = member.name
+  removeDialogOpen.value = true
 }
 
 function doRemoveMember(): void {
-	const name = removingMemberName.value;
-	const idx = rawMembers.value.findIndex(
-		(m: MemberInfo) => mapMember(m).name === name,
-	);
-	if (idx !== -1) {
-		rawMembers.value.splice(idx, 1);
-	}
-	removeDialogOpen.value = false;
-	removingMemberName.value = "";
-	notifyMessage.value = null;
+  const name = removingMemberName.value
+  const idx = rawMembers.value.findIndex((m: MemberInfo) => mapMember(m).name === name)
+  if (idx !== -1) {
+    rawMembers.value.splice(idx, 1)
+  }
+  removeDialogOpen.value = false
+  removingMemberName.value = ''
+  notifyMessage.value = null
 }
 
 // ── Logging ─────────────────────────────────────────────────────────────────
 
 watch(members, (val) => {
-	console.debug(
-		JSON.stringify({
-			level: "debug",
-			msg: "members.list.loaded",
-			count: val.length,
-			ts: new Date().toISOString(),
-		}),
-	);
-});
+  console.debug(
+    JSON.stringify({
+      level: 'debug',
+      msg: 'members.list.loaded',
+      count: val.length,
+      ts: new Date().toISOString()
+    })
+  )
+})
 
 watch(error, (err) => {
-	if (err) {
-		console.error(
-			JSON.stringify({
-				level: "error",
-				msg: "members.query.error",
-				error: String(err),
-				ts: new Date().toISOString(),
-			}),
-		);
-	}
-});
+  if (err) {
+    console.error(
+      JSON.stringify({
+        level: 'error',
+        msg: 'members.query.error',
+        error: String(err),
+        ts: new Date().toISOString()
+      })
+    )
+  }
+})
 </script>
 
 <style scoped>

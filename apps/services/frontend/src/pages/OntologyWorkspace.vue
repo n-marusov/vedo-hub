@@ -360,297 +360,283 @@
 </template>
 
 <script setup lang="ts">
-import AiSuggestionPanel from "@/components/ontology/AiSuggestionPanel.vue";
-import ApplySequenceButton from "@/components/ontology/ApplySequenceButton.vue";
-import BatchUploader from "@/components/ontology/BatchUploader.vue";
-import CreateClassDialog from "@/components/ontology/CreateClassDialog.vue";
-import CreateIndividualDialog from "@/components/ontology/CreateIndividualDialog.vue";
-import CreatePropertyDialog from "@/components/ontology/CreatePropertyDialog.vue";
-import DocumentUploader from "@/components/ontology/DocumentUploader.vue";
-import SequencePreview from "@/components/ontology/SequencePreview.vue";
-import GraphVisualization from "@/components/organisms/GraphVisualization.vue";
-import { useQuery } from "@vue/apollo-composable";
+import AiSuggestionPanel from '@/components/ontology/AiSuggestionPanel.vue'
+import ApplySequenceButton from '@/components/ontology/ApplySequenceButton.vue'
+import BatchUploader from '@/components/ontology/BatchUploader.vue'
+import CreateClassDialog from '@/components/ontology/CreateClassDialog.vue'
+import CreateIndividualDialog from '@/components/ontology/CreateIndividualDialog.vue'
+import CreatePropertyDialog from '@/components/ontology/CreatePropertyDialog.vue'
+import DocumentUploader from '@/components/ontology/DocumentUploader.vue'
+import SequencePreview from '@/components/ontology/SequencePreview.vue'
+import GraphVisualization from '@/components/organisms/GraphVisualization.vue'
+import { useQuery } from '@vue/apollo-composable'
+import axios from 'axios'
 import {
-	ChevronRight,
-	FileText,
-	Folder,
-	GripVertical,
-	MessageSquare,
-	Plus,
-	Search,
-	Zap,
-} from "lucide-vue-next";
-import { computed, onMounted, ref, watch } from "vue";
-import { useRoute } from "vue-router";
-import { generateFromText, refineSequence } from "../api/ai";
-import type { AiGenerationResult } from "../api/ai";
-import {
-	CLASS_TREE_QUERY,
-	LIST_INDIVIDUALS_QUERY,
-} from "../apollo/queries";
-import axios from "axios";
-import { useDraftState } from "../composables/useDraftState";
-import type {
-	AiSuggestion,
-	ExtractionPreview,
-	SequenceStep,
-} from "../types/extraction";
+  ChevronRight,
+  FileText,
+  Folder,
+  GripVertical,
+  MessageSquare,
+  Plus,
+  Search,
+  Zap
+} from 'lucide-vue-next'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { generateFromText, refineSequence } from '../api/ai'
+import type { AiGenerationResult } from '../api/ai'
+import { CLASS_TREE_QUERY, LIST_INDIVIDUALS_QUERY } from '../apollo/queries'
+import { useDraftState } from '../composables/useDraftState'
+import type { AiSuggestion, ExtractionPreview, SequenceStep } from '../types/extraction'
 
-const route = useRoute();
-const ontologyId = ref((route.params.id as string) || "default");
-const selectedClassId = ref<string | null>(null);
-const selectedIndividualId = ref<string | null>(null);
-const viewMode = ref<"graph" | "table">("table");
+const route = useRoute()
+const ontologyId = ref((route.params.id as string) || 'default')
+const selectedClassId = ref<string | null>(null)
+const selectedIndividualId = ref<string | null>(null)
+const viewMode = ref<'graph' | 'table'>('table')
 
 // ── Save Draft state ────────────────────────────────────────────────────────
 
-const draftState = useDraftState();
-const saving = ref(false);
+const draftState = useDraftState()
+const saving = ref(false)
 
 // ── AI Import Panel state ──────────────────────────────────────────────────
 
-const showAiPanel = ref(false);
-const aiTab = ref<"document" | "nl-to-owl">("document");
-const uploadMode = ref<"single" | "batch">("single");
+const showAiPanel = ref(false)
+const aiTab = ref<'document' | 'nl-to-owl'>('document')
+const uploadMode = ref<'single' | 'batch'>('single')
 
 // ── NL→OWL Generation state ────────────────────────────────────────────────
 
-const nlPrompt = ref("");
-const isGenerating = ref(false);
-const generationError = ref<string | null>(null);
-const nlResult = ref<AiGenerationResult | null>(null);
+const nlPrompt = ref('')
+const isGenerating = ref(false)
+const generationError = ref<string | null>(null)
+const nlResult = ref<AiGenerationResult | null>(null)
 
 // ── Iterative Refinement state ────────────────────────────────────────────
 
-const refinementFeedback = ref("");
-const isRefining = ref(false);
-const refinementRound = ref(0);
-const maxRefinementRounds = 5;
+const refinementFeedback = ref('')
+const isRefining = ref(false)
+const refinementRound = ref(0)
+const maxRefinementRounds = 5
 
 // ── Extraction / Preview state (shared) ───────────────────────────────────
 
-const extractionSteps = ref<SequenceStep[]>([]);
-const showApplyButton = ref(false);
+const extractionSteps = ref<SequenceStep[]>([])
+const showApplyButton = ref(false)
 const extractionSourceFiles = computed(
-	() =>
-		Array.from(
-			new Set(
-				extractionSteps.value.map((step) => step.sourceFile).filter(Boolean),
-			),
-		) as string[],
-);
+  () =>
+    Array.from(
+      new Set(extractionSteps.value.map((step) => step.sourceFile).filter(Boolean))
+    ) as string[]
+)
 
 // ── Create Dialog state ───────────────────────────────────────────────────
 
-const showCreateClass = ref(false);
-const showCreateProperty = ref(false);
-const showCreateIndividual = ref(false);
+const showCreateClass = ref(false)
+const showCreateProperty = ref(false)
+const showCreateIndividual = ref(false)
 
 function openCreateClass() {
-	showCreateClass.value = true;
+  showCreateClass.value = true
 }
 function openCreateProperty() {
-	showCreateProperty.value = true;
+  showCreateProperty.value = true
 }
 function openCreateIndividual() {
-	showCreateIndividual.value = true;
+  showCreateIndividual.value = true
 }
 
 function onClassCreated(_name: string) {
-	showCreateClass.value = false;
-	draftState.trackChange("create:class", null, _name);
+  showCreateClass.value = false
+  draftState.trackChange('create:class', null, _name)
 }
 
 function onPropertyCreated(_name: string) {
-	showCreateProperty.value = false;
-	draftState.trackChange("create:property", null, _name);
+  showCreateProperty.value = false
+  draftState.trackChange('create:property', null, _name)
 }
 
 function onIndividualCreated(_name: string) {
-	showCreateIndividual.value = false;
-	draftState.trackChange("create:individual", null, _name);
+  showCreateIndividual.value = false
+  draftState.trackChange('create:individual', null, _name)
 }
 
 function onAiSuggestionAccepted(suggestion: AiSuggestion) {
-	console.info("[OntologyWorkspace] AI suggestion accepted", {
-		id: suggestion.id,
-		label: suggestion.label,
-		type: suggestion.type,
-	});
-	draftState.trackChange("ai:suggest", null, suggestion.label);
+  console.info('[OntologyWorkspace] AI suggestion accepted', {
+    id: suggestion.id,
+    label: suggestion.label,
+    type: suggestion.type
+  })
+  draftState.trackChange('ai:suggest', null, suggestion.label)
 }
 
-function normalizeExtractionStep(
-	step: SequenceStep,
-	index: number,
-): SequenceStep {
-	return {
-		...step,
-		id:
-			step.id ||
-			`${step.operation}-${step.entityId || step.label || index}-${index}`,
-		included: step.included ?? true,
-	};
+function normalizeExtractionStep(step: SequenceStep, index: number): SequenceStep {
+  return {
+    ...step,
+    id: step.id || `${step.operation}-${step.entityId || step.label || index}-${index}`,
+    included: step.included ?? true
+  }
 }
 
 function onUploadComplete(result: ExtractionPreview) {
-	console.info("[OntologyWorkspace] upload complete", {
-		steps: result.steps.length,
-	});
-	extractionSteps.value = result.steps.map(normalizeExtractionStep);
-	showApplyButton.value = true;
+  console.info('[OntologyWorkspace] upload complete', {
+    steps: result.steps.length
+  })
+  extractionSteps.value = result.steps.map(normalizeExtractionStep)
+  showApplyButton.value = true
 }
 
 function onUploadError(error: { code: string; message: string } | string) {
-	const errMsg = typeof error === "string" ? error : error.message;
-	console.error("[OntologyWorkspace] upload error", {
-		message: errMsg,
-	});
+  const errMsg = typeof error === 'string' ? error : error.message
+  console.error('[OntologyWorkspace] upload error', {
+    message: errMsg
+  })
 }
 
 function onApplySequence(steps: SequenceStep[]) {
-	// Steps flow through to ApplySequenceButton
-	console.debug("[OntologyWorkspace] ready to apply", {
-		stepCount: steps.filter((s) => s.included).length,
-	});
+  // Steps flow through to ApplySequenceButton
+  console.debug('[OntologyWorkspace] ready to apply', {
+    stepCount: steps.filter((s) => s.included).length
+  })
 }
 
 function onBatchComplete(result: { steps: SequenceStep[] }) {
-	console.info("[OntologyWorkspace] batch complete", {
-		steps: result.steps.length,
-	});
-	extractionSteps.value = result.steps.map(normalizeExtractionStep);
-	showApplyButton.value = true;
+  console.info('[OntologyWorkspace] batch complete', {
+    steps: result.steps.length
+  })
+  extractionSteps.value = result.steps.map(normalizeExtractionStep)
+  showApplyButton.value = true
 }
 
 function onBatchReset() {
-	extractionSteps.value = [];
-	showApplyButton.value = false;
+  extractionSteps.value = []
+  showApplyButton.value = false
 }
 
 function onApplyCancel() {
-	extractionSteps.value = [];
-	showApplyButton.value = false;
+  extractionSteps.value = []
+  showApplyButton.value = false
 }
 
 function onApplySuccess(result: { commitId?: string; commitUrl?: string }) {
-	console.info("[OntologyWorkspace] apply success", {
-		commitId: result.commitId,
-	});
-	// Keep the AI panel and success modal mounted so the user can inspect
-	// the import result and commit link before explicitly closing it.
+  console.info('[OntologyWorkspace] apply success', {
+    commitId: result.commitId
+  })
+  // Keep the AI panel and success modal mounted so the user can inspect
+  // the import result and commit link before explicitly closing it.
 }
 
 function onApplyError(error: string) {
-	console.error("[OntologyWorkspace] apply error", { error });
+  console.error('[OntologyWorkspace] apply error', { error })
 }
 
 // ── AI Tab switching ────────────────────────────────────────────────────────
 
-function switchAiTab(tab: "document" | "nl-to-owl") {
-	aiTab.value = tab;
-	if (tab === "nl-to-owl") {
-		uploadMode.value = "single"; // reset document mode when switching away
-	}
+function switchAiTab(tab: 'document' | 'nl-to-owl') {
+  aiTab.value = tab
+  if (tab === 'nl-to-owl') {
+    uploadMode.value = 'single' // reset document mode when switching away
+  }
 }
 
 // ── NL→OWL Generation ───────────────────────────────────────────────────────
 
 async function handleGenerateFromText(): Promise<void> {
-	const text = nlPrompt.value.trim();
-	if (!text || isGenerating.value) return;
+  const text = nlPrompt.value.trim()
+  if (!text || isGenerating.value) return
 
-	isGenerating.value = true;
-	generationError.value = null;
-	console.info("[OntologyWorkspace] NL→OWL generation start", {
-		ontologyId: ontologyId.value,
-		textLength: text.length,
-	});
+  isGenerating.value = true
+  generationError.value = null
+  console.info('[OntologyWorkspace] NL→OWL generation start', {
+    ontologyId: ontologyId.value,
+    textLength: text.length
+  })
 
-	try {
-		const result = await generateFromText({
-			ontologyId: ontologyId.value,
-			text,
-		});
+  try {
+    const result = await generateFromText({
+      ontologyId: ontologyId.value,
+      text
+    })
 
-		nlResult.value = result;
-		refinementRound.value = 0;
-		refinementFeedback.value = "";
+    nlResult.value = result
+    refinementRound.value = 0
+    refinementFeedback.value = ''
 
-		// Convert AI result steps to extraction steps and show preview
-		extractionSteps.value = result.steps.map((s, i) => ({
-			...s,
-			id: s.id || `ai-${i}`,
-			included: s.included ?? true,
-			sourceFile: undefined,
-		}));
-		showApplyButton.value = true;
+    // Convert AI result steps to extraction steps and show preview
+    extractionSteps.value = result.steps.map((s, i) => ({
+      ...s,
+      id: s.id || `ai-${i}`,
+      included: s.included ?? true,
+      sourceFile: undefined
+    }))
+    showApplyButton.value = true
 
-		console.info("[OntologyWorkspace] NL→OWL generation complete", {
-			steps: result.steps.length,
-			id: result.id,
-		});
-	} catch (err) {
-		const msg = err instanceof Error ? err.message : String(err);
-		generationError.value = msg;
-		console.error("[OntologyWorkspace] NL→OWL generation failed", {
-			error: msg,
-		});
-	} finally {
-		isGenerating.value = false;
-	}
+    console.info('[OntologyWorkspace] NL→OWL generation complete', {
+      steps: result.steps.length,
+      id: result.id
+    })
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    generationError.value = msg
+    console.error('[OntologyWorkspace] NL→OWL generation failed', {
+      error: msg
+    })
+  } finally {
+    isGenerating.value = false
+  }
 }
 
 // ── Iterative Refinement ────────────────────────────────────────────────────
 
 async function handleRefine(): Promise<void> {
-	const feedback = refinementFeedback.value.trim();
-	if (!feedback || isRefining.value || !nlResult.value) return;
+  const feedback = refinementFeedback.value.trim()
+  if (!feedback || isRefining.value || !nlResult.value) return
 
-	if (refinementRound.value >= maxRefinementRounds) {
-		console.warn("[OntologyWorkspace] max refinement rounds reached");
-		return;
-	}
+  if (refinementRound.value >= maxRefinementRounds) {
+    console.warn('[OntologyWorkspace] max refinement rounds reached')
+    return
+  }
 
-	isRefining.value = true;
-	const currentRound = refinementRound.value + 1;
-	console.info("[OntologyWorkspace] refinement start", {
-		round: currentRound,
-		feedbackLength: feedback.length,
-	});
+  isRefining.value = true
+  const currentRound = refinementRound.value + 1
+  console.info('[OntologyWorkspace] refinement start', {
+    round: currentRound,
+    feedbackLength: feedback.length
+  })
 
-	try {
-		const result = await refineSequence({
-			ontologyId: ontologyId.value,
-			sequenceId: nlResult.value.id,
-			previousSteps: extractionSteps.value,
-			feedback,
-		});
+  try {
+    const result = await refineSequence({
+      ontologyId: ontologyId.value,
+      sequenceId: nlResult.value.id,
+      previousSteps: extractionSteps.value,
+      feedback
+    })
 
-		refinementRound.value = currentRound;
-		refinementFeedback.value = "";
+    refinementRound.value = currentRound
+    refinementFeedback.value = ''
 
-		// Update steps with refined results
-		extractionSteps.value = result.steps.map((s, i) => ({
-			...s,
-			id: s.id || `refine-${currentRound}-${i}`,
-			included: s.included ?? true,
-			sourceFile: undefined,
-		}));
+    // Update steps with refined results
+    extractionSteps.value = result.steps.map((s, i) => ({
+      ...s,
+      id: s.id || `refine-${currentRound}-${i}`,
+      included: s.included ?? true,
+      sourceFile: undefined
+    }))
 
-		console.info("[OntologyWorkspace] refinement complete", {
-			round: currentRound,
-			steps: result.steps.length,
-		});
-	} catch (err) {
-		const msg = err instanceof Error ? err.message : String(err);
-		console.error("[OntologyWorkspace] refinement failed", {
-			round: currentRound,
-			error: msg,
-		});
-	} finally {
-		isRefining.value = false;
-	}
+    console.info('[OntologyWorkspace] refinement complete', {
+      round: currentRound,
+      steps: result.steps.length
+    })
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('[OntologyWorkspace] refinement failed', {
+      round: currentRound,
+      error: msg
+    })
+  } finally {
+    isRefining.value = false
+  }
 }
 
 // ── Graph visualization data ───────────────────────────────────────────────────────────
@@ -660,242 +646,250 @@ async function handleRefine(): Promise<void> {
 // without flattening, only top-level classes would be visualized and subclass edges
 // (and any individual→child-class edges) would silently drop.
 function flattenClassTree(
-	nodes: ReadonlyArray<{
-		id: string;
-		label: string;
-		comment?: string | null;
-		children?: unknown[];
-	}>,
+  nodes: ReadonlyArray<{
+    id: string
+    label: string
+    comment?: string | null
+    children?: unknown[]
+  }>
 ): Array<{
-	id: string;
-	label: string;
-	comment?: string | null;
-	parentId?: string;
+  id: string
+  label: string
+  comment?: string | null
+  parentId?: string
 }> {
-	const out: Array<{
-		id: string;
-		label: string;
-		comment?: string | null;
-		parentId?: string;
-	}> = [];
-	const walk = (
-		list: ReadonlyArray<{
-			id: string;
-			label: string;
-			comment?: string | null;
-			children?: unknown[];
-		}>,
-		parentId?: string,
-	) => {
-		for (const n of list) {
-			out.push({ id: n.id, label: n.label, comment: n.comment, parentId });
-			const kids = Array.isArray(n.children)
-				? (n.children as Array<{
-						id: string;
-						label: string;
-						comment?: string | null;
-						children?: unknown[];
-					}>)
-				: [];
-			if (kids.length) walk(kids, n.id);
-		}
-	};
-	walk(nodes);
-	return out;
+  const out: Array<{
+    id: string
+    label: string
+    comment?: string | null
+    parentId?: string
+  }> = []
+  const walk = (
+    list: ReadonlyArray<{
+      id: string
+      label: string
+      comment?: string | null
+      children?: unknown[]
+    }>,
+    parentId?: string
+  ) => {
+    for (const n of list) {
+      out.push({ id: n.id, label: n.label, comment: n.comment, parentId })
+      const kids = Array.isArray(n.children)
+        ? (n.children as Array<{
+            id: string
+            label: string
+            comment?: string | null
+            children?: unknown[]
+          }>)
+        : []
+      if (kids.length) walk(kids, n.id)
+    }
+  }
+  walk(nodes)
+  return out
 }
 
 // Flattened class list (all classes including nested children) for graph rendering
-const flatClasses = computed(() => flattenClassTree(classTree.value));
+const flatClasses = computed(() => flattenClassTree(classTree.value))
 
 // Currently selected class details (label + comment) for the detail panel
 const selectedClass = computed(
-	() => flatClasses.value.find((c) => c.id === selectedClassId.value) ?? null,
-);
+  () => flatClasses.value.find((c) => c.id === selectedClassId.value) ?? null
+)
 
 const graphNodes = computed(() => {
-	const nodes: Array<{
-		id: string;
-		label: string;
-		type: "class" | "property" | "individual";
-		x: number;
-		y: number;
-	}> = [];
-	let idx = 0;
-	// Add classes as nodes (flattened — includes nested children)
-	for (const cls of flatClasses.value) {
-		nodes.push({
-			id: cls.id,
-			label: cls.label,
-			type: "class",
-			x: 50 + (idx % 5) * 200,
-			y: 50 + Math.floor(idx / 5) * 80,
-		});
-		idx++;
-	}
-	// Add individuals as nodes
-	for (const ind of individuals.value) {
-		if (!ind.id) continue;
-		nodes.push({
-			id: ind.id,
-			label: ind.label || ind.id,
-			type: "individual",
-			x: 50 + (idx % 5) * 200,
-			y: 50 + Math.floor(idx / 5) * 80,
-		});
-		idx++;
-	}
-	return nodes;
-});
+  const nodes: Array<{
+    id: string
+    label: string
+    type: 'class' | 'property' | 'individual'
+    x: number
+    y: number
+  }> = []
+  let idx = 0
+  // Add classes as nodes (flattened — includes nested children)
+  for (const cls of flatClasses.value) {
+    nodes.push({
+      id: cls.id,
+      label: cls.label,
+      type: 'class',
+      x: 50 + (idx % 5) * 200,
+      y: 50 + Math.floor(idx / 5) * 80
+    })
+    idx++
+  }
+  // Add individuals as nodes
+  for (const ind of individuals.value) {
+    if (!ind.id) continue
+    nodes.push({
+      id: ind.id,
+      label: ind.label || ind.id,
+      type: 'individual',
+      x: 50 + (idx % 5) * 200,
+      y: 50 + Math.floor(idx / 5) * 80
+    })
+    idx++
+  }
+  return nodes
+})
 
 const graphEdges = computed(() => {
-	const edges: Array<{
-		source: string;
-		target: string;
-		type: "subclass_of" | "object_property" | "datatype_property";
-	}> = [];
-	// Subclass edges: child → parent (keeps hierarchy visible even with no individuals)
-	for (const cls of flatClasses.value) {
-		if (cls.parentId) {
-			edges.push({ source: cls.id, target: cls.parentId, type: "subclass_of" });
-		}
-	}
-	// Individual → class instance edges
-	for (const ind of individuals.value) {
-		if (ind.classId) {
-			edges.push({ source: ind.id, target: ind.classId, type: "subclass_of" });
-		}
-	}
-	return edges;
-});
+  const edges: Array<{
+    source: string
+    target: string
+    type: 'subclass_of' | 'object_property' | 'datatype_property'
+  }> = []
+  // Subclass edges: child → parent (keeps hierarchy visible even with no individuals)
+  for (const cls of flatClasses.value) {
+    if (cls.parentId) {
+      edges.push({ source: cls.id, target: cls.parentId, type: 'subclass_of' })
+    }
+  }
+  // Individual → class instance edges
+  for (const ind of individuals.value) {
+    if (ind.classId) {
+      edges.push({ source: ind.id, target: ind.classId, type: 'subclass_of' })
+    }
+  }
+  return edges
+})
 
 function onGraphNodeClick(node: { id: string; label: string; type: string }) {
-	if (node.type === "individual") {
-		selectedIndividualId.value = node.id;
-	} else if (node.type === "class") {
-		selectedClassId.value = node.id;
-	}
+  if (node.type === 'individual') {
+    selectedIndividualId.value = node.id
+  } else if (node.type === 'class') {
+    selectedClassId.value = node.id
+  }
 }
 
 // ── Ontology metadata (REST — migrated from ONTOLOGY_QUERY) ────────────────────
 
-const loading = ref(false);
-const error = ref<string | null>(null);
-const ontologyData = ref<any>(null);
-
-async function fetchOntologyMeta() {
-	loading.value = true;
-	error.value = null;
-	try {
-		const token = localStorage.getItem("vedo-jwt-token");
-		const { data } = await axios.get(`/api/v1/ontologies/${ontologyId.value}`, {
-			headers: token ? { Authorization: `Bearer ${token}` } : {},
-		});
-		ontologyData.value = data;
-	} catch (e: any) {
-		error.value = e.response?.data?.error?.message ?? e.message ?? "Failed to load ontology";
-	} finally {
-		loading.value = false;
-	}
+interface OntologyMeta {
+  id: string
+  name?: string
+  branch?: string
+  dirty?: boolean
 }
 
-onMounted(() => { fetchOntologyMeta(); });
+const loading = ref(false)
+const error = ref<string | null>(null)
+const ontologyData = ref<OntologyMeta | null>(null)
+
+async function fetchOntologyMeta() {
+  loading.value = true
+  error.value = null
+  try {
+    const token = localStorage.getItem('vedo-jwt-token')
+    const { data } = await axios.get(`/api/v1/ontologies/${ontologyId.value}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    })
+    ontologyData.value = data
+  } catch (e: unknown) {
+    const err = e as { response?: { data?: { error?: { message?: string } } }; message?: string }
+    error.value = err.response?.data?.error?.message ?? err.message ?? 'Failed to load ontology'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchOntologyMeta()
+})
 
 // Set ontology context when metadata loads for draft state
 watch(ontologyData, (data) => {
-	if (data?.id) {
-		draftState.setOntologyContext(data.id);
-		console.debug(
-			JSON.stringify({
-				level: "debug",
-				msg: "workspace.draft.context_set",
-				ontologyId: data.id,
-				ts: new Date().toISOString(),
-			}),
-		);
-	}
-});
+  if (data?.id) {
+    draftState.setOntologyContext(data.id)
+    console.debug(
+      JSON.stringify({
+        level: 'debug',
+        msg: 'workspace.draft.context_set',
+        ontologyId: data.id,
+        ts: new Date().toISOString()
+      })
+    )
+  }
+})
 
 async function handleSave(): Promise<void> {
-	if (saving.value || !draftState.hasUnsavedChanges.value) return;
-	saving.value = true;
-	try {
-		const success = await draftState.saveDraft();
-		if (success) {
-			console.debug(
-				JSON.stringify({
-					level: "debug",
-					msg: "workspace.draft.save_success",
-					ts: new Date().toISOString(),
-				}),
-			);
-		} else {
-			console.warn(
-				JSON.stringify({
-					level: "warn",
-					msg: "workspace.draft.save_no_changes",
-					ts: new Date().toISOString(),
-				}),
-			);
-		}
-	} catch (err) {
-		const msg = err instanceof Error ? err.message : String(err);
-		console.error(
-			JSON.stringify({
-				level: "error",
-				msg: "workspace.draft.save_failed",
-				error: msg,
-				ts: new Date().toISOString(),
-			}),
-		);
-	} finally {
-		saving.value = false;
-	}
+  if (saving.value || !draftState.hasUnsavedChanges.value) return
+  saving.value = true
+  try {
+    const success = await draftState.saveDraft()
+    if (success) {
+      console.debug(
+        JSON.stringify({
+          level: 'debug',
+          msg: 'workspace.draft.save_success',
+          ts: new Date().toISOString()
+        })
+      )
+    } else {
+      console.warn(
+        JSON.stringify({
+          level: 'warn',
+          msg: 'workspace.draft.save_no_changes',
+          ts: new Date().toISOString()
+        })
+      )
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error(
+      JSON.stringify({
+        level: 'error',
+        msg: 'workspace.draft.save_failed',
+        error: msg,
+        ts: new Date().toISOString()
+      })
+    )
+  } finally {
+    saving.value = false
+  }
 }
 
 // ── Class tree ───────────────────────────────────────────────────────────────────────
 
 const { result: classTreeResult } = useQuery(
-	CLASS_TREE_QUERY,
-	() => ({ ontologyId: ontologyId.value }),
-	{
-		fetchPolicy: "cache-and-network",
-	},
-);
+  CLASS_TREE_QUERY,
+  () => ({ ontologyId: ontologyId.value }),
+  {
+    fetchPolicy: 'cache-and-network'
+  }
+)
 
-const classTree = computed(() => classTreeResult.value?.classTree || []);
+const classTree = computed(() => classTreeResult.value?.classTree || [])
 
 // ── Individuals by class ─────────────────────────────────────────────────────────────
 
 const { result: individualsResult, refetch: refetchIndividuals } = useQuery(
-	LIST_INDIVIDUALS_QUERY,
-	() => ({
-		ontologyId: ontologyId.value,
-		classId: selectedClassId.value || "",
-		page: 0,
-		perPage: 50,
-	}),
-	{
-		fetchPolicy: "cache-and-network",
-		enabled: computed(() => !!selectedClassId.value),
-	},
-);
+  LIST_INDIVIDUALS_QUERY,
+  () => ({
+    ontologyId: ontologyId.value,
+    classId: selectedClassId.value || '',
+    page: 0,
+    perPage: 50
+  }),
+  {
+    fetchPolicy: 'cache-and-network',
+    enabled: computed(() => !!selectedClassId.value)
+  }
+)
 
-const individuals = computed(
-	() => individualsResult.value?.individuals?.items || [],
-);
+const individuals = computed(() => individualsResult.value?.individuals?.items || [])
 
 // ── Selection handling ────────────────────────────────────────────────────────────────
 
 function selectClass(classId: string) {
-	selectedClassId.value = classId;
-	selectedIndividualId.value = null;
+  selectedClassId.value = classId
+  selectedIndividualId.value = null
 }
 
 watch(selectedClassId, () => {
-	if (selectedClassId.value) {
-		refetchIndividuals();
-	}
-});
+  if (selectedClassId.value) {
+    refetchIndividuals()
+  }
+})
 </script>
 
 <style scoped>

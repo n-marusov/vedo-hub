@@ -113,116 +113,103 @@
 </template>
 
 <script setup lang="ts">
-import { fetchDemoProjects, forkProject } from "@/api/fork";
-import type { DemoProject } from "@/api/fork";
-import {
-	Box,
-	Folder,
-	GitFork,
-	Inbox,
-	Loader,
-	Pencil,
-	Search,
-	Tag,
-	X,
-} from "lucide-vue-next";
-import { computed, onMounted, ref } from "vue";
+import { fetchDemoProjects, forkProject } from '@/api/fork'
+import type { DemoProject } from '@/api/fork'
+import { Box, Folder, GitFork, Inbox, Loader, Pencil, Search, Tag, X } from 'lucide-vue-next'
+import { computed, onMounted, ref } from 'vue'
 
 const props = defineProps<{
-	modelValue: boolean;
-}>();
+  modelValue: boolean
+}>()
 
 const emit = defineEmits<{
-	"update:modelValue": [value: boolean];
-}>();
+  'update:modelValue': [value: boolean]
+}>()
 
-const demoProjects = ref<DemoProject[]>([]);
-const loading = ref(false);
-const error = ref<string | null>(null);
-const searchQuery = ref("");
-const forking = ref<string | null>(null);
+const demoProjects = ref<DemoProject[]>([])
+const loading = ref(false)
+const error = ref<string | null>(null)
+const searchQuery = ref('')
+const forking = ref<string | null>(null)
 
 const filteredProjects = computed(() => {
-	if (!searchQuery.value) return demoProjects.value;
-	const query = searchQuery.value.toLowerCase();
-	return demoProjects.value.filter((p) => p.name.toLowerCase().includes(query));
-});
+  if (!searchQuery.value) return demoProjects.value
+  const query = searchQuery.value.toLowerCase()
+  return demoProjects.value.filter((p) => p.name.toLowerCase().includes(query))
+})
 
 /** Split projects into rows of 2 for the card grid layout. */
 const projectRows = computed(() => {
-	const rows: DemoProject[][] = [];
-	for (let i = 0; i < filteredProjects.value.length; i += 2) {
-		rows.push(filteredProjects.value.slice(i, i + 2));
-	}
-	return rows;
-});
+  const rows: DemoProject[][] = []
+  for (let i = 0; i < filteredProjects.value.length; i += 2) {
+    rows.push(filteredProjects.value.slice(i, i + 2))
+  }
+  return rows
+})
 
 async function loadProjects() {
-	loading.value = true;
-	error.value = null;
-	try {
-		demoProjects.value = await fetchDemoProjects();
-	} catch (e) {
-		error.value = "Failed to load demo projects. Please try again.";
-		console.info("[fork]", "load failed", e);
-	} finally {
-		loading.value = false;
-	}
+  loading.value = true
+  error.value = null
+  try {
+    demoProjects.value = await fetchDemoProjects()
+  } catch (e) {
+    error.value = 'Failed to load demo projects. Please try again.'
+    console.info('[fork]', 'load failed', e)
+  } finally {
+    loading.value = false
+  }
 }
 
 async function handleFork(project: DemoProject) {
-	forking.value = project.id;
-	error.value = null;
-	try {
-		const result = await forkProject(project.id);
-		console.info(
-			JSON.stringify({
-				level: "info",
-				msg: "[fork]",
-				sourceProjectId: project.id,
-				newProjectId: result.project_id,
-				ts: new Date().toISOString(),
-			}),
-		);
-		window.location.href = `/projects/${result.project_id}/workspace`;
-	} catch (e) {
-		const axiosError = e as {
-			response?: { status?: number; data?: { error?: string } };
-		};
-		const serverMsg = axiosError.response?.data?.error;
-		if (axiosError.response?.status === 403) {
-			error.value =
-				serverMsg ||
-				"Access denied. You don't have permission to fork this project.";
-		} else if (axiosError.response?.status === 503) {
-			error.value = serverMsg || "Service unavailable, please retry.";
-		} else {
-			error.value =
-				serverMsg || "An unexpected error occurred. Please try again.";
-		}
-		console.info(
-			JSON.stringify({
-				level: "warn",
-				msg: "[fork] failed",
-				sourceProjectId: project.id,
-				error: String(e),
-				ts: new Date().toISOString(),
-			}),
-		);
-	} finally {
-		forking.value = null;
-	}
+  forking.value = project.id
+  error.value = null
+  try {
+    const result = await forkProject(project.id)
+    console.info(
+      JSON.stringify({
+        level: 'info',
+        msg: '[fork]',
+        sourceProjectId: project.id,
+        newProjectId: result.project_id,
+        ts: new Date().toISOString()
+      })
+    )
+    window.location.href = `/projects/${result.project_id}/workspace`
+  } catch (e) {
+    const axiosError = e as {
+      response?: { status?: number; data?: { error?: string } }
+    }
+    const serverMsg = axiosError.response?.data?.error
+    if (axiosError.response?.status === 403) {
+      error.value = serverMsg || "Access denied. You don't have permission to fork this project."
+    } else if (axiosError.response?.status === 503) {
+      error.value = serverMsg || 'Service unavailable, please retry.'
+    } else {
+      error.value = serverMsg || 'An unexpected error occurred. Please try again.'
+    }
+    console.info(
+      JSON.stringify({
+        level: 'warn',
+        msg: '[fork] failed',
+        sourceProjectId: project.id,
+        error: String(e),
+        ts: new Date().toISOString()
+      })
+    )
+  } finally {
+    forking.value = null
+  }
 }
 
 function close() {
-	emit("update:modelValue", false);
+  emit('update:modelValue', false)
 }
 
 onMounted(() => {
-	if (props.modelValue) {
-		loadProjects();
-	}
-});
+  if (props.modelValue) {
+    loadProjects()
+  }
+})
 </script>
 
 <style scoped>

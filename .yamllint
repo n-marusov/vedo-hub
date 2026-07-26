@@ -1,0 +1,30 @@
+---
+extends: default
+
+ignore: |
+  node_modules/
+  .venv/
+  target/
+  vendor/
+  *.min.css
+  pnpm-lock.yaml
+  src/services/
+  .agents/
+  .playwright-mcp/
+  tools/scaffolds/
+  .yamllint
+
+rules:
+  line-length:
+    max: 200
+    level: warning
+  document-start: disable
+  truthy:
+    level: warning
+  braces:
+    max-spaces-inside: 1
+  brackets:
+    max-spaces-inside: 1
+  new-lines: disable
+  new-line-at-end-of-file:
+    level: warning

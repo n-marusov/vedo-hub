@@ -141,8 +141,95 @@ Compose profiles:
 |`ci` |Includes `vedo-cli-build` (compile-only)
 |===
 
+== Multi-Environment Setup
+
+The project ships three pre-configured env files with non-overlapping ports:
+
+|===
+|Environment |Env file |Port offset |Project name
+
+|dev |`.env.dev` |none |`vedo-core-dev`
+|test |`.env.test` |+10000 |`vedo-core-test`
+|staging |`.env.staging` |+20000 |`vedo-core-staging`
+|===
+
+[source,bash]
+----
+make docker-up-dev      # Dev
+make docker-up-test     # Test (includes JWT dev keys for Playwright)
+make docker-up-staging  # Staging
+----
+
+=== Ways to Configure
+
+|===
+|Method |Example |Best for
+
+|Shell env |`export API_GATEWAY_PORT=9090 && make docker-up` |One-off overrides
+|`.env` file |Create `.env` with `API_GATEWAY_PORT=9090` |Persistent project config
+|Inline |`API_GATEWAY_PORT=9090 make docker-up` |Temporary overrides
+|===
+
+=== Dev Environment Variables
+
+The `.env.dev.example` file contains commented-out domain-specific overrides. For development:
+
+|===
+|Variable |Default |Description
+
+|`KC_HOSTNAME` |`localhost` |Keycloak hostname (must resolve in your environment)
+|`KEYCLOAK_JWKS_URL` |`http://localhost:8180/realms/vedo-core/protocol/openid-connect/certs` |JWKS endpoint for token validation
+|===
+
+Override `KC_HOSTNAME` only if your Keycloak setup uses a different domain. Any override must be resolvable from the Docker network.
+
+== Essential Overrides
+
+|===
+|Variable |Default |Description
+
+|`LLM_PROVIDER` |*(empty — disabled)* |LLM backend: `openai`, `anthropic`, `ollama`
+|`LLM_API_KEY` |*(empty)* |API key for the chosen provider
+|`LLM_MODEL` |*(empty)* |Model name (e.g. `gpt-4o`, `claude-3-opus`, `llama3`)
+|`LLM_BASE_URL` |*(empty)* |Custom OpenAI-compatible endpoint
+|`LLM_PROVIDERS_OLLAMA_BASE_URL` |`http://localhost:11434/v1` |Ollama API endpoint
+|`LLM_PROVIDERS_OLLAMA_MODEL` |`llama3` |Ollama model name
+|`GRPC_TLS_ENABLED` |`false` |Enable mTLS for all gRPC services
+|`GRPC_CA_CERT_FILE` |*(empty)* |CA certificate path (api-gateway)
+|`GRPC_TLS_CERT_FILE` |*(empty)* |TLS certificate path (Rust services)
+|`GRPC_TLS_KEY_FILE` |*(empty)* |TLS key path (Rust services)
+|===
+
+== AI Features (LLM)
+
+Document extraction and AI orchestration require an LLM provider. Use the bundled Ollama profile for local development:
+
+[source,bash]
+----
+# Start VEDO + local Ollama (~4 GB)
+docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.llm.yaml --profile llm up -d
+
+# Pull a model into the running Ollama container
+docker compose -f deploy/docker-compose.llm.yaml exec ollama ollama pull llama3
+
+# Tell services to use Ollama
+export LLM_PROVIDER=ollama
+export LLM_PROVIDERS_OLLAMA_BASE_URL=http://ollama:11434/v1
+export LLM_PROVIDERS_OLLAMA_MODEL=llama3
+----
+
+Or use a cloud provider:
+
+[source,bash]
+----
+export LLM_PROVIDER=openai
+export LLM_API_KEY=sk-...
+export LLM_MODEL=gpt-4o
+make docker-up
+----
+
 == See Also
 
 * xref:getting-started.adoc[Getting Started] — prerequisites and quick start
-* xref:architecture.adoc[Architecture] — service inventory
+* xref:deployment.adoc[Deployment] — Docker setup and multi-env orchestration
 * xref:testing.adoc[Testing] — test suites and how to run them

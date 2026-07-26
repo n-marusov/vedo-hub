@@ -106,168 +106,160 @@
 </template>
 
 <script setup lang="ts">
-import { listGroups } from "@/api/org";
-import CreateGroupDialog from "@/components/groups/CreateGroupDialog.vue";
+import { listGroups } from '@/api/org'
+import CreateGroupDialog from '@/components/groups/CreateGroupDialog.vue'
 import {
-	ChevronDown,
-	ChevronRight,
-	Folder,
-	FolderTree,
-	Globe,
-	Lock,
-	MoreVertical,
-	Plus,
-	Search,
-	Star,
-	Users,
-} from "lucide-vue-next";
-import type { Component } from "vue";
-import { computed, onMounted, reactive, ref, watch } from "vue";
+  ChevronDown,
+  ChevronRight,
+  Folder,
+  FolderTree,
+  Globe,
+  Lock,
+  MoreVertical,
+  Plus,
+  Search,
+  Star,
+  Users
+} from 'lucide-vue-next'
+import type { Component } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 
-const searchQuery = ref("");
-const showCreateDialog = ref(false);
+const searchQuery = ref('')
+const showCreateDialog = ref(false)
 
 // @m4 Reactive expand/collapse map — keyed by group name
-type ExpandedMap = Record<string, boolean>;
-const expanded = reactive<ExpandedMap>({});
+type ExpandedMap = Record<string, boolean>
+const expanded = reactive<ExpandedMap>({})
 
 function toggleExpand(name: string): void {
-	expanded[name] = !expanded[name];
-	console.debug(
-		JSON.stringify({
-			level: "debug",
-			msg: "Groups.expand",
-			group: name,
-			expanded: expanded[name],
-			ts: new Date().toISOString(),
-		}),
-	);
+  expanded[name] = !expanded[name]
+  console.debug(
+    JSON.stringify({
+      level: 'debug',
+      msg: 'Groups.expand',
+      group: name,
+      expanded: expanded[name],
+      ts: new Date().toISOString()
+    })
+  )
 }
 
-type RowType = "group" | "project";
+type RowType = 'group' | 'project'
 
 interface GroupRow {
-	name: string;
-	indent: number;
-	chevronIcon: Component;
-	logoLetter: string;
-	logoBg: string;
-	visibility: "public" | "private";
-	description: string;
-	type: RowType;
-	subgroups?: number;
-	projects?: number;
-	members?: number;
-	stars?: number;
-	created: string;
-	active: boolean;
-	isChild: boolean;
+  name: string
+  indent: number
+  chevronIcon: Component
+  logoLetter: string
+  logoBg: string
+  visibility: 'public' | 'private'
+  description: string
+  type: RowType
+  subgroups?: number
+  projects?: number
+  members?: number
+  stars?: number
+  created: string
+  active: boolean
+  isChild: boolean
 }
 
-const loading = ref(false);
-const error = ref<string | null>(null);
-const groupsData = ref<any[]>([]);
+const loading = ref(false)
+const error = ref<string | null>(null)
+const groupsData = ref<any[]>([])
 
 async function fetchGroups() {
-	loading.value = true;
-	error.value = null;
-	try {
-		groupsData.value = await listGroups(searchQuery.value || undefined);
-	} catch (e: any) {
-		error.value = e.message ?? String(e);
-	} finally {
-		loading.value = false;
-	}
+  loading.value = true
+  error.value = null
+  try {
+    groupsData.value = await listGroups(searchQuery.value || undefined)
+  } catch (e: any) {
+    error.value = e.message ?? String(e)
+  } finally {
+    loading.value = false
+  }
 }
 
 function onGroupCreated(name: string): void {
-	showCreateDialog.value = false;
-	console.debug(
-		JSON.stringify({
-			level: "debug",
-			msg: "Groups.groupCreated",
-			groupName: name,
-			ts: new Date().toISOString(),
-		}),
-	);
-	fetchGroups();
+  showCreateDialog.value = false
+  console.debug(
+    JSON.stringify({
+      level: 'debug',
+      msg: 'Groups.groupCreated',
+      groupName: name,
+      ts: new Date().toISOString()
+    })
+  )
+  fetchGroups()
 }
 
 onMounted(() => {
-	fetchGroups();
-});
+  fetchGroups()
+})
 
 const groupRows = computed<GroupRow[]>(() => {
-	const items = groupsData.value;
-	if (!items || items.length === 0) {
-		return [];
-	}
-	// Build flat hierarchy from nested API response
-	const rows: GroupRow[] = [];
-	function walk(
-		group: Record<string, unknown>,
-		indent: number,
-		isChild: boolean,
-	): void {
-		const groupName = String(group.name || "");
-		rows.push({
-			name: groupName,
-			indent,
-			chevronIcon: (group.childGroups as unknown[])?.length
-				? ChevronDown
-				: ChevronRight,
-			logoLetter: String(
-				group.name ? (group.name as string)[0] : "?",
-			).toUpperCase(),
-			logoBg: "#6366f126",
-			visibility: (group.visibility as "public" | "private") || "public",
-			description: String(group.description || ""),
-			type: "group",
-			subgroups: Number((group.childGroups as unknown[])?.length || 0),
-			projects: Number(group.projectCount || 0),
-			members: Number(group.memberCount || 0),
-			created: "",
-			active: false,
-			isChild,
-		});
-		// Only walk children if this group is expanded
-		if (group.childGroups && expanded[groupName]) {
-			for (const child of group.childGroups as Record<string, unknown>[]) {
-				walk(child, indent + 18, true);
-			}
-		}
-	}
-	for (const g of items as Record<string, unknown>[]) {
-		walk(g, 0, false);
-	}
-	return rows;
-});
+  const items = groupsData.value
+  if (!items || items.length === 0) {
+    return []
+  }
+  // Build flat hierarchy from nested API response
+  const rows: GroupRow[] = []
+  function walk(group: Record<string, unknown>, indent: number, isChild: boolean): void {
+    const groupName = String(group.name || '')
+    rows.push({
+      name: groupName,
+      indent,
+      chevronIcon: (group.childGroups as unknown[])?.length ? ChevronDown : ChevronRight,
+      logoLetter: String(group.name ? (group.name as string)[0] : '?').toUpperCase(),
+      logoBg: '#6366f126',
+      visibility: (group.visibility as 'public' | 'private') || 'public',
+      description: String(group.description || ''),
+      type: 'group',
+      subgroups: Number((group.childGroups as unknown[])?.length || 0),
+      projects: Number(group.projectCount || 0),
+      members: Number(group.memberCount || 0),
+      created: '',
+      active: false,
+      isChild
+    })
+    // Only walk children if this group is expanded
+    if (group.childGroups && expanded[groupName]) {
+      for (const child of group.childGroups as Record<string, unknown>[]) {
+        walk(child, indent + 18, true)
+      }
+    }
+  }
+  for (const g of items as Record<string, unknown>[]) {
+    walk(g, 0, false)
+  }
+  return rows
+})
 
 // ── Logging ─────────────────────────────────────────────────────────────────
 
 watch(groupRows, (val) => {
-	console.debug(
-		JSON.stringify({
-			level: "debug",
-			msg: "groups.list.loaded",
-			count: val.length,
-			ts: new Date().toISOString(),
-		}),
-	);
-});
+  console.debug(
+    JSON.stringify({
+      level: 'debug',
+      msg: 'groups.list.loaded',
+      count: val.length,
+      ts: new Date().toISOString()
+    })
+  )
+})
 
 watch(error, (err) => {
-	if (err) {
-		console.error(
-			JSON.stringify({
-				level: "error",
-				msg: "groups.query.error",
-				error: String(err),
-				ts: new Date().toISOString(),
-			}),
-		);
-	}
-});
+  if (err) {
+    console.error(
+      JSON.stringify({
+        level: 'error',
+        msg: 'groups.query.error',
+        error: String(err),
+        ts: new Date().toISOString()
+      })
+    )
+  }
+})
 </script>
 
 <style scoped>

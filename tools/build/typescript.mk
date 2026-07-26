@@ -1,13 +1,13 @@
 # @ctx: TypeScript build/lint/test rules — PLAT-LOCAL-002
 
-TS_DIRS := $(shell cd $(ROOT) && find . -maxdepth 3 -name package.json -not -path "*/node_modules/*" -not -path "*/templates/*" -exec dirname {} \; 2>/dev/null | sed 's|^\./||')
+TS_DIRS := $(shell cd $(ROOT) && find . -maxdepth 5 -name package.json -not -path "*/node_modules/*" -not -path "*/templates/*" -not -path "*/scaffolds/*" -not -path "*/src/services/*" -not -path "*/tests/*" -exec dirname {} \; 2>/dev/null | sed 's|^\./||')
 
 .PHONY: build-typescript
 build-typescript:
 	@if [ -z "$(TS_DIRS)" ]; then echo "No TypeScript services found"; exit 0; fi
 	@for dir in $(TS_DIRS); do \
 		echo "[TypeScript] building $$(basename $$dir)"; \
-		cd $(ROOT)/$$dir && pnpm install 2>&1 && pnpm build 2>&1 || { echo "BUILD_FAILED: pnpm build failed in $$dir"; exit 1; }; \
+		cd $(ROOT)/$$dir && CI=true pnpm install 2>&1 && CI=true pnpm build 2>&1 || { echo "BUILD_FAILED: pnpm build failed in $$dir"; exit 1; }; \
 	done
 
 .PHONY: lint-typescript

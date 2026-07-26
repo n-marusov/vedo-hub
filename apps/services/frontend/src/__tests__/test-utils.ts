@@ -2,9 +2,9 @@
 // Re-exports from mock-providers for plan-specified import path
 
 export {
-	createMockRouter,
-	createMockApolloClient,
-	mountWithProviders,
-	waitForQuery,
-	describePage,
-} from "@/__tests__/setup/mock-providers";
+  createMockRouter,
+  createMockApolloClient,
+  mountWithProviders,
+  waitForQuery,
+  describePage
+} from '@/__tests__/setup/mock-providers'

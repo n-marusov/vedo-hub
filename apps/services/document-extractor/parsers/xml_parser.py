@@ -49,7 +49,7 @@ class XmlParser(BaseParser):
         # ElementTree does not expose xmlns attributes in elem.attrib,
         # so we scan the raw text for xmlns:prefix="uri" patterns.
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 raw_content = f.read()
             for match in re.finditer(
                 r'\sxmlns(?::(\w+))?\s*=\s*["\']([^"\']+)["\']',
@@ -131,7 +131,7 @@ class XmlParser(BaseParser):
             for child_tag, count in child_tags.items():
                 lines.append(
                     f"{indent}  Property (object): has_{child_tag} → {child_tag}"
-                    f"{' (×' + str(count) + ')' if count > 1 else ''}"
+                    f"{' (x' + str(count) + ')' if count > 1 else ''}"
                 )
 
             # Recurse into children (limit depth)

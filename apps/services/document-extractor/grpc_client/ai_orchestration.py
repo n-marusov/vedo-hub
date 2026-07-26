@@ -160,7 +160,7 @@ class AIOrchestrationGrpcClient:
                 "require_consent": False,
             }
         except grpc.RpcError as exc:
-            logger.error(
+            logger.exception(
                 "CheckPolicy RPC failed for %s/%s: %s",
                 ontology_id,
                 action,

@@ -1,2 +1,0 @@
-* xref:grpc-reference.adoc[gRPC API Reference]
-* xref:llm-config.adoc[LLM Provider Configuration]

@@ -109,26 +109,26 @@ See `.ai-factory/DESCRIPTION.md` for detailed project specification.
 
 ## Documentation
 
-Antora documentation source in `docs/antora/`. Build with `cd docs/antora && antora antora-playbook.yml`.
+Antora documentation source in `docs/antora/`. Build with `cd docs/antora && npx antora antora-playbook.yml`.
 
 | Document | Path | Description |
 |----------|------|-------------|
 | README | `README.md` | Project landing page |
+| Deployment | `docs/antora/developer-guide/modules/ROOT/pages/deployment.adoc` | Docker setup, environments, compose |
+| Development | `docs/antora/developer-guide/modules/ROOT/pages/development.adoc` | Native builds, linting, dev tools |
+| Configuration | `docs/antora/developer-guide/modules/ROOT/pages/configuration.adoc` | Environment variables, ports, LLM |
+| Architecture | `docs/antora/developer-guide/modules/ROOT/pages/architecture.adoc` | Project structure, microservices |
+| Testing | `docs/antora/developer-guide/modules/ROOT/pages/testing.adoc` | Unit, integration, E2E, CI |
 | User Guide | `docs/antora/user-guide/` | Quick start, ontology editing, versioning |
-| Developer Guide | `docs/antora/developer-guide/` | Getting started, architecture, config, testing |
-| Org Model | `docs/antora/developer-guide/modules/ROOT/pages/organization-model.adoc` | Multi-team organization model (groups, projects, members, RBAC) |
+| Developer Guide (home) | `docs/antora/developer-guide/modules/ROOT/pages/index.adoc` | Developer documentation hub |
+| Org Model | `docs/antora/developer-guide/modules/ROOT/pages/organization-model.adoc` | Multi-team organization model |
 | Admin Guide | `docs/antora/admin-guide/` | Deployment, port reference, observability, security |
 | Integrator Guide | `docs/antora/integrator-guide/` | API reference, authentication, integration config |
 | Antora Playbook | `docs/antora/antora-playbook.yml` | Site build configuration |
-| Deploy Guide | `deploy/README.md` | Docker Compose, multi-env setup, port reference |
-| Env: dev | `config/.env.dev` | Dev environment — default ports |
-| Env: test | `config/.env.test` | Test environment — ports +10000 |
-| Env: staging | `config/.env.staging` | Staging environment — ports +20000 |
+| Env: dev | `.env.dev` | Dev environment — default ports |
+| Env: test | `.env.test` | Test environment — ports +10000 |
+| Env: staging | `.env.staging` | Staging environment — ports +20000 |
 | License | `LICENSE` | Project license |
-| Project Specs | `specs/context.md` | Project context and overview |
-| Tech Stack | `specs/stack.md` | Technology stack decisions and rationale |
-| Glossary | `specs/glossary.md` | Domain-specific terminology |
-| Architecture Guidelines | `.ai-factory/ARCHITECTURE.md` | Architecture patterns and guidelines |
 
 ## AI Context Files
 

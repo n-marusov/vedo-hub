@@ -50,7 +50,7 @@ docker-build-go:
 	@if [ -z "$(GO_DIRS)" ]; then echo "No Go services to dockerize"; exit 0; fi
 	@for dir in $(GO_DIRS); do \
 		svc=$$(basename $$dir); \
-		case "$$dir" in cli|services/*/*) continue;; esac; \
+		case "$$dir" in *vedo-cli|*services/*/*) continue;; esac; \
 		if [ ! -d "$(ROOT)/$$dir/vendor" ]; then \
 			echo "[Docker] skipping $$svc — no vendor directory (run 'make vendor-go' first)"; \
 			continue; \
@@ -71,7 +71,7 @@ docker-build-python:
 	@if [ -z "$(PYTHON_DIRS)" ]; then echo "No Python services to dockerize"; exit 0; fi
 	@for dir in $(PYTHON_DIRS); do \
 		svc=$$(basename $$dir); \
-		rel_dir="src/services/$$svc" && \
+		rel_dir="apps/services/$$svc" && \
 		echo "[Docker] building Python image: vedo-core/$$svc:latest"; \
 		docker build \
 			--build-arg SERVICE_DIR=$$rel_dir \
@@ -89,7 +89,7 @@ docker-build-typescript:
 		svc=$$(basename $$dir); \
 		echo "[Docker] building TypeScript image: vedo-core/$$svc:latest"; \
 		docker build \
-			--build-arg SERVICE_DIR=src/$$dir \
+			--build-arg SERVICE_DIR=$$dir \
 			--build-arg NODE_IMAGE=$(NODE_IMAGE) \
 			--build-arg NGINX_IMAGE=$(NGINX_IMAGE) \
 			-f $(DOCKER_DIR)/Dockerfile.typescript \

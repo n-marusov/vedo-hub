@@ -44,6 +44,7 @@ const (
 	OrgService_DeletePolicy_FullMethodName     = "/vedo.auth.v1.OrgService/DeletePolicy"
 	OrgService_CheckAccess_FullMethodName      = "/vedo.auth.v1.OrgService/CheckAccess"
 	OrgService_ForkProject_FullMethodName      = "/vedo.auth.v1.OrgService/ForkProject"
+	OrgService_MoveProject_FullMethodName      = "/vedo.auth.v1.OrgService/MoveProject"
 )
 
 // OrgServiceClient is the client API for OrgService service.
@@ -79,6 +80,8 @@ type OrgServiceClient interface {
 	CheckAccess(ctx context.Context, in *CheckAccessRequest, opts ...grpc.CallOption) (*CheckAccessResponse, error)
 	// Fork (templates-via-forks)
 	ForkProject(ctx context.Context, in *ForkProjectRequest, opts ...grpc.CallOption) (*ForkProjectResponse, error)
+	// Move/Transfer project between groups
+	MoveProject(ctx context.Context, in *MoveProjectRequest, opts ...grpc.CallOption) (*MoveProjectResponse, error)
 }
 
 type orgServiceClient struct {
@@ -309,6 +312,16 @@ func (c *orgServiceClient) ForkProject(ctx context.Context, in *ForkProjectReque
 	return out, nil
 }
 
+func (c *orgServiceClient) MoveProject(ctx context.Context, in *MoveProjectRequest, opts ...grpc.CallOption) (*MoveProjectResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MoveProjectResponse)
+	err := c.cc.Invoke(ctx, OrgService_MoveProject_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OrgServiceServer is the server API for OrgService service.
 // All implementations must embed UnimplementedOrgServiceServer
 // for forward compatibility.
@@ -342,6 +355,8 @@ type OrgServiceServer interface {
 	CheckAccess(context.Context, *CheckAccessRequest) (*CheckAccessResponse, error)
 	// Fork (templates-via-forks)
 	ForkProject(context.Context, *ForkProjectRequest) (*ForkProjectResponse, error)
+	// Move/Transfer project between groups
+	MoveProject(context.Context, *MoveProjectRequest) (*MoveProjectResponse, error)
 	mustEmbedUnimplementedOrgServiceServer()
 }
 
@@ -417,6 +432,9 @@ func (UnimplementedOrgServiceServer) CheckAccess(context.Context, *CheckAccessRe
 }
 func (UnimplementedOrgServiceServer) ForkProject(context.Context, *ForkProjectRequest) (*ForkProjectResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ForkProject not implemented")
+}
+func (UnimplementedOrgServiceServer) MoveProject(context.Context, *MoveProjectRequest) (*MoveProjectResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method MoveProject not implemented")
 }
 func (UnimplementedOrgServiceServer) mustEmbedUnimplementedOrgServiceServer() {}
 func (UnimplementedOrgServiceServer) testEmbeddedByValue()                    {}
@@ -835,6 +853,24 @@ func _OrgService_ForkProject_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrgService_MoveProject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MoveProjectRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrgServiceServer).MoveProject(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrgService_MoveProject_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrgServiceServer).MoveProject(ctx, req.(*MoveProjectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OrgService_ServiceDesc is the grpc.ServiceDesc for OrgService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -929,6 +965,10 @@ var OrgService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ForkProject",
 			Handler:    _OrgService_ForkProject_Handler,
+		},
+		{
+			MethodName: "MoveProject",
+			Handler:    _OrgService_MoveProject_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

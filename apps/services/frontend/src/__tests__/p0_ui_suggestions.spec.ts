@@ -13,7 +13,7 @@
 // P0 placeholder specs for AI/NL suggestion and LLM interaction UI features.
 // Remove .skip and implement when corresponding UI components are built.
 
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 describe.skip('Suggestion Confidence (REQ-USR.UI.confidence-indicator)', () => {
   it('should display confidence percentage for each AI suggestion', () => {

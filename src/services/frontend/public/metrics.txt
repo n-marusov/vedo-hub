@@ -1,3 +1,0 @@
-# HELP vedo_stub_requests_total Total stub requests
-# TYPE vedo_stub_requests_total counter
-vedo_stub_requests_total{service="frontend"} 1

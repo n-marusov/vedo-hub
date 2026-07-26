@@ -25,7 +25,7 @@
 // P0 placeholder specs for system UI features (settings, errors, billing, status).
 // Remove .skip and implement when corresponding UI components are built.
 
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 describe.skip('Customization (REQ-USR.UI.customization)', () => {
   it('should allow users to customize their workspace layout', () => {

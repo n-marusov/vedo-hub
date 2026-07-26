@@ -121,168 +121,162 @@
 </template>
 
 <script setup lang="ts">
-import { Zap } from "lucide-vue-next";
-import { computed, ref } from "vue";
-import {
-	suggestClasses,
-	suggestProperties,
-	suggestRelationships,
-} from "../../api/ai";
-import type { AiSuggestionResult } from "../../api/ai";
-import { useErrorPresentation } from "../../composables/useErrorPresentation";
-import type { AiSuggestion } from "../../types/extraction";
+import { Zap } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
+import { suggestClasses, suggestProperties, suggestRelationships } from '../../api/ai'
+import type { AiSuggestionResult } from '../../api/ai'
+import { useErrorPresentation } from '../../composables/useErrorPresentation'
+import type { AiSuggestion } from '../../types/extraction'
 
 const props = defineProps<{
-	ontologyId: string;
-	classId: string | null;
-	disabled?: boolean;
-}>();
+  ontologyId: string
+  classId: string | null
+  disabled?: boolean
+}>()
 
 const emit = defineEmits<{
-	"suggestion-accepted": [suggestion: AiSuggestion];
-	"suggestion-rejected": [suggestionId: string];
-}>();
+  'suggestion-accepted': [suggestion: AiSuggestion]
+  'suggestion-rejected': [suggestionId: string]
+}>()
 
-const { addError } = useErrorPresentation();
+const { addError } = useErrorPresentation()
 
 // ── State ──────────────────────────────────────────────────────────────────
 
-const loading = ref(false);
-const isRequesting = ref(false);
-const errorMsg = ref<string | null>(null);
-const suggestions = ref<AiSuggestion[]>([]);
-const acceptedIds = ref(new Set<string>());
-const acceptingId = ref<string | null>(null);
-const currentType = ref<"class" | "property" | "relationship" | null>(null);
+const loading = ref(false)
+const isRequesting = ref(false)
+const errorMsg = ref<string | null>(null)
+const suggestions = ref<AiSuggestion[]>([])
+const acceptedIds = ref(new Set<string>())
+const acceptingId = ref<string | null>(null)
+const currentType = ref<'class' | 'property' | 'relationship' | null>(null)
 
 // ── Computed ───────────────────────────────────────────────────────────────
 
-const acceptedCount = computed(() => acceptedIds.value.size);
+const acceptedCount = computed(() => acceptedIds.value.size)
 
 function typeLabel(type: string): string {
-	switch (type) {
-		case "class":
-			return "Class";
-		case "property":
-			return "Property";
-		case "relationship":
-			return "Relationship";
-		default:
-			return type;
-	}
+  switch (type) {
+    case 'class':
+      return 'Class'
+    case 'property':
+      return 'Property'
+    case 'relationship':
+      return 'Relationship'
+    default:
+      return type
+  }
 }
 
 // ── Fetch suggestions ────────────────────────────────────────────────────
 
-async function fetchSuggestions(
-	type: "class" | "property" | "relationship",
-): Promise<void> {
-	if (!props.classId || isRequesting.value) return;
+async function fetchSuggestions(type: 'class' | 'property' | 'relationship'): Promise<void> {
+  if (!props.classId || isRequesting.value) return
 
-	isRequesting.value = true;
-	loading.value = true;
-	errorMsg.value = null;
-	suggestions.value = [];
-	currentType.value = type;
+  isRequesting.value = true
+  loading.value = true
+  errorMsg.value = null
+  suggestions.value = []
+  currentType.value = type
 
-	console.info("[AiSuggestionPanel] fetching suggestions", {
-		ontologyId: props.ontologyId,
-		classId: props.classId,
-		type,
-	});
+  console.info('[AiSuggestionPanel] fetching suggestions', {
+    ontologyId: props.ontologyId,
+    classId: props.classId,
+    type
+  })
 
-	try {
-		let result: AiSuggestionResult | undefined;
-		switch (type) {
-			case "class":
-				result = await suggestClasses({
-					ontologyId: props.ontologyId,
-					classId: props.classId,
-				});
-				break;
-			case "property":
-				result = await suggestProperties({
-					ontologyId: props.ontologyId,
-					classId: props.classId,
-				});
-				break;
-			case "relationship":
-				result = await suggestRelationships({
-					ontologyId: props.ontologyId,
-					classId: props.classId,
-				});
-				break;
-		}
+  try {
+    let result: AiSuggestionResult | undefined
+    switch (type) {
+      case 'class':
+        result = await suggestClasses({
+          ontologyId: props.ontologyId,
+          classId: props.classId
+        })
+        break
+      case 'property':
+        result = await suggestProperties({
+          ontologyId: props.ontologyId,
+          classId: props.classId
+        })
+        break
+      case 'relationship':
+        result = await suggestRelationships({
+          ontologyId: props.ontologyId,
+          classId: props.classId
+        })
+        break
+    }
 
-		suggestions.value = result?.suggestions ?? [];
+    suggestions.value = result?.suggestions ?? []
 
-		console.info("[AiSuggestionPanel] suggestions received", {
-			count: result?.suggestions.length ?? 0,
-			type,
-		});
-	} catch (err) {
-		const msg = err instanceof Error ? err.message : String(err);
-		errorMsg.value = msg;
-		addError("AI-SUGGEST-FAILED", msg);
-		console.error("[AiSuggestionPanel] failed to fetch suggestions", {
-			error: msg,
-		});
-	} finally {
-		loading.value = false;
-		isRequesting.value = false;
-	}
+    console.info('[AiSuggestionPanel] suggestions received', {
+      count: result?.suggestions.length ?? 0,
+      type
+    })
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    errorMsg.value = msg
+    addError('AI-SUGGEST-FAILED', msg)
+    console.error('[AiSuggestionPanel] failed to fetch suggestions', {
+      error: msg
+    })
+  } finally {
+    loading.value = false
+    isRequesting.value = false
+  }
 }
 
 // ── Accept suggestion ─────────────────────────────────────────────────────
 
 async function acceptSuggestion(suggestion: AiSuggestion): Promise<void> {
-	acceptingId.value = suggestion.id;
+  acceptingId.value = suggestion.id
 
-	console.info("[AiSuggestionPanel] accepting suggestion", {
-		id: suggestion.id,
-		label: suggestion.label,
-		type: suggestion.type,
-	});
+  console.info('[AiSuggestionPanel] accepting suggestion', {
+    id: suggestion.id,
+    label: suggestion.label,
+    type: suggestion.type
+  })
 
-	try {
-		// Emit for the parent to handle the actual CRUD operation
-		emit("suggestion-accepted", suggestion);
-		acceptedIds.value.add(suggestion.id);
+  try {
+    // Emit for the parent to handle the actual CRUD operation
+    emit('suggestion-accepted', suggestion)
+    acceptedIds.value.add(suggestion.id)
 
-		console.info("[AiSuggestionPanel] suggestion accepted", {
-			id: suggestion.id,
-		});
-	} catch (err) {
-		const msg = err instanceof Error ? err.message : String(err);
-		addError("AI-ACCEPT-FAILED", msg);
-		console.error("[AiSuggestionPanel] accept failed", {
-			error: msg,
-		});
-	} finally {
-		acceptingId.value = null;
-	}
+    console.info('[AiSuggestionPanel] suggestion accepted', {
+      id: suggestion.id
+    })
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    addError('AI-ACCEPT-FAILED', msg)
+    console.error('[AiSuggestionPanel] accept failed', {
+      error: msg
+    })
+  } finally {
+    acceptingId.value = null
+  }
 }
 
 // ── Reject / dismiss suggestion ───────────────────────────────────────────
 
 function rejectSuggestion(suggestionId: string): void {
-	console.info("[AiSuggestionPanel] dismissing suggestion", {
-		id: suggestionId,
-	});
-	suggestions.value = suggestions.value.filter((s) => s.id !== suggestionId);
-	emit("suggestion-rejected", suggestionId);
+  console.info('[AiSuggestionPanel] dismissing suggestion', {
+    id: suggestionId
+  })
+  suggestions.value = suggestions.value.filter((s) => s.id !== suggestionId)
+  emit('suggestion-rejected', suggestionId)
 }
 
 // ── Retry after error ─────────────────────────────────────────────────────
 
 function retry(): void {
-	if (isRequesting.value) return;
-	if (currentType.value) {
-		fetchSuggestions(currentType.value);
-	} else {
-		errorMsg.value = null;
-		suggestions.value = [];
-	}
+  if (isRequesting.value) return
+  if (currentType.value) {
+    fetchSuggestions(currentType.value)
+  } else {
+    errorMsg.value = null
+    suggestions.value = []
+  }
 }
 </script>
 

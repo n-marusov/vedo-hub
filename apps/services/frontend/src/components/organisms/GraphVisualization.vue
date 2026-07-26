@@ -110,155 +110,145 @@
 </template>
 
 <script setup lang="ts">
-import { Background } from "@vue-flow/background";
-import { Controls } from "@vue-flow/controls";
-import {
-	type Edge as FlowEdge,
-	type Node,
-	VueFlow,
-	useVueFlow,
-} from "@vue-flow/core";
-import { computed, ref, watch } from "vue";
-import CustomEdge from "./CustomEdge.vue";
+import { Background } from '@vue-flow/background'
+import { Controls } from '@vue-flow/controls'
+import { type Edge as FlowEdge, type Node, VueFlow, useVueFlow } from '@vue-flow/core'
+import { computed, ref, watch } from 'vue'
+import CustomEdge from './CustomEdge.vue'
 
-import "@vue-flow/core/dist/style.css";
-import "@vue-flow/core/dist/theme-default.css";
-import "@vue-flow/controls/dist/style.css";
+import '@vue-flow/core/dist/style.css'
+import '@vue-flow/core/dist/theme-default.css'
+import '@vue-flow/controls/dist/style.css'
 
 interface GraphNode {
-	id: string;
-	label: string;
-	type: "class" | "property" | "individual";
-	x: number;
-	y: number;
-	depth?: number;
+  id: string
+  label: string
+  type: 'class' | 'property' | 'individual'
+  x: number
+  y: number
+  depth?: number
 }
 
 interface GraphEdge {
-	source: string;
-	target: string;
-	type: "subclass_of" | "object_property" | "datatype_property";
+  source: string
+  target: string
+  type: 'subclass_of' | 'object_property' | 'datatype_property'
 }
 
 const props = defineProps<{
-	nodes: GraphNode[];
-	edges: GraphEdge[];
-	showTableFallback?: boolean;
-	maxDepth?: number;
-}>();
+  nodes: GraphNode[]
+  edges: GraphEdge[]
+  showTableFallback?: boolean
+  maxDepth?: number
+}>()
 
 const emit = defineEmits<{
-	"node-click": [node: GraphNode];
-	"update:maxDepth": [depth: number];
-}>();
+  'node-click': [node: GraphNode]
+  'update:maxDepth': [depth: number]
+}>()
 
 // ── UI State ────────────────────────────────────────────────────────────────
 
-const layout = ref("dagre");
-const canvasRef = ref<HTMLElement | null>(null);
-const depth = ref(props.maxDepth ?? 3);
-const nodeTypeFilter = ref("all");
+const layout = ref('dagre')
+const canvasRef = ref<HTMLElement | null>(null)
+const depth = ref(props.maxDepth ?? 3)
+const nodeTypeFilter = ref('all')
 
-const { fitView, zoomIn, zoomOut } = useVueFlow();
+const { fitView, zoomIn, zoomOut } = useVueFlow()
 
 // ── Node type mapping to Vue Flow node types ──────────────────────────────
 
-function mapType(type: GraphNode["type"]): string {
-	if (type === "class") return "ontology-class";
-	if (type === "property") return "ontology-property";
-	return "ontology-individual";
+function mapType(type: GraphNode['type']): string {
+  if (type === 'class') return 'ontology-class'
+  if (type === 'property') return 'ontology-property'
+  return 'ontology-individual'
 }
 
 // ── Edge styling ─────────────────────────────────────────────────────────
 
 function getEdgeStyle(edgeType?: string): Partial<CSSStyleDeclaration> {
-	switch (edgeType) {
-		case "subclass_of":
-			return { stroke: "var(--primary, #4f6ef7)", strokeWidth: "2px" };
-		case "object_property":
-			return {
-				stroke: "var(--accent, #e68a2e)",
-				strokeWidth: "2px",
-				strokeDasharray: "5,5",
-			};
-		case "datatype_property":
-			return {
-				stroke: "var(--status-info, #3b82f6)",
-				strokeWidth: "1px",
-				strokeDasharray: "2,2",
-			};
-		default:
-			return { stroke: "#666", strokeWidth: "1px" };
-	}
+  switch (edgeType) {
+    case 'subclass_of':
+      return { stroke: 'var(--primary, #4f6ef7)', strokeWidth: '2px' }
+    case 'object_property':
+      return {
+        stroke: 'var(--accent, #e68a2e)',
+        strokeWidth: '2px',
+        strokeDasharray: '5,5'
+      }
+    case 'datatype_property':
+      return {
+        stroke: 'var(--status-info, #3b82f6)',
+        strokeWidth: '1px',
+        strokeDasharray: '2,2'
+      }
+    default:
+      return { stroke: '#666', strokeWidth: '1px' }
+  }
 }
 
 // ── Filtering ───────────────────────────────────────────────────────────────
 
 const visibleNodes = computed(() => {
-	return props.nodes.filter((n) => {
-		if (nodeTypeFilter.value !== "all" && n.type !== nodeTypeFilter.value)
-			return false;
-		if (depth.value < 10 && (n.depth ?? 0) > depth.value) return false;
-		return true;
-	});
-});
+  return props.nodes.filter((n) => {
+    if (nodeTypeFilter.value !== 'all' && n.type !== nodeTypeFilter.value) return false
+    if (depth.value < 10 && (n.depth ?? 0) > depth.value) return false
+    return true
+  })
+})
 
-const visibleNodeIds = computed(
-	() => new Set(visibleNodes.value.map((n) => n.id)),
-);
+const visibleNodeIds = computed(() => new Set(visibleNodes.value.map((n) => n.id)))
 
 const visibleEdges = computed(() => {
-	return props.edges.filter(
-		(e) =>
-			visibleNodeIds.value.has(e.source) && visibleNodeIds.value.has(e.target),
-	);
-});
+  return props.edges.filter(
+    (e) => visibleNodeIds.value.has(e.source) && visibleNodeIds.value.has(e.target)
+  )
+})
 
 // ── Vue Flow conversion ────────────────────────────────────────────────────
 
 const flowNodes = computed<Node[]>(() => {
-	return visibleNodes.value.map((n) => ({
-		id: n.id,
-		type: mapType(n.type),
-		position: { x: n.x, y: n.y },
-		data: {
-			label: n.label,
-			type: n.type,
-			depth: n.depth,
-		},
-	}));
-});
+  return visibleNodes.value.map((n) => ({
+    id: n.id,
+    type: mapType(n.type),
+    position: { x: n.x, y: n.y },
+    data: {
+      label: n.label,
+      type: n.type,
+      depth: n.depth
+    }
+  }))
+})
 
 const flowEdges = computed<FlowEdge[]>(() => {
-	return visibleEdges.value.map((e) => ({
-		id: `${e.source}-${e.target}`,
-		source: e.source,
-		target: e.target,
-		type: "custom",
-		data: { type: e.type },
-	}));
-});
+  return visibleEdges.value.map((e) => ({
+    id: `${e.source}-${e.target}`,
+    source: e.source,
+    target: e.target,
+    type: 'custom',
+    data: { type: e.type }
+  }))
+})
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function getEdgeCount(nodeId: string): number {
-	return props.edges.filter((e) => e.source === nodeId || e.target === nodeId)
-		.length;
+  return props.edges.filter((e) => e.source === nodeId || e.target === nodeId).length
 }
 
 function onNodeClick(nodeMouseEvent: { node: Node }) {
-	const node = nodeMouseEvent.node;
-	const original = props.nodes.find((n) => n.id === node.id);
-	if (original) {
-		emit("node-click", original);
-	}
+  const node = nodeMouseEvent.node
+  const original = props.nodes.find((n) => n.id === node.id)
+  if (original) {
+    emit('node-click', original)
+  }
 }
 
 // ── Depth watcher ─────────────────────────────────────────────────────────
 
 watch(depth, (val) => {
-	emit("update:maxDepth", val);
-});
+  emit('update:maxDepth', val)
+})
 </script>
 
 <style scoped>

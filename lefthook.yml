@@ -28,40 +28,40 @@ pre-commit:
   jobs:
     # ── Generic file checks (merge conflicts, trailing whitespace) ──
     - name: generic-checks
-      run: sh src/scripts/pre-commit-generic.sh
+      run: sh tools/scripts/pre-commit-generic.sh
 
     # ── Python: ruff lint + format ──
     - name: ruff
       glob: "**/*.py"
-      run: ruff check --fix {staged_files}
+      run: uv run ruff check --fix {staged_files}
       stage_fixed: true
 
     - name: ruff-format
       glob: "**/*.py"
-      run: ruff format {staged_files}
+      run: uv run ruff format {staged_files}
       stage_fixed: true
 
     # ── TypeScript / Vue: biome (frontend) ──
     - name: biome-frontend
-      root: "src/services/frontend/"
-      glob: "src/services/frontend/**/*.{ts,tsx,js,jsx,vue,json,jsonc}"
+      root: "apps/services/frontend/"
+      glob: "apps/services/frontend/**/*.{ts,tsx,js,jsx,vue,json,jsonc}"
       run: npx biome check --write {staged_files}
       stage_fixed: true
 
     # ── TypeScript / Vue: biome (publish-browse-ui) ──
     - name: biome-publish-browse-ui
-      root: "src/services/publish-browse-ui/"
-      glob: "src/services/publish-browse-ui/**/*.{ts,tsx,js,jsx,vue,json,jsonc}"
+      root: "apps/services/publish-browse-ui/"
+      glob: "apps/services/publish-browse-ui/**/*.{ts,tsx,js,jsx,vue,json,jsonc}"
       run: npx biome check --write {staged_files}
       stage_fixed: true
 
     # ── Go: gofmt + go vet — per-service iteration via script ──
     - name: gofmt-vet
-      run: sh src/scripts/pre-commit-gofmt.sh
+      run: sh tools/scripts/pre-commit-gofmt.sh
 
     # ── Rust: cargo fmt — per-service iteration via script ──
     - name: cargo-fmt
-      run: sh src/scripts/pre-commit-cargo-fmt.sh
+      run: sh tools/scripts/pre-commit-cargo-fmt.sh
 
 # =============================================================================
 # Pre-push — runs on every push (slower checks, sequential)
@@ -92,17 +92,17 @@ pre-push:
 
     # ── Go: golangci-lint — per-service iteration via script ──
     - name: golangci-lint
-      run: sh src/scripts/pre-commit-golangci-lint.sh
+      run: sh tools/scripts/pre-commit-golangci-lint.sh
 
     # ── Rust: cargo clippy — per-service iteration via script ──
     - name: cargo-clippy
-      run: sh src/scripts/pre-commit-cargo-clippy.sh
+      run: sh tools/scripts/pre-commit-cargo-clippy.sh
 
     # ── Go module hygiene ──
     - name: go-mod-tidy
       run: |
         failed=0
-        for dir in $(find src/services -name go.mod -exec dirname {} \;); do
+        for dir in $(find apps/services apps/shared apps/vedo-cli -name go.mod -exec dirname {} \;); do
           if ! (cd "$dir" && go mod tidy && git diff --exit-code go.mod go.sum > /dev/null 2>&1); then
             echo "✖ go.mod/go.sum not tidy in $dir. Run 'go mod tidy' and commit the changes."
             failed=1
@@ -117,18 +117,18 @@ format:
   jobs:
     - name: fmt-python
       glob: "**/*.py"
-      run: ruff check --fix {all_files} && ruff format {all_files}
+      run: uv run ruff check --fix {all_files} && uv run ruff format {all_files}
 
     - name: fmt-frontend
-      root: "src/services/frontend/"
+      root: "apps/services/frontend/"
       run: npx biome check --write .
 
     - name: fmt-publish-browse-ui
-      root: "src/services/publish-browse-ui/"
+      root: "apps/services/publish-browse-ui/"
       run: npx biome check --write .
 
     - name: fmt-go
-      run: sh src/scripts/pre-commit-gofmt.sh
+      run: sh tools/scripts/pre-commit-gofmt.sh
 
     - name: fmt-rust
-      run: sh src/scripts/pre-commit-cargo-fmt.sh
+      run: sh tools/scripts/pre-commit-cargo-fmt.sh

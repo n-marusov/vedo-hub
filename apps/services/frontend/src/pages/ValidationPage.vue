@@ -33,94 +33,81 @@
     </section>
 
     <section class="validation-card">
-      <ValidationReport v-if="validationResult" :summary="summary" :results="(validationResult.violations as Array<{ rule_id: string; rule_name: string; severity: string; focus_node: string; message: string }>)" />
+      <ValidationReport v-if="validationResult" :summary="summary" :results="(validationResult.violations as unknown as Array<{ rule_id: string; rule_name: string; severity: string; focus_node: string; message: string }>)" />
     </section>
   </div>
 </template>
 
 <script setup lang="ts">
-import { runValidation as apiRunValidation } from "@/api/validation";
-import ValidationReport from "@/components/organisms/ValidationReport.vue";
-import {
-	Calendar, Folder, GitBranch, Loader, Play, Shield,
-} from "lucide-vue-next";
-import { computed, onMounted, ref } from "vue";
-import { useRoute } from "vue-router";
+import { runValidation as apiRunValidation } from '@/api/validation'
+import type { ValidationReport as ValidationReportPayload } from '@/api/validation'
+import ValidationReport from '@/components/organisms/ValidationReport.vue'
+import { Calendar, Folder, GitBranch, Loader, Play, Shield } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
+import { useRoute } from 'vue-router'
 
-const route = useRoute();
+const route = useRoute()
 const ontologyId = computed(
-	() =>
-		(route.params.ontologyId as string) ||
-		(route.query.ontologyId as string) ||
-		"",
-);
+  () => (route.params.ontologyId as string) || (route.query.ontologyId as string) || ''
+)
 
 // @m4 — Validation migrated from GraphQL to REST
-const loading = ref(false);
+const loading = ref(false)
 
-const validationResult = ref<{
-	status: string;
-	violations: Array<Record<string, unknown>>;
-	validatedAt: string;
-} | null>(null);
+const validationResult = ref<ValidationReportPayload | null>(null)
 
 const summary = computed(() => {
-	if (!validationResult.value)
-		return { total_rules: 0, passed: 0, failed: 0, warnings: 0 };
-	const violations = validationResult.value.violations || [];
-	const errors = violations.filter(
-		(v: Record<string, unknown>) => v.severity === "error",
-	).length;
-	const warnings = violations.filter(
-		(v: Record<string, unknown>) => v.severity === "warning",
-	).length;
-	const total = violations.length;
-	return {
-		total_rules: total + errors + warnings + 1,
-		passed: Math.max(0, total + errors + warnings + 1 - errors - warnings),
-		failed: errors,
-		warnings,
-	};
-});
+  if (!validationResult.value) return { total_rules: 0, passed: 0, failed: 0, warnings: 0 }
+  const violations = validationResult.value.violations || []
+  const errors = violations.filter((v) => v.severity === 'error').length
+  const warnings = violations.filter((v) => v.severity === 'warning').length
+  const total = violations.length
+  return {
+    total_rules: total + errors + warnings + 1,
+    passed: Math.max(0, total + errors + warnings + 1 - errors - warnings),
+    failed: errors,
+    warnings
+  }
+})
 
 const lastValidatedAt = computed(() => {
-	if (!validationResult.value?.validatedAt) return "Never";
-	return new Date(validationResult.value.validatedAt).toLocaleString("en-US", {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-		hour: "2-digit",
-		minute: "2-digit",
-		second: "2-digit",
-	});
-});
+  if (!validationResult.value?.validatedAt) return 'Never'
+  return new Date(validationResult.value.validatedAt).toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  })
+})
 
 async function runValidation(): Promise<void> {
-	console.debug(
-		JSON.stringify({
-			level: "debug",
-			msg: "validation.run_started",
-			ontologyId: ontologyId.value,
-			ts: new Date().toISOString(),
-		}),
-	);
-	try {
-		const res = await apiRunValidation(ontologyId.value || "default");
-		validationResult.value = res || {
-			status: "ok",
-			violations: [],
-			validatedAt: new Date().toISOString(),
-		};
-	} catch (e) {
-		console.error(
-			JSON.stringify({
-				level: "error",
-				msg: "validation.run_failed",
-				error: String(e),
-				ts: new Date().toISOString(),
-			}),
-		);
-	}
+  console.debug(
+    JSON.stringify({
+      level: 'debug',
+      msg: 'validation.run_started',
+      ontologyId: ontologyId.value,
+      ts: new Date().toISOString()
+    })
+  )
+  try {
+    const res = await apiRunValidation(ontologyId.value || 'default')
+    validationResult.value = res || {
+      status: 'ok',
+      violations: [],
+      validatedAt: new Date().toISOString()
+    }
+  } catch (e) {
+    console.error(
+      JSON.stringify({
+        level: 'error',
+        msg: 'validation.run_failed',
+        error: String(e),
+        ts: new Date().toISOString()
+      })
+    )
+  }
 }
 </script>
 

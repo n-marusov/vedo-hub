@@ -37,111 +37,111 @@
 </template>
 
 <script setup lang="ts">
-import Dialog from "@/components/ui-kit/Dialog.vue";
-import GhostButton from "@/components/ui-kit/GhostButton.vue";
-import PrimaryButton from "@/components/ui-kit/PrimaryButton.vue";
-import { useErrorPresentation } from "@/composables/useErrorPresentation";
-import { onMounted, ref } from "vue";
+import Dialog from '@/components/ui-kit/Dialog.vue'
+import GhostButton from '@/components/ui-kit/GhostButton.vue'
+import PrimaryButton from '@/components/ui-kit/PrimaryButton.vue'
+import { useErrorPresentation } from '@/composables/useErrorPresentation'
+import { onMounted, ref } from 'vue'
 
-const props = defineProps<{ open: boolean }>();
-const emit = defineEmits<{ close: []; verified: [] }>();
+const props = defineProps<{ open: boolean }>()
+const emit = defineEmits<{ close: []; verified: [] }>()
 
-const { addError } = useErrorPresentation();
+const { addError } = useErrorPresentation()
 
-const code = ref("");
-const verifying = ref(false);
-const errorMessage = ref<string | null>(null);
-const resendCooldown = ref(0);
-const codeInput = ref<HTMLInputElement | null>(null);
+const code = ref('')
+const verifying = ref(false)
+const errorMessage = ref<string | null>(null)
+const resendCooldown = ref(0)
+const codeInput = ref<HTMLInputElement | null>(null)
 
-let cooldownTimer: ReturnType<typeof setInterval> | null = null;
+let cooldownTimer: ReturnType<typeof setInterval> | null = null
 
 onMounted(() => {
-	if (props.open) {
-		codeInput.value?.focus();
-	}
-});
+  if (props.open) {
+    codeInput.value?.focus()
+  }
+})
 
 function onCodeInput(): void {
-	errorMessage.value = null;
-	// Strip non-numeric characters
-	code.value = code.value.replace(/\D/g, "").slice(0, 6);
+  errorMessage.value = null
+  // Strip non-numeric characters
+  code.value = code.value.replace(/\D/g, '').slice(0, 6)
 }
 
 async function verify(): Promise<void> {
-	console.debug(
-		JSON.stringify({
-			level: "debug",
-			msg: "MfaChallenge.verify_started",
-			ts: new Date().toISOString(),
-		}),
-	);
+  console.debug(
+    JSON.stringify({
+      level: 'debug',
+      msg: 'MfaChallenge.verify_started',
+      ts: new Date().toISOString()
+    })
+  )
 
-	if (code.value.length !== 6) {
-		errorMessage.value = "Please enter a 6-digit code";
-		return;
-	}
+  if (code.value.length !== 6) {
+    errorMessage.value = 'Please enter a 6-digit code'
+    return
+  }
 
-	verifying.value = true;
-	errorMessage.value = null;
+  verifying.value = true
+  errorMessage.value = null
 
-	try {
-		await new Promise((resolve) => setTimeout(resolve, 800));
-		console.debug(
-			JSON.stringify({
-				level: "debug",
-				msg: "MfaChallenge.verify_success",
-				ts: new Date().toISOString(),
-			}),
-		);
-		emit("verified");
-		reset();
-	} catch (e) {
-		const msg = e instanceof Error ? e.message : String(e);
-		errorMessage.value = "Invalid code. Please try again.";
-		addError("MFA-VERIFY-FAILED", msg);
-		console.error(
-			JSON.stringify({
-				level: "error",
-				msg: "MfaChallenge.verify_failed",
-				error: msg,
-				ts: new Date().toISOString(),
-			}),
-		);
-	} finally {
-		verifying.value = false;
-	}
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 800))
+    console.debug(
+      JSON.stringify({
+        level: 'debug',
+        msg: 'MfaChallenge.verify_success',
+        ts: new Date().toISOString()
+      })
+    )
+    emit('verified')
+    reset()
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    errorMessage.value = 'Invalid code. Please try again.'
+    addError('MFA-VERIFY-FAILED', msg)
+    console.error(
+      JSON.stringify({
+        level: 'error',
+        msg: 'MfaChallenge.verify_failed',
+        error: msg,
+        ts: new Date().toISOString()
+      })
+    )
+  } finally {
+    verifying.value = false
+  }
 }
 
 function resendCode(): void {
-	console.debug(
-		JSON.stringify({
-			level: "debug",
-			msg: "MfaChallenge.resend",
-			ts: new Date().toISOString(),
-		}),
-	);
+  console.debug(
+    JSON.stringify({
+      level: 'debug',
+      msg: 'MfaChallenge.resend',
+      ts: new Date().toISOString()
+    })
+  )
 
-	resendCooldown.value = 30;
-	if (cooldownTimer) clearInterval(cooldownTimer);
-	cooldownTimer = setInterval(() => {
-		resendCooldown.value--;
-		if (resendCooldown.value <= 0) {
-			if (cooldownTimer) clearInterval(cooldownTimer);
-			cooldownTimer = null;
-		}
-	}, 1000);
+  resendCooldown.value = 30
+  if (cooldownTimer) clearInterval(cooldownTimer)
+  cooldownTimer = setInterval(() => {
+    resendCooldown.value--
+    if (resendCooldown.value <= 0) {
+      if (cooldownTimer) clearInterval(cooldownTimer)
+      cooldownTimer = null
+    }
+  }, 1000)
 }
 
 function reset(): void {
-	code.value = "";
-	errorMessage.value = null;
-	verifying.value = false;
-	if (cooldownTimer) {
-		clearInterval(cooldownTimer);
-		cooldownTimer = null;
-	}
-	resendCooldown.value = 0;
+  code.value = ''
+  errorMessage.value = null
+  verifying.value = false
+  if (cooldownTimer) {
+    clearInterval(cooldownTimer)
+    cooldownTimer = null
+  }
+  resendCooldown.value = 0
 }
 </script>
 

@@ -11,7 +11,7 @@
 // P0 placeholder specs for import/export and document extraction UI.
 // Remove .skip and implement when corresponding UI components are built.
 
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 describe.skip('Import/Export (REQ-USR.UI.import-export)', () => {
   it('should provide a drag-and-drop import zone for ontology files', () => {

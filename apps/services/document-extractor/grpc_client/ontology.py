@@ -171,7 +171,7 @@ class OntologyGrpcClient:
             )
             return result
         except grpc.RpcError as exc:
-            logger.error(
+            logger.exception(
                 "gRPC ApplySequence failed: %s (%s)",
                 exc.details() if hasattr(exc, "details") else str(exc),
                 exc.code() if hasattr(exc, "code") else "unknown",

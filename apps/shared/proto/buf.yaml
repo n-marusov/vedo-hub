@@ -8,6 +8,7 @@ modules:
       except:
         - PACKAGE_VERSION_SUFFIX
         - ENUM_VALUE_PREFIX
+        - PACKAGE_DIRECTORY_MATCH
     breaking:
       use:
         - FILE

@@ -1,6 +1,6 @@
 // AI Orchestration Service gRPC contract.
 // Central gateway for LLM-powered features: NL→OWL generation,
-// AI-assisted completion, refinement workflow, template management,
+// AI-assisted completion, refinement workflow,
 // LLM policy enforcement, and usage auditing.
 //
 // All AI business logic lives here — the API Gateway proxies to this service.
@@ -993,330 +993,6 @@ func (x *SuggestionBatch) GetPromptTokens() int32 {
 	return 0
 }
 
-type OntologyTemplate struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name            string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Description     string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	Domain          string                 `protobuf:"bytes,4,opt,name=domain,proto3" json:"domain,omitempty"` // e.g., "healthcare", "finance", "education"
-	Steps           []*SequenceStep        `protobuf:"bytes,5,rep,name=steps,proto3" json:"steps,omitempty"`
-	ClassCount      int32                  `protobuf:"varint,6,opt,name=class_count,json=classCount,proto3" json:"class_count,omitempty"`
-	PropertyCount   int32                  `protobuf:"varint,7,opt,name=property_count,json=propertyCount,proto3" json:"property_count,omitempty"`
-	IndividualCount int32                  `protobuf:"varint,8,opt,name=individual_count,json=individualCount,proto3" json:"individual_count,omitempty"`
-	CreatedAt       string                 `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`  // ISO 8601
-	UpdatedAt       string                 `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"` // ISO 8601
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
-}
-
-func (x *OntologyTemplate) Reset() {
-	*x = OntologyTemplate{}
-	mi := &file_ai_orchestration_v1_ai_orchestration_proto_msgTypes[10]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *OntologyTemplate) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*OntologyTemplate) ProtoMessage() {}
-
-func (x *OntologyTemplate) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_orchestration_v1_ai_orchestration_proto_msgTypes[10]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use OntologyTemplate.ProtoReflect.Descriptor instead.
-func (*OntologyTemplate) Descriptor() ([]byte, []int) {
-	return file_ai_orchestration_v1_ai_orchestration_proto_rawDescGZIP(), []int{10}
-}
-
-func (x *OntologyTemplate) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *OntologyTemplate) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *OntologyTemplate) GetDescription() string {
-	if x != nil {
-		return x.Description
-	}
-	return ""
-}
-
-func (x *OntologyTemplate) GetDomain() string {
-	if x != nil {
-		return x.Domain
-	}
-	return ""
-}
-
-func (x *OntologyTemplate) GetSteps() []*SequenceStep {
-	if x != nil {
-		return x.Steps
-	}
-	return nil
-}
-
-func (x *OntologyTemplate) GetClassCount() int32 {
-	if x != nil {
-		return x.ClassCount
-	}
-	return 0
-}
-
-func (x *OntologyTemplate) GetPropertyCount() int32 {
-	if x != nil {
-		return x.PropertyCount
-	}
-	return 0
-}
-
-func (x *OntologyTemplate) GetIndividualCount() int32 {
-	if x != nil {
-		return x.IndividualCount
-	}
-	return 0
-}
-
-func (x *OntologyTemplate) GetCreatedAt() string {
-	if x != nil {
-		return x.CreatedAt
-	}
-	return ""
-}
-
-func (x *OntologyTemplate) GetUpdatedAt() string {
-	if x != nil {
-		return x.UpdatedAt
-	}
-	return ""
-}
-
-type ListTemplatesRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	DomainFilter  string                 `protobuf:"bytes,1,opt,name=domain_filter,json=domainFilter,proto3" json:"domain_filter,omitempty"` // Optional domain filter
-	Pagination    *v1.PaginationRequest  `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListTemplatesRequest) Reset() {
-	*x = ListTemplatesRequest{}
-	mi := &file_ai_orchestration_v1_ai_orchestration_proto_msgTypes[11]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListTemplatesRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListTemplatesRequest) ProtoMessage() {}
-
-func (x *ListTemplatesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_orchestration_v1_ai_orchestration_proto_msgTypes[11]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListTemplatesRequest.ProtoReflect.Descriptor instead.
-func (*ListTemplatesRequest) Descriptor() ([]byte, []int) {
-	return file_ai_orchestration_v1_ai_orchestration_proto_rawDescGZIP(), []int{11}
-}
-
-func (x *ListTemplatesRequest) GetDomainFilter() string {
-	if x != nil {
-		return x.DomainFilter
-	}
-	return ""
-}
-
-func (x *ListTemplatesRequest) GetPagination() *v1.PaginationRequest {
-	if x != nil {
-		return x.Pagination
-	}
-	return nil
-}
-
-type ListTemplatesResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Templates     []*OntologyTemplate    `protobuf:"bytes,1,rep,name=templates,proto3" json:"templates,omitempty"`
-	Pagination    *v1.PaginationResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
-	Error         *v1.ErrorDetail        `protobuf:"bytes,3,opt,name=error,proto3" json:"error,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListTemplatesResponse) Reset() {
-	*x = ListTemplatesResponse{}
-	mi := &file_ai_orchestration_v1_ai_orchestration_proto_msgTypes[12]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListTemplatesResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListTemplatesResponse) ProtoMessage() {}
-
-func (x *ListTemplatesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_orchestration_v1_ai_orchestration_proto_msgTypes[12]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListTemplatesResponse.ProtoReflect.Descriptor instead.
-func (*ListTemplatesResponse) Descriptor() ([]byte, []int) {
-	return file_ai_orchestration_v1_ai_orchestration_proto_rawDescGZIP(), []int{12}
-}
-
-func (x *ListTemplatesResponse) GetTemplates() []*OntologyTemplate {
-	if x != nil {
-		return x.Templates
-	}
-	return nil
-}
-
-func (x *ListTemplatesResponse) GetPagination() *v1.PaginationResponse {
-	if x != nil {
-		return x.Pagination
-	}
-	return nil
-}
-
-func (x *ListTemplatesResponse) GetError() *v1.ErrorDetail {
-	if x != nil {
-		return x.Error
-	}
-	return nil
-}
-
-type GetTemplateRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	TemplateId    string                 `protobuf:"bytes,1,opt,name=template_id,json=templateId,proto3" json:"template_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetTemplateRequest) Reset() {
-	*x = GetTemplateRequest{}
-	mi := &file_ai_orchestration_v1_ai_orchestration_proto_msgTypes[13]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetTemplateRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetTemplateRequest) ProtoMessage() {}
-
-func (x *GetTemplateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_orchestration_v1_ai_orchestration_proto_msgTypes[13]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetTemplateRequest.ProtoReflect.Descriptor instead.
-func (*GetTemplateRequest) Descriptor() ([]byte, []int) {
-	return file_ai_orchestration_v1_ai_orchestration_proto_rawDescGZIP(), []int{13}
-}
-
-func (x *GetTemplateRequest) GetTemplateId() string {
-	if x != nil {
-		return x.TemplateId
-	}
-	return ""
-}
-
-type GetTemplateResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Template      *OntologyTemplate      `protobuf:"bytes,1,opt,name=template,proto3" json:"template,omitempty"`
-	Error         *v1.ErrorDetail        `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetTemplateResponse) Reset() {
-	*x = GetTemplateResponse{}
-	mi := &file_ai_orchestration_v1_ai_orchestration_proto_msgTypes[14]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetTemplateResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetTemplateResponse) ProtoMessage() {}
-
-func (x *GetTemplateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_orchestration_v1_ai_orchestration_proto_msgTypes[14]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetTemplateResponse.ProtoReflect.Descriptor instead.
-func (*GetTemplateResponse) Descriptor() ([]byte, []int) {
-	return file_ai_orchestration_v1_ai_orchestration_proto_rawDescGZIP(), []int{14}
-}
-
-func (x *GetTemplateResponse) GetTemplate() *OntologyTemplate {
-	if x != nil {
-		return x.Template
-	}
-	return nil
-}
-
-func (x *GetTemplateResponse) GetError() *v1.ErrorDetail {
-	if x != nil {
-		return x.Error
-	}
-	return nil
-}
-
 type CheckPolicyRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	OntologyId    string                 `protobuf:"bytes,1,opt,name=ontology_id,json=ontologyId,proto3" json:"ontology_id,omitempty"`
@@ -1329,7 +1005,7 @@ type CheckPolicyRequest struct {
 
 func (x *CheckPolicyRequest) Reset() {
 	*x = CheckPolicyRequest{}
-	mi := &file_ai_orchestration_v1_ai_orchestration_proto_msgTypes[15]
+	mi := &file_ai_orchestration_v1_ai_orchestration_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1341,7 +1017,7 @@ func (x *CheckPolicyRequest) String() string {
 func (*CheckPolicyRequest) ProtoMessage() {}
 
 func (x *CheckPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_orchestration_v1_ai_orchestration_proto_msgTypes[15]
+	mi := &file_ai_orchestration_v1_ai_orchestration_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1354,7 +1030,7 @@ func (x *CheckPolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckPolicyRequest.ProtoReflect.Descriptor instead.
 func (*CheckPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_ai_orchestration_v1_ai_orchestration_proto_rawDescGZIP(), []int{15}
+	return file_ai_orchestration_v1_ai_orchestration_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *CheckPolicyRequest) GetOntologyId() string {
@@ -1399,7 +1075,7 @@ type CheckPolicyResponse struct {
 
 func (x *CheckPolicyResponse) Reset() {
 	*x = CheckPolicyResponse{}
-	mi := &file_ai_orchestration_v1_ai_orchestration_proto_msgTypes[16]
+	mi := &file_ai_orchestration_v1_ai_orchestration_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1411,7 +1087,7 @@ func (x *CheckPolicyResponse) String() string {
 func (*CheckPolicyResponse) ProtoMessage() {}
 
 func (x *CheckPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_orchestration_v1_ai_orchestration_proto_msgTypes[16]
+	mi := &file_ai_orchestration_v1_ai_orchestration_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1424,7 +1100,7 @@ func (x *CheckPolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckPolicyResponse.ProtoReflect.Descriptor instead.
 func (*CheckPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_ai_orchestration_v1_ai_orchestration_proto_rawDescGZIP(), []int{16}
+	return file_ai_orchestration_v1_ai_orchestration_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *CheckPolicyResponse) GetAllowed() bool {
@@ -1487,7 +1163,7 @@ type LogLLMUsageRequest struct {
 
 func (x *LogLLMUsageRequest) Reset() {
 	*x = LogLLMUsageRequest{}
-	mi := &file_ai_orchestration_v1_ai_orchestration_proto_msgTypes[17]
+	mi := &file_ai_orchestration_v1_ai_orchestration_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1499,7 +1175,7 @@ func (x *LogLLMUsageRequest) String() string {
 func (*LogLLMUsageRequest) ProtoMessage() {}
 
 func (x *LogLLMUsageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_orchestration_v1_ai_orchestration_proto_msgTypes[17]
+	mi := &file_ai_orchestration_v1_ai_orchestration_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1512,7 +1188,7 @@ func (x *LogLLMUsageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogLLMUsageRequest.ProtoReflect.Descriptor instead.
 func (*LogLLMUsageRequest) Descriptor() ([]byte, []int) {
-	return file_ai_orchestration_v1_ai_orchestration_proto_rawDescGZIP(), []int{17}
+	return file_ai_orchestration_v1_ai_orchestration_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *LogLLMUsageRequest) GetOntologyId() string {
@@ -1595,7 +1271,7 @@ type LogLLMUsageResponse struct {
 
 func (x *LogLLMUsageResponse) Reset() {
 	*x = LogLLMUsageResponse{}
-	mi := &file_ai_orchestration_v1_ai_orchestration_proto_msgTypes[18]
+	mi := &file_ai_orchestration_v1_ai_orchestration_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1607,7 +1283,7 @@ func (x *LogLLMUsageResponse) String() string {
 func (*LogLLMUsageResponse) ProtoMessage() {}
 
 func (x *LogLLMUsageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_orchestration_v1_ai_orchestration_proto_msgTypes[18]
+	mi := &file_ai_orchestration_v1_ai_orchestration_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1620,7 +1296,7 @@ func (x *LogLLMUsageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogLLMUsageResponse.ProtoReflect.Descriptor instead.
 func (*LogLLMUsageResponse) Descriptor() ([]byte, []int) {
-	return file_ai_orchestration_v1_ai_orchestration_proto_rawDescGZIP(), []int{18}
+	return file_ai_orchestration_v1_ai_orchestration_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *LogLLMUsageResponse) GetRecorded() bool {
@@ -1735,39 +1411,7 @@ const file_ai_orchestration_v1_ai_orchestration_proto_rawDesc = "" +
 	"\vsuggestions\x18\x01 \x03(\tR\vsuggestions\x12\x1f\n" +
 	"\vtokens_used\x18\x02 \x01(\x05R\n" +
 	"tokensUsed\x12#\n" +
-	"\rprompt_tokens\x18\x03 \x01(\x05R\fpromptTokens\"\xdf\x02\n" +
-	"\x10OntologyTemplate\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x16\n" +
-	"\x06domain\x18\x04 \x01(\tR\x06domain\x12<\n" +
-	"\x05steps\x18\x05 \x03(\v2&.vedo.ai_orchestration.v1.SequenceStepR\x05steps\x12\x1f\n" +
-	"\vclass_count\x18\x06 \x01(\x05R\n" +
-	"classCount\x12%\n" +
-	"\x0eproperty_count\x18\a \x01(\x05R\rpropertyCount\x12)\n" +
-	"\x10individual_count\x18\b \x01(\x05R\x0findividualCount\x12\x1d\n" +
-	"\n" +
-	"created_at\x18\t \x01(\tR\tcreatedAt\x12\x1d\n" +
-	"\n" +
-	"updated_at\x18\n" +
-	" \x01(\tR\tupdatedAt\"~\n" +
-	"\x14ListTemplatesRequest\x12#\n" +
-	"\rdomain_filter\x18\x01 \x01(\tR\fdomainFilter\x12A\n" +
-	"\n" +
-	"pagination\x18\x02 \x01(\v2!.vedo.common.v1.PaginationRequestR\n" +
-	"pagination\"\xd8\x01\n" +
-	"\x15ListTemplatesResponse\x12H\n" +
-	"\ttemplates\x18\x01 \x03(\v2*.vedo.ai_orchestration.v1.OntologyTemplateR\ttemplates\x12B\n" +
-	"\n" +
-	"pagination\x18\x02 \x01(\v2\".vedo.common.v1.PaginationResponseR\n" +
-	"pagination\x121\n" +
-	"\x05error\x18\x03 \x01(\v2\x1b.vedo.common.v1.ErrorDetailR\x05error\"5\n" +
-	"\x12GetTemplateRequest\x12\x1f\n" +
-	"\vtemplate_id\x18\x01 \x01(\tR\n" +
-	"templateId\"\x90\x01\n" +
-	"\x13GetTemplateResponse\x12F\n" +
-	"\btemplate\x18\x01 \x01(\v2*.vedo.ai_orchestration.v1.OntologyTemplateR\btemplate\x121\n" +
-	"\x05error\x18\x02 \x01(\v2\x1b.vedo.common.v1.ErrorDetailR\x05error\"\x81\x01\n" +
+	"\rprompt_tokens\x18\x03 \x01(\x05R\fpromptTokens\"\x81\x01\n" +
 	"\x12CheckPolicyRequest\x12\x1f\n" +
 	"\vontology_id\x18\x01 \x01(\tR\n" +
 	"ontologyId\x12\x16\n" +
@@ -1798,14 +1442,12 @@ const file_ai_orchestration_v1_ai_orchestration_proto_rawDesc = "" +
 	"durationMs\"d\n" +
 	"\x13LogLLMUsageResponse\x12\x1a\n" +
 	"\brecorded\x18\x01 \x01(\bR\brecorded\x121\n" +
-	"\x05error\x18\x02 \x01(\v2\x1b.vedo.common.v1.ErrorDetailR\x05error2\x9e\a\n" +
+	"\x05error\x18\x02 \x01(\v2\x1b.vedo.common.v1.ErrorDetailR\x05error2\xc0\x05\n" +
 	"\x16AIOrchestrationService\x12j\n" +
 	"\vGenerateOWL\x12,.vedo.ai_orchestration.v1.GenerateOWLRequest\x1a-.vedo.ai_orchestration.v1.GenerateOWLResponse\x12\x85\x01\n" +
 	"\x14NaturalLanguageQuery\x125.vedo.ai_orchestration.v1.NaturalLanguageQueryRequest\x1a6.vedo.ai_orchestration.v1.NaturalLanguageQueryResponse\x12u\n" +
 	"\x0eRefineOntology\x12/.vedo.ai_orchestration.v1.RefineOntologyRequest\x1a0.vedo.ai_orchestration.v1.RefineOntologyResponse0\x01\x12c\n" +
-	"\bComplete\x12).vedo.ai_orchestration.v1.CompleteRequest\x1a*.vedo.ai_orchestration.v1.CompleteResponse0\x01\x12p\n" +
-	"\rListTemplates\x12..vedo.ai_orchestration.v1.ListTemplatesRequest\x1a/.vedo.ai_orchestration.v1.ListTemplatesResponse\x12j\n" +
-	"\vGetTemplate\x12,.vedo.ai_orchestration.v1.GetTemplateRequest\x1a-.vedo.ai_orchestration.v1.GetTemplateResponse\x12j\n" +
+	"\bComplete\x12).vedo.ai_orchestration.v1.CompleteRequest\x1a*.vedo.ai_orchestration.v1.CompleteResponse0\x01\x12j\n" +
 	"\vCheckPolicy\x12,.vedo.ai_orchestration.v1.CheckPolicyRequest\x1a-.vedo.ai_orchestration.v1.CheckPolicyResponse\x12j\n" +
 	"\vLogLLMUsage\x12,.vedo.ai_orchestration.v1.LogLLMUsageRequest\x1a-.vedo.ai_orchestration.v1.LogLLMUsageResponseBl\n" +
 	"\x1ccom.vedo.ai_orchestration.v1P\x01ZJvedo-core/src/services/shared/proto/ai-orchestration/v1;ai_orchestrationv1b\x06proto3"
@@ -1823,7 +1465,7 @@ func file_ai_orchestration_v1_ai_orchestration_proto_rawDescGZIP() []byte {
 }
 
 var file_ai_orchestration_v1_ai_orchestration_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_ai_orchestration_v1_ai_orchestration_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_ai_orchestration_v1_ai_orchestration_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_ai_orchestration_v1_ai_orchestration_proto_goTypes = []any{
 	(SequenceStep_Operation)(0),                // 0: vedo.ai_orchestration.v1.SequenceStep.Operation
 	(RefineOntologyResponse_RefinementType)(0), // 1: vedo.ai_orchestration.v1.RefineOntologyResponse.RefinementType
@@ -1838,60 +1480,42 @@ var file_ai_orchestration_v1_ai_orchestration_proto_goTypes = []any{
 	(*CompleteRequest)(nil),                    // 10: vedo.ai_orchestration.v1.CompleteRequest
 	(*CompleteResponse)(nil),                   // 11: vedo.ai_orchestration.v1.CompleteResponse
 	(*SuggestionBatch)(nil),                    // 12: vedo.ai_orchestration.v1.SuggestionBatch
-	(*OntologyTemplate)(nil),                   // 13: vedo.ai_orchestration.v1.OntologyTemplate
-	(*ListTemplatesRequest)(nil),               // 14: vedo.ai_orchestration.v1.ListTemplatesRequest
-	(*ListTemplatesResponse)(nil),              // 15: vedo.ai_orchestration.v1.ListTemplatesResponse
-	(*GetTemplateRequest)(nil),                 // 16: vedo.ai_orchestration.v1.GetTemplateRequest
-	(*GetTemplateResponse)(nil),                // 17: vedo.ai_orchestration.v1.GetTemplateResponse
-	(*CheckPolicyRequest)(nil),                 // 18: vedo.ai_orchestration.v1.CheckPolicyRequest
-	(*CheckPolicyResponse)(nil),                // 19: vedo.ai_orchestration.v1.CheckPolicyResponse
-	(*LogLLMUsageRequest)(nil),                 // 20: vedo.ai_orchestration.v1.LogLLMUsageRequest
-	(*LogLLMUsageResponse)(nil),                // 21: vedo.ai_orchestration.v1.LogLLMUsageResponse
-	(*v1.ErrorDetail)(nil),                     // 22: vedo.common.v1.ErrorDetail
-	(*v1.PaginationRequest)(nil),               // 23: vedo.common.v1.PaginationRequest
-	(*v1.PaginationResponse)(nil),              // 24: vedo.common.v1.PaginationResponse
+	(*CheckPolicyRequest)(nil),                 // 13: vedo.ai_orchestration.v1.CheckPolicyRequest
+	(*CheckPolicyResponse)(nil),                // 14: vedo.ai_orchestration.v1.CheckPolicyResponse
+	(*LogLLMUsageRequest)(nil),                 // 15: vedo.ai_orchestration.v1.LogLLMUsageRequest
+	(*LogLLMUsageResponse)(nil),                // 16: vedo.ai_orchestration.v1.LogLLMUsageResponse
+	(*v1.ErrorDetail)(nil),                     // 17: vedo.common.v1.ErrorDetail
 }
 var file_ai_orchestration_v1_ai_orchestration_proto_depIdxs = []int32{
 	0,  // 0: vedo.ai_orchestration.v1.SequenceStep.operation:type_name -> vedo.ai_orchestration.v1.SequenceStep.Operation
 	3,  // 1: vedo.ai_orchestration.v1.GenerateOWLResponse.steps:type_name -> vedo.ai_orchestration.v1.SequenceStep
-	22, // 2: vedo.ai_orchestration.v1.GenerateOWLResponse.error:type_name -> vedo.common.v1.ErrorDetail
-	22, // 3: vedo.ai_orchestration.v1.NaturalLanguageQueryResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	17, // 2: vedo.ai_orchestration.v1.GenerateOWLResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	17, // 3: vedo.ai_orchestration.v1.NaturalLanguageQueryResponse.error:type_name -> vedo.common.v1.ErrorDetail
 	1,  // 4: vedo.ai_orchestration.v1.RefineOntologyResponse.type:type_name -> vedo.ai_orchestration.v1.RefineOntologyResponse.RefinementType
 	3,  // 5: vedo.ai_orchestration.v1.RefineOntologyResponse.steps:type_name -> vedo.ai_orchestration.v1.SequenceStep
-	22, // 6: vedo.ai_orchestration.v1.RefineOntologyResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	17, // 6: vedo.ai_orchestration.v1.RefineOntologyResponse.error:type_name -> vedo.common.v1.ErrorDetail
 	2,  // 7: vedo.ai_orchestration.v1.CompleteRequest.type:type_name -> vedo.ai_orchestration.v1.CompleteRequest.CompletionType
 	12, // 8: vedo.ai_orchestration.v1.CompleteResponse.batch:type_name -> vedo.ai_orchestration.v1.SuggestionBatch
-	22, // 9: vedo.ai_orchestration.v1.CompleteResponse.error:type_name -> vedo.common.v1.ErrorDetail
-	3,  // 10: vedo.ai_orchestration.v1.OntologyTemplate.steps:type_name -> vedo.ai_orchestration.v1.SequenceStep
-	23, // 11: vedo.ai_orchestration.v1.ListTemplatesRequest.pagination:type_name -> vedo.common.v1.PaginationRequest
-	13, // 12: vedo.ai_orchestration.v1.ListTemplatesResponse.templates:type_name -> vedo.ai_orchestration.v1.OntologyTemplate
-	24, // 13: vedo.ai_orchestration.v1.ListTemplatesResponse.pagination:type_name -> vedo.common.v1.PaginationResponse
-	22, // 14: vedo.ai_orchestration.v1.ListTemplatesResponse.error:type_name -> vedo.common.v1.ErrorDetail
-	13, // 15: vedo.ai_orchestration.v1.GetTemplateResponse.template:type_name -> vedo.ai_orchestration.v1.OntologyTemplate
-	22, // 16: vedo.ai_orchestration.v1.GetTemplateResponse.error:type_name -> vedo.common.v1.ErrorDetail
-	22, // 17: vedo.ai_orchestration.v1.CheckPolicyResponse.error:type_name -> vedo.common.v1.ErrorDetail
-	22, // 18: vedo.ai_orchestration.v1.LogLLMUsageResponse.error:type_name -> vedo.common.v1.ErrorDetail
-	4,  // 19: vedo.ai_orchestration.v1.AIOrchestrationService.GenerateOWL:input_type -> vedo.ai_orchestration.v1.GenerateOWLRequest
-	6,  // 20: vedo.ai_orchestration.v1.AIOrchestrationService.NaturalLanguageQuery:input_type -> vedo.ai_orchestration.v1.NaturalLanguageQueryRequest
-	8,  // 21: vedo.ai_orchestration.v1.AIOrchestrationService.RefineOntology:input_type -> vedo.ai_orchestration.v1.RefineOntologyRequest
-	10, // 22: vedo.ai_orchestration.v1.AIOrchestrationService.Complete:input_type -> vedo.ai_orchestration.v1.CompleteRequest
-	14, // 23: vedo.ai_orchestration.v1.AIOrchestrationService.ListTemplates:input_type -> vedo.ai_orchestration.v1.ListTemplatesRequest
-	16, // 24: vedo.ai_orchestration.v1.AIOrchestrationService.GetTemplate:input_type -> vedo.ai_orchestration.v1.GetTemplateRequest
-	18, // 25: vedo.ai_orchestration.v1.AIOrchestrationService.CheckPolicy:input_type -> vedo.ai_orchestration.v1.CheckPolicyRequest
-	20, // 26: vedo.ai_orchestration.v1.AIOrchestrationService.LogLLMUsage:input_type -> vedo.ai_orchestration.v1.LogLLMUsageRequest
-	5,  // 27: vedo.ai_orchestration.v1.AIOrchestrationService.GenerateOWL:output_type -> vedo.ai_orchestration.v1.GenerateOWLResponse
-	7,  // 28: vedo.ai_orchestration.v1.AIOrchestrationService.NaturalLanguageQuery:output_type -> vedo.ai_orchestration.v1.NaturalLanguageQueryResponse
-	9,  // 29: vedo.ai_orchestration.v1.AIOrchestrationService.RefineOntology:output_type -> vedo.ai_orchestration.v1.RefineOntologyResponse
-	11, // 30: vedo.ai_orchestration.v1.AIOrchestrationService.Complete:output_type -> vedo.ai_orchestration.v1.CompleteResponse
-	15, // 31: vedo.ai_orchestration.v1.AIOrchestrationService.ListTemplates:output_type -> vedo.ai_orchestration.v1.ListTemplatesResponse
-	17, // 32: vedo.ai_orchestration.v1.AIOrchestrationService.GetTemplate:output_type -> vedo.ai_orchestration.v1.GetTemplateResponse
-	19, // 33: vedo.ai_orchestration.v1.AIOrchestrationService.CheckPolicy:output_type -> vedo.ai_orchestration.v1.CheckPolicyResponse
-	21, // 34: vedo.ai_orchestration.v1.AIOrchestrationService.LogLLMUsage:output_type -> vedo.ai_orchestration.v1.LogLLMUsageResponse
-	27, // [27:35] is the sub-list for method output_type
-	19, // [19:27] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	17, // 9: vedo.ai_orchestration.v1.CompleteResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	17, // 10: vedo.ai_orchestration.v1.CheckPolicyResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	17, // 11: vedo.ai_orchestration.v1.LogLLMUsageResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	4,  // 12: vedo.ai_orchestration.v1.AIOrchestrationService.GenerateOWL:input_type -> vedo.ai_orchestration.v1.GenerateOWLRequest
+	6,  // 13: vedo.ai_orchestration.v1.AIOrchestrationService.NaturalLanguageQuery:input_type -> vedo.ai_orchestration.v1.NaturalLanguageQueryRequest
+	8,  // 14: vedo.ai_orchestration.v1.AIOrchestrationService.RefineOntology:input_type -> vedo.ai_orchestration.v1.RefineOntologyRequest
+	10, // 15: vedo.ai_orchestration.v1.AIOrchestrationService.Complete:input_type -> vedo.ai_orchestration.v1.CompleteRequest
+	13, // 16: vedo.ai_orchestration.v1.AIOrchestrationService.CheckPolicy:input_type -> vedo.ai_orchestration.v1.CheckPolicyRequest
+	15, // 17: vedo.ai_orchestration.v1.AIOrchestrationService.LogLLMUsage:input_type -> vedo.ai_orchestration.v1.LogLLMUsageRequest
+	5,  // 18: vedo.ai_orchestration.v1.AIOrchestrationService.GenerateOWL:output_type -> vedo.ai_orchestration.v1.GenerateOWLResponse
+	7,  // 19: vedo.ai_orchestration.v1.AIOrchestrationService.NaturalLanguageQuery:output_type -> vedo.ai_orchestration.v1.NaturalLanguageQueryResponse
+	9,  // 20: vedo.ai_orchestration.v1.AIOrchestrationService.RefineOntology:output_type -> vedo.ai_orchestration.v1.RefineOntologyResponse
+	11, // 21: vedo.ai_orchestration.v1.AIOrchestrationService.Complete:output_type -> vedo.ai_orchestration.v1.CompleteResponse
+	14, // 22: vedo.ai_orchestration.v1.AIOrchestrationService.CheckPolicy:output_type -> vedo.ai_orchestration.v1.CheckPolicyResponse
+	16, // 23: vedo.ai_orchestration.v1.AIOrchestrationService.LogLLMUsage:output_type -> vedo.ai_orchestration.v1.LogLLMUsageResponse
+	18, // [18:24] is the sub-list for method output_type
+	12, // [12:18] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_ai_orchestration_v1_ai_orchestration_proto_init() }
@@ -1909,7 +1533,7 @@ func file_ai_orchestration_v1_ai_orchestration_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_ai_orchestration_v1_ai_orchestration_proto_rawDesc), len(file_ai_orchestration_v1_ai_orchestration_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   19,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

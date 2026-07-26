@@ -149,7 +149,7 @@ class LlmClient:
                     )
                     time.sleep(delay)
                 else:
-                    logger.error(
+                    logger.exception(
                         "LLM call failed after %d attempts: %s",
                         self._max_retries,
                         exc,
@@ -187,7 +187,7 @@ class LlmClient:
                     ontology_id,
                     reason,
                 )
-                raise PermissionError(f"LLM access blocked: {reason}")
+                raise PermissionError(f"LLM access blocked: {reason}")  # noqa: TRY301
 
             logger.debug(
                 "CheckPolicy passed: ontology=%s action=%s",
@@ -332,7 +332,7 @@ class LlmClient:
     def _log_response(self, content: str, raw_data: dict) -> None:
         """Log LLM response metadata (truncate content if >1KB)."""
         usage = raw_data.get("usage", {})
-        log_content = content[:1024] + "..." if len(content) > 1024 else content
+        content[:1024] + "..." if len(content) > 1024 else content
         logger.debug(
             "LLM response: chars=%d tokens_in=%d tokens_out=%d",
             len(content),

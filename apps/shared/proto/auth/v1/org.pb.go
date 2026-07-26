@@ -10,13 +10,12 @@
 package authv1
 
 import (
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
 	v1 "vedo-core/src/services/shared/proto/common/v1"
-
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -331,7 +330,7 @@ type CreateGroupRequest struct {
 	Description    string                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
 	ParentId       string                 `protobuf:"bytes,3,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
 	OrganizationId string                 `protobuf:"bytes,4,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	Visibility     string                 `protobuf:"bytes,5,opt,name=visibility,proto3" json:"visibility,omitempty"`
+	Visibility     string                 `protobuf:"bytes,5,opt,name=visibility,proto3" json:"visibility,omitempty"` // "Private", "Internal", "Public" — default "Private" server-side
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -683,7 +682,7 @@ type UpdateGroupRequest struct {
 	Name           string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Description    string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	OrganizationId string                 `protobuf:"bytes,4,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	Visibility     string                 `protobuf:"bytes,5,opt,name=visibility,proto3" json:"visibility,omitempty"`
+	Visibility     string                 `protobuf:"bytes,5,opt,name=visibility,proto3" json:"visibility,omitempty"` // "Private", "Internal", "Public" — same enum as CreateGroup
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -2821,6 +2820,118 @@ func (x *ForkProjectResponse) GetError() *v1.ErrorDetail {
 	return nil
 }
 
+type MoveProjectRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	ProjectId      string                 `protobuf:"bytes,1,opt,name=project_id,json=projectId,proto3" json:"project_id,omitempty"`
+	TargetGroupId  string                 `protobuf:"bytes,2,opt,name=target_group_id,json=targetGroupId,proto3" json:"target_group_id,omitempty"` // Destination group ID
+	OrganizationId string                 `protobuf:"bytes,3,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *MoveProjectRequest) Reset() {
+	*x = MoveProjectRequest{}
+	mi := &file_auth_v1_org_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MoveProjectRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MoveProjectRequest) ProtoMessage() {}
+
+func (x *MoveProjectRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_org_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MoveProjectRequest.ProtoReflect.Descriptor instead.
+func (*MoveProjectRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_org_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *MoveProjectRequest) GetProjectId() string {
+	if x != nil {
+		return x.ProjectId
+	}
+	return ""
+}
+
+func (x *MoveProjectRequest) GetTargetGroupId() string {
+	if x != nil {
+		return x.TargetGroupId
+	}
+	return ""
+}
+
+func (x *MoveProjectRequest) GetOrganizationId() string {
+	if x != nil {
+		return x.OrganizationId
+	}
+	return ""
+}
+
+type MoveProjectResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Project       *Scope                 `protobuf:"bytes,1,opt,name=project,proto3" json:"project,omitempty"`
+	Error         *v1.ErrorDetail        `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MoveProjectResponse) Reset() {
+	*x = MoveProjectResponse{}
+	mi := &file_auth_v1_org_proto_msgTypes[48]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MoveProjectResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MoveProjectResponse) ProtoMessage() {}
+
+func (x *MoveProjectResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_org_proto_msgTypes[48]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MoveProjectResponse.ProtoReflect.Descriptor instead.
+func (*MoveProjectResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_org_proto_rawDescGZIP(), []int{48}
+}
+
+func (x *MoveProjectResponse) GetProject() *Scope {
+	if x != nil {
+		return x.Project
+	}
+	return nil
+}
+
+func (x *MoveProjectResponse) GetError() *v1.ErrorDetail {
+	if x != nil {
+		return x.Error
+	}
+	return nil
+}
+
 var File_auth_v1_org_proto protoreflect.FileDescriptor
 
 const file_auth_v1_org_proto_rawDesc = "" +
@@ -2861,12 +2972,15 @@ const file_auth_v1_org_proto_rawDesc = "" +
 	"created_at\x18\x05 \x01(\tR\tcreatedAt\x1a:\n" +
 	"\fPatternEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x90\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xb0\x01\n" +
 	"\x12CreateGroupRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x1b\n" +
 	"\tparent_id\x18\x03 \x01(\tR\bparentId\x12'\n" +
-	"\x0forganization_id\x18\x04 \x01(\tR\x0eorganizationId\"s\n" +
+	"\x0forganization_id\x18\x04 \x01(\tR\x0eorganizationId\x12\x1e\n" +
+	"\n" +
+	"visibility\x18\x05 \x01(\tR\n" +
+	"visibility\"s\n" +
 	"\x13CreateGroupResponse\x12)\n" +
 	"\x05group\x18\x01 \x01(\v2\x13.vedo.auth.v1.ScopeR\x05group\x121\n" +
 	"\x05error\x18\x02 \x01(\v2\x1b.vedo.common.v1.ErrorDetailR\x05error\"J\n" +
@@ -2887,12 +3001,15 @@ const file_auth_v1_org_proto_rawDesc = "" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2\".vedo.common.v1.PaginationResponseR\n" +
 	"pagination\x121\n" +
-	"\x05error\x18\x03 \x01(\v2\x1b.vedo.common.v1.ErrorDetailR\x05error\"\x83\x01\n" +
+	"\x05error\x18\x03 \x01(\v2\x1b.vedo.common.v1.ErrorDetailR\x05error\"\xa3\x01\n" +
 	"\x12UpdateGroupRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x12'\n" +
-	"\x0forganization_id\x18\x04 \x01(\tR\x0eorganizationId\"s\n" +
+	"\x0forganization_id\x18\x04 \x01(\tR\x0eorganizationId\x12\x1e\n" +
+	"\n" +
+	"visibility\x18\x05 \x01(\tR\n" +
+	"visibility\"s\n" +
 	"\x13UpdateGroupResponse\x12)\n" +
 	"\x05group\x18\x01 \x01(\v2\x13.vedo.auth.v1.ScopeR\x05group\x121\n" +
 	"\x05error\x18\x02 \x01(\v2\x1b.vedo.common.v1.ErrorDetailR\x05error\"M\n" +
@@ -3028,7 +3145,15 @@ const file_auth_v1_org_proto_rawDesc = "" +
 	"\x0forganization_id\x18\x03 \x01(\tR\x0eorganizationId\"w\n" +
 	"\x13ForkProjectResponse\x12-\n" +
 	"\aproject\x18\x01 \x01(\v2\x13.vedo.auth.v1.ScopeR\aproject\x121\n" +
-	"\x05error\x18\x02 \x01(\v2\x1b.vedo.common.v1.ErrorDetailR\x05error2\xf7\x0e\n" +
+	"\x05error\x18\x02 \x01(\v2\x1b.vedo.common.v1.ErrorDetailR\x05error\"\x84\x01\n" +
+	"\x12MoveProjectRequest\x12\x1d\n" +
+	"\n" +
+	"project_id\x18\x01 \x01(\tR\tprojectId\x12&\n" +
+	"\x0ftarget_group_id\x18\x02 \x01(\tR\rtargetGroupId\x12'\n" +
+	"\x0forganization_id\x18\x03 \x01(\tR\x0eorganizationId\"w\n" +
+	"\x13MoveProjectResponse\x12-\n" +
+	"\aproject\x18\x01 \x01(\v2\x13.vedo.auth.v1.ScopeR\aproject\x121\n" +
+	"\x05error\x18\x02 \x01(\v2\x1b.vedo.common.v1.ErrorDetailR\x05error2\xcb\x0f\n" +
 	"\n" +
 	"OrgService\x12R\n" +
 	"\vCreateGroup\x12 .vedo.auth.v1.CreateGroupRequest\x1a!.vedo.auth.v1.CreateGroupResponse\x12I\n" +
@@ -3054,7 +3179,8 @@ const file_auth_v1_org_proto_rawDesc = "" +
 	"\fListPolicies\x12!.vedo.auth.v1.ListPoliciesRequest\x1a\".vedo.auth.v1.ListPoliciesResponse\x12U\n" +
 	"\fDeletePolicy\x12!.vedo.auth.v1.DeletePolicyRequest\x1a\".vedo.auth.v1.DeletePolicyResponse\x12R\n" +
 	"\vCheckAccess\x12 .vedo.auth.v1.CheckAccessRequest\x1a!.vedo.auth.v1.CheckAccessResponse\x12R\n" +
-	"\vForkProject\x12 .vedo.auth.v1.ForkProjectRequest\x1a!.vedo.auth.v1.ForkProjectResponseBH\n" +
+	"\vForkProject\x12 .vedo.auth.v1.ForkProjectRequest\x1a!.vedo.auth.v1.ForkProjectResponse\x12R\n" +
+	"\vMoveProject\x12 .vedo.auth.v1.MoveProjectRequest\x1a!.vedo.auth.v1.MoveProjectResponseBH\n" +
 	"\x10com.vedo.auth.v1P\x01Z2vedo-core/src/services/shared/proto/auth/v1;authv1b\x06proto3"
 
 var (
@@ -3069,7 +3195,7 @@ func file_auth_v1_org_proto_rawDescGZIP() []byte {
 	return file_auth_v1_org_proto_rawDescData
 }
 
-var file_auth_v1_org_proto_msgTypes = make([]protoimpl.MessageInfo, 49)
+var file_auth_v1_org_proto_msgTypes = make([]protoimpl.MessageInfo, 51)
 var file_auth_v1_org_proto_goTypes = []any{
 	(*Scope)(nil),                    // 0: vedo.auth.v1.Scope
 	(*Member)(nil),                   // 1: vedo.auth.v1.Member
@@ -3118,103 +3244,109 @@ var file_auth_v1_org_proto_goTypes = []any{
 	(*CheckAccessResponse)(nil),      // 44: vedo.auth.v1.CheckAccessResponse
 	(*ForkProjectRequest)(nil),       // 45: vedo.auth.v1.ForkProjectRequest
 	(*ForkProjectResponse)(nil),      // 46: vedo.auth.v1.ForkProjectResponse
-	nil,                              // 47: vedo.auth.v1.AttributePolicy.PatternEntry
-	nil,                              // 48: vedo.auth.v1.CreatePolicyRequest.PatternEntry
-	(*v1.ErrorDetail)(nil),           // 49: vedo.common.v1.ErrorDetail
-	(*v1.PaginationRequest)(nil),     // 50: vedo.common.v1.PaginationRequest
-	(*v1.PaginationResponse)(nil),    // 51: vedo.common.v1.PaginationResponse
+	(*MoveProjectRequest)(nil),       // 47: vedo.auth.v1.MoveProjectRequest
+	(*MoveProjectResponse)(nil),      // 48: vedo.auth.v1.MoveProjectResponse
+	nil,                              // 49: vedo.auth.v1.AttributePolicy.PatternEntry
+	nil,                              // 50: vedo.auth.v1.CreatePolicyRequest.PatternEntry
+	(*v1.ErrorDetail)(nil),           // 51: vedo.common.v1.ErrorDetail
+	(*v1.PaginationRequest)(nil),     // 52: vedo.common.v1.PaginationRequest
+	(*v1.PaginationResponse)(nil),    // 53: vedo.common.v1.PaginationResponse
 }
 var file_auth_v1_org_proto_depIdxs = []int32{
-	47, // 0: vedo.auth.v1.AttributePolicy.pattern:type_name -> vedo.auth.v1.AttributePolicy.PatternEntry
+	49, // 0: vedo.auth.v1.AttributePolicy.pattern:type_name -> vedo.auth.v1.AttributePolicy.PatternEntry
 	0,  // 1: vedo.auth.v1.CreateGroupResponse.group:type_name -> vedo.auth.v1.Scope
-	49, // 2: vedo.auth.v1.CreateGroupResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	51, // 2: vedo.auth.v1.CreateGroupResponse.error:type_name -> vedo.common.v1.ErrorDetail
 	0,  // 3: vedo.auth.v1.GetGroupResponse.group:type_name -> vedo.auth.v1.Scope
-	49, // 4: vedo.auth.v1.GetGroupResponse.error:type_name -> vedo.common.v1.ErrorDetail
-	50, // 5: vedo.auth.v1.ListGroupsRequest.pagination:type_name -> vedo.common.v1.PaginationRequest
+	51, // 4: vedo.auth.v1.GetGroupResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	52, // 5: vedo.auth.v1.ListGroupsRequest.pagination:type_name -> vedo.common.v1.PaginationRequest
 	0,  // 6: vedo.auth.v1.ListGroupsResponse.groups:type_name -> vedo.auth.v1.Scope
-	51, // 7: vedo.auth.v1.ListGroupsResponse.pagination:type_name -> vedo.common.v1.PaginationResponse
-	49, // 8: vedo.auth.v1.ListGroupsResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	53, // 7: vedo.auth.v1.ListGroupsResponse.pagination:type_name -> vedo.common.v1.PaginationResponse
+	51, // 8: vedo.auth.v1.ListGroupsResponse.error:type_name -> vedo.common.v1.ErrorDetail
 	0,  // 9: vedo.auth.v1.UpdateGroupResponse.group:type_name -> vedo.auth.v1.Scope
-	49, // 10: vedo.auth.v1.UpdateGroupResponse.error:type_name -> vedo.common.v1.ErrorDetail
-	49, // 11: vedo.auth.v1.DeleteGroupResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	51, // 10: vedo.auth.v1.UpdateGroupResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	51, // 11: vedo.auth.v1.DeleteGroupResponse.error:type_name -> vedo.common.v1.ErrorDetail
 	0,  // 12: vedo.auth.v1.ListChildGroupsResponse.groups:type_name -> vedo.auth.v1.Scope
-	49, // 13: vedo.auth.v1.ListChildGroupsResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	51, // 13: vedo.auth.v1.ListChildGroupsResponse.error:type_name -> vedo.common.v1.ErrorDetail
 	0,  // 14: vedo.auth.v1.CreateProjectResponse.project:type_name -> vedo.auth.v1.Scope
-	49, // 15: vedo.auth.v1.CreateProjectResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	51, // 15: vedo.auth.v1.CreateProjectResponse.error:type_name -> vedo.common.v1.ErrorDetail
 	0,  // 16: vedo.auth.v1.GetProjectResponse.project:type_name -> vedo.auth.v1.Scope
-	49, // 17: vedo.auth.v1.GetProjectResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	51, // 17: vedo.auth.v1.GetProjectResponse.error:type_name -> vedo.common.v1.ErrorDetail
 	0,  // 18: vedo.auth.v1.ListProjectsResponse.projects:type_name -> vedo.auth.v1.Scope
-	49, // 19: vedo.auth.v1.ListProjectsResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	51, // 19: vedo.auth.v1.ListProjectsResponse.error:type_name -> vedo.common.v1.ErrorDetail
 	0,  // 20: vedo.auth.v1.UpdateProjectResponse.project:type_name -> vedo.auth.v1.Scope
-	49, // 21: vedo.auth.v1.UpdateProjectResponse.error:type_name -> vedo.common.v1.ErrorDetail
-	49, // 22: vedo.auth.v1.DeleteProjectResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	51, // 21: vedo.auth.v1.UpdateProjectResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	51, // 22: vedo.auth.v1.DeleteProjectResponse.error:type_name -> vedo.common.v1.ErrorDetail
 	1,  // 23: vedo.auth.v1.AddMemberResponse.member:type_name -> vedo.auth.v1.Member
-	49, // 24: vedo.auth.v1.AddMemberResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	51, // 24: vedo.auth.v1.AddMemberResponse.error:type_name -> vedo.common.v1.ErrorDetail
 	1,  // 25: vedo.auth.v1.UpdateMemberRoleResponse.member:type_name -> vedo.auth.v1.Member
-	49, // 26: vedo.auth.v1.UpdateMemberRoleResponse.error:type_name -> vedo.common.v1.ErrorDetail
-	49, // 27: vedo.auth.v1.RemoveMemberResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	51, // 26: vedo.auth.v1.UpdateMemberRoleResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	51, // 27: vedo.auth.v1.RemoveMemberResponse.error:type_name -> vedo.common.v1.ErrorDetail
 	1,  // 28: vedo.auth.v1.ListMembersResponse.members:type_name -> vedo.auth.v1.Member
-	49, // 29: vedo.auth.v1.ListMembersResponse.error:type_name -> vedo.common.v1.ErrorDetail
-	49, // 30: vedo.auth.v1.SetVisibilityResponse.error:type_name -> vedo.common.v1.ErrorDetail
-	49, // 31: vedo.auth.v1.GetVisibilityResponse.error:type_name -> vedo.common.v1.ErrorDetail
-	48, // 32: vedo.auth.v1.CreatePolicyRequest.pattern:type_name -> vedo.auth.v1.CreatePolicyRequest.PatternEntry
+	51, // 29: vedo.auth.v1.ListMembersResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	51, // 30: vedo.auth.v1.SetVisibilityResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	51, // 31: vedo.auth.v1.GetVisibilityResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	50, // 32: vedo.auth.v1.CreatePolicyRequest.pattern:type_name -> vedo.auth.v1.CreatePolicyRequest.PatternEntry
 	2,  // 33: vedo.auth.v1.CreatePolicyResponse.policy:type_name -> vedo.auth.v1.AttributePolicy
-	49, // 34: vedo.auth.v1.CreatePolicyResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	51, // 34: vedo.auth.v1.CreatePolicyResponse.error:type_name -> vedo.common.v1.ErrorDetail
 	2,  // 35: vedo.auth.v1.ListPoliciesResponse.policies:type_name -> vedo.auth.v1.AttributePolicy
-	49, // 36: vedo.auth.v1.ListPoliciesResponse.error:type_name -> vedo.common.v1.ErrorDetail
-	49, // 37: vedo.auth.v1.DeletePolicyResponse.error:type_name -> vedo.common.v1.ErrorDetail
-	49, // 38: vedo.auth.v1.CheckAccessResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	51, // 36: vedo.auth.v1.ListPoliciesResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	51, // 37: vedo.auth.v1.DeletePolicyResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	51, // 38: vedo.auth.v1.CheckAccessResponse.error:type_name -> vedo.common.v1.ErrorDetail
 	0,  // 39: vedo.auth.v1.ForkProjectResponse.project:type_name -> vedo.auth.v1.Scope
-	49, // 40: vedo.auth.v1.ForkProjectResponse.error:type_name -> vedo.common.v1.ErrorDetail
-	3,  // 41: vedo.auth.v1.OrgService.CreateGroup:input_type -> vedo.auth.v1.CreateGroupRequest
-	5,  // 42: vedo.auth.v1.OrgService.GetGroup:input_type -> vedo.auth.v1.GetGroupRequest
-	7,  // 43: vedo.auth.v1.OrgService.ListGroups:input_type -> vedo.auth.v1.ListGroupsRequest
-	9,  // 44: vedo.auth.v1.OrgService.UpdateGroup:input_type -> vedo.auth.v1.UpdateGroupRequest
-	11, // 45: vedo.auth.v1.OrgService.DeleteGroup:input_type -> vedo.auth.v1.DeleteGroupRequest
-	13, // 46: vedo.auth.v1.OrgService.ListChildGroups:input_type -> vedo.auth.v1.ListChildGroupsRequest
-	15, // 47: vedo.auth.v1.OrgService.CreateProject:input_type -> vedo.auth.v1.CreateProjectRequest
-	17, // 48: vedo.auth.v1.OrgService.GetProject:input_type -> vedo.auth.v1.GetProjectRequest
-	19, // 49: vedo.auth.v1.OrgService.ListProjects:input_type -> vedo.auth.v1.ListProjectsRequest
-	21, // 50: vedo.auth.v1.OrgService.UpdateProject:input_type -> vedo.auth.v1.UpdateProjectRequest
-	23, // 51: vedo.auth.v1.OrgService.DeleteProject:input_type -> vedo.auth.v1.DeleteProjectRequest
-	25, // 52: vedo.auth.v1.OrgService.AddMember:input_type -> vedo.auth.v1.AddMemberRequest
-	27, // 53: vedo.auth.v1.OrgService.UpdateMemberRole:input_type -> vedo.auth.v1.UpdateMemberRoleRequest
-	29, // 54: vedo.auth.v1.OrgService.RemoveMember:input_type -> vedo.auth.v1.RemoveMemberRequest
-	31, // 55: vedo.auth.v1.OrgService.ListMembers:input_type -> vedo.auth.v1.ListMembersRequest
-	33, // 56: vedo.auth.v1.OrgService.SetVisibility:input_type -> vedo.auth.v1.SetVisibilityRequest
-	35, // 57: vedo.auth.v1.OrgService.GetVisibility:input_type -> vedo.auth.v1.GetVisibilityRequest
-	37, // 58: vedo.auth.v1.OrgService.CreatePolicy:input_type -> vedo.auth.v1.CreatePolicyRequest
-	39, // 59: vedo.auth.v1.OrgService.ListPolicies:input_type -> vedo.auth.v1.ListPoliciesRequest
-	41, // 60: vedo.auth.v1.OrgService.DeletePolicy:input_type -> vedo.auth.v1.DeletePolicyRequest
-	43, // 61: vedo.auth.v1.OrgService.CheckAccess:input_type -> vedo.auth.v1.CheckAccessRequest
-	45, // 62: vedo.auth.v1.OrgService.ForkProject:input_type -> vedo.auth.v1.ForkProjectRequest
-	4,  // 63: vedo.auth.v1.OrgService.CreateGroup:output_type -> vedo.auth.v1.CreateGroupResponse
-	6,  // 64: vedo.auth.v1.OrgService.GetGroup:output_type -> vedo.auth.v1.GetGroupResponse
-	8,  // 65: vedo.auth.v1.OrgService.ListGroups:output_type -> vedo.auth.v1.ListGroupsResponse
-	10, // 66: vedo.auth.v1.OrgService.UpdateGroup:output_type -> vedo.auth.v1.UpdateGroupResponse
-	12, // 67: vedo.auth.v1.OrgService.DeleteGroup:output_type -> vedo.auth.v1.DeleteGroupResponse
-	14, // 68: vedo.auth.v1.OrgService.ListChildGroups:output_type -> vedo.auth.v1.ListChildGroupsResponse
-	16, // 69: vedo.auth.v1.OrgService.CreateProject:output_type -> vedo.auth.v1.CreateProjectResponse
-	18, // 70: vedo.auth.v1.OrgService.GetProject:output_type -> vedo.auth.v1.GetProjectResponse
-	20, // 71: vedo.auth.v1.OrgService.ListProjects:output_type -> vedo.auth.v1.ListProjectsResponse
-	22, // 72: vedo.auth.v1.OrgService.UpdateProject:output_type -> vedo.auth.v1.UpdateProjectResponse
-	24, // 73: vedo.auth.v1.OrgService.DeleteProject:output_type -> vedo.auth.v1.DeleteProjectResponse
-	26, // 74: vedo.auth.v1.OrgService.AddMember:output_type -> vedo.auth.v1.AddMemberResponse
-	28, // 75: vedo.auth.v1.OrgService.UpdateMemberRole:output_type -> vedo.auth.v1.UpdateMemberRoleResponse
-	30, // 76: vedo.auth.v1.OrgService.RemoveMember:output_type -> vedo.auth.v1.RemoveMemberResponse
-	32, // 77: vedo.auth.v1.OrgService.ListMembers:output_type -> vedo.auth.v1.ListMembersResponse
-	34, // 78: vedo.auth.v1.OrgService.SetVisibility:output_type -> vedo.auth.v1.SetVisibilityResponse
-	36, // 79: vedo.auth.v1.OrgService.GetVisibility:output_type -> vedo.auth.v1.GetVisibilityResponse
-	38, // 80: vedo.auth.v1.OrgService.CreatePolicy:output_type -> vedo.auth.v1.CreatePolicyResponse
-	40, // 81: vedo.auth.v1.OrgService.ListPolicies:output_type -> vedo.auth.v1.ListPoliciesResponse
-	42, // 82: vedo.auth.v1.OrgService.DeletePolicy:output_type -> vedo.auth.v1.DeletePolicyResponse
-	44, // 83: vedo.auth.v1.OrgService.CheckAccess:output_type -> vedo.auth.v1.CheckAccessResponse
-	46, // 84: vedo.auth.v1.OrgService.ForkProject:output_type -> vedo.auth.v1.ForkProjectResponse
-	63, // [63:85] is the sub-list for method output_type
-	41, // [41:63] is the sub-list for method input_type
-	41, // [41:41] is the sub-list for extension type_name
-	41, // [41:41] is the sub-list for extension extendee
-	0,  // [0:41] is the sub-list for field type_name
+	51, // 40: vedo.auth.v1.ForkProjectResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	0,  // 41: vedo.auth.v1.MoveProjectResponse.project:type_name -> vedo.auth.v1.Scope
+	51, // 42: vedo.auth.v1.MoveProjectResponse.error:type_name -> vedo.common.v1.ErrorDetail
+	3,  // 43: vedo.auth.v1.OrgService.CreateGroup:input_type -> vedo.auth.v1.CreateGroupRequest
+	5,  // 44: vedo.auth.v1.OrgService.GetGroup:input_type -> vedo.auth.v1.GetGroupRequest
+	7,  // 45: vedo.auth.v1.OrgService.ListGroups:input_type -> vedo.auth.v1.ListGroupsRequest
+	9,  // 46: vedo.auth.v1.OrgService.UpdateGroup:input_type -> vedo.auth.v1.UpdateGroupRequest
+	11, // 47: vedo.auth.v1.OrgService.DeleteGroup:input_type -> vedo.auth.v1.DeleteGroupRequest
+	13, // 48: vedo.auth.v1.OrgService.ListChildGroups:input_type -> vedo.auth.v1.ListChildGroupsRequest
+	15, // 49: vedo.auth.v1.OrgService.CreateProject:input_type -> vedo.auth.v1.CreateProjectRequest
+	17, // 50: vedo.auth.v1.OrgService.GetProject:input_type -> vedo.auth.v1.GetProjectRequest
+	19, // 51: vedo.auth.v1.OrgService.ListProjects:input_type -> vedo.auth.v1.ListProjectsRequest
+	21, // 52: vedo.auth.v1.OrgService.UpdateProject:input_type -> vedo.auth.v1.UpdateProjectRequest
+	23, // 53: vedo.auth.v1.OrgService.DeleteProject:input_type -> vedo.auth.v1.DeleteProjectRequest
+	25, // 54: vedo.auth.v1.OrgService.AddMember:input_type -> vedo.auth.v1.AddMemberRequest
+	27, // 55: vedo.auth.v1.OrgService.UpdateMemberRole:input_type -> vedo.auth.v1.UpdateMemberRoleRequest
+	29, // 56: vedo.auth.v1.OrgService.RemoveMember:input_type -> vedo.auth.v1.RemoveMemberRequest
+	31, // 57: vedo.auth.v1.OrgService.ListMembers:input_type -> vedo.auth.v1.ListMembersRequest
+	33, // 58: vedo.auth.v1.OrgService.SetVisibility:input_type -> vedo.auth.v1.SetVisibilityRequest
+	35, // 59: vedo.auth.v1.OrgService.GetVisibility:input_type -> vedo.auth.v1.GetVisibilityRequest
+	37, // 60: vedo.auth.v1.OrgService.CreatePolicy:input_type -> vedo.auth.v1.CreatePolicyRequest
+	39, // 61: vedo.auth.v1.OrgService.ListPolicies:input_type -> vedo.auth.v1.ListPoliciesRequest
+	41, // 62: vedo.auth.v1.OrgService.DeletePolicy:input_type -> vedo.auth.v1.DeletePolicyRequest
+	43, // 63: vedo.auth.v1.OrgService.CheckAccess:input_type -> vedo.auth.v1.CheckAccessRequest
+	45, // 64: vedo.auth.v1.OrgService.ForkProject:input_type -> vedo.auth.v1.ForkProjectRequest
+	47, // 65: vedo.auth.v1.OrgService.MoveProject:input_type -> vedo.auth.v1.MoveProjectRequest
+	4,  // 66: vedo.auth.v1.OrgService.CreateGroup:output_type -> vedo.auth.v1.CreateGroupResponse
+	6,  // 67: vedo.auth.v1.OrgService.GetGroup:output_type -> vedo.auth.v1.GetGroupResponse
+	8,  // 68: vedo.auth.v1.OrgService.ListGroups:output_type -> vedo.auth.v1.ListGroupsResponse
+	10, // 69: vedo.auth.v1.OrgService.UpdateGroup:output_type -> vedo.auth.v1.UpdateGroupResponse
+	12, // 70: vedo.auth.v1.OrgService.DeleteGroup:output_type -> vedo.auth.v1.DeleteGroupResponse
+	14, // 71: vedo.auth.v1.OrgService.ListChildGroups:output_type -> vedo.auth.v1.ListChildGroupsResponse
+	16, // 72: vedo.auth.v1.OrgService.CreateProject:output_type -> vedo.auth.v1.CreateProjectResponse
+	18, // 73: vedo.auth.v1.OrgService.GetProject:output_type -> vedo.auth.v1.GetProjectResponse
+	20, // 74: vedo.auth.v1.OrgService.ListProjects:output_type -> vedo.auth.v1.ListProjectsResponse
+	22, // 75: vedo.auth.v1.OrgService.UpdateProject:output_type -> vedo.auth.v1.UpdateProjectResponse
+	24, // 76: vedo.auth.v1.OrgService.DeleteProject:output_type -> vedo.auth.v1.DeleteProjectResponse
+	26, // 77: vedo.auth.v1.OrgService.AddMember:output_type -> vedo.auth.v1.AddMemberResponse
+	28, // 78: vedo.auth.v1.OrgService.UpdateMemberRole:output_type -> vedo.auth.v1.UpdateMemberRoleResponse
+	30, // 79: vedo.auth.v1.OrgService.RemoveMember:output_type -> vedo.auth.v1.RemoveMemberResponse
+	32, // 80: vedo.auth.v1.OrgService.ListMembers:output_type -> vedo.auth.v1.ListMembersResponse
+	34, // 81: vedo.auth.v1.OrgService.SetVisibility:output_type -> vedo.auth.v1.SetVisibilityResponse
+	36, // 82: vedo.auth.v1.OrgService.GetVisibility:output_type -> vedo.auth.v1.GetVisibilityResponse
+	38, // 83: vedo.auth.v1.OrgService.CreatePolicy:output_type -> vedo.auth.v1.CreatePolicyResponse
+	40, // 84: vedo.auth.v1.OrgService.ListPolicies:output_type -> vedo.auth.v1.ListPoliciesResponse
+	42, // 85: vedo.auth.v1.OrgService.DeletePolicy:output_type -> vedo.auth.v1.DeletePolicyResponse
+	44, // 86: vedo.auth.v1.OrgService.CheckAccess:output_type -> vedo.auth.v1.CheckAccessResponse
+	46, // 87: vedo.auth.v1.OrgService.ForkProject:output_type -> vedo.auth.v1.ForkProjectResponse
+	48, // 88: vedo.auth.v1.OrgService.MoveProject:output_type -> vedo.auth.v1.MoveProjectResponse
+	66, // [66:89] is the sub-list for method output_type
+	43, // [43:66] is the sub-list for method input_type
+	43, // [43:43] is the sub-list for extension type_name
+	43, // [43:43] is the sub-list for extension extendee
+	0,  // [0:43] is the sub-list for field type_name
 }
 
 func init() { file_auth_v1_org_proto_init() }
@@ -3228,7 +3360,7 @@ func file_auth_v1_org_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_auth_v1_org_proto_rawDesc), len(file_auth_v1_org_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   49,
+			NumMessages:   51,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

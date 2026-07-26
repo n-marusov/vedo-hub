@@ -7,6 +7,7 @@ Provides:
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 import os
@@ -135,7 +136,7 @@ SUPPORTED_FORMATS = {
 @router.post("/documents/extract", response_model=ExtractResponse)
 async def extract_document(
     request: Request,
-    file: UploadFile = File(...),
+    file: UploadFile = File(...),  # noqa: B008
 ):
     """Extract ontology structure from a single uploaded document.
 
@@ -274,7 +275,7 @@ async def extract_document(
                     )
 
                 except Exception as exc:
-                    logger.error("LLM extraction attempt %d failed: %s", attempt, exc)
+                    logger.exception("LLM extraction attempt %d failed: %s", attempt, exc)
                     if attempt == settings.LLM_MAX_RETRIES:
                         return ExtractResponse(
                             filename=file.filename,
@@ -321,10 +322,8 @@ async def extract_document(
         )
     finally:
         # Clean up temp file
-        try:
+        with contextlib.suppress(Exception):
             os.unlink(tmp_path)
-        except Exception:
-            pass
 
 
 @router.post("/documents/apply", response_model=ApplyResponse)
@@ -366,7 +365,7 @@ async def apply_sequence(request: ApplyRequest):
         )
 
     except Exception as exc:
-        logger.error("Apply sequence failed: %s", exc)
+        logger.exception("Apply sequence failed: %s", exc)
         return ApplyResponse(
             success=False,
             errors=[str(exc)],

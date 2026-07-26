@@ -5,7 +5,7 @@
 // P0 placeholder specs for ontology browsing and search UI features.
 // Remove .skip and implement when corresponding UI components are built.
 
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 describe.skip('Graph Navigation (REQ-USR.UI.graph-navigation)', () => {
   it('should render ontology graph with nodes and edges', () => {

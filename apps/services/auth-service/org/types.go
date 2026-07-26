@@ -31,6 +31,8 @@ type Ontology struct {
 
 // OrgMembership represents a user's role assignment within a scope.
 // @hlv:sec [AUTH_BOUNDARY] — Membership records control authorization decisions.
+//
+//nolint:revive // exported type name stutter is intentional for clarity
 type OrgMembership struct {
 	UserID    string `json:"user_id"`
 	Scope     string `json:"scope"`
@@ -69,6 +71,8 @@ type ScopeNode struct {
 
 // OrgStore is the storage interface for org data.
 // @hlv:sec [AUTH_BOUNDARY] — Store operations must maintain authorization invariants.
+//
+//nolint:revive // exported type name stutter is intentional for clarity
 type OrgStore interface {
 	UpsertMembership(m OrgMembership) error
 	DeleteMembership(scope, userID string) error
@@ -106,6 +110,8 @@ type AuditEvent struct {
 }
 
 // OrgError represents a structured error response.
+//
+//nolint:revive // exported type name stutter is intentional for clarity
 type OrgError struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`

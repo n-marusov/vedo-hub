@@ -1,6 +1,6 @@
-import { fileURLToPath } from "node:url";
-import vue from "@vitejs/plugin-vue";
-import { defineConfig } from "vitest/config";
+import { fileURLToPath } from 'node:url'
+import vue from '@vitejs/plugin-vue'
+import { defineConfig } from 'vitest/config'
 
 /**
  * Vitest configuration for the VEDO Core frontend.
@@ -13,16 +13,16 @@ import { defineConfig } from "vitest/config";
  * @see https://vitest.dev/config/
  */
 export default defineConfig({
-	plugins: [vue()],
-	test: {
-		environment: "jsdom",
-		globals: true,
-		include: ["src/**/*.test.ts", "src/**/*.spec.ts"],
-		setupFiles: ["vitest.setup.ts"],
-	},
-	resolve: {
-		alias: {
-			"@": fileURLToPath(new URL("./src", import.meta.url)),
-		},
-	},
-});
+  plugins: [vue()],
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    include: ['src/**/*.test.ts', 'src/**/*.spec.ts'],
+    setupFiles: ['vitest.setup.ts']
+  },
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url))
+    }
+  }
+})

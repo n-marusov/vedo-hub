@@ -53,6 +53,7 @@ vedo-core/
 
 |`api-gateway` |8080 |Entry point, routing, auth proxy, BOLA/BFLA enforcement
 |`auth-service` |8084 |Keycloak integration, role-based access control
+|`ai-orchestration-service` |— |LLM orchestration, policy enforcement, audit logging, prompt templates
 |`commenting-service` |— |Comments, node locking, real-time collaboration
 |`ticket-api` |— |Ticket management CRUD
 |`ticket-notifier` |— |Email / WebSocket notifications
@@ -77,6 +78,7 @@ vedo-core/
 |===
 |Service |Port |Responsibility
 
+|`document-extractor` |— |AI document extraction, NL to OWL conversion
 |`metrics-service` |8086 |Analytics, aggregation (RabbitMQ consumer)
 |`ticket-classifier` |— |Auto-classification using ML
 |===
@@ -88,6 +90,16 @@ vedo-core/
 
 |`frontend` |3000 |Main web UI (Vue 3 + Apollo Client + Vue Flow)
 |`publish-browse-ui` |— |Published ontology public viewer
+|===
+
+=== Shared Libraries
+
+|===
+|Library |Language |Purpose
+
+|`apps/shared/llm` |Go |LLM provider abstraction, registry, prompt templates, OTEL observability
+|`apps/shared/proto` |Go/Rust |gRPC protobuf definitions
+|`apps/shared/src` |Rust |Health, metrics, tracing, protos
 |===
 
 == Communication Patterns
@@ -108,10 +120,18 @@ Frontend ──(GraphQL/REST)──> API Gateway ──(REST/gRPC)──> Backen
                                    ├─> ontology-service ──> Neo4j
                                    ├─> versioning-service ──> PostgreSQL
                                    ├─> auth-service ──> Keycloak
+                                   ├─> ai-orchestration-service ──> LLM providers
                                    └─> ...
                                WebSocket ──> commenting-service
                                RabbitMQ ──> metrics-service, ticket-classifier
 ----
+
+== Key Patterns
+
+* **gRPC** for inter-service communication, REST for external API, WebSocket for real-time
+* **Structured logging** with OpenTelemetry trace context propagation across all services
+* **Health check endpoints** (`/health`, `/ready`) on every service
+* **Multi-stage Docker builds** (Go: golang→alpine, Rust: rust→debian-slim, Python: python-slim, TS: node→nginx)
 
 == Key Principles
 
@@ -150,5 +170,6 @@ Prometheus metrics are available at `/metrics`.
 == See Also
 
 * xref:getting-started.adoc[Getting Started] — prerequisites and quick start
+* xref:deployment.adoc[Deployment] — Docker setup and environments
 * xref:configuration.adoc[Configuration] — environment variables per service
 * xref:testing.adoc[Testing] — test suites

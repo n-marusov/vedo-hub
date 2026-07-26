@@ -1,6 +1,21 @@
 = Testing
 :description: Test suites, how to run them, and what they cover.
 
+== Quick Reference
+
+|===
+|Test suite |Make target |Requirements
+
+|Unit tests |`make test` |Language toolchains only
+|Integration tests |`make test-integration` |Live infra (Neo4j, Postgres)
+|E2E — API |`make test-e2e-api` |Docker test stack
+|E2E — GUI |`make test-e2e-gui` |Docker test stack + frontend
+|E2E — all |`make test-e2e` |Docker test stack
+|Contract / gate tests |`make test-gates` |Go toolchain + Docker stack
+|Full CI |`make ci` |Language toolchains only
+|Full CI + e2e |`make ci-full` |Docker test stack + infra
+|===
+
 == Test Suites
 
 Cross-service test suites are in `tests/`:
@@ -8,108 +23,125 @@ Cross-service test suites are in `tests/`:
 |===
 |Suite |Path |Description
 
-|E2E |`tests/e2e/playwright/` |Playwright end-to-end browser tests
+|E2E — API |`tests/e2e/specs/api/` |REST, GraphQL, SPARQL integration tests
+|E2E — GUI |`tests/e2e/specs/gui/` |Pages, user stories, a11y tests
 |Security |`tests/security/` |BOLA/BFLA authorization tests
 |CLI |`tests/cli/` |vedo-cli integration tests
-|Ticket API |`tests/ticket-api/` |Ticket API contract tests
+|Integration |`tests/integration/` |Go integration tests (ticket-api, org-api)
+|Gates |`tests/gates/` |Gate-level test scripts
 |===
 
 == Running Tests
 
 === Unit Tests (Fast)
 
-[source,bash]
-----
-cd src && make test
-----
-
-Runs unit tests for all languages without external infrastructure:
-
-* **Rust:** `cargo test --lib` (unit tests only — no PostgreSQL/Neo4j needed)
-* **Go:** `go test ./...`
-* **Python:** `uv run pytest`
-* **TypeScript:** `pnpm test`
-
-This is the standard feedback loop during development — no databases required.
-
-=== All Tests (Including Integration)
+No test environment required — tests run natively with language toolchains.
 
 [source,bash]
 ----
-cd src && make test-all
+make test              # All unit tests
+make test-rust         # cargo test --lib
+make test-go           # go test ./...
+make test-python       # pytest
+make test-typescript   # pnpm test
 ----
 
-Runs the full test suite including Rust integration tests that require
-PostgreSQL and Neo4j. Set these environment variables first:
+=== Integration Tests
+
+Requires live database infrastructure (Neo4j, Postgres).
 
 [source,bash]
 ----
-export PG_TEST_DATABASE_URL=postgres://postgres:password@localhost:5432/vedo_test
-export NEO4J_TEST_URI=bolt://localhost:7687
-export NEO4J_USER=neo4j
-export NEO4J_PASSWORD=password
-cd src && make test-all
+make test-integration        # All integration tests
+make test-integration-rust   # Rust only (NEO4J_URI, DATABASE_URL required)
 ----
 
-Integration tests gracefully skip with a clear message to stderr when
-the relevant environment variable is unset.
+Integration tests gracefully skip with a clear message to stderr when the relevant environment variable is unset.
 
 === Coverage
 
 [source,bash]
 ----
-cd src && make coverage
+make coverage    # Go tests with coverage profiles (cover.out per service)
 ----
 
-Runs Go tests with coverage profiles (`cover.out` per service).
+=== E2E Tests (Playwright)
 
-=== Individual Languages
+Requires the Docker test stack. Two-phase execution — API runs first (fast feedback), GUI runs second.
+
+Playwright configs automatically start the backend using `deploy/docker-compose.test.yml`, which overrides the API Gateway to accept self-signed test JWT tokens instead of requiring Keycloak.
 
 [source,bash]
 ----
-# Rust — unit tests only
-cd src/services/ontology-service && cargo test --lib
+# Start the test stack first (or let Playwright auto-start it)
+make docker-up-test
 
-# Rust — all tests (including integration, requires DB)
-cd src/services/versioning-service && cargo test
+# Phase 1: API tests (REST, GraphQL, SPARQL)
+make test-e2e-api
 
-# Go
-cd src/services/api-gateway && go test ./...
+# Phase 2: GUI tests (pages, user stories, a11y)
+make test-e2e-gui
 
-# Python
-cd src/services/metrics-service && uv run pytest
-
-# TypeScript
-cd src/services/frontend && pnpm test
+# Or run both phases together
+make test-e2e
 ----
 
-== Security Tests
+GUI tests use `maxFailures: 1` — stops on first failure for fast feedback. API tests use `retries: 2`.
+
+==== Running a Single GUI Test
+
+[source,bash]
+----
+cd tests/e2e
+pnpm exec playwright test --config=config/playwright.gui.config.ts -g "Dashboard Navigation"
+pnpm exec playwright test --config=config/playwright.gui.config.ts specs/gui/pages/dashboard-navigation.spec.ts
+
+# Override maxFailures for a subset
+pnpm exec playwright test --config=config/playwright.gui.config.ts specs/gui/user-stories/ --max-failures=0
+----
+
+=== Security Tests (BOLA/BFLA)
 
 Security tests in `tests/security/` verify:
 
 * *BOLA* (Broken Object-Level Authorization) — users cannot access other users' ontologies, groups, or merge requests.
 * *BFLA* (Broken Function-Level Authorization) — users cannot invoke admin-level operations without proper roles.
 
-Run security tests:
+[source,bash]
+----
+bash tests/gates/test_bola_bfla_gate.sh
+----
+
+== CI Pipeline
 
 [source,bash]
 ----
-cd tests/security && go test -v ./...
+make ci        # proto-all → build → lint → test → typecheck
+make ci-full   # ci + test-integration + test-e2e + test-gates
 ----
 
-== E2E Tests
+`ci` runs everything that doesn't require Docker. `ci-full` adds integration, E2E, and gate tests.
 
-End-to-end tests use Playwright to simulate user interactions through the browser:
+== Test Structure
 
-[source,bash]
 ----
-cd tests/e2e/playwright && npx playwright test
+tests/
+├── e2e/
+│   ├── config/playwright.api.config.ts   # API test config
+│   ├── config/playwright.gui.config.ts   # GUI test config
+│   ├── specs/api/                        # REST, GraphQL, SPARQL tests
+│   ├── specs/gui/                        # Pages, user stories, a11y
+│   ├── scripts/run-ci.sh                 # CI gate runner
+│   └── package.json
+├── integration/                          # Go integration tests
+│   ├── ticket-api/
+│   └── org-api/
+├── gates/                                # Gate-level test scripts
+└── security/                             # BOLA/BFLA authorization tests
 ----
-
-Requires the full stack running (`make docker-up` from `src/`).
 
 == See Also
 
 * xref:getting-started.adoc[Getting Started] — prerequisites and build
-* xref:architecture.adoc[Architecture] — service inventory
-* xref:configuration.adoc[Configuration] — environment variables
+* xref:deployment.adoc[Deployment] — Docker environments and compose setup
+* xref:configuration.adoc[Configuration] — environment variables and ports

@@ -7,5 +7,5 @@
 
 // @m4 — Helper: create an artificial delay to simulate network latency
 export function delay(ms = 200): Promise<void> {
-	return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }

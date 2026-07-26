@@ -177,7 +177,7 @@ func newSSEBroker(bus *EventBus) *SSEBroker {
 // ServeSSE handles an HTTP connection upgrade to Server-Sent Events.
 // It subscribes to the EventBus and streams events as SSE format.
 // The connection is closed when the request context is cancelled.
-func (b *SSEBroker) ServeSSE(ctx context.Context, ontologyID string, eventCh chan<- SSEEvent, errCh chan<- error) {
+func (b *SSEBroker) ServeSSE(ctx context.Context, ontologyID string, eventCh chan<- SSEEvent) {
 	subID, ch := b.bus.Subscribe(100)
 	defer b.bus.Unsubscribe(subID)
 

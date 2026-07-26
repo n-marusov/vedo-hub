@@ -21,21 +21,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed } from 'vue'
 const props = defineProps<{
-	open: boolean;
-	title: string;
-	description?: string;
-	size?: "sm" | "md" | "form" | "lg" | "xl";
-	modal?: boolean;
-}>();
-const emit = defineEmits<{ close: [] }>();
-const titleId = computed(
-	() => `dialog-title-${props.title.toLowerCase().replace(/\s+/g, "-")}`,
-);
+  open: boolean
+  title: string
+  description?: string
+  size?: 'sm' | 'md' | 'form' | 'lg' | 'xl'
+  modal?: boolean
+}>()
+const emit = defineEmits<{ close: [] }>()
+const titleId = computed(() => `dialog-title-${props.title.toLowerCase().replace(/\s+/g, '-')}`)
 function onOverlayClick() {
-	if (props.modal) return;
-	emit("close");
+  if (props.modal) return
+  emit('close')
 }
 </script>
 

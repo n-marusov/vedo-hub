@@ -31,48 +31,48 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import DeploymentCard from "./DeploymentCard.vue";
+import { computed, ref } from 'vue'
+import DeploymentCard from './DeploymentCard.vue'
 
 // @m4 — Deployment entry from LIST_DEPLOYMENTS_QUERY
 interface DeploymentEntry {
-	id: string;
-	status: string;
-	url: string;
-	version: string;
-	ontologyId: string;
-	ontologyName: string;
-	deployedAt: string;
-	deployedBy: string;
-	stopped?: boolean;
+  id: string
+  status: string
+  url: string
+  version: string
+  ontologyId: string
+  ontologyName: string
+  deployedAt: string
+  deployedBy: string
+  stopped?: boolean
 }
 
 const props = defineProps<{
-	deployments: DeploymentEntry[];
-}>();
+  deployments: DeploymentEntry[]
+}>()
 
 defineEmits<{
-	delete: [deploymentId: string];
-}>();
+  delete: [deploymentId: string]
+}>()
 
-const showStopped = ref(true);
+const showStopped = ref(true)
 
 const filteredDeployments = computed(() => {
-	if (showStopped.value) return props.deployments;
-	return props.deployments.filter((d) => d.status !== "stopped");
-});
+  if (showStopped.value) return props.deployments
+  return props.deployments.filter((d) => d.status !== 'stopped')
+})
 
 function formatDate(dateStr: string): string {
-	if (!dateStr) return "unknown";
-	const date = new Date(dateStr);
-	const now = new Date();
-	const diffMs = now.getTime() - date.getTime();
-	const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-	if (diffDays === 0) return "today";
-	if (diffDays === 1) return "yesterday";
-	if (diffDays < 30) return `${diffDays} days ago`;
-	if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
-	return `${Math.floor(diffDays / 365)} years ago`;
+  if (!dateStr) return 'unknown'
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+  if (diffDays === 0) return 'today'
+  if (diffDays === 1) return 'yesterday'
+  if (diffDays < 30) return `${diffDays} days ago`
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`
+  return `${Math.floor(diffDays / 365)} years ago`
 }
 </script>
 

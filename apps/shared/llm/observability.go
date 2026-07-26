@@ -44,7 +44,7 @@ func (p *ObservabilityProvider) Complete(ctx Context, prompt Prompt) (Completion
 	}
 
 	// Start OTel span
-	otelCtx, span := p.tracer.Start(otelCtx, "llm."+p.name+".complete",
+	_, span := p.tracer.Start(otelCtx, "llm."+p.name+".complete",
 		trace.WithAttributes(
 			attribute.String("llm.provider", p.name),
 			attribute.String("llm.model", resolveModel(prompt.Model, p.model)),

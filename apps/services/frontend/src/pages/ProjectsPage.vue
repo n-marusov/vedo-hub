@@ -135,166 +135,166 @@
 </template>
 
 <script setup lang="ts">
-import { listProjects } from "@/api/org";
-import CreateProjectDialog from "@/components/projects/CreateProjectDialog.vue";
-import ForkDemoDialog from "@/components/projects/ForkDemoDialog.vue";
+import { listProjects } from '@/api/org'
+import CreateProjectDialog from '@/components/projects/CreateProjectDialog.vue'
+import ForkDemoDialog from '@/components/projects/ForkDemoDialog.vue'
 import {
-	BadgeCheck,
-	ChevronDown,
-	ChevronRight,
-	Folder,
-	GitFork,
-	GitMerge,
-	Globe,
-	Lock,
-	MoreVertical,
-	Plus,
-	Search,
-	Star,
-} from "lucide-vue-next";
-import { computed, onMounted, ref, watch } from "vue";
-import { useRouter } from "vue-router";
+  BadgeCheck,
+  ChevronDown,
+  ChevronRight,
+  Folder,
+  GitFork,
+  GitMerge,
+  Globe,
+  Lock,
+  MoreVertical,
+  Plus,
+  Search,
+  Star
+} from 'lucide-vue-next'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 
-const router = useRouter();
+const router = useRouter()
 
-const showForkDialog = ref(false);
-const showCreateProjectDialog = ref(false);
+const showForkDialog = ref(false)
+const showCreateProjectDialog = ref(false)
 
-const searchQuery = ref("");
-const sortField = ref("Name");
-const sortDir = ref("ASC");
+const searchQuery = ref('')
+const sortField = ref('Name')
+const sortDir = ref('ASC')
 
 const sortByMap: Record<string, string> = {
-	Name: "name",
-	"Updated At": "updatedAt",
-};
+  Name: 'name',
+  'Updated At': 'updatedAt'
+}
 
 function toggleSortField(): void {
-	sortField.value = sortField.value === "Name" ? "Updated At" : "Name";
-	console.debug(
-		JSON.stringify({
-			level: "debug",
-			msg: "Projects.sort",
-			field: sortField.value,
-			dir: sortDir.value,
-			ts: new Date().toISOString(),
-		}),
-	);
+  sortField.value = sortField.value === 'Name' ? 'Updated At' : 'Name'
+  console.debug(
+    JSON.stringify({
+      level: 'debug',
+      msg: 'Projects.sort',
+      field: sortField.value,
+      dir: sortDir.value,
+      ts: new Date().toISOString()
+    })
+  )
 }
 
 function toggleSortDir(): void {
-	sortDir.value = sortDir.value === "ASC" ? "DESC" : "ASC";
-	console.debug(
-		JSON.stringify({
-			level: "debug",
-			msg: "Projects.sort",
-			field: sortField.value,
-			dir: sortDir.value,
-			ts: new Date().toISOString(),
-		}),
-	);
+  sortDir.value = sortDir.value === 'ASC' ? 'DESC' : 'ASC'
+  console.debug(
+    JSON.stringify({
+      level: 'debug',
+      msg: 'Projects.sort',
+      field: sortField.value,
+      dir: sortDir.value,
+      ts: new Date().toISOString()
+    })
+  )
 }
 
 interface ProjectRow {
-	name: string;
-	visibility: "public" | "private";
-	description: string;
-	tags: string[];
-	stars: number;
-	forks: number;
-	mergeRequests: number;
-	created: string;
-	verified: boolean;
-	logoLetter: string;
-	logoBg: string;
+  name: string
+  visibility: 'public' | 'private'
+  description: string
+  tags: string[]
+  stars: number
+  forks: number
+  mergeRequests: number
+  created: string
+  verified: boolean
+  logoLetter: string
+  logoBg: string
 }
 
-const loading = ref(false);
-const error = ref<string | null>(null);
+const loading = ref(false)
+const error = ref<string | null>(null)
 async function fetchProjects() {
-	loading.value = true;
-	error.value = null;
-	try {
-		const result = await listProjects({
-			q: searchQuery.value || undefined,
-			sortBy: sortByMap[sortField.value] || "name",
-			sortDir: sortDir.value,
-			page: 1,
-			perPage: 50,
-		});
-		projectsData.value = result.items;
-	} catch (e: unknown) {
-		error.value = e instanceof Error ? e.message : String(e);
-	} finally {
-		loading.value = false;
-	}
+  loading.value = true
+  error.value = null
+  try {
+    const result = await listProjects({
+      q: searchQuery.value || undefined,
+      sortBy: sortByMap[sortField.value] || 'name',
+      sortDir: sortDir.value,
+      page: 1,
+      perPage: 50
+    })
+    projectsData.value = result.items as unknown as Record<string, unknown>[]
+  } catch (e: unknown) {
+    error.value = e instanceof Error ? e.message : String(e)
+  } finally {
+    loading.value = false
+  }
 }
 
-const projectsData = ref<Record<string, unknown>[]>([]);
+const projectsData = ref<Record<string, unknown>[]>([])
 
 function onProjectCreated(name: string): void {
-	showCreateProjectDialog.value = false;
-	console.debug(
-		JSON.stringify({
-			level: "debug",
-			msg: "Projects.projectCreated",
-			projectName: name,
-			ts: new Date().toISOString(),
-		}),
-	);
-	fetchProjects();
+  showCreateProjectDialog.value = false
+  console.debug(
+    JSON.stringify({
+      level: 'debug',
+      msg: 'Projects.projectCreated',
+      projectName: name,
+      ts: new Date().toISOString()
+    })
+  )
+  fetchProjects()
 }
 
 onMounted(() => {
-	fetchProjects();
-});
+  fetchProjects()
+})
 
 const projects = computed<ProjectRow[]>(() => {
-	const items = projectsData.value;
-	if (!items || items.length === 0) {
-		// Fallback to empty when no data from API
-		return [];
-	}
-	return items.map((p: Record<string, unknown>) => ({
-		name: String(p.name || ""),
-		visibility: (p.visibility as "public" | "private") || "public",
-		description: String(p.description || ""),
-		tags: (p.tags as string[]) || [],
-		stars: Number(p.stars || 0),
-		forks: Number(p.forks || 0),
-		mergeRequests: Number(p.mergeRequests || 0),
-		created: String(p.created || ""),
-		verified: Boolean(p.verified),
-		logoLetter: String(p.name ? (p.name as string)[0] : "?").toUpperCase(),
-		logoBg: "#6366f126",
-	}));
-});
+  const items = projectsData.value
+  if (!items || items.length === 0) {
+    // Fallback to empty when no data from API
+    return []
+  }
+  return items.map((p: Record<string, unknown>) => ({
+    name: String(p.name || ''),
+    visibility: (p.visibility as 'public' | 'private') || 'public',
+    description: String(p.description || ''),
+    tags: (p.tags as string[]) || [],
+    stars: Number(p.stars || 0),
+    forks: Number(p.forks || 0),
+    mergeRequests: Number(p.mergeRequests || 0),
+    created: String(p.created || ''),
+    verified: Boolean(p.verified),
+    logoLetter: String(p.name ? (p.name as string)[0] : '?').toUpperCase(),
+    logoBg: '#6366f126'
+  }))
+})
 
 // ── Logging ─────────────────────────────────────────────────────────────────
 
 watch(projects, (val) => {
-	console.debug(
-		JSON.stringify({
-			level: "debug",
-			msg: "projects.list.loaded",
-			count: val.length,
-			ts: new Date().toISOString(),
-		}),
-	);
-});
+  console.debug(
+    JSON.stringify({
+      level: 'debug',
+      msg: 'projects.list.loaded',
+      count: val.length,
+      ts: new Date().toISOString()
+    })
+  )
+})
 
 watch(error, (err) => {
-	if (err) {
-		console.error(
-			JSON.stringify({
-				level: "error",
-				msg: "projects.query.error",
-				error: String(err),
-				ts: new Date().toISOString(),
-			}),
-		);
-	}
-});
+  if (err) {
+    console.error(
+      JSON.stringify({
+        level: 'error',
+        msg: 'projects.query.error',
+        error: String(err),
+        ts: new Date().toISOString()
+      })
+    )
+  }
+})
 </script>
 
 <style scoped>

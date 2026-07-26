@@ -78,111 +78,104 @@
 </template>
 
 <script setup lang="ts">
-import {
-	type MetricsTrendPoint,
-	type OntologyMetrics,
-	getOntologyMetrics,
-} from "@/api/metrics";
-import { Calendar, ChartColumn, Folder, GitBranch } from "lucide-vue-next";
-import { computed, onMounted, ref, watch } from "vue";
-import { useRoute } from "vue-router";
+import { type MetricsTrendPoint, type OntologyMetrics, getOntologyMetrics } from '@/api/metrics'
+import { Calendar, ChartColumn, Folder, GitBranch } from 'lucide-vue-next'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
-const route = useRoute();
+const route = useRoute()
 const ontologyId = computed(
-	() =>
-		(route.params.ontologyId as string) ||
-		(route.query.ontologyId as string) ||
-		"",
-);
+  () => (route.params.ontologyId as string) || (route.query.ontologyId as string) || ''
+)
 
 // @m4 — Wire metrics to ONTOLOGY_METRICS_QUERY
 // @m4 — Metrics migrated from GraphQL to REST
-const loading = ref(false);
-const error = ref<string | null>(null);
-const metricsData = ref<OntologyMetrics | null>(null);
+const loading = ref(false)
+const error = ref<string | null>(null)
+const metricsData = ref<OntologyMetrics | null>(null)
 const counters = ref({
-	classCount: 0,
-	propertyCount: 0,
-	individualCount: 0,
-	axiomCount: 0,
-	commentCount: 0,
-	mergeRequestCount: 0,
-});
-const trends = ref<MetricsTrendPoint[]>([]);
+  classCount: 0,
+  propertyCount: 0,
+  individualCount: 0,
+  axiomCount: 0,
+  commentCount: 0,
+  mergeRequestCount: 0
+})
+const trends = ref<MetricsTrendPoint[]>([])
 
 async function fetchMetrics() {
-	loading.value = true;
-	error.value = null;
-	try {
-		const data = await getOntologyMetrics(ontologyId.value || "default");
-		metricsData.value = data;
-		counters.value = data.counters;
-		trends.value = data.trends;
-	} catch (e: unknown) {
-		error.value = e instanceof Error ? e.message : String(e);
-	} finally {
-		loading.value = false;
-	}
+  loading.value = true
+  error.value = null
+  try {
+    const data = await getOntologyMetrics(ontologyId.value || 'default')
+    metricsData.value = data
+    counters.value = data.counters
+    trends.value = data.trends
+  } catch (e: unknown) {
+    error.value = e instanceof Error ? e.message : String(e)
+  } finally {
+    loading.value = false
+  }
 }
 
 onMounted(() => {
-	fetchMetrics();
-});
+  fetchMetrics()
+})
 
-	const trendSummary = computed(() => {
-		const trends = metricsData.value?.trends;
-		if (!trends || trends.length < 2) {
-			return { classCount: "", propertyCount: "", individualCount: "" };
-		}
-		const latest = trends[trends.length - 1];
-		const previous = trends[trends.length - 2];
-		type TrendField = "classCount" | "propertyCount" | "individualCount";
-		const diff = (field: TrendField) => {
-			const d = (latest[field] || 0) - (previous[field] || 0);
-			return d >= 0 ? `+${d} this period` : `${d} this period`;
-		};
-	return {
-		classCount: diff("classCount"),
-		propertyCount: diff("propertyCount"),
-		individualCount: diff("individualCount"),
-	};
-});
+const trendSummary = computed(() => {
+  const trends = metricsData.value?.trends
+  if (!trends || trends.length < 2) {
+    return { classCount: '', propertyCount: '', individualCount: '' }
+  }
+  const latest = trends[trends.length - 1]
+  const previous = trends[trends.length - 2]
+  type TrendField = 'classCount' | 'propertyCount' | 'individualCount'
+  const diff = (field: TrendField) => {
+    const d = (latest[field] || 0) - (previous[field] || 0)
+    return d >= 0 ? `+${d} this period` : `${d} this period`
+  }
+  return {
+    classCount: diff('classCount'),
+    propertyCount: diff('propertyCount'),
+    individualCount: diff('individualCount')
+  }
+})
 
 const lastUpdated = computed(() => {
-	const trends = metricsData.value?.trends;
-	if (!trends?.length) return "N/A";
-	return new Date(trends[trends.length - 1].date).toLocaleDateString("en-US", {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-	});
-});
+  const trends = metricsData.value?.trends
+  if (!trends?.length) return 'N/A'
+  return new Date(trends[trends.length - 1].date).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  })
+})
 
 // ── Logging ─────────────────────────────────────────────────────────────────
 
 watch(counters, (val) => {
-	console.debug(
-		JSON.stringify({
-			level: "debug",
-			msg: "metrics.counters.loaded",
-			classCount: val.classCount,
-			ts: new Date().toISOString(),
-		}),
-	);
-});
+  console.debug(
+    JSON.stringify({
+      level: 'debug',
+      msg: 'metrics.counters.loaded',
+      classCount: val.classCount,
+      ts: new Date().toISOString()
+    })
+  )
+})
 
 watch(error, (err) => {
-	if (err) {
-		console.error(
-			JSON.stringify({
-				level: "error",
-				msg: "metrics.query.error",
-				error: String(err),
-				ts: new Date().toISOString(),
-			}),
-		);
-	}
-});
+  if (err) {
+    console.error(
+      JSON.stringify({
+        level: 'error',
+        msg: 'metrics.query.error',
+        error: String(err),
+        ts: new Date().toISOString()
+      })
+    )
+  }
+})
 </script>
 
 <style scoped>

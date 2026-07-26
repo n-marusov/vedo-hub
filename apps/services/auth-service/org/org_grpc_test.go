@@ -76,7 +76,7 @@ func setupGrpcTest(t *testing.T) (authv1.OrgServiceClient, func()) {
 	}()
 
 	// Create client
-	conn, err := grpc.DialContext(context.Background(), "bufnet",
+	conn, err := grpc.DialContext(context.Background(), "bufnet", //nolint:staticcheck
 		grpc.WithContextDialer(func(ctx context.Context, addr string) (net.Conn, error) {
 			return lis.Dial()
 		}),

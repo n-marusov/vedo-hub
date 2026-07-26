@@ -17,14 +17,14 @@
 
 <script setup lang="ts">
 defineProps<{
-	modelValue?: string;
-	tabs: Array<{ value: string; label: string }>;
-	label?: string;
-}>();
+  modelValue?: string
+  tabs: Array<{ value: string; label: string }>
+  label?: string
+}>()
 
 defineEmits<{
-	"update:modelValue": [value: string];
-}>();
+  'update:modelValue': [value: string]
+}>()
 </script>
 
 <style scoped>

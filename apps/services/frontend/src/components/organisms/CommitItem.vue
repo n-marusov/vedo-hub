@@ -35,20 +35,20 @@
 </template>
 
 <script setup lang="ts">
-import Avatar from "../ui-kit/Avatar.vue";
-import Badge from "../ui-kit/Badge.vue";
+import Avatar from '../ui-kit/Avatar.vue'
+import Badge from '../ui-kit/Badge.vue'
 
 // @hlv:sec [INPUT_VALIDATION] — commit data props with safe defaults
 defineProps<{
-	author: string;
-	handle: string;
-	timestamp: string;
-	action: string;
-	sha: string;
-	commitMessage: string;
-	moreInfo?: string;
-	avatarSrc?: string;
-}>();
+  author: string
+  handle: string
+  timestamp: string
+  action: string
+  sha: string
+  commitMessage: string
+  moreInfo?: string
+  avatarSrc?: string
+}>()
 </script>
 
 <style scoped>

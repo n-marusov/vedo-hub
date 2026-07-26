@@ -196,6 +196,8 @@ func TestSwaggerUI_Dev_AccessibleWithoutAuth(t *testing.T) {
 // spec must remain public without auth in all environments.
 // ADR-DES.API.swagger-ui-dev-only-strategy.
 func TestSwaggerUI_StagingProd_Returns404(t *testing.T) {
+	// Ensure ENABLE_SWAGGER_UI is not set (it may have been leaked by another test)
+	t.Setenv("ENABLE_SWAGGER_UI", "")
 	env := newTestEnv(t)
 	t.Cleanup(env.cleanup)
 

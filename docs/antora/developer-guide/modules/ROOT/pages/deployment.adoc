@@ -1,0 +1,139 @@
+= Deployment
+:description: Docker Compose orchestration, multi-environment setup, container management, and documentation.
+
+== Quick Start
+
+[source,bash]
+----
+cd <project-root> && make docker-up
+# Builds all images and starts containers — one command
+----
+
+Open http://localhost:3000 — the frontend is ready. The API Gateway is at http://localhost:8080.
+
+NOTE: The first `make docker-up` builds all images from source — can take 20–40 minutes.
+
+== Build Images Only
+
+Use `make docker-build` when you want images without starting containers (CI, registry push, pre-building):
+
+[source,bash]
+----
+make docker-build                 # All service images
+make docker-build-rust            # Rust: ontology, versioning, publisher, public-browse
+make docker-build-go              # Go: api-gateway, auth, commenting, tickets, AI
+make docker-build-python          # Python: metrics, classifier, document-extractor
+make docker-build-typescript      # TypeScript: frontend, publish-browse-ui
+make docker-build-api-gateway     # Single service via compose
+----
+
+Images are tagged `vedo-core/<service>:latest`.
+
+IMPORTANT: Go services require a `vendor/` directory. Run `make vendor-go` to populate it. Services without `vendor/` are skipped.
+
+== Multi-Environment Setup
+
+The project ships three pre-configured env files with non-overlapping ports for parallel stacks:
+
+|===
+|Environment |Env file |Port offset |COMPOSE_PROJECT_NAME
+
+|dev |`.env.dev` |none (defaults) |`vedo-core-dev`
+|test |`.env.test` |+10000 |`vedo-core-test`
+|staging |`.env.staging` |+20000 |`vedo-core-staging`
+|===
+
+[source,bash]
+----
+make docker-up-dev      # Dev environment
+make docker-up-test     # Test environment (includes JWT dev keys)
+make docker-up-staging  # Staging environment
+
+make docker-down-dev    # Stop dev
+make docker-down-test   # Stop test
+make docker-down-staging  # Stop staging
+----
+
+=== Docker Compose Selection
+
+|===
+|Scenario |Compose File |Key Difference
+
+|Development |`deploy/docker-compose.yml` |Uses Keycloak JWKS for auth validation
+|E2E Testing |`deploy/docker-compose.test.yml` |Uses `JWT_DEV_PUBLIC_KEY_PEM` for self-signed test tokens
+|CI Pipeline |`deploy/docker-compose.test.yml` |Same as E2E — self-signed tokens match CI test JWTs
+|===
+
+The test compose file extends the main compose via `include` and sets `JWT_DEV_PUBLIC_KEY_PEM` on the API Gateway, which takes highest priority in the auth resolution chain. The `webServer.url` in Playwright configs uses port 3000 (frontend nginx proxy), not port 8080 (API Gateway direct).
+
+=== Raw Docker Compose
+
+[source,bash]
+----
+# Dev
+docker compose --env-file .env.dev -f deploy/docker-compose.yml up -d
+
+# Test
+docker compose --env-file .env.test -f deploy/docker-compose.yml up -d
+
+# Staging
+docker compose --env-file .env.staging -f deploy/docker-compose.yml up -d
+----
+
+Each env file defines separate host ports while keeping container ports identical — inter-service communication always works through the Docker network.
+
+== Infrastructure Only
+
+Start only the backing services without the application stack — useful for local native development:
+
+[source,bash]
+----
+make infra-up     # Neo4j, Postgres, Redis, RabbitMQ, Keycloak, MinIO
+make infra-down   # Stop infrastructure
+----
+
+== Container Management
+
+[source,bash]
+----
+make docker-status        # Health table (Name, Health, Ports)
+make docker-status-full   # Full machine-readable JSON
+make docker-logs          # Tail logs from all services
+make docker-shell SVC=<name>  # Open shell in a service container
+make docker-config        # Validate compose configuration
+----
+
+== Documentation (Antora)
+
+The project includes full Antora documentation covering multiple guides:
+
+|===
+|Guide |Local Address
+
+|User Guide |http://localhost:5000
+|Developer Guide |http://localhost:5001
+
+|Admin Guide |http://localhost:5002
+|Integrator Guide |http://localhost:5003
+|===
+
+Build locally:
+
+[source,bash]
+----
+cd docs/antora && npx antora antora-playbook.yml
+# Output: docs/antora/build/site/index.html
+----
+
+Or via Docker:
+
+[source,bash]
+----
+docker compose -f deploy/docker-compose.docs.yaml --profile documentation up -d
+----
+
+== See Also
+
+* xref:getting-started.adoc[Getting Started] — prerequisites and quick start
+* xref:development.adoc[Development] — native builds and per-service operations
+* xref:configuration.adoc[Configuration] — environment variables and overrides
