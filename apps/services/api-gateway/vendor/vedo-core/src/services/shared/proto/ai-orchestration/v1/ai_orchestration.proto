@@ -1,6 +1,6 @@
 // AI Orchestration Service gRPC contract.
 // Central gateway for LLM-powered features: NL→OWL generation,
-// AI-assisted completion, refinement workflow, template management,
+// AI-assisted completion, refinement workflow,
 // LLM policy enforcement, and usage auditing.
 //
 // All AI business logic lives here — the API Gateway proxies to this service.
@@ -140,8 +140,6 @@ message SuggestionBatch {
   int32 prompt_tokens = 3;
 }
 
-
-
 // =============================================================================
 // CheckPolicy — LLM usage policy check (used by document-extractor)
 // =============================================================================
@@ -200,7 +198,6 @@ service AIOrchestrationService {
 
   // Complete — AI-assisted completion with server-streaming tokens
   rpc Complete(CompleteRequest) returns (stream CompleteResponse);
-
 
   // Policy check — Used by document-extractor (Hybrid Model)
   rpc CheckPolicy(CheckPolicyRequest) returns (CheckPolicyResponse);

@@ -311,15 +311,15 @@ google.golang.org/protobuf/types/known/timestamppb
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3
-# vedo-core/src/services/shared/llm v0.0.0-00010101000000-000000000000 => ../shared/llm
+# vedo-core/src/services/shared/llm v0.0.0-00010101000000-000000000000 => ../../shared/llm
 ## explicit; go 1.22
 vedo-core/src/services/shared/llm
-# vedo-core/src/services/shared/proto v0.0.0-00010101000000-000000000000 => ../shared/proto
+# vedo-core/src/services/shared/proto v0.0.0-00010101000000-000000000000 => ../../shared/proto
 ## explicit; go 1.22
 vedo-core/src/services/shared/proto/ai-orchestration/v1
 vedo-core/src/services/shared/proto/auth/v1
 vedo-core/src/services/shared/proto/common/v1
 vedo-core/src/services/shared/proto/ontology/v1
 vedo-core/src/services/shared/proto/versioning/v1
-# vedo-core/src/services/shared/llm => ../shared/llm
-# vedo-core/src/services/shared/proto => ../shared/proto
+# vedo-core/src/services/shared/llm => ../../shared/llm
+# vedo-core/src/services/shared/proto => ../../shared/proto
