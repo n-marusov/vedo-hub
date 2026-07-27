@@ -492,6 +492,24 @@ func (s *OrgService) CreateScope(requesterID string, node ScopeNode) error {
 		if depth >= 5 {
 			return ErrHierarchyDepthExceeded
 		}
+
+		// @hlv visibility_inheritance — Subgroup visibility cannot exceed parent.
+		parentVis := visibilityLevel(parent.Visibility)
+		if node.Visibility == "" {
+			// Inherit visibility from parent when not explicitly specified.
+			node.Visibility = parent.Visibility
+			log.Printf(`{"event":"org.create_scope.visibility","scope":"%s","parent_vis":"%s","child_vis":"%s","inherited":true}`, node.ID, parent.Visibility, node.Visibility)
+		} else {
+			childVis := visibilityLevel(node.Visibility)
+			if childVis > parentVis {
+				log.Printf(`{"event":"org.create_scope.visibility_violation","scope":"%s","parent_vis":"%s","child_vis":"%s"}`, node.ID, parent.Visibility, node.Visibility)
+				return &OrgError{Code: "VISIBILITY_VIOLATION", Message: "Subgroup cannot be more visible than its parent"}
+			}
+			log.Printf(`{"event":"org.create_scope.visibility","scope":"%s","parent_vis":"%s","child_vis":"%s","inherited":false}`, node.ID, parent.Visibility, node.Visibility)
+		}
+	} else if node.Visibility == "" {
+		// Top-level group: default to Private.
+		node.Visibility = VisibilityPrivate
 	}
 
 	if err := s.store.UpsertScope(node); err != nil {
@@ -502,6 +520,21 @@ func (s *OrgService) CreateScope(requesterID string, node ScopeNode) error {
 	log.Printf(`{"event":"audit.scope.created","scope":"%s","type":"%s","parent":"%s","requester":"%s","visibility":"%s"}`, node.ID, node.Type, node.ParentID, requesterID, node.Visibility)
 
 	return nil
+}
+
+// visibilityLevel maps a Visibility string to a numeric level for comparison.
+// Private=0, Internal=1, Public=2. Higher = more permissive/visible.
+func visibilityLevel(v Visibility) int {
+	switch v {
+	case VisibilityPublic:
+		return 2
+	case VisibilityInternal:
+		return 1
+	case VisibilityPrivate:
+		return 0
+	default:
+		return 0 // unknown → treated as Private for safety
+	}
 }
 
 // @hlv hierarchy_depth

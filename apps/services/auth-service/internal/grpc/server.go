@@ -536,10 +536,12 @@ func mapOrgError(err error) error {
 			return status.Errorf(codes.PermissionDenied, "%s: %s", oe.Code, oe.Message)
 		case "SCOPE_NOT_FOUND", "FORBIDDEN_OBJECT_NOT_FOUND_OR_ACCESS_DENIED":
 			return status.Errorf(codes.NotFound, "%s: %s", oe.Code, oe.Message)
-		case "CYCLE_DETECTED":
+		case "CYCLE_DETECTED", "HIERARCHY_DEPTH_EXCEEDED":
 			return status.Errorf(codes.InvalidArgument, "%s: %s", oe.Code, oe.Message)
 		case "POLICY_CONFLICT":
 			return status.Errorf(codes.AlreadyExists, "%s: %s", oe.Code, oe.Message)
+		case "LAST_OWNER_REMOVAL_BLOCKED":
+			return status.Errorf(codes.FailedPrecondition, "%s: %s", oe.Code, oe.Message)
 		default:
 			return status.Errorf(codes.Internal, "%s: %s", oe.Code, oe.Message)
 		}

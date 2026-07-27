@@ -786,9 +786,9 @@
           { "$ref": "#/components/parameters/Page" },
           { "$ref": "#/components/parameters/PerPage" },
           {
-            "name": "q",
+            "name": "search",
             "in": "query",
-            "description": "Full-text search query against group labels",
+            "description": "Full-text search query against group names",
             "schema": { "type": "string" },
             "required": false
           }
@@ -846,8 +846,17 @@
           "400": { "$ref": "#/components/responses/400Response" },
           "401": { "$ref": "#/components/responses/401Response" },
           "403": { "$ref": "#/components/responses/403Response" },
+          "404": { "$ref": "#/components/responses/404Response" },
           "409": { "$ref": "#/components/responses/409Response" },
-          "429": { "$ref": "#/components/responses/429RateLimit" }
+          "429": { "$ref": "#/components/responses/429RateLimit" },
+          "503": {
+            "description": "Backend service unavailable",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
         }
       }
     },
@@ -2774,9 +2783,11 @@
         "type": "object",
         "properties": {
           "id": { "type": "string", "format": "uuid" },
-          "label": { "type": "string" },
+          "name": { "type": "string", "description": "Canonical group display name" },
+          "slug": { "type": "string", "description": "URL-friendly group slug" },
           "description": { "type": "string" },
           "parent_id": { "type": "string", "format": "uuid" },
+          "visibility": { "$ref": "#/components/schemas/VisibilityLevel" },
           "child_count": { "type": "integer" },
           "member_count": { "type": "integer" }
         }
@@ -2785,19 +2796,22 @@
         "type": "object",
         "properties": {
           "id": { "type": "string", "format": "uuid" },
-          "label": { "type": "string" },
+          "name": { "type": "string", "description": "Canonical group display name" },
+          "slug": { "type": "string", "description": "URL-friendly group slug" },
           "description": { "type": "string" },
           "parent_id": { "type": "string", "format": "uuid" },
+          "visibility": { "$ref": "#/components/schemas/VisibilityLevel" },
           "path": {
             "type": "array",
             "items": { "type": "string" },
-            "description": "Ancestor group labels from root to this group"
+            "description": "Ancestor group names from root to this group"
           },
           "children": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/GroupSummary" }
           },
           "member_count": { "type": "integer" },
+          "project_count": { "type": "integer" },
           "created_at": { "type": "string", "format": "date-time" },
           "updated_at": { "type": "string", "format": "date-time" }
         }
@@ -2873,11 +2887,14 @@
       "CreateGroupRequest": {
         "type": "object",
         "properties": {
-          "label": { "type": "string", "description": "Group display name" },
+          "name": { "type": "string", "description": "Canonical group display name (required)" },
+          "label": { "type": "string", "description": "DEPRECATED. Use 'name' instead. Supported for backward compatibility." },
+          "slug": { "type": "string", "description": "Optional URL-friendly slug. Auto-generated from name if not provided." },
           "description": { "type": "string", "description": "Optional group description" },
-          "parent_id": { "type": "string", "format": "uuid", "description": "Optional parent group ID for nested groups" }
+          "visibility": { "$ref": "#/components/schemas/VisibilityLevel", "description": "Optional visibility level. Defaults to 'private' for top-level, inherited from parent for subgroups." },
+          "parent_id": { "type": "string", "format": "uuid", "description": "Optional parent group ID for creating a subgroup" }
         },
-        "required": ["label"]
+        "required": ["name"]
       },
       "CreateProjectRequest": {
         "type": "object",

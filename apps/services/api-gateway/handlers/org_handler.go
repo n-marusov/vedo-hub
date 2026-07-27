@@ -79,37 +79,86 @@ func (h *OrgHandler) HandleCreateGroup(c *gin.Context) {
 	token := extractToken(c)
 
 	var req struct {
-		Label       string `json:"label"`
+		Name        string `json:"name"`
+		Label       string `json:"label"` // deprecated — use name
 		Description string `json:"description"`
 		ParentID    string `json:"parent_id"`
 		Visibility  string `json:"visibility"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
+		slog.Warn("http.org.create_group.invalid_request", "error", err.Error())
 		c.JSON(http.StatusBadRequest, models.ErrorResponse{
 			Error: models.ErrorDetail{Code: "INVALID_REQUEST", Message: err.Error()},
 		})
 		return
 	}
 
-	slog.Debug("http.org.create_group",
-		"name", req.Label,
+	// Canonical field is "name"; accept legacy "label" as fallback.
+	groupName := req.Name
+	if groupName == "" && req.Label != "" {
+		groupName = req.Label
+		slog.Warn("http.org.deprecated_label_name",
+			"label", req.Label,
+		)
+	}
+
+	slog.Info("http.org.create_group.request",
+		"name", groupName,
 		"visibility", req.Visibility,
 		"parent_id", req.ParentID,
 	)
 
 	resp, err := h.orgClient.CreateGroup(c.Request.Context(), &authv1.CreateGroupRequest{
-		Name:        req.Label,
+		Name:        groupName,
 		Description: req.Description,
 		ParentId:    req.ParentID,
 		Visibility:  req.Visibility,
 	}, token)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: models.ErrorDetail{Code: "GRPC_ERROR", Message: err.Error()},
-		})
+		st, ok := status.FromError(err)
+		if ok {
+			httpCode, errCode := mapGrpcCodeToHTTP(st.Code())
+			slog.Error("http.org.create_group.grpc_error",
+				"grpc_code", st.Code(),
+				"http_code", httpCode,
+				"error", st.Message(),
+			)
+			c.JSON(httpCode, models.ErrorResponse{
+				Error: models.ErrorDetail{Code: errCode, Message: st.Message()},
+			})
+		} else {
+			slog.Error("http.org.create_group.error", "error", err.Error())
+			c.JSON(http.StatusInternalServerError, models.ErrorResponse{
+				Error: models.ErrorDetail{Code: "GRPC_ERROR", Message: err.Error()},
+			})
+		}
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"data": resp.GetGroup()})
+
+	group := resp.GetGroup()
+	slog.Info("http.org.create_group.success",
+		"group_id", group.GetId(),
+		"name", groupName,
+	)
+	c.JSON(http.StatusCreated, gin.H{"data": group})
+}
+
+// mapGrpcCodeToHTTP maps a gRPC status code to an HTTP status code and error code string.
+func mapGrpcCodeToHTTP(grpcCode codes.Code) (int, string) {
+	switch grpcCode {
+	case codes.PermissionDenied:
+		return http.StatusForbidden, "FORBIDDEN"
+	case codes.NotFound:
+		return http.StatusNotFound, "NOT_FOUND"
+	case codes.InvalidArgument:
+		return http.StatusBadRequest, "INVALID_ARGUMENT"
+	case codes.AlreadyExists:
+		return http.StatusConflict, "CONFLICT"
+	case codes.FailedPrecondition:
+		return http.StatusBadRequest, "FAILED_PRECONDITION"
+	default:
+		return http.StatusInternalServerError, "INTERNAL"
+	}
 }
 
 func (h *OrgHandler) HandleGetGroup(c *gin.Context) {
