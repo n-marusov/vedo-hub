@@ -148,9 +148,9 @@ The project ships three pre-configured env files with non-overlapping ports:
 |===
 |Environment |Env file |Port offset |Project name
 
-|dev |`.env.dev` |none |`vedo-core-dev`
-|test |`.env.test` |+10000 |`vedo-core-test`
-|staging |`.env.staging` |+20000 |`vedo-core-staging`
+|dev |`config/.env.dev` |none |`vedo-core-dev`
+|test |`config/.env.test` |+10000 |`vedo-core-test`
+|staging |`config/.env.staging` |+20000 |`vedo-core-staging`
 |===
 
 [source,bash]
@@ -172,7 +172,7 @@ make docker-up-staging  # Staging
 
 === Dev Environment Variables
 
-The `.env.dev.example` file contains commented-out domain-specific overrides. For development:
+The `config/.env.example` file contains placeholder values for reference. For development:
 
 |===
 |Variable |Default |Description

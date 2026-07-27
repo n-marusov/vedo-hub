@@ -41,7 +41,7 @@ Multi-stage Dockerfiles per language in `src/services/*/Dockerfile`:
 
 == Port Reference
 
-All host ports are configurable via environment variables in `.env.dev`, `.env.test`, and `.env.staging`.
+All host ports are configurable via environment variables in `config/.env.dev`, `config/.env.test`, and `config/.env.staging`.
 
 === Convention
 

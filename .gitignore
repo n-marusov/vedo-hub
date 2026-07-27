@@ -1,58 +1,60 @@
-# Dependencies
+# ── Dependencies ──────────────────────────────────────────────────────────────
 node_modules/
 **/vendor/
 
-# Lefthook — local config overrides (personal, not committed)
-lefthook-local.yml
-
-# IDE
+# ── IDE / Editor ──────────────────────────────────────────────────────────────
 .vscode/
 .idea/
 *.swp
 *.swo
+lefthook-local.yml
 
-# OS
+# ── OS ─────────────────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
-
-# Logs
-*.log
-npm-debug.log*
-
-# Test coverage
-coverage/
-.nyc_output/
-
-# Environment
-.env
-.env.*
-!.env.example
-.env.local
-.env.*.local
-
-**/*.exe
-**/target/
-apps/services/frontend/dist/
-apps/services/publish-browse-ui/dist/
-tests/e2e/test-results/
-tests/e2e/playwright-report/
-**/debug/
 nul
-.playwright-mcp/
 
-# Build artifacts
+# ── Build Artifacts ────────────────────────────────────────────────────────────
+**/target/
 *.timestamp-*
+**/debug/
 
-# Python build artifacts
+# ── Python ─────────────────────────────────────────────────────────────────────
 *.egg-info/
 .venv/
-**/test-results/
 __pycache__
 *.pyc
+
+# ── Frontend (TypeScript / Vite) ──────────────────────────────────────────────
+apps/services/frontend/dist/
+apps/services/publish-browse-ui/dist/
+
+# ── Test & Coverage ────────────────────────────────────────────────────────────
+coverage/
+.nyc_output/
+**/test-results/
 **/*report.txt
 **/*errors.txt
 **/*out.txt
 **/*output.txt
-tests/e2e/specs/helpers/jwt-tokens.ts
-apps/services/frontend/dist/*
+
+# ── E2E (Playwright) ───────────────────────────────────────────────────────────
+tests/e2e/test-results/
 tests/e2e/test-output*.txt
+tests/e2e/playwright-report/
+tests/e2e/specs/helpers/jwt-tokens.ts
+.playwright-mcp/
+
+# ── Environment ────────────────────────────────────────────────────────────────
+.env
+.env.*
+!config/.env.example
+.env.local
+.env.*.local
+
+# ── Binaries ───────────────────────────────────────────────────────────────────
+**/*.exe
+
+# ── Logs ───────────────────────────────────────────────────────────────────────
+*.log
+npm-debug.log*

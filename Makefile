@@ -226,6 +226,8 @@ test-gates: ## Run all gate-level test scripts (contracts, BOLA/BFLA, etc.)
 	@bash $(ROOT)/tests/gates/test_contract_gate.sh 2>&1 || failed=1
 	@echo "[Gates] running BOLA/BFLA security tests..."
 	@bash $(ROOT)/tests/gates/test_bola_bfla_gate.sh 2>&1 || failed=1
+	@echo "[Gates] running Python service manifest validation..."
+	@bash $(ROOT)/tests/gates/test_python_manifests.sh 2>&1 || failed=1
 	@if [ $$failed -ne 0 ]; then \
 		echo ""; \
 		echo "!!! Gates FAILED !!!"; \
@@ -333,7 +335,7 @@ docker-build-all: docker-build ## Alias for docker-build
 # to determine build context and Dockerfile.
 docker-build-%:
 	@docker compose \
-		--env-file $(ROOT)/.env.$(ENV) \
+		--env-file $(ROOT)/config/.env.$(ENV) \
 		-f $(ROOT)/$(COMPOSE_FILE) \
 		build $*
 
@@ -349,7 +351,7 @@ COMPOSE_PROFILE     ?=
 
 docker-up: ## Start all services via Docker Compose (usage: make docker-up [ENV=dev|test|staging])
 	docker compose \
-		--env-file $(ROOT)/.env.$(ENV) \
+		--env-file $(ROOT)/config/.env.$(ENV) \
 		-f $(ROOT)/$(COMPOSE_FILE) \
 		$(if $(COMPOSE_PROFILE),--profile $(COMPOSE_PROFILE)) \
 		up -d
@@ -365,7 +367,7 @@ docker-up-staging: ## Start staging environment
 
 docker-down: ## Stop all services (usage: make docker-down [ENV=dev|test|staging])
 	docker compose \
-		--env-file $(ROOT)/.env.$(ENV) \
+		--env-file $(ROOT)/config/.env.$(ENV) \
 		-f $(ROOT)/$(COMPOSE_FILE) \
 		down
 
@@ -382,26 +384,26 @@ docker-restart: docker-down docker-up ## Restart the current environment
 
 docker-logs: ## Tail logs from all services (usage: make docker-logs [ENV=dev|test|staging])
 	docker compose \
-		--env-file $(ROOT)/.env.$(ENV) \
+		--env-file $(ROOT)/config/.env.$(ENV) \
 		-f $(ROOT)/$(COMPOSE_FILE) \
 		logs -f
 
 docker-ps: ## List running service containers (usage: make docker-ps [ENV=dev|test|staging])
 	docker compose \
-		--env-file $(ROOT)/.env.$(ENV) \
+		--env-file $(ROOT)/config/.env.$(ENV) \
 		-f $(ROOT)/$(COMPOSE_FILE) \
 		ps
 
 docker-shell: ## Open shell in a service container (usage: make docker-shell SVC=<name> [ENV=dev])
 	@if [ -z "$(SVC)" ]; then echo "Usage: make docker-shell SVC=<service-name>"; exit 1; fi
 	docker compose \
-		--env-file $(ROOT)/.env.$(ENV) \
+		--env-file $(ROOT)/config/.env.$(ENV) \
 		-f $(ROOT)/$(COMPOSE_FILE) \
 		exec $(SVC) sh
 
 docker-config: ## Validate compose configuration (usage: make docker-config [ENV=dev|test|staging])
 	docker compose \
-		--env-file $(ROOT)/.env.$(ENV) \
+		--env-file $(ROOT)/config/.env.$(ENV) \
 		-f $(ROOT)/$(COMPOSE_FILE) \
 		config > /dev/null && echo "Config OK"
 
@@ -411,12 +413,12 @@ docker-config: ## Validate compose configuration (usage: make docker-config [ENV
 
 docker-status: ## Brief health table (Name, Health, Ports)
 	docker compose \
-		--env-file $(ROOT)/.env.$(ENV) \
+		--env-file $(ROOT)/config/.env.$(ENV) \
 		-f $(ROOT)/$(COMPOSE_FILE) ps --format "table {{.Name}}\t{{.Health}}\t{{.Ports}}" 2>/dev/null
 
 docker-status-full: ## Full machine-readable JSON with all container details
 	docker compose \
-		--env-file $(ROOT)/.env.$(ENV) \
+		--env-file $(ROOT)/config/.env.$(ENV) \
 		-f $(ROOT)/$(COMPOSE_FILE) ps --format json 2>/dev/null || echo '[]'
 
 status: docker-status ## Alias — show health of each service in the compose stack
@@ -427,12 +429,12 @@ status: docker-status ## Alias — show health of each service in the compose st
 
 infra-up: ## Start only infrastructure services (Neo4j, Postgres, Redis, RabbitMQ, Keycloak, MinIO)
 	docker compose \
-		--env-file $(ROOT)/.env.$(ENV) \
+		--env-file $(ROOT)/config/.env.$(ENV) \
 		-f $(ROOT)/$(COMPOSE_FILE) up -d neo4j postgres redis rabbitmq keycloak minio
 
 infra-down: ## Stop infrastructure services
 	docker compose \
-		--env-file $(ROOT)/.env.$(ENV) \
+		--env-file $(ROOT)/config/.env.$(ENV) \
 		-f $(ROOT)/$(COMPOSE_FILE) down neo4j postgres redis rabbitmq keycloak minio
 
 # ==============================================================================

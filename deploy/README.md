@@ -22,21 +22,20 @@ This directory contains Docker Compose setup split into multiple layers:
 
 | Окружение | Env-файл | Смещение портов | COMPOSE_PROJECT_NAME |
 |-----------|----------|----------------|---------------------|
-| **dev** | `.env.dev` | без смещения (по умолчанию) | `vedo-core-dev` |
-| **test** | `.env.test` | +10000 (RabbitMQ AMQP: +10001) | `vedo-core-test` |
-| **staging** | `.env.staging` | +20000 (RabbitMQ AMQP: +20002) | `vedo-core-staging` |
+| **dev** | `config/.env.dev` | без смещения (по умолчанию) | `vedo-core-dev` |
+| **test** | `config/.env.test` | +10000 (RabbitMQ AMQP: +10001) | `vedo-core-test` |
+| **staging** | `config/.env.staging` | +20000 (RabbitMQ AMQP: +20002) | `vedo-core-staging` |
 
 ### Быстрый старт
 
-```bash
 # Dev
-cp .env.dev .env && docker compose -f deploy/docker-compose.yml up -d
+make docker-up ENV=dev
 
 # Test (параллельно с dev, порты не конфликтуют)
-docker compose --env-file .env.test -f deploy/docker-compose.yml up -d
+make docker-up ENV=test
 
 # Staging (параллельно с dev и test)
-docker compose --env-file .env.staging -f deploy/docker-compose.yml up -d
+make docker-up ENV=staging
 ```
 
 > **Важно:** Внутренние сервисы (gRPC/REST) НЕ публикуются на host. Их порты доступны только внутри Docker bridge-сети (`vedo-network`).
@@ -52,9 +51,9 @@ docker compose --env-file .env.staging -f deploy/docker-compose.yml up -d
 ### Проверка конфигурации
 
 ```bash
-docker compose --env-file .env.dev  -f deploy/docker-compose.yml config > /dev/null
-docker compose --env-file .env.test -f deploy/docker-compose.yml config > /dev/null
-docker compose --env-file .env.staging -f deploy/docker-compose.yml config > /dev/null
+docker compose --env-file config/.env.dev  -f deploy/docker-compose.yml config > /dev/null
+docker compose --env-file config/.env.test -f deploy/docker-compose.yml config > /dev/null
+docker compose --env-file config/.env.staging -f deploy/docker-compose.yml config > /dev/null
 ```
 
 ## Run Modes
@@ -218,5 +217,5 @@ docker compose up -d  # restart document-extractor with LLM config
 
 - Observability services are inactive by default and start only with `--profile obs`.
 - Grafana dashboards are provisioned from `deploy/observability/grafana/dashboards`.
-- Для смены окружения используйте соответствующий `--env-file` (`.env.dev`, `.env.test`, `.env.staging`).
+- Для смены окружения используйте соответствующий `--env-file` (`config/.env.dev`, `config/.env.test`, `config/.env.staging`).
 - Контейнерные порты одинаковы во всех окружениях — межсервисное взаимодействие всегда работает через container network.

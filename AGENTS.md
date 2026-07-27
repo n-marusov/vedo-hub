@@ -125,9 +125,9 @@ Antora documentation source in `docs/antora/`. Build with `cd docs/antora && npx
 | Admin Guide | `docs/antora/admin-guide/` | Deployment, port reference, observability, security |
 | Integrator Guide | `docs/antora/integrator-guide/` | API reference, authentication, integration config |
 | Antora Playbook | `docs/antora/antora-playbook.yml` | Site build configuration |
-| Env: dev | `.env.dev` | Dev environment — default ports |
-| Env: test | `.env.test` | Test environment — ports +10000 |
-| Env: staging | `.env.staging` | Staging environment — ports +20000 |
+| Env: dev | `config/.env.dev` | Dev environment — default ports |
+| Env: test | `config/.env.test` | Test environment — ports +10000 |
+| Env: staging | `config/.env.staging` | Staging environment — ports +20000 |
 | License | `LICENSE` | Project license |
 
 ## AI Context Files

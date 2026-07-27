@@ -38,9 +38,9 @@ The project ships three pre-configured env files with non-overlapping ports for 
 |===
 |Environment |Env file |Port offset |COMPOSE_PROJECT_NAME
 
-|dev |`.env.dev` |none (defaults) |`vedo-core-dev`
-|test |`.env.test` |+10000 |`vedo-core-test`
-|staging |`.env.staging` |+20000 |`vedo-core-staging`
+|dev |`config/.env.dev` |none (defaults) |`vedo-core-dev`
+|test |`config/.env.test` |+10000 |`vedo-core-test`
+|staging |`config/.env.staging` |+20000 |`vedo-core-staging`
 |===
 
 [source,bash]
@@ -71,13 +71,13 @@ The test compose file extends the main compose via `include` and sets `JWT_DEV_P
 [source,bash]
 ----
 # Dev
-docker compose --env-file .env.dev -f deploy/docker-compose.yml up -d
+docker compose --env-file config/.env.dev -f deploy/docker-compose.yml up -d
 
 # Test
-docker compose --env-file .env.test -f deploy/docker-compose.yml up -d
+docker compose --env-file config/.env.test -f deploy/docker-compose.yml up -d
 
 # Staging
-docker compose --env-file .env.staging -f deploy/docker-compose.yml up -d
+docker compose --env-file config/.env.staging -f deploy/docker-compose.yml up -d
 ----
 
 Each env file defines separate host ports while keeping container ports identical — inter-service communication always works through the Docker network.
