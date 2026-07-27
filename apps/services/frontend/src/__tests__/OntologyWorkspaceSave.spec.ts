@@ -21,6 +21,7 @@ vi.mock("axios", () => {
 		post: vi.fn().mockResolvedValue({ data: {} }),
 		put: vi.fn().mockResolvedValue({ data: {} }),
 		delete: vi.fn().mockResolvedValue({ data: {} }),
+		create: vi.fn().mockReturnThis(),
 		interceptors: {
 			request: { use: vi.fn() },
 			response: { use: vi.fn() },
