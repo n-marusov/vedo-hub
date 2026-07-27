@@ -68,8 +68,8 @@ ARG BINARY_NAME
 
 WORKDIR /app
 
-# ca-certificates required by any HTTPS/gRPC-TLS calls
-RUN apk add --no-cache ca-certificates
+	# ca-certificates-bundle required by any HTTPS/gRPC-TLS calls
+	RUN apk add --no-cache ca-certificates-bundle
 
 COPY --from=builder /out/service /app/service
 

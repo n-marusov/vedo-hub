@@ -27,7 +27,7 @@ output:
 # Pre-commit — runs on every commit (fast checks in parallel)
 # =============================================================================
 pre-commit:
-  parallel: true
+  parallel: false
   jobs:
     # ── Generic file checks (merge conflicts, trailing whitespace) ──
     - name: generic-checks
@@ -56,12 +56,14 @@ pre-commit:
       run: node apps/services/publish-browse-ui/node_modules/@biomejs/biome/bin/biome check --write {files}
       stage_fixed: true
 
-    # ── Go: gofmt + go vet — per-service iteration via script ──
+    # ── Go: gofmt + go vet — only when .go files staged ──
     - name: gofmt-vet
+      glob: "**/*.go"
       run: sh tools/scripts/pre-commit-gofmt.sh
 
-    # ── Rust: cargo fmt — per-service iteration via script ──
+    # ── Rust: cargo fmt — only when .rs files staged ──
     - name: cargo-fmt
+      glob: "**/*.rs"
       run: sh tools/scripts/pre-commit-cargo-fmt.sh
 
 # =============================================================================

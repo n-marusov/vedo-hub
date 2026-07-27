@@ -69,6 +69,11 @@ COPY ${SERVICE_DIR}/${BINARY_NAME}/ ./${BINARY_NAME}/
 # regenerates protobuf stubs from real proto files
 RUN rm -rf target/release/build/vedo-shared-* 2>/dev/null; true
 
+# Create symlink so path dependencies (../../shared) resolve inside container.
+# In the source tree apps/services/ontology-service → ../../shared = apps/shared/.
+# In the container /src/ontology-service → ../../shared = /shared/.
+RUN ln -sf /src/shared /shared
+
 # Build for real
 RUN cargo build --package ${BINARY_NAME} --release
 

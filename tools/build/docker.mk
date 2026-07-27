@@ -50,7 +50,7 @@ docker-build-go:
 	@if [ -z "$(GO_DIRS)" ]; then echo "No Go services to dockerize"; exit 0; fi
 	@for dir in $(GO_DIRS); do \
 		svc=$$(basename $$dir); \
-		case "$$dir" in *vedo-cli|*services/*/*) continue;; esac; \
+		case "$$dir" in *vedo-cli|*services/*/*|*shared/*) continue;; esac;
 		if [ ! -d "$(ROOT)/$$dir/vendor" ]; then \
 			echo "[Docker] skipping $$svc — no vendor directory (run 'make vendor-go' first)"; \
 			continue; \
