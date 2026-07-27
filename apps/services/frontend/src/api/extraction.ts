@@ -175,17 +175,22 @@ export async function applySequence(options: ApplySequenceOptions): Promise<Appl
 
     return result
   } catch (error) {
-    const extractionError: ExtractionError = {
-      code: 'APPLY_FAILED',
-      message: error instanceof Error ? error.message : 'Unknown apply error'
-    }
+    const message = error instanceof Error ? error.message : 'Unknown apply error'
 
     console.error('[extraction] apply failed', {
       ontologyId: options.ontologyId,
-      error: extractionError.message
+      error: message
     })
 
-    throw extractionError
+    // Return a structured ApplyResult with success:false instead of throwing
+    // a plain ExtractionError object. useApplySequence checks result.errors
+    // for the error message — throwing means the catch block in the composable
+    // only sees error.message, which for non-Error objects defaults to 'Unknown error'.
+    return {
+      success: false,
+      appliedCount: 0,
+      errors: [{ code: 'APPLY_FAILED', message }]
+    }
   }
 }
 

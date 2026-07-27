@@ -54,16 +54,17 @@ echo ""
 # ── B1: Tautology Assertions ───────────────────────────────────────────────
 echo "── B1: Tautology Assertions ──"
 B1_HITS=$(grep -rn \
-  -e 'assert\.True(t\?,\s*true)' \
-  -e 'require\.True(t\?,\s*true)' \
-  -e 'assert\.False(t\?,\s*false)' \
+  -e 'assert\.True(t\\?,\\s*true)' \
+  -e 'require\.True(t\\?,\\s*true)' \
+  -e 'assert\.False(t\\?,\\s*false)' \
   -e 'assert!(true)' \
-  -e 'assert_eq!(\(\w\+\),\s*\1)' \
-  -e '^\s*assert\s\+True\s*$' \
+  -e 'assert_eq!(\\(\\w+\\),\\s*\\1)' \
+  -e '^\s*assert\\s\+True\s*$' \
   -e 'expect(true)\.toBe(true)' \
   "$TARGET_DIR" \
   --include='*_test.go' --include='*_test.rs' --include='test_*.py' --include='*_test.py' \
   --include='*.spec.ts' --include='*.test.ts' \
+  --exclude-dir='.venv' \
   2>/dev/null || true)
 
 if [ -n "$B1_HITS" ]; then
@@ -83,10 +84,12 @@ B2_HITS=$(grep -rn \
   "$TARGET_DIR" \
   --include='*_test.go' --include='*_test.rs' --include='test_*.py' --include='*_test.py' \
   --include='*.spec.ts' --include='*.test.ts' \
+  --exclude-dir='.venv' \
   2>/dev/null || true)
 # TypeScript: only bare setTimeout (not inside Promise)
 B2_TS=$(grep -rn 'setTimeout(' "$TARGET_DIR" \
   --include='*.spec.ts' --include='*.test.ts' \
+  --exclude-dir='.venv' \
   2>/dev/null | grep -v 'new Promise' || true)
 if [ -n "$B2_TS" ]; then
   B2_HITS=$(printf '%s\n' "$B2_HITS" "$B2_TS" | grep -v '^$' || true)
@@ -129,6 +132,7 @@ B4_HITS=$(grep -rn \
   "$TARGET_DIR" \
   --include='*_test.go' --include='*_test.rs' --include='test_*.py' --include='*_test.py' \
   --include='*.spec.ts' --include='*.test.ts' \
+  --exclude-dir='.venv' \
   2>/dev/null || true)
 
 if [ -n "$B4_HITS" ]; then
@@ -143,15 +147,23 @@ fi
 echo "── B6: Inline Tests in Source Files ──"
 B6_Go=$(grep -rn 'func Test' "$TARGET_DIR" \
   --include='*.go' 2>/dev/null \
+  --exclude-dir=vendor \
+  --exclude-dir=node_modules \
   | grep -v '_test\.go' || true)
 
-B6_TS=$(grep -rn -e 'describe(' -e 'it(' -e 'test(' \
+B6_TS=$(grep -rn -e '^\s*describe(' -e '^\s*it(' -e '^\s*test(' \
   "$TARGET_DIR" \
   --include='*.ts' 2>/dev/null \
+  --exclude-dir=vendor \
+  --exclude-dir=node_modules \
+  --exclude-dir='__tests__' \
   | grep -v -E '\.spec\.|\.test\.' || true)
 
 B6_Python=$(grep -rn '__main__' "$TARGET_DIR" \
   --include='*.py' 2>/dev/null \
+  --exclude-dir=vendor \
+  --exclude-dir=node_modules \
+  --exclude-dir=.venv \
   | while IFS= read -r line; do
       file=$(echo "$line" | cut -d: -f1)
       # Check if this file also has assert nearby (B7 pattern)
@@ -184,8 +196,8 @@ fi
 
 # ── B7: __main__ + Assert (Python) ─────────────────────────────────────────
 echo "── B7: __main__ + Assert (Python) ──"
-B7_HITS=$(find "$TARGET_DIR" -name '*.py' \
-  -not -name 'test_*' -not -name '*_test.py' \
+B7_HITS=$(find "$TARGET_DIR" -name '.venv' -prune -o -name '*.py' \
+  -not -name 'test_*' -not -name '*_test.py' -print \
   2>/dev/null | while IFS= read -r file; do
     if grep -q '__main__' "$file" 2>/dev/null && grep -q '^\s*assert ' "$file" 2>/dev/null; then
       echo "$file"

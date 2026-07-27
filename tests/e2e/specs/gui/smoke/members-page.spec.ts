@@ -1,10 +1,34 @@
 // Validates: REQ-USR.UI.gui-implementation
 // Validates: REQ-FUN.PROCESS.e2e-testing
 // Members page — list with roles, inline edit, remove with confirmation, last-owner protection
-import { test, expect } from '../../graphql-fixtures'
+//
+// NOTE: Members page uses REST API (api/org.ts: listMembers) not GraphQL.
+// Switched from graphql-fixtures to fixtures + REST route mocks.
+import { test, expect } from '../../fixtures'
 import { MembersPage } from '../../../pages/members.page'
 
+const MOCK_MEMBERS = [
+  { id: 'user-456', userId: 'user-456', username: 'owner_seed', avatarUrl: '', role: 'Owner', addedAt: '2026-01-15T10:00:00Z' },
+  { id: 'user-789', userId: 'user-789', username: 'editor_seed', avatarUrl: '', role: 'Editor', addedAt: '2026-02-20T14:30:00Z' },
+  { id: 'user-012', userId: 'user-012', username: 'viewer_seed', avatarUrl: '', role: 'Viewer', addedAt: '2026-03-10T09:15:00Z' },
+]
+
 test.describe('Members Page', () => {
+  test.beforeEach(async ({ page }) => {
+    // Mock members REST endpoint — returns data via data.data (per listMembers parser)
+    await page.route('**/api/v1/projects/*/members', async (route) => {
+      if (route.request().method() === 'GET') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ data: MOCK_MEMBERS }),
+        })
+      } else {
+        await route.continue()
+      }
+    })
+  })
+
   test('should render member list from API when page loads', async ({ page }) => {
     const members = new MembersPage(page)
     await members.goto('ont-123')
@@ -22,7 +46,6 @@ test.describe('Members Page', () => {
   test('should show confirmation dialog before removing a member', async ({ page }) => {
     const members = new MembersPage(page)
     await members.goto('ont-123')
-    // Click remove button to open the confirmation dialog
     await page.locator('.table-row', { hasText: 'viewer_seed' }).getByRole('button', { name: /remove/i }).click()
     await expect(page.getByText(/confirm/i)).toBeVisible()
   })

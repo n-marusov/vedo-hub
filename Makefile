@@ -463,6 +463,42 @@ dev-api: ## Start API gateway in development mode
 	cd $(ROOT)/$(SERVICE_DIR)/api-gateway && go run .
 
 # ==============================================================================
+# QUALITY & SECURITY — Static analysis, docs verification, dependency scanning
+# ==============================================================================
+
+##@ Quality & Security
+
+.PHONY: test-quality-gate
+test-quality-gate: ## Run static test quality gate (anti-patterns, tautologies, etc.)
+	@bash $(ROOT)/tools/scripts/test-quality-gate.sh $(ROOT)/apps/services
+
+.PHONY: docs-lint
+docs-lint: ## Verify Antora documentation builds without errors
+	@echo "[Docs] verifying Antora documentation build..."
+	@if command -v npx &>/dev/null; then \
+		cd $(ROOT)/docs/antora && npx antora --fetch antora-playbook.yml 2>&1 | tail -5 || \
+		echo "[Docs] WARN: antora build failed — check docs/antora/antora-playbook.yml"; \
+	else \
+		echo "[Docs] SKIP: npx not available"; \
+	fi
+
+.PHONY: npm-audit
+npm-audit: ## Run npm/pnpm audit on frontend dependencies
+	@echo "[Security] auditing frontend dependencies..."
+	@if [ -f "$(ROOT)/$(SERVICE_DIR)/frontend/package.json" ]; then \
+		cd $(ROOT)/$(SERVICE_DIR)/frontend && \
+		if command -v pnpm &>/dev/null; then \
+			pnpm audit --audit-level=high 2>&1 || echo "[Security] WARN: audit found vulnerabilities"; \
+		elif command -v npm &>/dev/null; then \
+			npm audit --audit-level=high 2>&1 || echo "[Security] WARN: audit found vulnerabilities"; \
+		else \
+			echo "[Security] SKIP: neither pnpm nor npm available"; \
+		fi; \
+	else \
+		echo "[Security] SKIP: frontend/package.json not found"; \
+	fi
+
+# ==============================================================================
 # CI — Full pipeline aggregate target
 # ==============================================================================
 
@@ -489,20 +525,26 @@ ci: ## Run full CI pipeline (proto + build + lint + unit tests + typecheck)
 	@echo "To run E2E tests:          make test-e2e (requires Docker test stack)"
 	@echo "To run gate tests:         make test-gates"
 
-ci-full: ## Run full CI pipeline including integration, E2E, and gate tests
+ci-full: ## Run full CI pipeline including quality gates, Docker build, integration, E2E, and security (auto-starts Docker test stack)
 	@failed=0
 	@echo "=== Full CI Pipeline Started ==="
+	@$(MAKE) vendor-go || failed=1
 	@$(MAKE) ci || failed=1
+	@$(MAKE) test-quality-gate || failed=1
+	@$(MAKE) docs-lint || failed=1
+	@echo "[ci-full] Ensuring Docker test stack is up..."
+	@$(MAKE) docker-up-test 2>/dev/null || true
 	@$(MAKE) test-integration || failed=1
 	@$(MAKE) test-e2e || failed=1
 	@$(MAKE) test-gates || failed=1
+	@$(MAKE) npm-audit || failed=1
 	@if [ $$failed -ne 0 ]; then \
 		echo ""; \
 		echo "!!! Full CI Pipeline FAILED !!!"; \
 		exit 1; \
 	fi
 	@echo ""
-	@echo "=== Full CI pipeline passed (integration + E2E + gates) ==="
+	@echo "=== Full CI pipeline passed (vendor-go + ci + quality-gate + docs-lint + integration + E2E + gates + npm-audit) ==="
 
 # ==============================================================================
 # HOOKS — Git hooks management via Lefthook
