@@ -21,6 +21,35 @@ Supported identity providers:
 * VK
 * Google
 
+== Creating Groups
+
+Groups organize your projects into teams, departments, or domains. Groups can be nested (subgroups) up to 5 levels deep.
+
+To create a group:
+
+. Navigate to *Groups* from the sidebar.
+. Click *New group* — you will be taken to the create group page (`/dashboard/groups/new`).
+. Enter a *Group name* (required) — a URL-friendly slug is auto-generated from the name.
+. Choose a *Visibility level*:
+  * *Private* — only members can view the group and its projects.
+  * *Internal* — any authenticated user (except external) can view.
+  * *Public* — anyone can view without authentication.
+. Click *Create group*.
+
+After creation:
+
+* A success Toast notification appears at the bottom-right.
+* You are redirected to the group detail page (`/dashboard/groups/:id`).
+
+=== Creating Subgroups
+
+To create a group inside another group (subgroup):
+
+. Navigate to the parent group page.
+. Click *New group* (or navigate to `/dashboard/groups/new?parent_id=<uuid>`).
+. The visibility is inherited from the parent group (read-only on the create page).
+. A subgroup cannot be more visible than its parent (e.g., a *Public* subgroup under a *Private* parent is rejected).
+
 == Creating Your First Ontology
 
 . Click *New Ontology* on the dashboard.

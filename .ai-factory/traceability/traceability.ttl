@@ -4990,11 +4990,10 @@ base:gui/component/publish-snapshot-dialog a vdo:CodeArtifact ;
     vdo:language "Vue" .
 
 base:gui/component/create-group-dialog a vdo:CodeArtifact ;
-    rdfs:label "Create Group Dialog"@en ;
-    rdfs:comment "Create group dialog — name, slug, visibility, usage, invite members form"@en ;
-    vdo:filePath "src/services/frontend/src/components/ontology/CreateGroupDialog.vue" ;
-    vdo:language "Vue" ;
-    vdo:implements base:req/REQ-FUN.ORG.group-crud .
+    rdfs:label "Create Group Dialog (DEPRECATED)"@en ;
+    rdfs:comment "DEPRECATED — replaced by CreateGroupPage (page-based flow). Old dialog: name, slug, visibility, usage, invite members form"@en ;
+    vdo:filePath "apps/services/frontend/src/components/groups/CreateGroupDialog.vue" ;
+    vdo:language "Vue" .
 
 base:gui/component/group-sidebar a vdo:CodeArtifact ;
     rdfs:label "Group Sidebar"@en ;
@@ -6488,3 +6487,69 @@ base:test/versioning-service.delta a vdo:TestSuite ;
 # mutation.rs — MutationRoot removed, replaced with EmptyMutation
 # GqlOntology, GqlCommit, GqlCommitConnection, GqlBranch, GqlBranchConnection,
 # GqlDraftUpdateResult, GqlGroup, GqlProject, GqlMember — types removed from types.rs
+# CreateGroupDialog.vue — removed, replaced by CreateGroupPage.vue (page-based flow)
+
+# =============================================================================
+# NEW ARTIFACTS — Create Group Page + i18n + Toast (2026-07-27)
+# =============================================================================
+
+# --- Design Artifacts ---
+
+base:design/page/create-group a vdo:DesignArtifact ;
+    rdfs:label "Create Group Page Design"@en ;
+    rdfs:comment "Page-level design for create group flow — breadcrumbs, name/slug/visibility form, inherited visibility for subgroups"@en ;
+    vdo:filePath "design/pages/create-group.pen" .
+
+# --- Code Artifacts (Frontend) ---
+
+base:gui/page/create-group a vdo:CodeArtifact ;
+    rdfs:label "Create Group Page"@en ;
+    rdfs:comment "CreateGroupPage.vue — page-based group creation with breadcrumbs, name/slug/visibility form, subgroup support, Toast feedback"@en ;
+    vdo:filePath "apps/services/frontend/src/pages/CreateGroupPage.vue" ;
+    vdo:language "Vue" ;
+    vdo:implements base:design/page/create-group ;
+    vdo:implements base:req/REQ-FUN.ORG.group-crud .
+
+base:gui/page/group-detail a vdo:CodeArtifact ;
+    rdfs:label "Group Detail Page"@en ;
+    rdfs:comment "GroupDetailPage.vue — minimal group detail view with name, visibility badge, member/project/subgroup counts"@en ;
+    vdo:filePath "apps/services/frontend/src/pages/GroupDetailPage.vue" ;
+    vdo:language "Vue" ;
+    vdo:implements base:req/REQ-FUN.ORG.group-crud .
+
+base:gui/component/toast a vdo:CodeArtifact ;
+    rdfs:label "Toast Notification"@en ;
+    rdfs:comment "Toast.vue component — bottom-right notification with success/error types, auto-dismiss, accessible roles, i18n close label"@en ;
+    vdo:filePath "apps/services/frontend/src/components/ui-kit/Toast.vue" ;
+    vdo:language "Vue" .
+
+# --- Test Suites ---
+
+base:test/frontend.create-group-page a vdo:TestSuite ;
+    rdfs:label "CreateGroupPage Tests"@en ;
+    rdfs:comment "Vitest unit tests for CreateGroupPage — render, validation, API calls, slug generation, breadcrumbs"@en ;
+    vdo:filePath "apps/services/frontend/src/__tests__/CreateGroupPage.spec.ts" ;
+    vdo:validates base:req/REQ-FUN.ORG.group-crud .
+
+base:test/frontend.group-detail-page a vdo:TestSuite ;
+    rdfs:label "GroupDetailPage Tests"@en ;
+    rdfs:comment "Vitest unit tests for GroupDetailPage — render, visibility badge, counts, loading/error states"@en ;
+    vdo:filePath "apps/services/frontend/src/__tests__/GroupDetailPage.spec.ts" ;
+    vdo:validates base:req/REQ-FUN.ORG.group-crud .
+
+base:test/frontend.use-i18n a vdo:TestSuite ;
+    rdfs:label "useI18n Tests"@en ;
+    rdfs:comment "Vitest unit tests for useI18n composable — translation, fallback, interpolation, localStorage persistence, locale toggle"@en ;
+    vdo:filePath "apps/services/frontend/src/__tests__/useI18n.spec.ts" ;
+    vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+base:test/frontend.toast a vdo:TestSuite ;
+    rdfs:label "Toast Tests"@en ;
+    rdfs:comment "Vitest unit tests for Toast component — render, dismiss, auto-dismiss timeout, accessibility attributes"@en ;
+    vdo:filePath "apps/services/frontend/src/__tests__/Toast.spec.ts" .
+
+base:test/auth-service.org-visibility a vdo:TestSuite ;
+    rdfs:label "Org Visibility Tests"@en ;
+    rdfs:comment "Go unit tests for visibility inheritance enforcement — subgroup visibility rules, top-level any visibility"@en ;
+    vdo:filePath "apps/services/auth-service/org/org_visibility_test.go" ;
+    vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .

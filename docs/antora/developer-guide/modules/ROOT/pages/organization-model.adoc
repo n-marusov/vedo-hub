@@ -15,7 +15,7 @@ Architecture: `auth-service` owns org data (PostgreSQL), exposes gRPC API. `api-
 * Project: scope node (type=project) under a group; the unit of access, versioning, and membership
 * Ontology: graph content of a Project (TBox/ABox, classes, properties, individuals). Ratio 1:1 with Project — one Project contains exactly one Ontology
 * Membership: role assignment (user_id + scope + role) — stored on Project, inherited by the paired Ontology
-* Visibility: Private | Internal | Public per Project (applies to the paired Ontology via 1:1)
+* Visibility: Private | Internal | Public per Group and Project. Groups carry their own visibility level. Subgroup visibility is inherited from the parent and cannot exceed it (Private > Internal > Public).
 * Inheritance: memberships propagate from parent to child (max-role-wins)
 * Max Role Wins: highest role across inherited and direct memberships
 
@@ -131,8 +131,8 @@ All endpoints require `Authorization: Bearer <JWT>` header.
 
 === Groups
 
-* `GET /api/v1/groups` — list all groups
-* `POST /api/v1/groups` — create group (Owner)
+* `GET /api/v1/groups` — list all groups (supports `?search=` for filtering)
+* `POST /api/v1/groups` — create group (Owner). Request body: `{ name (required, canonical), slug? (auto-generated), description?, visibility?, parent_id? }`. The deprecated `label` field is accepted as a fallback for `name` (backward compatibility).
 * `GET /api/v1/groups/:id` — get group details
 * `PUT /api/v1/groups/:id` — update group (Owner)
 * `DELETE /api/v1/groups/:id` — delete group (Owner, must be empty)
