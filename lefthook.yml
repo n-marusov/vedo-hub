@@ -43,16 +43,14 @@ pre-commit:
 
     # ── TypeScript / Vue: biome (frontend) ──
     - name: biome-frontend
-      root: "apps/services/frontend/"
-      glob: "apps/services/frontend/**/*.{ts,tsx,js,jsx,vue,json,jsonc}"
-      run: npx biome check --write {staged_files}
+      files: git diff --cached --name-only --diff-filter=ACMR -- apps/services/frontend/
+      run: sh apps/services/frontend/node_modules/.bin/biome check --write {files}
       stage_fixed: true
 
     # ── TypeScript / Vue: biome (publish-browse-ui) ──
     - name: biome-publish-browse-ui
-      root: "apps/services/publish-browse-ui/"
-      glob: "apps/services/publish-browse-ui/**/*.{ts,tsx,js,jsx,vue,json,jsonc}"
-      run: npx biome check --write {staged_files}
+      files: git diff --cached --name-only --diff-filter=ACMR -- apps/services/publish-browse-ui/
+      run: sh apps/services/publish-browse-ui/node_modules/.bin/biome check --write {files}
       stage_fixed: true
 
     # ── Go: gofmt + go vet — per-service iteration via script ──
