@@ -8,7 +8,7 @@ DOCKERFILES_DIR="$ROOT_DIR/tools/dockerfiles"
 
 go_services=(api-gateway auth-service commenting-service ticket-api ticket-telemetry-listener ticket-notifier)
 rust_services=(ontology-service versioning-service publisher-service public-browse-api)
-python_services=(metrics-service ticket-classifier)
+python_services=(metrics-service ticket-classifier document-extractor)
 ts_services=(frontend publish-browse-ui)
 
 failures=0
@@ -56,7 +56,8 @@ check_language_manifests() {
     test -f "$SERVICES_DIR/$svc/Cargo.toml"
   done
   for svc in "${python_services[@]}"; do
-    test -f "$SERVICES_DIR/$svc/requirements.txt"
+    test -f "$SERVICES_DIR/$svc/pyproject.toml" && \
+      test -f "$SERVICES_DIR/$svc/uv.lock"
   done
   for svc in "${ts_services[@]}"; do
     test -f "$SERVICES_DIR/$svc/package.json"
@@ -87,6 +88,50 @@ check_compose_builds_native_services() {
   for svc in "${built_services[@]}"; do
     grep -q "^  ${svc}:" "$compose" || return 1
   done
+}
+
+# CT-PYTHON-001: All Python services defined in docker-compose must have uv manifests
+check_compose_python_services_have_manifests() {
+  local compose="$ROOT_DIR/deploy/docker-compose.yml"
+  test -f "$compose" || return 1
+
+  local current_svc=""
+  local errors=0
+
+  # Use fd 3 to avoid nested read conflicts
+  while IFS= read -r line <&3; do
+    # Capture service name line (e.g. "  ticket-classifier:")
+    if echo "$line" | grep -qP '^  [a-zA-Z0-9_-]+:$'; then
+      current_svc=$(echo "$line" | sed 's/^  \(.*\):$/\1/')
+    fi
+
+    # When a Python dockerfile is found, peek ahead for SERVICE_DIR
+    if echo "$line" | grep -q 'dockerfile: tools/dockerfiles/Dockerfile\.python'; then
+      local svc_dir=""
+      # Peek next up to 3 lines for SERVICE_DIR (structure: dockerfile, args:, SERVICE_DIR)
+      for _ in 1 2 3; do
+        IFS= read -r peek <&3 || break
+        if echo "$peek" | grep -qP '^\s+SERVICE_DIR:\s+'; then
+          svc_dir=$(echo "$peek" | sed 's/.*SERVICE_DIR:[[:space:]]*//')
+          break
+        fi
+      done
+
+      if [ -n "$svc_dir" ]; then
+        local abs_dir="$ROOT_DIR/$svc_dir"
+        if [ ! -f "$abs_dir/pyproject.toml" ]; then
+          echo "  FAIL: $current_svc (SERVICE_DIR=$svc_dir): missing pyproject.toml"
+          errors=$((errors + 1))
+        fi
+        if [ ! -f "$abs_dir/uv.lock" ]; then
+          echo "  FAIL: $current_svc (SERVICE_DIR=$svc_dir): missing uv.lock"
+          errors=$((errors + 1))
+        fi
+      fi
+    fi
+  done 3< "$compose"
+
+  [ "$errors" -eq 0 ]
 }
 
 check_ts_nginx_method_guard_syntax() {
@@ -124,6 +169,7 @@ check "ts Dockerfiles use node->nginx" check_typescript_base_images
 check "language manifests exist" check_language_manifests
 check "language entrypoints exist" check_entrypoints_exist
 check "compose builds native service contexts" check_compose_builds_native_services
+check "compose Python services have pyproject.toml + uv.lock" check_compose_python_services_have_manifests
 check "ts nginx configs avoid invalid limit_except return" check_ts_nginx_method_guard_syntax
 check "no -stub version in source files" check_no_stub_version_in_sources
 check "no [STUB] log prefix in source files" check_no_stub_log_prefix
