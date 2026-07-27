@@ -194,7 +194,8 @@ export async function applySequence(
 		return {
 			success: false,
 			appliedCount: 0,
-			errors: [{ code: "APPLY_FAILED", message }],
+			errors: [{ stepId: "APPLY_FAILED", message }],
+			timestamp: new Date().toISOString(),
 		};
 	}
 }
