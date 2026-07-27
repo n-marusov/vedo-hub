@@ -9,6 +9,9 @@ min_version: 2.1.0
 assert_lefthook_installed: true
 glob_matcher: doublestar
 
+# Default timeout for all hooks — prevents indefinite hangs on Windows
+run_timeout: 120
+
 # ── Output verbosity ──
 output:
   - meta
@@ -44,13 +47,13 @@ pre-commit:
     # ── TypeScript / Vue: biome (frontend) ──
     - name: biome-frontend
       files: git diff --cached --name-only --diff-filter=ACMR -- apps/services/frontend/
-      run: sh apps/services/frontend/node_modules/.bin/biome check --write {files}
+      run: node apps/services/frontend/node_modules/@biomejs/biome/bin/biome check --write {files}
       stage_fixed: true
 
     # ── TypeScript / Vue: biome (publish-browse-ui) ──
     - name: biome-publish-browse-ui
       files: git diff --cached --name-only --diff-filter=ACMR -- apps/services/publish-browse-ui/
-      run: sh apps/services/publish-browse-ui/node_modules/.bin/biome check --write {files}
+      run: node apps/services/publish-browse-ui/node_modules/@biomejs/biome/bin/biome check --write {files}
       stage_fixed: true
 
     # ── Go: gofmt + go vet — per-service iteration via script ──
