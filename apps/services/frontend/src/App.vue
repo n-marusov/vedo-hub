@@ -104,259 +104,277 @@
       </main>
     </div>
   </div>
+  <Toast />
 </template>
 
 <script setup lang="ts">
-import { getDashboard } from '@/api/dashboard'
-import { useCurrentUser } from '@/composables/useCurrentUser'
+import { getDashboard } from "@/api/dashboard";
+import Toast from "@/components/ui-kit/Toast.vue";
+import { useCurrentUser } from "@/composables/useCurrentUser";
 import {
-  ChevronDown,
-  CircleHelp,
-  Cloud,
-  Folder,
-  GitMerge,
-  History,
-  Info,
-  Layers,
-  LayoutDashboard,
-  type LucideIcon,
-  MessageSquare,
-  Moon,
-  PanelLeftClose,
-  PanelLeftOpen,
-  Plus,
-  Search,
-  Sun,
-  User
-} from 'lucide-vue-next'
-import { computed, onMounted, reactive, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { applyThemeMode } from './theme/manager'
+	ChevronDown,
+	CircleHelp,
+	Cloud,
+	Folder,
+	GitMerge,
+	History,
+	Info,
+	Layers,
+	LayoutDashboard,
+	type LucideIcon,
+	MessageSquare,
+	Moon,
+	PanelLeftClose,
+	PanelLeftOpen,
+	Plus,
+	Search,
+	Sun,
+	User,
+} from "lucide-vue-next";
+import { computed, onMounted, reactive, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { applyThemeMode } from "./theme/manager";
 
-const route = useRoute()
-const router = useRouter()
-const { displayName, displayInitials } = useCurrentUser()
+const route = useRoute();
+const router = useRouter();
+const { displayName, displayInitials } = useCurrentUser();
 
-const searchQuery = ref('')
-const searchInput = ref<HTMLInputElement | null>(null)
+const searchQuery = ref("");
+const searchInput = ref<HTMLInputElement | null>(null);
 
 const showShell = computed(() => {
-  return !['login', 'not-found', 'public-ontology', 'auth-callback'].includes(String(route.name))
-})
+	return !["login", "not-found", "public-ontology", "auth-callback"].includes(
+		String(route.name),
+	);
+});
 
 // @m4 — Sidebar nav badge counts from dashboard REST endpoint
 const navCounts = reactive({
-  mr: '0',
-  commits: '0',
-  comments: '0',
-  deployments: '0'
-})
+	mr: "0",
+	commits: "0",
+	comments: "0",
+	deployments: "0",
+});
 
 onMounted(async () => {
-  if (!showShell.value) return
-  try {
-    const dash = await getDashboard()
-    const mrWidget = dash.widgets?.find((w) => w.title === 'Merge Requests')
-    if (mrWidget) navCounts.mr = String(mrWidget.count || 0)
-    const attMR = dash.attentionItems?.filter((a) => a.text.includes('merge request'))
-    if (attMR?.length) navCounts.mr = String(attMR.reduce((sum, a) => sum + (a.count || 0), 0))
-    navCounts.comments = String(dash.activityFeed?.length || 0)
-  } catch {
-    // Dashboard not available — keep defaults
-  }
-})
+	if (!showShell.value) return;
+	try {
+		const dash = await getDashboard();
+		const mrWidget = dash.widgets?.find((w) => w.title === "Merge Requests");
+		if (mrWidget) navCounts.mr = String(mrWidget.count || 0);
+		const attMR = dash.attentionItems?.filter((a) =>
+			a.text.includes("merge request"),
+		);
+		if (attMR?.length)
+			navCounts.mr = String(attMR.reduce((sum, a) => sum + (a.count || 0), 0));
+		navCounts.comments = String(dash.activityFeed?.length || 0);
+	} catch {
+		// Dashboard not available — keep defaults
+	}
+});
 
 type SidebarItem = {
-  label: string
-  icon: LucideIcon
-  to: string
-  matches: string[]
-  badge?: string
-}
+	label: string;
+	icon: LucideIcon;
+	to: string;
+	matches: string[];
+	badge?: string;
+};
 
 // @m4 — Sidebar items updated with all M2.5 route matches
 const mainItems: SidebarItem[] = [
-  {
-    label: 'Home',
-    icon: LayoutDashboard,
-    to: '/dashboard/home',
-    matches: ['/dashboard/home']
-  },
-  {
-    label: 'Groups',
-    icon: Layers,
-    to: '/dashboard/groups',
-    matches: ['/dashboard/groups']
-  },
-  {
-    label: 'Projects',
-    icon: Folder,
-    to: '/dashboard/projects',
-    matches: ['/dashboard/projects']
-  },
-  {
-    label: 'Merge requests',
-    icon: GitMerge,
-    to: '/dashboard/merge_requests',
-    matches: ['/dashboard/merge_requests'],
-    badge: navCounts.mr
-  },
-  {
-    label: 'Commits',
-    icon: History,
-    to: '/commits',
-    matches: ['/commits', '/ontology/', '/versioning'],
-    badge: navCounts.commits
-  },
-  {
-    label: 'Comments',
-    icon: MessageSquare,
-    to: '/comments',
-    matches: ['/comments'],
-    badge: navCounts.comments
-  },
-  {
-    label: 'Deployments',
-    icon: Cloud,
-    to: '/dashboard/deployments',
-    matches: ['/dashboard/deployments'],
-    badge: navCounts.deployments
-  }
-]
+	{
+		label: "Home",
+		icon: LayoutDashboard,
+		to: "/dashboard/home",
+		matches: ["/dashboard/home"],
+	},
+	{
+		label: "Groups",
+		icon: Layers,
+		to: "/dashboard/groups",
+		matches: [
+			"/dashboard/groups",
+			"/dashboard/groups/new",
+			"/dashboard/groups/",
+		],
+	},
+	{
+		label: "Projects",
+		icon: Folder,
+		to: "/dashboard/projects",
+		matches: ["/dashboard/projects"],
+	},
+	{
+		label: "Merge requests",
+		icon: GitMerge,
+		to: "/dashboard/merge_requests",
+		matches: ["/dashboard/merge_requests"],
+		badge: navCounts.mr,
+	},
+	{
+		label: "Commits",
+		icon: History,
+		to: "/commits",
+		matches: ["/commits", "/ontology/", "/versioning"],
+		badge: navCounts.commits,
+	},
+	{
+		label: "Comments",
+		icon: MessageSquare,
+		to: "/comments",
+		matches: ["/comments"],
+		badge: navCounts.comments,
+	},
+	{
+		label: "Deployments",
+		icon: Cloud,
+		to: "/dashboard/deployments",
+		matches: ["/dashboard/deployments"],
+		badge: navCounts.deployments,
+	},
+];
 
 // @m4 — Reactive badge updates from navCounts
 watch(
-  () => [navCounts.mr, navCounts.commits, navCounts.comments, navCounts.deployments],
-  () => {
-    const mrItem = mainItems.find((i) => i.label === 'Merge requests')
-    if (mrItem) mrItem.badge = navCounts.mr
-    const commitsItem = mainItems.find((i) => i.label === 'Commits')
-    if (commitsItem) commitsItem.badge = navCounts.commits
-    const commentsItem = mainItems.find((i) => i.label === 'Comments')
-    if (commentsItem) commentsItem.badge = navCounts.comments
-    const depItem = mainItems.find((i) => i.label === 'Deployments')
-    if (depItem) depItem.badge = navCounts.deployments
-  }
-)
+	() => [
+		navCounts.mr,
+		navCounts.commits,
+		navCounts.comments,
+		navCounts.deployments,
+	],
+	() => {
+		const mrItem = mainItems.find((i) => i.label === "Merge requests");
+		if (mrItem) mrItem.badge = navCounts.mr;
+		const commitsItem = mainItems.find((i) => i.label === "Commits");
+		if (commitsItem) commitsItem.badge = navCounts.commits;
+		const commentsItem = mainItems.find((i) => i.label === "Comments");
+		if (commentsItem) commentsItem.badge = navCounts.comments;
+		const depItem = mainItems.find((i) => i.label === "Deployments");
+		if (depItem) depItem.badge = navCounts.deployments;
+	},
+);
 
 function isActive(matches: string[]): boolean {
-  return matches.some((value) => route.path.startsWith(value))
+	return matches.some((value) => route.path.startsWith(value));
 }
 
 function navigate(to: string): void {
-  console.debug(
-    JSON.stringify({
-      level: 'debug',
-      msg: 'app.shell.navigate',
-      to,
-      ts: new Date().toISOString()
-    })
-  )
-  router.push(to)
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "app.shell.navigate",
+			to,
+			ts: new Date().toISOString(),
+		}),
+	);
+	router.push(to);
 }
 
-const collapsed = ref(false)
-const currentTheme = ref<'light' | 'dark'>('dark')
+const collapsed = ref(false);
+const currentTheme = ref<"light" | "dark">("dark");
 
-const themeIcon = computed(() => (currentTheme.value === 'dark' ? Sun : Moon))
+const themeIcon = computed(() => (currentTheme.value === "dark" ? Sun : Moon));
 const themeLabel = computed(() =>
-  currentTheme.value === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
-)
+	currentTheme.value === "dark"
+		? "Switch to light theme"
+		: "Switch to dark theme",
+);
 
 onMounted(() => {
-  const saved = localStorage.getItem('sidebar-collapsed')
-  if (saved === 'true') collapsed.value = true
+	const saved = localStorage.getItem("sidebar-collapsed");
+	if (saved === "true") collapsed.value = true;
 
-  const theme = document.documentElement.getAttribute('data-theme') || 'dark'
-  currentTheme.value = theme as 'light' | 'dark'
-})
+	const theme = document.documentElement.getAttribute("data-theme") || "dark";
+	currentTheme.value = theme as "light" | "dark";
+});
 
 watch(collapsed, (val) => {
-  localStorage.setItem('sidebar-collapsed', String(val))
-})
+	localStorage.setItem("sidebar-collapsed", String(val));
+});
 
 function toggleSidebar(): void {
-  collapsed.value = !collapsed.value
-  console.debug(
-    JSON.stringify({
-      level: 'debug',
-      msg: 'app.shell.sidebar_toggle',
-      collapsed: collapsed.value,
-      ts: new Date().toISOString()
-    })
-  )
+	collapsed.value = !collapsed.value;
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "app.shell.sidebar_toggle",
+			collapsed: collapsed.value,
+			ts: new Date().toISOString(),
+		}),
+	);
 }
 
 function toggleTheme(): void {
-  const next = currentTheme.value === 'dark' ? 'light' : 'dark'
-  applyThemeMode(next)
-  currentTheme.value = next
+	const next = currentTheme.value === "dark" ? "light" : "dark";
+	applyThemeMode(next);
+	currentTheme.value = next;
 }
 
 // @m4 — Header action handlers
 function handleCreate(): void {
-  console.debug(
-    JSON.stringify({
-      level: 'debug',
-      msg: 'app.shell.header_action',
-      action: 'create',
-      ts: new Date().toISOString()
-    })
-  )
-  // Open create dialog (class/property/individual — context-dependent)
-  // For now, navigate to projects where creation starts
-  router.push('/dashboard/projects')
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "app.shell.header_action",
+			action: "create",
+			ts: new Date().toISOString(),
+		}),
+	);
+	// Open create dialog (class/property/individual — context-dependent)
+	// For now, navigate to projects where creation starts
+	router.push("/dashboard/projects");
 }
 
 function handleHelp(): void {
-  console.debug(
-    JSON.stringify({
-      level: 'debug',
-      msg: 'app.shell.header_action',
-      action: 'help',
-      ts: new Date().toISOString()
-    })
-  )
-  router.push('/help')
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "app.shell.header_action",
+			action: "help",
+			ts: new Date().toISOString(),
+		}),
+	);
+	router.push("/help");
 }
 
 function handleSearch(): void {
-  if (!searchQuery.value.trim()) return
-  console.debug(
-    JSON.stringify({
-      level: 'debug',
-      msg: 'app.shell.global_search',
-      q: searchQuery.value,
-      ts: new Date().toISOString()
-    })
-  )
-  router.push({ path: '/search', query: { q: searchQuery.value } })
+	if (!searchQuery.value.trim()) return;
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "app.shell.global_search",
+			q: searchQuery.value,
+			ts: new Date().toISOString(),
+		}),
+	);
+	router.push({ path: "/search", query: { q: searchQuery.value } });
 }
 
 // @m4 — Keyboard shortcuts
 function handleShellKeydown(event: KeyboardEvent): void {
-  // Ctrl+K or / — focus search
-  if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
-    event.preventDefault()
-    searchInput.value?.focus()
-    return
-  }
-  if (event.key === '/' && !isInputFocused()) {
-    event.preventDefault()
-    searchInput.value?.focus()
-    return
-  }
-  // Ctrl+B or Cmd+B — toggle sidebar
-  if ((event.ctrlKey || event.metaKey) && event.key === 'b') {
-    event.preventDefault()
-    toggleSidebar()
-    return
-  }
+	// Ctrl+K or / — focus search
+	if ((event.ctrlKey || event.metaKey) && event.key === "k") {
+		event.preventDefault();
+		searchInput.value?.focus();
+		return;
+	}
+	if (event.key === "/" && !isInputFocused()) {
+		event.preventDefault();
+		searchInput.value?.focus();
+		return;
+	}
+	// Ctrl+B or Cmd+B — toggle sidebar
+	if ((event.ctrlKey || event.metaKey) && event.key === "b") {
+		event.preventDefault();
+		toggleSidebar();
+		return;
+	}
 }
 
 function isInputFocused(): boolean {
-  const el = document.activeElement
-  return el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement
+	const el = document.activeElement;
+	return el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement;
 }
 </script>
 
