@@ -79,6 +79,7 @@ make ci-full                 # Full pipeline + integration + E2E + gates
 
 ```bash
 make list-services           # Show all services grouped by language
+make status                  # Show health of each service in the compose stack
 make dev-frontend            # Frontend dev server with hot reload
 make dev-api                 # API gateway with go run
 make clean                   # Remove build artifacts
@@ -88,7 +89,7 @@ make docker-shell SVC=<name> # Open shell in a service container
 make install-hooks           # Install Git hooks via Lefthook
 ```
 
-> **Environment override:** add `ENV=test` or `ENV=staging` to any `docker-*` target.  
+> **Environment override:** add `ENV=test` or `ENV=staging` to any `docker-*` target.
 > **Port override:** prefix with `API_GATEWAY_PORT=9090 make docker-up` etc.
 
 ---

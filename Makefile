@@ -407,7 +407,7 @@ docker-config: ## Validate compose configuration (usage: make docker-config [ENV
 
 ##@ Docker — Status
 
-.PHONY: docker-status docker-status-full
+.PHONY: status docker-status docker-status-full
 
 docker-status: ## Brief health table (Name, Health, Ports)
 	docker compose \
@@ -418,6 +418,8 @@ docker-status-full: ## Full machine-readable JSON with all container details
 	docker compose \
 		--env-file $(ROOT)/.env.$(ENV) \
 		-f $(ROOT)/$(COMPOSE_FILE) ps --format json 2>/dev/null || echo '[]'
+
+status: docker-status ## Alias — show health of each service in the compose stack
 
 ##@ Docker — Infrastructure (standalone infra services without app stack)
 
