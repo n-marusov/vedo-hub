@@ -1,0 +1,512 @@
+{
+  "version": "2.14",
+  "imports": {
+    "B": "../ui-kit.lib.pen"
+  },
+  "children": [
+    {
+      "type": "frame",
+      "id": "cppPage",
+      "name": "Create Project",
+      "x": 0,
+      "y": 0,
+      "width": 1920,
+      "height": 1080,
+      "fill": "$B:background",
+      "layout": "vertical",
+      "children": [
+        {
+          "id": "cppHeader",
+          "type": "ref",
+          "ref": "B:qpgfz",
+          "width": "fill_container",
+          "height": 56,
+          "name": "header"
+        },
+        {
+          "type": "frame",
+          "id": "cppMain",
+          "name": "main",
+          "width": "fill_container",
+          "height": "fill_container",
+          "children": [
+            {
+              "id": "cppSidebar",
+              "type": "ref",
+              "ref": "B:W5vtj",
+              "name": "sidebar",
+              "width": 256,
+              "height": "fill_container"
+            },
+            {
+              "type": "frame",
+              "id": "cppContent",
+              "name": "content",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "padding": [24, 32],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "cppTopBar",
+                  "name": "topWidget",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "cppTitleCol",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "cppBreadcrumbs",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "cppCrumbHome",
+                              "fill": "$B:muted-foreground",
+                              "content": "Workspace",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "icon",
+                              "id": "cppCrumbSep1",
+                              "width": 12,
+                              "height": 12,
+                              "icon": "chevron-right",
+                              "library": "lucide",
+                              "fill": "$B:muted-foreground"
+                            },
+                            {
+                              "type": "text",
+                              "id": "cppCrumbProjects",
+                              "fill": "$B:muted-foreground",
+                              "content": "Projects",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "icon",
+                              "id": "cppCrumbSep2",
+                              "width": 12,
+                              "height": 12,
+                              "icon": "chevron-right",
+                              "library": "lucide",
+                              "fill": "$B:muted-foreground"
+                            },
+                            {
+                              "type": "text",
+                              "id": "cppCrumbNew",
+                              "fill": "$B:muted-foreground",
+                              "content": "New project",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "cppPageTitle",
+                          "fill": "$B:foreground",
+                          "content": "Create Project",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 24,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "cppFormCard",
+                  "name": "formCard",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 24,
+                  "fill": "$B:card",
+                  "stroke": "$B:border",
+                  "strokeWidth": 1,
+                  "strokeAlignment": "inner",
+                  "padding": 32,
+                  "children": [
+                    {
+                      "id": "cppNameField",
+                      "type": "ref",
+                      "ref": "B:FTaL1",
+                      "name": "nameField",
+                      "width": "fill_container",
+                      "descendants": {
+                        "B:mb8pl": {
+                          "content": "Project name"
+                        },
+                        "B:d4cd2": {
+                          "content": "My project"
+                        },
+                        "B:hFKOa": {
+                          "enabled": false
+                        }
+                      }
+                    },
+                    {
+                      "type": "frame",
+                      "id": "cppNameHint",
+                      "name": "nameHint",
+                      "width": "fill_container",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "cppNameHintText",
+                          "content": "Must start with a letter, digit, emoji, or underscore. Suffix can include spaces.",
+                          "fill": "$B:muted-foreground",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 11,
+                          "fontWeight": "normal",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "cppUrlGroup",
+                      "name": "urlGroup",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "cppUrlLabel",
+                          "name": "urlLabel",
+                          "content": "Project URL",
+                          "fill": "$B:foreground",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 12,
+                          "fontWeight": "600",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "cppUrlRow",
+                          "name": "urlRow",
+                          "width": "fill_container",
+                          "alignItems": "center",
+                          "gap": 0,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "cppUrlPrefix",
+                              "name": "urlPrefix",
+                              "height": 36,
+                              "alignItems": "center",
+                              "padding": [4, 12],
+                              "fill": "$B:background",
+                              "stroke": "$B:input",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "cppUrlPrefixText",
+                                  "content": "https://vedo-hub.ru/",
+                                  "fill": "$B:muted-foreground",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "id": "cppNamespaceSelect",
+                              "type": "ref",
+                              "ref": "B:K5sXB",
+                              "name": "namespaceSelect",
+                              "width": 160,
+                              "descendants": {
+                                "B:3Fqj2": { "content": "vedo-core" },
+                                "B:AJyq3": { "content": "personal" },
+                                "B:SKPVU": { "content": "vedo-core" },
+                                "B:ZSVhE": { "content": "team" }
+                              }
+                            },
+                            {
+                              "type": "text",
+                              "id": "cppUrlSlash",
+                              "content": "/",
+                              "fill": "$B:muted-foreground",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 16,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "id": "cppSlugInput",
+                              "type": "ref",
+                              "ref": "B:yA4l7",
+                              "name": "slugInput",
+                              "width": "fill_container",
+                              "descendants": {
+                                "B:xAwdW": { "content": "my-project" }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "cppVisGroup",
+                      "name": "visibilityGroup",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "cppVisLabel",
+                          "name": "visibilityLabel",
+                          "content": "Visibility Level",
+                          "fill": "$B:foreground",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 12,
+                          "fontWeight": "600",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "cppVisPrivate",
+                          "name": "visPrivate",
+                          "width": "fill_container",
+                          "gap": 12,
+                          "padding": [12, 16],
+                          "fill": "$B:secondary",
+                          "stroke": "$B:primary",
+                          "strokeWidth": 1,
+                          "strokeAlignment": "inner",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "cppRadioPrivate",
+                              "name": "radioPrivate",
+                              "width": 16,
+                              "height": 16,
+                              "layout": "none",
+                              "stroke": "$B:primary",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner",
+                              "children": [
+                                {
+                                  "type": "ellipse",
+                                  "id": "cppRadioPrivateDot",
+                                  "name": "radioPrivateDot",
+                                  "width": 8,
+                                  "height": 8,
+                                  "fill": "$B:primary",
+                                  "x": 4,
+                                  "y": 4
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "cppVisPrivateText",
+                              "name": "visPrivateText",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 4,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "cppVisPrivateTitle",
+                                  "content": "Private",
+                                  "fill": "$B:foreground",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 13,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "cppVisPrivateDesc",
+                                  "content": "Project access must be granted explicitly to each user. If this project is part of a group, access is granted to members of the group.",
+                                  "fill": "$B:muted-foreground",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "cppVisInternal",
+                          "name": "visInternal",
+                          "width": "fill_container",
+                          "gap": 12,
+                          "padding": [12, 16],
+                          "stroke": "$B:border",
+                          "strokeWidth": 1,
+                          "strokeAlignment": "inner",
+                          "children": [
+                            {
+                              "type": "ellipse",
+                              "id": "cppRadioInternal",
+                              "name": "radioInternal",
+                              "width": 16,
+                              "height": 16,
+                              "stroke": "$B:border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "cppVisInternalText",
+                              "name": "visInternalText",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 4,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "cppVisInternalTitle",
+                                  "content": "Internal",
+                                  "fill": "$B:foreground",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 13,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "cppVisInternalDesc",
+                                  "content": "The project can be accessed by any logged in user except external users.",
+                                  "fill": "$B:muted-foreground",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "cppVisPublic",
+                          "name": "visPublic",
+                          "width": "fill_container",
+                          "gap": 12,
+                          "padding": [12, 16],
+                          "stroke": "$B:border",
+                          "strokeWidth": 1,
+                          "strokeAlignment": "inner",
+                          "children": [
+                            {
+                              "type": "ellipse",
+                              "id": "cppRadioPublic",
+                              "name": "radioPublic",
+                              "width": 16,
+                              "height": 16,
+                              "stroke": "$B:border",
+                              "strokeWidth": 1,
+                              "strokeAlignment": "inner"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "cppVisPublicText",
+                              "name": "visPublicText",
+                              "width": "fill_container",
+                              "layout": "vertical",
+                              "gap": 4,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "cppVisPublicTitle",
+                                  "content": "Public",
+                                  "fill": "$B:foreground",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 13,
+                                  "fontWeight": "600"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "cppVisPublicDesc",
+                                  "content": "The project can be accessed without any authentication.",
+                                  "fill": "$B:muted-foreground",
+                                  "fontFamily": "IBM Plex Mono",
+                                  "fontSize": 11,
+                                  "fontWeight": "normal",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "cppActionsSep",
+                      "name": "actionsSep",
+                      "width": "fill_container",
+                      "height": 1,
+                      "fill": "$B:border"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "cppActions",
+                      "name": "actions",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "justifyContent": "end",
+                      "children": [
+                        {
+                          "id": "cppCancelBtn",
+                          "type": "ref",
+                          "ref": "B:c8T4z",
+                          "name": "cancelBtn",
+                          "descendants": {
+                            "B:esH0z": {
+                              "content": "Cancel"
+                            }
+                          }
+                        },
+                        {
+                          "id": "cppCreateBtn",
+                          "type": "ref",
+                          "ref": "B:3CI7c",
+                          "name": "createBtn",
+                          "descendants": {
+                            "B:wMRLg": {
+                              "content": "Create project"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

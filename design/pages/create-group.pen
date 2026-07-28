@@ -1,17 +1,17 @@
 {
-  "version": "2.13",
+  "version": "2.14",
   "children": [
     {
       "type": "frame",
       "id": "cgPage",
-      "name": "Create Group",
-      "width": 1920,
-      "height": 1080,
       "x": 0,
       "y": 0,
+      "name": "Create Group",
+      "clip": true,
+      "width": 1920,
+      "height": 1080,
       "fill": "$B:background",
       "layout": "vertical",
-      "clip": true,
       "children": [
         {
           "id": "cgHeader",
@@ -36,8 +36,12 @@
               "width": 256,
               "height": "fill_container",
               "descendants": {
-                "B:swHomeItem": { "fill": "$B:card" },
-                "B:swGroupsItem": { "fill": "#10b9811A" }
+                "B:swHomeItem": {
+                  "fill": "$B:card"
+                },
+                "B:swGroupsItem": {
+                  "fill": "#10b9811A"
+                }
               }
             },
             {
@@ -46,10 +50,13 @@
               "name": "pageContent",
               "width": "fill_container",
               "height": "fill_container",
+              "fill": "$B:background",
               "layout": "vertical",
               "gap": 24,
-              "padding": [32, 40],
-              "fill": "$B:background",
+              "padding": [
+                32,
+                40
+              ],
               "children": [
                 {
                   "type": "frame",
@@ -66,15 +73,73 @@
                       "gap": 8,
                       "alignItems": "center",
                       "children": [
-                        { "type": "text", "id": "cgBcWs", "content": "Workspace", "fontFamily": "IBM Plex Mono", "fontSize": 11, "fill": "$B:muted-foreground" },
-                        { "type": "icon", "id": "cgBcS1", "library": "lucide", "icon": "chevron-right", "width": 12, "height": 12, "fill": "$B:muted-foreground" },
-                        { "type": "text", "id": "cgBcGr", "content": "Groups", "fontFamily": "IBM Plex Mono", "fontSize": 11, "fill": "$B:muted-foreground" },
-                        { "type": "icon", "id": "cgBcS2", "library": "lucide", "icon": "chevron-right", "width": 12, "height": 12, "fill": "$B:muted-foreground" },
-                        { "type": "text", "id": "cgBcNew", "content": "New group", "fontFamily": "IBM Plex Mono", "fontSize": 11, "fontWeight": "600", "fill": "$B:foreground" }
+                        {
+                          "type": "text",
+                          "id": "cgBcWs",
+                          "fill": "$B:muted-foreground",
+                          "content": "Workspace",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "icon",
+                          "id": "cgBcS1",
+                          "width": 12,
+                          "height": 12,
+                          "icon": "chevron-right",
+                          "library": "lucide",
+                          "fill": "$B:muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "id": "cgBcGr",
+                          "fill": "$B:muted-foreground",
+                          "content": "Groups",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "icon",
+                          "id": "cgBcS2",
+                          "width": 12,
+                          "height": 12,
+                          "icon": "chevron-right",
+                          "library": "lucide",
+                          "fill": "$B:muted-foreground"
+                        },
+                        {
+                          "type": "text",
+                          "id": "cgBcNew",
+                          "fill": "$B:foreground",
+                          "content": "New group",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 11,
+                          "fontWeight": "600"
+                        }
                       ]
                     },
-                    { "type": "text", "id": "cgTitle", "content": "New group", "fontFamily": "IBM Plex Mono", "fontSize": 24, "fontWeight": "600", "fill": "$B:foreground" },
-                    { "type": "text", "id": "cgSubtitle", "content": "Groups organize projects, members, and subgroups with role-based access control.", "fontFamily": "IBM Plex Mono", "fontSize": 13, "fill": "$B:muted-foreground", "textGrowth": "fixed-width", "width": "fill_container" }
+                    {
+                      "type": "text",
+                      "id": "cgTitle",
+                      "fill": "$B:foreground",
+                      "content": "New group",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 24,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "cgSubtitle",
+                      "fill": "$B:muted-foreground",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Groups organize projects, members, and subgroups with role-based access control.",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
                   ]
                 },
                 {
@@ -82,14 +147,14 @@
                   "id": "cgFormCard",
                   "name": "formCard",
                   "width": "fill_container",
-                  "layout": "vertical",
-                  "gap": 24,
-                  "padding": 24,
-                  "cornerRadius": 8,
                   "fill": "$B:card",
+                  "cornerRadius": 8,
                   "stroke": "$B:border",
                   "strokeWidth": 1,
                   "strokeAlignment": "inner",
+                  "layout": "vertical",
+                  "gap": 24,
+                  "padding": 24,
                   "children": [
                     {
                       "type": "frame",
@@ -99,23 +164,50 @@
                       "layout": "vertical",
                       "gap": 6,
                       "children": [
-                        { "type": "text", "id": "cgNameLabel", "content": "Group name", "fontFamily": "IBM Plex Mono", "fontSize": 12, "fontWeight": "500", "fill": "$B:foreground" },
-                        { "type": "text", "id": "cgNameHelp", "content": "Start with a letter, digit, emoji, or underscore.", "fontFamily": "IBM Plex Mono", "fontSize": 11, "fill": "$B:muted-foreground" },
+                        {
+                          "type": "text",
+                          "id": "cgNameLabel",
+                          "fill": "$B:foreground",
+                          "content": "Group name",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "text",
+                          "id": "cgNameHelp",
+                          "fill": "$B:muted-foreground",
+                          "content": "Start with a letter, digit, emoji, or underscore.",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        },
                         {
                           "type": "frame",
                           "id": "cgNameInput",
                           "name": "nameInput",
                           "width": "fill_container",
                           "height": 36,
-                          "cornerRadius": 6,
-                          "padding": [4, 12],
                           "fill": "$B:background",
+                          "cornerRadius": 6,
                           "stroke": "$B:input",
                           "strokeWidth": 1,
                           "strokeAlignment": "inner",
+                          "padding": [
+                            4,
+                            12
+                          ],
                           "alignItems": "center",
                           "children": [
-                            { "type": "text", "id": "cgNamePh", "content": "My group", "fontFamily": "IBM Plex Mono", "fontSize": 14, "fill": "$B:muted-foreground" }
+                            {
+                              "type": "text",
+                              "id": "cgNamePh",
+                              "fill": "$B:muted-foreground",
+                              "content": "My group",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
                           ]
                         }
                       ]
@@ -128,24 +220,51 @@
                       "layout": "vertical",
                       "gap": 6,
                       "children": [
-                        { "type": "text", "id": "cgUrlLabel", "content": "Group URL", "fontFamily": "IBM Plex Mono", "fontSize": 12, "fontWeight": "500", "fill": "$B:foreground" },
+                        {
+                          "type": "text",
+                          "id": "cgUrlLabel",
+                          "fill": "$B:foreground",
+                          "content": "Group URL",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        },
                         {
                           "type": "frame",
                           "id": "cgUrlPreview",
                           "name": "urlPreview",
                           "width": "fill_container",
                           "height": 36,
-                          "cornerRadius": 6,
-                          "padding": [4, 12],
                           "fill": "$B:background",
+                          "cornerRadius": 6,
                           "stroke": "$B:input",
                           "strokeWidth": 1,
                           "strokeAlignment": "inner",
+                          "padding": [
+                            4,
+                            12
+                          ],
                           "alignItems": "center",
-                          "gap": 0,
                           "children": [
-                            { "type": "text", "id": "cgUrlPrefix", "content": "vedo-core.local/", "fontFamily": "IBM Plex Mono", "fontSize": 14, "fill": "$B:muted-foreground" },
-                            { "type": "text", "id": "cgUrlSlug", "content": "my-group", "fontFamily": "IBM Plex Mono", "fontSize": 14, "fill": "$B:foreground", "opacity": 0.6 }
+                            {
+                              "type": "text",
+                              "id": "cgUrlPrefix",
+                              "fill": "$B:muted-foreground",
+                              "content": "vedo-core.local/",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "cgUrlSlug",
+                              "opacity": 0.6,
+                              "fill": "$B:foreground",
+                              "content": "my-group",
+                              "fontFamily": "IBM Plex Mono",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
                           ]
                         }
                       ]
@@ -158,8 +277,26 @@
                       "layout": "vertical",
                       "gap": 12,
                       "children": [
-                        { "type": "text", "id": "cgVisLabel", "content": "Visibility level", "fontFamily": "IBM Plex Mono", "fontSize": 12, "fontWeight": "500", "fill": "$B:foreground" },
-                        { "type": "text", "id": "cgVisHelp", "content": "Choose who can see and access this group.", "fontFamily": "IBM Plex Mono", "fontSize": 13, "fill": "$B:muted-foreground", "textGrowth": "fixed-width", "width": "fill_container" },
+                        {
+                          "type": "text",
+                          "id": "cgVisLabel",
+                          "fill": "$B:foreground",
+                          "content": "Visibility level",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 12,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "text",
+                          "id": "cgVisHelp",
+                          "fill": "$B:muted-foreground",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Choose who can see and access this group.",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        },
                         {
                           "type": "frame",
                           "id": "cgVisOpts",
@@ -173,29 +310,63 @@
                               "id": "cgVisPriv",
                               "name": "visPrivate",
                               "width": "fill_container",
-                              "padding": 12,
-                              "cornerRadius": 8,
                               "fill": "$B:background",
+                              "cornerRadius": 8,
                               "stroke": "$B:primary",
                               "strokeWidth": 1.5,
                               "strokeAlignment": "inner",
-                              "alignItems": "center",
                               "gap": 12,
+                              "padding": 12,
+                              "alignItems": "center",
                               "children": [
-                                { "id": "cgRadioPriv", "type": "ref", "ref": "B:nCzv2", "name": "radioPrivate", "descendants": { "B:heLGy": { "content": "" } } },
+                                {
+                                  "id": "cgRadioPriv",
+                                  "type": "ref",
+                                  "ref": "B:nCzv2",
+                                  "name": "radioPrivate",
+                                  "descendants": {
+                                    "B:heLGy": {
+                                      "content": ""
+                                    }
+                                  }
+                                },
                                 {
                                   "type": "frame",
                                   "id": "cgPrivInfo",
                                   "name": "privInfo",
+                                  "width": "fill_container",
                                   "layout": "vertical",
                                   "gap": 2,
-                                  "width": "fill_container",
                                   "children": [
-                                    { "type": "text", "id": "cgPrivTitle", "content": "Private", "fontFamily": "IBM Plex Mono", "fontSize": 14, "fontWeight": "500", "fill": "$B:foreground" },
-                                    { "type": "text", "id": "cgPrivDesc", "content": "Only group members can see this group", "fontFamily": "IBM Plex Mono", "fontSize": 12, "fill": "$B:muted-foreground" }
+                                    {
+                                      "type": "text",
+                                      "id": "cgPrivTitle",
+                                      "fill": "$B:foreground",
+                                      "content": "Private",
+                                      "fontFamily": "IBM Plex Mono",
+                                      "fontSize": 14,
+                                      "fontWeight": "500"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "cgPrivDesc",
+                                      "fill": "$B:muted-foreground",
+                                      "content": "Only group members can see this group",
+                                      "fontFamily": "IBM Plex Mono",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
                                   ]
                                 },
-                                { "type": "icon", "id": "cgPrivIcon", "library": "lucide", "icon": "lock", "width": 16, "height": 16, "fill": "$B:muted-foreground" }
+                                {
+                                  "type": "icon",
+                                  "id": "cgPrivIcon",
+                                  "width": 16,
+                                  "height": 16,
+                                  "icon": "lock",
+                                  "library": "lucide",
+                                  "fill": "$B:muted-foreground"
+                                }
                               ]
                             },
                             {
@@ -203,29 +374,66 @@
                               "id": "cgVisInt",
                               "name": "visInternal",
                               "width": "fill_container",
-                              "padding": 12,
-                              "cornerRadius": 8,
                               "fill": "$B:background",
+                              "cornerRadius": 8,
                               "stroke": "$B:border",
                               "strokeWidth": 1,
                               "strokeAlignment": "inner",
-                              "alignItems": "center",
                               "gap": 12,
+                              "padding": 12,
+                              "alignItems": "center",
                               "children": [
-                                { "id": "cgRadioInt", "type": "ref", "ref": "B:nCzv2", "name": "radioInternal", "descendants": { "B:heLGy": { "content": "" }, "B:0OdbE": { "enabled": false } } },
+                                {
+                                  "id": "cgRadioInt",
+                                  "type": "ref",
+                                  "ref": "B:nCzv2",
+                                  "name": "radioInternal",
+                                  "descendants": {
+                                    "B:0OdbE": {
+                                      "enabled": false
+                                    },
+                                    "B:heLGy": {
+                                      "content": ""
+                                    }
+                                  }
+                                },
                                 {
                                   "type": "frame",
                                   "id": "cgIntInfo",
                                   "name": "intInfo",
+                                  "width": "fill_container",
                                   "layout": "vertical",
                                   "gap": 2,
-                                  "width": "fill_container",
                                   "children": [
-                                    { "type": "text", "id": "cgIntTitle", "content": "Internal", "fontFamily": "IBM Plex Mono", "fontSize": 14, "fontWeight": "500", "fill": "$B:foreground" },
-                                    { "type": "text", "id": "cgIntDesc", "content": "Any authenticated user can see this group", "fontFamily": "IBM Plex Mono", "fontSize": 12, "fill": "$B:muted-foreground" }
+                                    {
+                                      "type": "text",
+                                      "id": "cgIntTitle",
+                                      "fill": "$B:foreground",
+                                      "content": "Internal",
+                                      "fontFamily": "IBM Plex Mono",
+                                      "fontSize": 14,
+                                      "fontWeight": "500"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "cgIntDesc",
+                                      "fill": "$B:muted-foreground",
+                                      "content": "Any authenticated user can see this group",
+                                      "fontFamily": "IBM Plex Mono",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
                                   ]
                                 },
-                                { "type": "icon", "id": "cgIntIcon", "library": "lucide", "icon": "users", "width": 16, "height": 16, "fill": "$B:muted-foreground" }
+                                {
+                                  "type": "icon",
+                                  "id": "cgIntIcon",
+                                  "width": 16,
+                                  "height": 16,
+                                  "icon": "users",
+                                  "library": "lucide",
+                                  "fill": "$B:muted-foreground"
+                                }
                               ]
                             },
                             {
@@ -233,29 +441,66 @@
                               "id": "cgVisPub",
                               "name": "visPublic",
                               "width": "fill_container",
-                              "padding": 12,
-                              "cornerRadius": 8,
                               "fill": "$B:background",
+                              "cornerRadius": 8,
                               "stroke": "$B:border",
                               "strokeWidth": 1,
                               "strokeAlignment": "inner",
-                              "alignItems": "center",
                               "gap": 12,
+                              "padding": 12,
+                              "alignItems": "center",
                               "children": [
-                                { "id": "cgRadioPub", "type": "ref", "ref": "B:nCzv2", "name": "radioPublic", "descendants": { "B:heLGy": { "content": "" }, "B:0OdbE": { "enabled": false } } },
+                                {
+                                  "id": "cgRadioPub",
+                                  "type": "ref",
+                                  "ref": "B:nCzv2",
+                                  "name": "radioPublic",
+                                  "descendants": {
+                                    "B:0OdbE": {
+                                      "enabled": false
+                                    },
+                                    "B:heLGy": {
+                                      "content": ""
+                                    }
+                                  }
+                                },
                                 {
                                   "type": "frame",
                                   "id": "cgPubInfo",
                                   "name": "pubInfo",
+                                  "width": "fill_container",
                                   "layout": "vertical",
                                   "gap": 2,
-                                  "width": "fill_container",
                                   "children": [
-                                    { "type": "text", "id": "cgPubTitle", "content": "Public", "fontFamily": "IBM Plex Mono", "fontSize": 14, "fontWeight": "500", "fill": "$B:foreground" },
-                                    { "type": "text", "id": "cgPubDesc", "content": "Anyone on the internet can see this group", "fontFamily": "IBM Plex Mono", "fontSize": 12, "fill": "$B:muted-foreground" }
+                                    {
+                                      "type": "text",
+                                      "id": "cgPubTitle",
+                                      "fill": "$B:foreground",
+                                      "content": "Public",
+                                      "fontFamily": "IBM Plex Mono",
+                                      "fontSize": 14,
+                                      "fontWeight": "500"
+                                    },
+                                    {
+                                      "type": "text",
+                                      "id": "cgPubDesc",
+                                      "fill": "$B:muted-foreground",
+                                      "content": "Anyone on the internet can see this group",
+                                      "fontFamily": "IBM Plex Mono",
+                                      "fontSize": 12,
+                                      "fontWeight": "normal"
+                                    }
                                   ]
                                 },
-                                { "type": "icon", "id": "cgPubIcon", "library": "lucide", "icon": "globe", "width": 16, "height": 16, "fill": "$B:muted-foreground" }
+                                {
+                                  "type": "icon",
+                                  "id": "cgPubIcon",
+                                  "width": 16,
+                                  "height": 16,
+                                  "icon": "globe",
+                                  "library": "lucide",
+                                  "fill": "$B:muted-foreground"
+                                }
                               ]
                             }
                           ]
@@ -267,12 +512,37 @@
                       "id": "cgActions",
                       "name": "formActions",
                       "width": "fill_container",
-                      "justifyContent": "end",
                       "gap": 12,
-                      "padding": [8, 0, 0, 0],
+                      "padding": [
+                        8,
+                        0,
+                        0,
+                        0
+                      ],
+                      "justifyContent": "end",
                       "children": [
-                        { "id": "cgCancelBtn", "type": "ref", "ref": "B:c8T4z", "name": "cancelButton", "descendants": { "B:esH0z": { "content": "Cancel" } } },
-                        { "id": "cgCreateBtn", "type": "ref", "ref": "B:3CI7c", "name": "createButton", "descendants": { "B:wMRLg": { "content": "Create group" } } }
+                        {
+                          "id": "cgCancelBtn",
+                          "type": "ref",
+                          "ref": "B:c8T4z",
+                          "name": "cancelButton",
+                          "descendants": {
+                            "B:esH0z": {
+                              "content": "Cancel"
+                            }
+                          }
+                        },
+                        {
+                          "id": "cgCreateBtn",
+                          "type": "ref",
+                          "ref": "B:3CI7c",
+                          "name": "createButton",
+                          "descendants": {
+                            "B:wMRLg": {
+                              "content": "Create group"
+                            }
+                          }
+                        }
                       ]
                     }
                   ]
@@ -292,7 +562,9 @@
           "width": 320,
           "enabled": false,
           "descendants": {
-            "B:z7YSd": { "content": "Group created successfully" }
+            "B:z7YSd": {
+              "content": "Group created successfully"
+            }
           }
         }
       ]
@@ -300,5 +572,6 @@
   ],
   "imports": {
     "B": "../ui-kit.lib.pen"
-  }
+  },
+  "fileToken": "59d257f1-3e37-42e7-be85-17ced92170f3"
 }
