@@ -245,53 +245,7 @@ func jsonBody(t *testing.T, payload any) *bytes.Reader {
 	return bytes.NewReader(data)
 }
 
-// TestOrgReadEndpointsSmoke is skipped in unit tests — org endpoints require
-// auth-service gRPC backend (not available in httptest environment).
-// Smoke tests for these endpoints run in integration environment with docker-compose.
-func TestOrgReadEndpointsSmoke(t *testing.T) {
-	t.Skip("skipped: org endpoints require auth-service gRPC (not in test env)")
-	env := newTestEnv(t)
-	t.Cleanup(env.cleanup)
-
-	tests := []struct {
-		name   string
-		method string
-		path   string
-	}{
-		// Group reads
-		{"ListGroups", http.MethodGet, "/api/v1/groups"},
-		{"GetGroup", http.MethodGet, "/api/v1/groups/test-group-1"},
-		{"ListChildGroups", http.MethodGet, "/api/v1/groups/test-group-1/subgroups"},
-		{"ListGroupMembers", http.MethodGet, "/api/v1/groups/test-group-1/members"},
-		// Project reads
-		{"ListProjects", http.MethodGet, "/api/v1/projects"},
-		{"GetProject", http.MethodGet, "/api/v1/projects/test-project-1"},
-		{"ListProjectMembers", http.MethodGet, "/api/v1/projects/test-project-1/members"},
-		{"GetVisibility", http.MethodGet, "/api/v1/projects/test-project-1/visibility"},
-		{"ListPolicies", http.MethodGet, "/api/v1/projects/test-project-1/policies"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest(tt.method, tt.path, nil)
-			req.Header.Set("Authorization", env.bearer(t, "owner-smoke", []string{"Owner"}))
-			req.Header.Set("X-Trace-Id", "trace-smoke-"+tt.name)
-			w := httptest.NewRecorder()
-			env.router.ServeHTTP(w, req)
-
-			if w.Code != http.StatusOK {
-				t.Errorf("%s %s expected 200, got %d (body=%s)", tt.method, tt.path, w.Code, w.Body.String())
-				return
-			}
-			// Verify response is valid JSON
-			var body map[string]any
-			if err := json.Unmarshal(w.Body.Bytes(), &body); err != nil {
-				t.Errorf("%s %s response is not valid JSON: %v", tt.method, tt.path, err)
-			}
-		})
-	}
-}
-
+// TestProjectMoveEndpointExists
 // TestProjectMoveEndpointExists verifies PUT /projects/{id}/move is registered
 // and returns 501 Not Implemented until protobuf code is regenerated.
 func TestProjectMoveEndpointExists(t *testing.T) {
