@@ -1,10 +1,14 @@
-//! Placeholder integration tests for ontology validation requirements.
+//go:build integration
+
+// Placeholder integration tests for ontology validation requirements.
 //!
 //! Validates: REQ-FUN.API.validation-import
 //! Validates: REQ-FUN.API.validation-pr
 //!
 //! Remove #[ignore] and implement real assertions when the corresponding
 //! validation features are wired in the ontology service.
+//!
+//! Milestone: M12 (Ontology Quality & Reasoning 1.0)
 
 mod common;
 
@@ -25,7 +29,7 @@ fn post_json(uri: &str, body: &str) -> Request<Body> {
 
 // Import Validation (REQ-FUN.API.validation-import)
 
-#[ignore = "REQ-FUN.API.validation-import: requires import validation endpoint with SHACL — implement in M3"]
+#[ignore = "REQ-FUN.API.validation-import: requires import validation endpoint with SHACL — implement in M12"]
 #[tokio::test]
 async fn test_import_validation_rejects_invalid_turtle() {
     if !common::skip_if_no_neo4j() {
@@ -65,7 +69,7 @@ async fn test_import_validation_accepts_valid_turtle() {
 
 // PR Validation (REQ-FUN.API.validation-pr)
 
-#[ignore = "REQ-FUN.API.validation-pr: requires merge request validation endpoint — implement in M3"]
+#[ignore = "REQ-FUN.API.validation-pr: requires merge request validation endpoint — implement in M12"]
 #[tokio::test]
 async fn test_pr_validation_detects_cyclic_hierarchy() {
     if !common::skip_if_no_neo4j() {

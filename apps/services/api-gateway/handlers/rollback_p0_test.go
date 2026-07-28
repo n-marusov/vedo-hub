@@ -2,6 +2,9 @@ package handlers
 
 // Validates: REQ-FUN.API.gradual-rollback
 // Validates: REQ-FUN.API.iterative-refinement-context
+//
+// P0 placeholder tests for M5 (MVP Scope Gap Closure).
+// Remove t.Skip() when rollback/refinement endpoints are implemented in API Gateway.
 
 import (
 	"testing"

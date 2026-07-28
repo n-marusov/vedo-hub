@@ -1,3 +1,5 @@
+//go:build integration
+
 package authorization
 
 import (
@@ -5,12 +7,12 @@ import (
 	"testing"
 )
 
-// BOLA/BFLA/IDOR authorization gates are planned for M3.
+// BOLA/BFLA/IDOR authorization gates are planned for M7 (MVP security acceptance).
 // These tests are honestly skipped until the gin routes and enforcement
 // middleware are wired in the API Gateway. See SPEC-SEC-003 and
 // REQ-NFR.SECURITY.bola-bfla-negative-tests for the implementation plan.
 //
-// When implementing in M3:
+// When implementing in M7:
 //   1. Import the test helper pattern from src/services/api-gateway/helpers_test.go
 //   2. Stand up a gin.Engine via RegisterRoutes() with mock upstreams
 //   3. Issue real HTTP requests with signed JWTs and assert 403 responses
@@ -32,7 +34,7 @@ type AuthzTestFixture struct {
 // @hlv AUTHZ_NEGATIVE_TEST_FAILED
 // @hlv BOLA_CROSS_TENANT
 func TestBOLA_CrossTenant_Returns403(t *testing.T) {
-	t.Skip("BOLA/BFLA gates planned for M3 — routes and enforcement middleware not yet wired")
+	t.Skip("BOLA/BFLA gates planned for M7 (MVP security acceptance) — routes and enforcement middleware not yet wired")
 	fixture := AuthzTestFixture{
 		TestType:          "BOLA_CROSS_TENANT",
 		Endpoint:          "/api/v1/tenants/b/resources",
@@ -58,7 +60,7 @@ func TestBOLA_CrossTenant_Returns403(t *testing.T) {
 // @hlv AUTHZ_NEGATIVE_TEST_FAILED
 // @hlv BOLA_CROSS_OBJECT
 func TestBOLA_CrossObject_Returns403(t *testing.T) {
-	t.Skip("BOLA/BFLA gates planned for M3 — routes and enforcement middleware not yet wired")
+	t.Skip("BOLA/BFLA gates planned for M7 (MVP security acceptance) — routes and enforcement middleware not yet wired")
 	fixture := AuthzTestFixture{
 		TestType:          "BOLA_CROSS_OBJECT",
 		Endpoint:          "/api/v1/objects/another-user-obj",
@@ -83,7 +85,7 @@ func TestBOLA_CrossObject_Returns403(t *testing.T) {
 // @hlv AUTHZ_NEGATIVE_TEST_FAILED
 // @hlv BFLA
 func TestBFLA_FunctionLevel_Returns403(t *testing.T) {
-	t.Skip("BOLA/BFLA gates planned for M3 — routes and enforcement middleware not yet wired")
+	t.Skip("BOLA/BFLA gates planned for M7 (MVP security acceptance) — routes and enforcement middleware not yet wired")
 	fixture := AuthzTestFixture{
 		TestType:          "BFLA",
 		Endpoint:          "/api/v1/admin/users",
@@ -109,7 +111,7 @@ func TestBFLA_FunctionLevel_Returns403(t *testing.T) {
 // @hlv AUTHZ_NEGATIVE_TEST_FAILED
 // @hlv IDOR_GUESSABLE
 func TestIDOR_GuessableIdentifier_Returns403(t *testing.T) {
-	t.Skip("BOLA/BFLA gates planned for M3 — routes and enforcement middleware not yet wired")
+	t.Skip("BOLA/BFLA gates planned for M7 (MVP security acceptance) — routes and enforcement middleware not yet wired")
 	fixture := AuthzTestFixture{
 		TestType:          "IDOR_GUESSABLE",
 		Endpoint:          "/api/v1/users/00000000-0000-0000-0000-000000000099",
@@ -132,7 +134,7 @@ func TestIDOR_GuessableIdentifier_Returns403(t *testing.T) {
 
 // @hlv bola_bfla_403_not_404_or_500_invariant
 func TestAuthorizationNegativeTests_NeverReturn404Or500(t *testing.T) {
-	t.Skip("BOLA/BFLA gates planned for M3 — integration requires real gin.Engine setup")
+	t.Skip("BOLA/BFLA gates planned for M7 (MVP security acceptance) — integration requires real gin.Engine setup")
 	// @ctx: P0 negative auth tests must return 403 in 100% of cases
 	testTypes := []string{"BOLA_CROSS_TENANT", "BOLA_CROSS_OBJECT", "BFLA", "IDOR_GUESSABLE"}
 	for _, tt := range testTypes {

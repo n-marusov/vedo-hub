@@ -1,3 +1,5 @@
+//go:build integration
+
 // RBAC Full Test Suite — IDOR, Visibility Levels, Pagination
 //
 // Validates: TC-011, TC-012, TC-019 through TC-023, TC-045

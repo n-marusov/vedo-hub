@@ -1,3 +1,5 @@
+//go:build integration
+
 // RBAC Full Test Suite — Fork RBAC and Idempotency
 //
 // Validates: TC-024 through TC-028

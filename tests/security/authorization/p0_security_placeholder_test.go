@@ -1,3 +1,5 @@
+//go:build integration
+
 // Validates: REQ-NFR.SECURITY.audit-encryption
 // Validates: REQ-NFR.SECURITY.audit-masking
 // Validates: REQ-NFR.SECURITY.enforced-in-code

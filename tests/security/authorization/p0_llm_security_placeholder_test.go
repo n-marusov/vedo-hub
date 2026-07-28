@@ -1,10 +1,12 @@
+//go:build integration
+
 // Validates: REQ-NFR.SECURITY.llm-write-human-approval
 // Validates: REQ-NFR.SECURITY.prompt-audit
 // Validates: REQ-NFR.SECURITY.prompt-filter-blacklist
 // Validates: REQ-NFR.SECURITY.suggestion-privacy
 // Validates: REQ-NFR.SECURITY.parser-query-fuzz-gates
 //
-// @ctx: P0 placeholder tests for LLM-related NFR-SECURITY requirements.
+// @ctx: P0 placeholder tests for LLM-related NFR-SECURITY requirements (M7).
 // Remove t.Skip() and implement real assertions when the corresponding
 // security features are wired.
 
@@ -19,7 +21,7 @@ import (
 // ============================================================================
 
 func TestLLM_WriteApproval_OntologyMutation_RequiresHumanConfirmation(t *testing.T) {
-	t.Skip("REQ-NFR.SECURITY.llm-write-human-approval: requires AI-orchestration write approval middleware — implement in M3")
+	t.Skip("REQ-NFR.SECURITY.llm-write-human-approval: requires AI-orchestration write approval middleware — implement in M7 (MVP security acceptance)")
 }
 
 func TestLLM_WriteApproval_NonDestructiveReads_SkipApproval(t *testing.T) {
@@ -67,7 +69,7 @@ func TestSuggestion_Privacy_ConfidentialOntology_NoExternalLLM(t *testing.T) {
 // ============================================================================
 
 func TestParser_FuzzGates_SPARQLInjection_Rejected(t *testing.T) {
-	t.Skip("REQ-NFR.SECURITY.parser-query-fuzz-gates: requires SPARQL parser fuzzing harness — implement in M3")
+	t.Skip("REQ-NFR.SECURITY.parser-query-fuzz-gates: requires SPARQL parser fuzzing harness — implement in M7 (MVP security acceptance)")
 }
 
 func TestParser_FuzzGates_CypherInjection_Rejected(t *testing.T) {

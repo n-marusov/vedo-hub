@@ -1,3 +1,5 @@
+//go:build integration
+
 // RBAC Full Test Suite — BFLA, Membership Boundary, Role Inheritance
 //
 // Validates: TC-007 through TC-010, TC-013 through TC-018

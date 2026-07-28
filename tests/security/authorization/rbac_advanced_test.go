@@ -1,3 +1,5 @@
+//go:build integration
+
 // RBAC Full Test Suite — Advanced Scenarios
 //
 // Validates: TC-004, TC-029 through TC-031, TC-035 through TC-044

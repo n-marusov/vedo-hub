@@ -1,3 +1,5 @@
+//go:build integration
+
 // Validates: REQ-NFR.SECURITY.organization-access-model
 // Validates: REQ-NFR.SECURITY.authorization-regression-gates
 // Validates: ADR-DES.API.organization-rest-endpoints

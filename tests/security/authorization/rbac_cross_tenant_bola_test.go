@@ -1,3 +1,5 @@
+//go:build integration
+
 // RBAC Full Test Suite — Cross-Tenant and Cross-Object BOLA
 //
 // Validates: TC-001 through TC-006, TC-032 through TC-034

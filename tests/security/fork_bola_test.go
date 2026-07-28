@@ -1,12 +1,14 @@
 <a id="tests-security-fork-bola"></a>
-# Security negative tests for fork endpoint
-#
-# Validates: REQ-NFR.SECURITY.bola-bfla-negative-tests
-#
-# These tests dispatch REAL HTTP requests (no mocks) and define the fork
-# endpoint contract. They MUST fail (RED) until the fork endpoint is
-# implemented in Phase 5 (GREEN). Types: A (cross-tenant BOLA),
-# B (cross-object BOLA), C (BFLA), D (IDOR).
+//go:build integration
+
+// Security negative tests for fork endpoint (M5 — F13.1).
+//
+// Validates: REQ-NFR.SECURITY.bola-bfla-negative-tests
+//
+// These tests dispatch REAL HTTP requests (no mocks) and define the fork
+// endpoint contract. They MUST fail (RED) until the fork endpoint is
+// implemented in M5 F13.1 (GREEN). Types: A (cross-tenant BOLA),
+// B (cross-object BOLA), C (BFLA), D (IDOR).
 
 package security
 

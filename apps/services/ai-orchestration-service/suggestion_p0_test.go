@@ -2,6 +2,9 @@ package main
 
 // Validates: REQ-FUN.API.suggestion-confidence-threshold
 // Validates: REQ-FUN.API.suggestion-recalculation
+//
+// P0 placeholder tests for M5 (MVP Scope Gap Closure).
+// Remove t.Skip() when suggestion pipeline is implemented in AI-orchestration.
 
 import (
 	"testing"

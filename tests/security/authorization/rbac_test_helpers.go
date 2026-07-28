@@ -1,4 +1,6 @@
-// RBAC Full Test Suite — shared helpers and test data
+//go:build integration
+
+// RBAC Full Test Suite — Shared Helpers and Test Data
 //
 // Validates: REQ-NFR.SECURITY.bola-bfla-negative-tests
 // Validates: REQ-NFR.SECURITY.authorization-regression-gates
