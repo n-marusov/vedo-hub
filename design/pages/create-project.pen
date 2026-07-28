@@ -507,6 +507,20 @@
           ]
         }
       ]
+    },
+    {
+      "id": "cppPageLight",
+      "type": "ref",
+      "ref": "cppPage",
+      "name": "Create Project (Light)",
+      "theme": {
+        "mode": "light",
+        "B:mode": "light"
+      },
+      "x": 2000,
+      "y": 0,
+      "width": 1920,
+      "height": 1080
     }
   ]
 }

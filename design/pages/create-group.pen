@@ -568,6 +568,20 @@
           }
         }
       ]
+    },
+    {
+      "id": "cgPageLight",
+      "type": "ref",
+      "ref": "cgPage",
+      "name": "Create Group (Light)",
+      "theme": {
+        "mode": "light",
+        "B:mode": "light"
+      },
+      "x": 2000,
+      "y": 0,
+      "width": 1920,
+      "height": 1080
     }
   ],
   "imports": {
