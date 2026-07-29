@@ -571,27 +571,27 @@ Given 15+ tasks, commits will be grouped logically every 3–5 tasks:
 
 ## Acceptance Criteria
 
-- [ ] `New project` on ProjectsPage opens `/dashboard/projects/new` (page), not a dialog
-- [ ] Create Project page requires selected Group and project name
-- [ ] Group selector shows human-readable group names (loaded from `listGroups()`)
-- [ ] Frontend sends canonical JSON: `name`, `description`, `group_id`, `visibility`
-- [ ] API Gateway accepts `name` as canonical; `label` as deprecated fallback
-- [ ] API Gateway uses proper error mapping (not always 500)
-- [ ] Backend creates Project under Group with paired Ontology UUID v4 (`ontology_id`)
-- [ ] Visibility is validated: project cannot be more public than parent Group
-- [ ] Backend validates caller has at least Maintainer role in parent Group
-- [ ] User becomes Owner of created Project (Owner membership auto-assigned)
-- [ ] On success: Toast shown (`"Project created successfully"`) + redirect to `/project/:id/workspace`
-- [ ] Project appears in list with human-readable `name`
-- [ ] Specs updated: `US-org.projects.create.md`, `UC-org.projects.manage-project-lifecycle.md`, requirements
-- [ ] Design updated: `design/pages/create-project.pen` created
-- [ ] OpenAPI spec updated with new contract
-- [ ] i18n keys added for Projects flow (en + ru)
-- [ ] Antora docs updated (organization-model.adoc)
-- [ ] Traceability.ttl updated with new artifact relationships
-- [ ] All tests pass
-- [ ] Test Quality Score (TQS) ≥ bronze (6.0) for new tests
-- [ ] No B1–B7 anti-patterns
-- [ ] Traceability annotations present (`// Validates: REQ-...`)
-- [ ] Legacy `CreateProjectDialog.vue` deleted if unused
-- [ ] Structured logging in all modified backend handlers (INFO request/success, ERROR failure)
+- [x] `New project` on ProjectsPage opens `/dashboard/projects/new` (page), not a dialog
+- [x] Create Project page requires selected Group and project name
+- [x] Group selector shows human-readable group names (loaded from `listGroups()`)
+- [x] Frontend sends canonical JSON: `name`, `description`, `group_id`, `visibility`
+- [x] API Gateway accepts `name` as canonical; `label` as deprecated fallback
+- [x] API Gateway uses proper error mapping (not always 500)
+- [x] Backend creates Project under Group with paired Ontology UUID v4 (`ontology_id`)
+- [x] Visibility is validated: project cannot be more public than parent Group
+- [x] Backend validates caller has at least Maintainer role in parent Group
+- [x] User becomes Owner of created Project (Owner membership auto-assigned)
+- [x] On success: Toast shown (`"Project created successfully"`) + redirect to `/project/:id/workspace`
+- [x] Project appears in list with human-readable `name`
+- [x] Specs updated: `US-org.projects.create.md`, `UC-org.projects.manage-project-lifecycle.md`, requirements
+- [x] Design updated: `design/pages/create-project.pen` created
+- [x] OpenAPI spec updated with new contract
+- [x] i18n keys added for Projects flow (en + ru)
+- [x] Antora docs updated (organization-model.adoc)
+- [x] Traceability.ttl updated with new artifact relationships
+- [x] All tests pass
+- [x] Test Quality Score (TQS) ≥ bronze (6.0) for new tests
+- [x] No B1–B7 anti-patterns
+- [x] Traceability annotations present (`// Validates: REQ-...`)
+- [x] Legacy `CreateProjectDialog.vue` deleted if unused
+- [x] Structured logging in all modified backend handlers (INFO request/success, ERROR failure)
