@@ -1166,6 +1166,7 @@
           "403": { "$ref": "#/components/responses/403Response" },
           "404": { "$ref": "#/components/responses/404Response" },
           "409": { "$ref": "#/components/responses/409Response" },
+          "422": { "$ref": "#/components/responses/422Response" },
           "429": { "$ref": "#/components/responses/429RateLimit" }
         }
       }
@@ -2820,8 +2821,10 @@
         "type": "object",
         "properties": {
           "id": { "type": "string", "format": "uuid" },
-          "label": { "type": "string" },
+          "name": { "type": "string" },
+          "label": { "type": "string", "deprecated": true, "description": "Deprecated: use 'name'" },
           "description": { "type": "string" },
+          "visibility": { "type": "string", "enum": ["Private", "Internal", "Public"] },
           "group_id": { "type": "string", "format": "uuid" },
           "group_name": { "type": "string" }
         }
@@ -2830,8 +2833,10 @@
         "type": "object",
         "properties": {
           "id": { "type": "string", "format": "uuid" },
-          "label": { "type": "string" },
+          "name": { "type": "string", "description": "Project name" },
+          "label": { "type": "string", "deprecated": true, "description": "Deprecated: use 'name'" },
           "description": { "type": "string" },
+          "visibility": { "type": "string", "enum": ["Private", "Internal", "Public"], "description": "Project visibility level" },
           "group_id": { "type": "string", "format": "uuid" },
           "group_name": { "type": "string" },
           "ontology_id": { "type": "string", "format": "uuid", "description": "ID of the 1:1 paired Ontology" },
@@ -2899,11 +2904,13 @@
       "CreateProjectRequest": {
         "type": "object",
         "properties": {
-          "label": { "type": "string", "description": "Project display name" },
+          "name": { "type": "string", "description": "Project display name (canonical)" },
+          "label": { "type": "string", "description": "Deprecated: use 'name' instead" },
           "description": { "type": "string", "description": "Optional project description" },
-          "group_id": { "type": "string", "format": "uuid", "description": "Parent group ID" }
+          "group_id": { "type": "string", "format": "uuid", "description": "Parent group ID (required)" },
+          "visibility": { "type": "string", "enum": ["Private", "Internal", "Public"], "description": "Visibility level. Default: Private. Cannot exceed parent group visibility." }
         },
-        "required": ["label", "group_id"]
+        "required": ["name", "group_id"]
       },
       "AddMemberRequest": {
         "type": "object",
