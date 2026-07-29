@@ -2,6 +2,11 @@
 //!
 //! Validates: REQ-FUN.DATA.versioning
 //!
+//! Only `test_commit_delta_endpoint` remains here — it's a full end-to-end flow
+//! that creates a branch and commit, then verifies the delta response structure.
+//! The 404 edge-case tests have been moved to `src/handlers/commit_handler.rs`
+//! (mock-based).
+//!
 //! Requires running PostgreSQL. Set PG_TEST_DATABASE_URL env var to enable.
 
 mod common;
@@ -56,9 +61,7 @@ async fn create_branch(app: &axum::Router, ontology_id: &Uuid, name: &str) -> Uu
 /// Creates a branch and a commit, then fetches its delta to verify the response
 /// contains the expected delta structure.
 async fn test_commit_delta_endpoint() {
-    if !common::skip_if_no_pg() {
-        return;
-    }
+    common::require_pg();
     let pool = common::connect_test_pg().await;
     let app = common::build_test_app(pool);
 
@@ -132,55 +135,5 @@ async fn test_commit_delta_endpoint() {
             || delta_json.get("triples").is_some()
             || delta_json.get("changes").is_some(),
         "delta response should contain at least one known section key, got: {delta_json}"
-    );
-}
-
-#[tokio::test]
-/// Edge case: fetching delta for a nonexistent commit returns 404.
-async fn test_delta_nonexistent_commit_returns_404() {
-    if !common::skip_if_no_pg() {
-        return;
-    }
-    let pool = common::connect_test_pg().await;
-    let app = common::build_test_app(pool);
-
-    let resp = app
-        .clone()
-        .oneshot(req(
-            Method::GET,
-            "/api/v1/versioning/commits/00000000-0000-0000-0000-000000000000/delta",
-            None,
-        ))
-        .await
-        .unwrap();
-    assert_eq!(
-        resp.status(),
-        StatusCode::NOT_FOUND,
-        "delta for nonexistent commit should return 404"
-    );
-}
-
-#[tokio::test]
-/// Edge case: fetching semantic-diff for a nonexistent commit returns 404.
-async fn test_semantic_diff_nonexistent_commit_returns_404() {
-    if !common::skip_if_no_pg() {
-        return;
-    }
-    let pool = common::connect_test_pg().await;
-    let app = common::build_test_app(pool);
-
-    let resp = app
-        .clone()
-        .oneshot(req(
-            Method::GET,
-            "/api/v1/versioning/commits/00000000-0000-0000-0000-000000000000/semantic-diff",
-            None,
-        ))
-        .await
-        .unwrap();
-    assert_eq!(
-        resp.status(),
-        StatusCode::NOT_FOUND,
-        "semantic-diff for nonexistent commit should return 404"
     );
 }

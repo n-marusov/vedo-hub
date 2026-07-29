@@ -2,6 +2,7 @@
 //!
 //! Provides handlers for creating, listing, getting, deleting, merging,
 //! and switching branches.
+use std::sync::Arc;
 
 use axum::{
     extract::{Path, Query, State},
@@ -9,7 +10,6 @@ use axum::{
     Json,
 };
 use serde::Deserialize;
-use std::sync::Arc;
 use tracing::{debug, info};
 use uuid::Uuid;
 
@@ -18,13 +18,21 @@ use crate::models::{
     BranchSummary, BranchWithCommit, CreateBranchRequest, DeleteBranchRequest,
     MergeBranchesRequest, MergeResponse, PaginatedBranchesResponse, SwitchBranchResponse,
 };
-use crate::repositories::BranchRepository;
+use crate::repositories::{BranchRepository, BranchRepositoryTrait};
 use crate::AppState;
 
 /// Helper: extracts a `BranchRepository` from the application state.
-fn repo_from_state(state: &AppState) -> Result<BranchRepository, VersionError> {
+/// Prefers an injected mock repo when available, otherwise creates a real
+/// repository from the PostgreSQL pool.
+fn repo_from_state(
+    state: &AppState,
+) -> Result<Arc<dyn BranchRepositoryTrait + Send + Sync>, VersionError> {
+    // Use injected mock repo if available (for testing)
+    if let Some(repo) = &state.branch_repo {
+        return Ok(Arc::clone(repo));
+    }
     match &state.pg {
-        Some(pool) => Ok(BranchRepository::new(pool.pool().clone())),
+        Some(pool) => Ok(Arc::new(BranchRepository::new(pool.pool().clone()))),
         None => Err(VersionError::PgNotConfigured),
     }
 }
@@ -155,10 +163,44 @@ pub async fn merge_branches_handler(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use axum::{
+        body::Body,
+        http::{Method, StatusCode},
+    };
+    use chrono::Utc;
+    use tower::ServiceExt;
     use uuid::Uuid;
 
+    use crate::models::Branch;
+    use crate::repositories::branch_repo::mock::MockBranchRepository;
+    use crate::routes;
+
     fn test_state() -> Arc<AppState> {
-        Arc::new(AppState { pg: None })
+        Arc::new(AppState {
+            pg: None,
+            branch_repo: None,
+            commit_repo: None,
+        })
+    }
+
+    /// Builds a test router with the given mock branch repository injected.
+    fn build_app(repo: MockBranchRepository) -> axum::Router {
+        let state = Arc::new(AppState {
+            pg: None,
+            branch_repo: Some(Arc::new(repo)),
+            commit_repo: None,
+        });
+        routes::build_routes().with_state(state)
+    }
+
+    fn req(method: Method, uri: &str, body: Option<&str>) -> axum::http::Request<Body> {
+        let mut b = axum::http::Request::builder().method(method).uri(uri);
+        if let Some(body) = body {
+            b = b.header("Content-Type", "application/json");
+            b.body(Body::from(body.to_string())).unwrap()
+        } else {
+            b.body(Body::empty()).unwrap()
+        }
     }
 
     #[tokio::test]
@@ -245,5 +287,151 @@ mod tests {
             Err(VersionError::PgNotConfigured) => {}
             _ => panic!("Expected PgNotConfigured error"),
         }
+    }
+
+    // ── Mock-based smoke tests ─────────────────────────────────────────���
+
+    #[tokio::test]
+    async fn test_create_branch_mock_returns_created() {
+        let mut mock = MockBranchRepository::new();
+        mock.create_result = std::sync::Mutex::new(Some(Ok(Branch {
+            id: Uuid::new_v4(),
+            name: "feature/test-branch".to_string(),
+            ontology_id: Uuid::new_v4(),
+            head_commit_id: None,
+            created_at: Utc::now(),
+            is_protected: false,
+        })));
+
+        let app = build_app(mock);
+        let resp = app
+            .oneshot(req(
+                Method::POST,
+                "/api/v1/versioning/branches",
+                Some(r#"{"ontology_id":"00000000-0000-0000-0000-000000000001","name":"feature/test-branch"}"#),
+            ))
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::CREATED);
+    }
+
+    #[tokio::test]
+    async fn test_get_branch_mock_returns_ok() {
+        let mut mock = MockBranchRepository::new();
+        mock.get_by_id_result = std::sync::Mutex::new(Some(Ok(Branch {
+            id: Uuid::new_v4(),
+            name: "main".to_string(),
+            ontology_id: Uuid::new_v4(),
+            head_commit_id: None,
+            created_at: Utc::now(),
+            is_protected: true,
+        })));
+
+        let app = build_app(mock);
+        let resp = app
+            .oneshot(req(
+                Method::GET,
+                "/api/v1/versioning/branches/00000000-0000-0000-0000-000000000001",
+                None,
+            ))
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn test_list_branches_mock_returns_ok() {
+        let mut mock = MockBranchRepository::new();
+        mock.list_by_ontology_result = std::sync::Mutex::new(Some(Ok(vec![])));
+
+        let app = build_app(mock);
+        let resp = app
+            .oneshot(req(
+                Method::GET,
+                "/api/v1/versioning/branches?ontology_id=00000000-0000-0000-0000-000000000001",
+                None,
+            ))
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn test_delete_branch_mock_returns_no_content() {
+        let mut mock = MockBranchRepository::new();
+        mock.delete_result = std::sync::Mutex::new(Some(Ok(())));
+
+        let app = build_app(mock);
+        let resp = app
+            .oneshot(req(
+                Method::DELETE,
+                "/api/v1/versioning/branches/00000000-0000-0000-0000-000000000001",
+                Some(r#"{"force":false}"#),
+            ))
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::NO_CONTENT);
+    }
+
+    #[tokio::test]
+    async fn test_switch_branch_mock_returns_ok() {
+        let mut mock = MockBranchRepository::new();
+        mock.switch_branch_result = std::sync::Mutex::new(Some(Ok(SwitchBranchResponse {
+            branch_id: Uuid::new_v4(),
+            head_commit_id: None,
+        })));
+
+        let app = build_app(mock);
+        let resp = app
+            .oneshot(req(
+                Method::POST,
+                "/api/v1/versioning/branches/00000000-0000-0000-0000-000000000001/switch",
+                None,
+            ))
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn test_merge_branches_mock_returns_ok_or_error() {
+        let mut mock = MockBranchRepository::new();
+        mock.merge_branches_result = std::sync::Mutex::new(Some(Ok(MergeResponse {
+            merge_commit_id: Uuid::new_v4(),
+            source_branch: Uuid::new_v4(),
+            target_branch: Uuid::new_v4(),
+            conflict_count: 0,
+            auto_resolved: true,
+        })));
+
+        let app = build_app(mock);
+        let resp = app
+            .oneshot(req(
+                Method::POST,
+                "/api/v1/versioning/branches/merge",
+                Some(r#"{"source_branch_id":"00000000-0000-0000-0000-000000000001","target_branch_id":"00000000-0000-0000-0000-000000000002","message":"merge","author_id":"user","author_name":"User"}"#),
+            ))
+            .await
+            .unwrap();
+        assert!(resp.status().is_success() || resp.status().is_client_error());
+    }
+
+    #[tokio::test]
+    async fn test_get_branch_mock_returns_not_found() {
+        let mut mock = MockBranchRepository::new();
+        mock.get_by_id_result = std::sync::Mutex::new(Some(Err(VersionError::BranchNotFound(
+            "00000000-0000-0000-0000-000000000001".to_string(),
+        ))));
+
+        let app = build_app(mock);
+        let resp = app
+            .oneshot(req(
+                Method::GET,
+                "/api/v1/versioning/branches/00000000-0000-0000-0000-000000000001",
+                None,
+            ))
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::NOT_FOUND);
     }
 }

@@ -24,7 +24,11 @@ use tower::ServiceExt;
 use versioning_service::{routes::build_routes, AppState};
 
 fn app_no_db() -> axum::Router {
-    let state = Arc::new(AppState { pg: None });
+    let state = Arc::new(AppState {
+        pg: None,
+        branch_repo: None,
+        commit_repo: None,
+    });
     build_routes().with_state(state)
 }
 

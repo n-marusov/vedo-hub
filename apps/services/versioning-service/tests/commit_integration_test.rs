@@ -2,6 +2,10 @@
 //!
 //! Validates: REQ-FUN.DATA.versioning
 //!
+//! Only `test_create_commit_via_api` remains here because it verifies data
+//! directly in PostgreSQL (SELECT COUNT(*)). Other commit smoke tests have
+//! been moved to `src/handlers/commit_handler.rs` (mock-based).
+//!
 //! Requires running PostgreSQL. Set PG_TEST_DATABASE_URL env var to enable.
 
 mod common;
@@ -24,9 +28,7 @@ fn req(method: Method, uri: &str, body: Option<&str>) -> Request<Body> {
 
 #[tokio::test]
 async fn test_create_commit_via_api() {
-    if !common::skip_if_no_pg() {
-        return;
-    }
+    common::require_pg();
     let pool = common::connect_test_pg().await;
     let app = common::build_test_app(pool.clone());
 
@@ -48,68 +50,4 @@ async fn test_create_commit_via_api() {
         .await
         .unwrap_or(0);
     assert!(count > 0, "commit should exist in PostgreSQL");
-}
-
-#[tokio::test]
-async fn test_list_commits_works() {
-    if !common::skip_if_no_pg() {
-        return;
-    }
-    let pool = common::connect_test_pg().await;
-    let app = common::build_test_app(pool);
-
-    let resp = app
-        .clone()
-        .oneshot(req(Method::GET, "/api/v1/versioning/commits", None))
-        .await
-        .unwrap();
-    assert_eq!(resp.status(), StatusCode::OK);
-}
-
-#[tokio::test]
-async fn test_get_commit_returns_data() {
-    if !common::skip_if_no_pg() {
-        return;
-    }
-    let pool = common::connect_test_pg().await;
-    let app = common::build_test_app(pool);
-
-    // Create a commit first
-    let _ = app
-        .clone()
-        .oneshot(req(
-            Method::POST,
-            "/api/v1/versioning/commits",
-            Some(r#"{"ontology_id":"test-get","message":"Get test","author":"test-get"}"#),
-        ))
-        .await
-        .unwrap();
-
-    // Fetch the commit by ID (simplified: assume ID 1)
-    let resp = app
-        .clone()
-        .oneshot(req(Method::GET, "/api/v1/versioning/commits/1", None))
-        .await
-        .unwrap();
-    assert!(resp.status().is_success() || resp.status() == StatusCode::NOT_FOUND);
-}
-
-#[tokio::test]
-async fn test_rollback_commit_endpoint() {
-    if !common::skip_if_no_pg() {
-        return;
-    }
-    let pool = common::connect_test_pg().await;
-    let app = common::build_test_app(pool);
-
-    let resp = app
-        .clone()
-        .oneshot(req(
-            Method::POST,
-            "/api/v1/versioning/commits/1/rollback",
-            None,
-        ))
-        .await
-        .unwrap();
-    assert!(resp.status().is_success() || resp.status().is_client_error());
 }

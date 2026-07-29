@@ -71,7 +71,11 @@ mod tests {
     use tower::ServiceExt;
 
     fn test_state() -> Arc<AppState> {
-        Arc::new(AppState { pg: None })
+        Arc::new(AppState {
+            pg: None,
+            branch_repo: None,
+            commit_repo: None,
+        })
     }
 
     #[tokio::test]

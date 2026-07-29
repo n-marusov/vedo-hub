@@ -17,6 +17,8 @@ use axum::{extract::State, routing::get, Json, Router};
 use serde::Serialize;
 use tower_http::trace::TraceLayer;
 
+use crate::repositories::{BranchRepositoryTrait, CommitRepositoryTrait};
+
 pub const SERVICE_NAME: &str = "versioning-service";
 pub const DEFAULT_PORT: &str = "8083";
 
@@ -24,6 +26,12 @@ pub const DEFAULT_PORT: &str = "8083";
 #[derive(Clone)]
 pub struct AppState {
     pub pg: Option<postgres::PgPoolWrapper>,
+    /// Injectable branch repository mock (for testing). When set, handlers
+    /// use this instead of creating a real `BranchRepository` from `pg`.
+    pub branch_repo: Option<Arc<dyn BranchRepositoryTrait + Send + Sync>>,
+    /// Injectable commit repository mock (for testing). When set, handlers
+    /// use this instead of creating a real `CommitRepository` from `pg`.
+    pub commit_repo: Option<Arc<dyn CommitRepositoryTrait + Send + Sync>>,
 }
 
 #[derive(Serialize)]
@@ -122,7 +130,11 @@ mod tests {
     use tower::ServiceExt;
 
     fn test_state() -> Arc<AppState> {
-        Arc::new(AppState { pg: None })
+        Arc::new(AppState {
+            pg: None,
+            branch_repo: None,
+            commit_repo: None,
+        })
     }
 
     #[tokio::test]

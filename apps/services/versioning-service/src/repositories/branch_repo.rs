@@ -12,6 +12,42 @@ use crate::models::{
     MergeBranchesRequest, MergeMetadata, MergeResponse, SwitchBranchResponse,
 };
 
+// ── Trait ────────────────────────────────────────────────────────────────
+
+/// Trait for branch repository operations. Allows mocking in unit tests.
+#[async_trait::async_trait]
+pub trait BranchRepositoryTrait: Send + Sync {
+    /// Creates a new branch. If a `source_branch_id` is provided, copies the
+    /// source branch's head commit as this branch's starting point.
+    async fn create(&self, req: &CreateBranchRequest) -> Result<Branch, VersionError>;
+
+    /// Retrieves a single branch by its ID.
+    async fn get_by_id(&self, id: Uuid) -> Result<Branch, VersionError>;
+
+    /// Lists all branches for an ontology, with latest commit info and
+    /// ahead/behind counts versus a reference branch.
+    async fn list_by_ontology(
+        &self,
+        ontology_id: Uuid,
+        reference_branch_id: Option<Uuid>,
+    ) -> Result<Vec<BranchWithCommit>, VersionError>;
+
+    /// Updates the head commit pointer for a branch (used after creating a commit).
+    async fn update_head(&self, branch_id: Uuid, commit_id: Uuid) -> Result<(), VersionError>;
+
+    /// Deletes a branch by ID. Protected branches require `force: true`.
+    async fn delete(&self, id: Uuid, req: &DeleteBranchRequest) -> Result<(), VersionError>;
+
+    /// Merges source branch into target branch, creating a merge commit.
+    async fn merge_branches(
+        &self,
+        req: &MergeBranchesRequest,
+    ) -> Result<MergeResponse, VersionError>;
+
+    /// Returns the head commit ID for a branch (used for switching).
+    async fn switch_branch(&self, id: Uuid) -> Result<SwitchBranchResponse, VersionError>;
+}
+
 /// Repository for branch operations against `PostgreSQL`.
 pub struct BranchRepository {
     pool: PgPool,
@@ -27,12 +63,15 @@ impl BranchRepository {
     pub fn pool(&self) -> &PgPool {
         &self.pool
     }
+}
 
+#[async_trait::async_trait]
+impl BranchRepositoryTrait for BranchRepository {
     // ── Create ────────────────────────────────────────────────────────────
 
     /// Creates a new branch. If a `source_branch_id` is provided, copies the
     /// source branch's head commit as this branch's starting point.
-    pub async fn create(&self, req: &CreateBranchRequest) -> Result<Branch, VersionError> {
+    async fn create(&self, req: &CreateBranchRequest) -> Result<Branch, VersionError> {
         tracing::debug!(
             name = %req.name,
             ontology_id = %req.ontology_id,
@@ -103,7 +142,7 @@ impl BranchRepository {
     // ── Read ──────────────────────────────────────────────────────────────
 
     /// Retrieves a single branch by its ID.
-    pub async fn get_by_id(&self, id: Uuid) -> Result<Branch, VersionError> {
+    async fn get_by_id(&self, id: Uuid) -> Result<Branch, VersionError> {
         tracing::debug!(branch_id = %id, "Fetching branch by ID");
 
         let row = sqlx::query(
@@ -125,7 +164,7 @@ impl BranchRepository {
 
     /// Lists all branches for an ontology, with latest commit info and
     /// ahead/behind counts versus a reference branch.
-    pub async fn list_by_ontology(
+    async fn list_by_ontology(
         &self,
         ontology_id: Uuid,
         reference_branch_id: Option<Uuid>,
@@ -191,7 +230,7 @@ impl BranchRepository {
     // ── Update ────────────────────────────────────────────────────────────
 
     /// Updates the head commit pointer for a branch (used after creating a commit).
-    pub async fn update_head(&self, branch_id: Uuid, commit_id: Uuid) -> Result<(), VersionError> {
+    async fn update_head(&self, branch_id: Uuid, commit_id: Uuid) -> Result<(), VersionError> {
         sqlx::query("UPDATE branches SET head_commit_id = $1 WHERE id = $2")
             .bind(commit_id)
             .bind(branch_id)
@@ -204,10 +243,7 @@ impl BranchRepository {
     // ── Delete ────────────────────────────────────────────────────────────
 
     /// Deletes a branch by ID. Protected branches require `force: true`.
-    /// Both the commits DELETE and the branch DELETE run inside a single
-    /// `PostgreSQL` transaction so a partial failure cannot leave orphaned
-    /// commits.
-    pub async fn delete(&self, id: Uuid, req: &DeleteBranchRequest) -> Result<(), VersionError> {
+    async fn delete(&self, id: Uuid, req: &DeleteBranchRequest) -> Result<(), VersionError> {
         tracing::debug!(
             branch_id = %id,
             force = req.force,
@@ -279,7 +315,7 @@ impl BranchRepository {
     /// Returns an error when both branches are at the same commit (nothing
     /// to merge) or when either branch cannot be resolved.
     #[allow(clippy::too_many_lines)]
-    pub async fn merge_branches(
+    async fn merge_branches(
         &self,
         req: &MergeBranchesRequest,
     ) -> Result<MergeResponse, VersionError> {
@@ -414,7 +450,7 @@ impl BranchRepository {
 
     /// Returns the head commit ID for a branch (used for switching).
     /// Actual state computation is deferred to Task 3.3 (checkout).
-    pub async fn switch_branch(&self, id: Uuid) -> Result<SwitchBranchResponse, VersionError> {
+    async fn switch_branch(&self, id: Uuid) -> Result<SwitchBranchResponse, VersionError> {
         let branch = self.get_by_id(id).await?;
 
         tracing::info!(
@@ -428,13 +464,13 @@ impl BranchRepository {
             head_commit_id: branch.head_commit_id,
         })
     }
+}
 
-    // ── Helpers ───────────────────────────────────────────────────────────
-
+impl BranchRepository {
     /// Computes ahead/behind counts between two branches using the commit DAG.
     /// Ahead = commits in `branch_id` not reachable from `reference_id`.
     /// Behind = commits in `reference_id` not reachable from `branch_id`.
-    async fn compute_ahead_behind(
+    pub(crate) async fn compute_ahead_behind(
         &self,
         branch_id: Uuid,
         reference_id: Uuid,
@@ -542,6 +578,101 @@ fn row_to_branch(row: &sqlx::postgres::PgRow) -> Result<Branch, VersionError> {
         created_at: row.try_get("created_at")?,
         is_protected: row.try_get("is_protected")?,
     })
+}
+
+// ── Mock for testing ───────────────────────────────────────────────────
+
+#[cfg(test)]
+pub(crate) mod mock {
+    use super::*;
+    use std::sync::Mutex;
+
+    /// Mock implementation of `BranchRepositoryTrait` for unit tests.
+    /// Each method returns a configurable result.
+    pub struct MockBranchRepository {
+        pub create_result: Mutex<Option<Result<Branch, VersionError>>>,
+        pub get_by_id_result: Mutex<Option<Result<Branch, VersionError>>>,
+        pub list_by_ontology_result: Mutex<Option<Result<Vec<BranchWithCommit>, VersionError>>>,
+        pub update_head_result: Mutex<Option<Result<(), VersionError>>>,
+        pub delete_result: Mutex<Option<Result<(), VersionError>>>,
+        pub merge_branches_result: Mutex<Option<Result<MergeResponse, VersionError>>>,
+        pub switch_branch_result: Mutex<Option<Result<SwitchBranchResponse, VersionError>>>,
+    }
+
+    impl MockBranchRepository {
+        /// Creates a new `MockBranchRepository` with default error results.
+        pub fn new() -> Self {
+            Self {
+                create_result: Mutex::new(None),
+                get_by_id_result: Mutex::new(None),
+                list_by_ontology_result: Mutex::new(None),
+                update_head_result: Mutex::new(None),
+                delete_result: Mutex::new(None),
+                merge_branches_result: Mutex::new(None),
+                switch_branch_result: Mutex::new(None),
+            }
+        }
+
+        fn take_or_error<T>(
+            cell: &Mutex<Option<Result<T, VersionError>>>,
+        ) -> Result<T, VersionError>
+        where
+            T: std::fmt::Debug,
+        {
+            let mut guard = cell.lock().unwrap();
+            guard
+                .take()
+                .unwrap_or_else(|| Err(VersionError::PgNotConfigured))
+        }
+    }
+
+    impl Default for MockBranchRepository {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+
+    #[async_trait::async_trait]
+    impl BranchRepositoryTrait for MockBranchRepository {
+        async fn create(&self, _req: &CreateBranchRequest) -> Result<Branch, VersionError> {
+            Self::take_or_error(&self.create_result)
+        }
+
+        async fn get_by_id(&self, _id: Uuid) -> Result<Branch, VersionError> {
+            Self::take_or_error(&self.get_by_id_result)
+        }
+
+        async fn list_by_ontology(
+            &self,
+            _ontology_id: Uuid,
+            _reference_branch_id: Option<Uuid>,
+        ) -> Result<Vec<BranchWithCommit>, VersionError> {
+            Self::take_or_error(&self.list_by_ontology_result)
+        }
+
+        async fn update_head(
+            &self,
+            _branch_id: Uuid,
+            _commit_id: Uuid,
+        ) -> Result<(), VersionError> {
+            Self::take_or_error(&self.update_head_result)
+        }
+
+        async fn delete(&self, _id: Uuid, _req: &DeleteBranchRequest) -> Result<(), VersionError> {
+            Self::take_or_error(&self.delete_result)
+        }
+
+        async fn merge_branches(
+            &self,
+            _req: &MergeBranchesRequest,
+        ) -> Result<MergeResponse, VersionError> {
+            Self::take_or_error(&self.merge_branches_result)
+        }
+
+        async fn switch_branch(&self, _id: Uuid) -> Result<SwitchBranchResponse, VersionError> {
+            Self::take_or_error(&self.switch_branch_result)
+        }
+    }
 }
 
 #[cfg(test)]

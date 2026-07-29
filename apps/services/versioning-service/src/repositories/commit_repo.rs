@@ -12,6 +12,37 @@ use crate::models::{
     Commit, CommitDelta, CommitSummary, CreateCommitRequest, ListCommitsParams, PaginatedResponse,
 };
 
+// ── Trait ────────────────────────────────────────────────────────────────
+
+/// Trait for commit repository operations. Allows mocking in unit tests.
+#[async_trait::async_trait]
+pub trait CommitRepositoryTrait: Send + Sync {
+    /// Creates a new commit with the given delta.
+    async fn create(&self, req: &CreateCommitRequest) -> Result<Commit, VersionError>;
+
+    /// Retrieves a single commit by its ID, including the full delta.
+    async fn get_by_id(&self, id: Uuid) -> Result<Commit, VersionError>;
+
+    /// Lists commits with optional branch filtering, pagination, and sorting.
+    async fn list(
+        &self,
+        params: &ListCommitsParams,
+    ) -> Result<PaginatedResponse<CommitSummary>, VersionError>;
+
+    /// Retrieves the delta for a specific commit.
+    async fn get_delta(&self, id: Uuid) -> Result<CommitDelta, VersionError>;
+
+    /// Checks whether `target_commit_id` is an ancestor of `head_commit_id`.
+    async fn is_ancestor_of(
+        &self,
+        head_commit_id: Uuid,
+        target_commit_id: Uuid,
+    ) -> Result<bool, VersionError>;
+
+    /// Returns the number of commits on a given branch.
+    async fn count_by_branch(&self, branch_id: Uuid) -> Result<i64, VersionError>;
+}
+
 /// Repository for commit operations against `PostgreSQL`.
 pub struct CommitRepository {
     pool: PgPool,
@@ -27,14 +58,14 @@ impl CommitRepository {
     pub fn pool(&self) -> &PgPool {
         &self.pool
     }
+}
 
+#[async_trait::async_trait]
+impl CommitRepositoryTrait for CommitRepository {
     // ── Create ────────────────────────────────────────────────────────────
 
     /// Creates a new commit with the given delta.
-    ///
-    /// Validates that the delta is not empty and that the referenced branch
-    /// exists. Computes `parent_commit_id` from the branch's current head.
-    pub async fn create(&self, req: &CreateCommitRequest) -> Result<Commit, VersionError> {
+    async fn create(&self, req: &CreateCommitRequest) -> Result<Commit, VersionError> {
         if req.delta.is_empty() {
             return Err(VersionError::EmptyDelta);
         }
@@ -111,7 +142,7 @@ impl CommitRepository {
     // ── Read ──────────────────────────────────────────────────────────────
 
     /// Retrieves a single commit by its ID, including the full delta.
-    pub async fn get_by_id(&self, id: Uuid) -> Result<Commit, VersionError> {
+    async fn get_by_id(&self, id: Uuid) -> Result<Commit, VersionError> {
         tracing::debug!(commit_id = %id, "Fetching commit by ID");
 
         let row = sqlx::query(
@@ -134,7 +165,7 @@ impl CommitRepository {
 
     /// Lists commits with optional branch filtering, pagination, and sorting.
     #[allow(clippy::cast_possible_wrap, clippy::cast_sign_loss)]
-    pub async fn list(
+    async fn list(
         &self,
         params: &ListCommitsParams,
     ) -> Result<PaginatedResponse<CommitSummary>, VersionError> {
@@ -221,7 +252,7 @@ impl CommitRepository {
     }
 
     /// Retrieves the delta for a specific commit (returns the raw delta).
-    pub async fn get_delta(&self, id: Uuid) -> Result<CommitDelta, VersionError> {
+    async fn get_delta(&self, id: Uuid) -> Result<CommitDelta, VersionError> {
         let commit = self.get_by_id(id).await?;
         Ok(commit.delta)
     }
@@ -229,7 +260,7 @@ impl CommitRepository {
     /// Checks whether `target_commit_id` is an ancestor of `head_commit_id`
     /// by walking the `parent_commit_id` chain using a recursive CTE.
     /// Returns `true` when the target commit is reachable from the head.
-    pub async fn is_ancestor_of(
+    async fn is_ancestor_of(
         &self,
         head_commit_id: Uuid,
         target_commit_id: Uuid,
@@ -257,7 +288,7 @@ impl CommitRepository {
     }
 
     /// Returns the number of commits on a given branch.
-    pub async fn count_by_branch(&self, branch_id: Uuid) -> Result<i64, VersionError> {
+    async fn count_by_branch(&self, branch_id: Uuid) -> Result<i64, VersionError> {
         let count: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM commits WHERE branch_id = $1")
             .bind(branch_id)
             .fetch_one(self.pool())
@@ -292,6 +323,90 @@ pub fn row_to_commit(row: &sqlx::postgres::PgRow) -> Result<Commit, VersionError
         delta,
         created_at,
     })
+}
+
+// ── Mock for testing ───────────────────────────────────────────────────
+
+#[cfg(test)]
+pub(crate) mod mock {
+    use super::*;
+    use std::sync::Mutex;
+
+    /// Mock implementation of `CommitRepositoryTrait` for unit tests.
+    pub struct MockCommitRepository {
+        pub create_result: Mutex<Option<Result<Commit, VersionError>>>,
+        pub get_by_id_result: Mutex<Option<Result<Commit, VersionError>>>,
+        pub list_result: Mutex<Option<Result<PaginatedResponse<CommitSummary>, VersionError>>>,
+        pub get_delta_result: Mutex<Option<Result<CommitDelta, VersionError>>>,
+        pub is_ancestor_of_result: Mutex<Option<Result<bool, VersionError>>>,
+        pub count_by_branch_result: Mutex<Option<Result<i64, VersionError>>>,
+    }
+
+    impl MockCommitRepository {
+        /// Creates a new `MockCommitRepository` with default error results.
+        pub fn new() -> Self {
+            Self {
+                create_result: Mutex::new(None),
+                get_by_id_result: Mutex::new(None),
+                list_result: Mutex::new(None),
+                get_delta_result: Mutex::new(None),
+                is_ancestor_of_result: Mutex::new(None),
+                count_by_branch_result: Mutex::new(None),
+            }
+        }
+
+        fn take_or_error<T>(
+            cell: &Mutex<Option<Result<T, VersionError>>>,
+        ) -> Result<T, VersionError>
+        where
+            T: std::fmt::Debug,
+        {
+            let mut guard = cell.lock().unwrap();
+            guard
+                .take()
+                .unwrap_or_else(|| Err(VersionError::PgNotConfigured))
+        }
+    }
+
+    impl Default for MockCommitRepository {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+
+    #[async_trait::async_trait]
+    impl CommitRepositoryTrait for MockCommitRepository {
+        async fn create(&self, _req: &CreateCommitRequest) -> Result<Commit, VersionError> {
+            Self::take_or_error(&self.create_result)
+        }
+
+        async fn get_by_id(&self, _id: Uuid) -> Result<Commit, VersionError> {
+            Self::take_or_error(&self.get_by_id_result)
+        }
+
+        async fn list(
+            &self,
+            _params: &ListCommitsParams,
+        ) -> Result<PaginatedResponse<CommitSummary>, VersionError> {
+            Self::take_or_error(&self.list_result)
+        }
+
+        async fn get_delta(&self, _id: Uuid) -> Result<CommitDelta, VersionError> {
+            Self::take_or_error(&self.get_delta_result)
+        }
+
+        async fn is_ancestor_of(
+            &self,
+            _head_commit_id: Uuid,
+            _target_commit_id: Uuid,
+        ) -> Result<bool, VersionError> {
+            Self::take_or_error(&self.is_ancestor_of_result)
+        }
+
+        async fn count_by_branch(&self, _branch_id: Uuid) -> Result<i64, VersionError> {
+            Self::take_or_error(&self.count_by_branch_result)
+        }
+    }
 }
 
 #[cfg(test)]

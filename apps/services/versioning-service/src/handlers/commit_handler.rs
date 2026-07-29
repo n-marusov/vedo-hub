@@ -17,7 +17,7 @@ use crate::models::{
     CommitDeltaPreview, CommitDetailResponse, CommitSummary, CreateCommitRequest,
     ListCommitsParams, PaginatedResponse,
 };
-use crate::repositories::CommitRepository;
+use crate::repositories::{CommitRepository, CommitRepositoryTrait};
 use crate::services::delta_service::DeltaReplayEngine;
 use crate::services::semantic_diff::SemanticDiff;
 use crate::services::state_service::StateService;
@@ -26,9 +26,16 @@ use crate::AppState;
 
 /// Helper: extracts a `CommitRepository` from the application state or returns
 /// a `PgNotConfigured` error when no database pool is available.
-fn repo_from_state(state: &AppState) -> Result<CommitRepository, VersionError> {
+/// Prefers an injected mock repo when available.
+fn repo_from_state(
+    state: &AppState,
+) -> Result<Arc<dyn CommitRepositoryTrait + Send + Sync>, VersionError> {
+    // Use injected mock repo if available (for testing)
+    if let Some(repo) = &state.commit_repo {
+        return Ok(Arc::clone(repo));
+    }
     match &state.pg {
-        Some(pool) => Ok(CommitRepository::new(pool.pool().clone())),
+        Some(pool) => Ok(Arc::new(CommitRepository::new(pool.pool().clone()))),
         None => Err(VersionError::PgNotConfigured),
     }
 }
@@ -268,13 +275,67 @@ pub async fn rollback_commit_handler(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use axum::extract::Path;
+    use axum::{
+        body::Body,
+        extract::Path,
+        http::{Method, StatusCode},
+    };
+    use chrono::Utc;
+    use tower::ServiceExt;
     use uuid::Uuid;
 
-    use crate::models::{CommitDelta, TripleRef};
+    use crate::models::{Commit, CommitDelta, CommitSummary, TripleRef};
+    use crate::repositories::commit_repo::mock::MockCommitRepository;
+    use crate::routes;
 
     fn test_state() -> Arc<AppState> {
-        Arc::new(AppState { pg: None })
+        Arc::new(AppState {
+            pg: None,
+            branch_repo: None,
+            commit_repo: None,
+        })
+    }
+
+    /// Builds a test router with the given mock commit repository injected.
+    fn build_app(repo: MockCommitRepository) -> axum::Router {
+        let state = Arc::new(AppState {
+            pg: None,
+            branch_repo: None,
+            commit_repo: Some(Arc::new(repo)),
+        });
+        routes::build_routes().with_state(state)
+    }
+
+    fn req(method: Method, uri: &str, body: Option<&str>) -> axum::http::Request<Body> {
+        let mut b = axum::http::Request::builder().method(method).uri(uri);
+        if let Some(body) = body {
+            b = b.header("Content-Type", "application/json");
+            b.body(Body::from(body.to_string())).unwrap()
+        } else {
+            b.body(Body::empty()).unwrap()
+        }
+    }
+
+    fn sample_commit() -> Commit {
+        Commit {
+            id: Uuid::new_v4(),
+            branch_id: Uuid::new_v4(),
+            parent_commit_id: None,
+            message: "test".to_string(),
+            author_id: "user".to_string(),
+            author_name: "User".to_string(),
+            delta: CommitDelta {
+                added_triples: vec![TripleRef {
+                    s: "A".to_string(),
+                    p: "B".to_string(),
+                    o: "C".to_string(),
+                }],
+                removed_triples: vec![],
+                modified_triples: vec![],
+                merge_metadata: None,
+            },
+            created_at: Utc::now(),
+        }
     }
 
     #[tokio::test]
@@ -343,5 +404,82 @@ mod tests {
             Err(VersionError::PgNotConfigured) => {} // expected
             _ => panic!("Expected PgNotConfigured error"),
         }
+    }
+
+    // ── Mock-based smoke tests ───────────────────────────────────────────
+
+    #[tokio::test]
+    async fn test_get_commit_mock_returns_ok() {
+        let mut mock = MockCommitRepository::new();
+        let commit = sample_commit();
+        let commit_id = commit.id;
+        mock.get_by_id_result = std::sync::Mutex::new(Some(Ok(commit)));
+
+        let app = build_app(mock);
+        let resp = app
+            .oneshot(req(
+                Method::GET,
+                &format!("/api/v1/versioning/commits/{commit_id}"),
+                None,
+            ))
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn test_list_commits_mock_returns_ok() {
+        let mut mock = MockCommitRepository::new();
+        mock.list_result = std::sync::Mutex::new(Some(Ok(crate::models::PaginatedResponse {
+            items: vec![CommitSummary::from(sample_commit())],
+            total: 1,
+            page: 0,
+            per_page: 20,
+        })));
+
+        let app = build_app(mock);
+        let resp = app
+            .oneshot(req(Method::GET, "/api/v1/versioning/commits", None))
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn test_get_delta_nonexistent_mock_returns_404() {
+        let mut mock = MockCommitRepository::new();
+        mock.get_by_id_result = std::sync::Mutex::new(Some(Err(VersionError::CommitNotFound(
+            "00000000-0000-0000-0000-000000000000".to_string(),
+        ))));
+
+        let app = build_app(mock);
+        let resp = app
+            .oneshot(req(
+                Method::GET,
+                "/api/v1/versioning/commits/00000000-0000-0000-0000-000000000000/delta",
+                None,
+            ))
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+    }
+
+    #[tokio::test]
+    async fn test_get_semantic_diff_nonexistent_mock_returns_404() {
+        let mut mock = MockCommitRepository::new();
+        mock.get_by_id_result = std::sync::Mutex::new(Some(Err(VersionError::CommitNotFound(
+            "00000000-0000-0000-0000-000000000000".to_string(),
+        ))));
+
+        let app = build_app(mock);
+        let resp = app
+            .oneshot(req(
+                Method::GET,
+                "/api/v1/versioning/commits/00000000-0000-0000-0000-000000000000/semantic-diff",
+                None,
+            ))
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::NOT_FOUND);
     }
 }

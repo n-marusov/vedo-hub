@@ -10,7 +10,9 @@ use uuid::Uuid;
 
 use crate::error::VersionError;
 use crate::models::{Commit, CreateCommitRequest};
-use crate::repositories::{BranchRepository, CommitRepository};
+use crate::repositories::{
+    BranchRepository, BranchRepositoryTrait, CommitRepository, CommitRepositoryTrait,
+};
 use crate::services::delta_service::{DeltaReplayEngine, MaterializedState};
 use crate::services::sync_client::SyncClient;
 

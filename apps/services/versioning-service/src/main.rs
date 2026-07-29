@@ -19,7 +19,11 @@ async fn main() {
 
     // Initialize PostgreSQL connection pool
     let pg_pool = versioning_service::init_pg_pool().await;
-    let state = std::sync::Arc::new(versioning_service::AppState { pg: pg_pool });
+    let state = std::sync::Arc::new(versioning_service::AppState {
+        pg: pg_pool,
+        branch_repo: None,
+        commit_repo: None,
+    });
     let http_app = versioning_service::build_app(state);
 
     // gRPC server
