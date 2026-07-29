@@ -1,0 +1,248 @@
+{
+  "run_id": "project-creation-ac-20260729-124500",
+  "task_alias": "project-creation-ac",
+  "status": "completed",
+  "iteration": 1,
+  "max_iterations": 20,
+  "phase": "B",
+  "current_step": "EVALUATE",
+  "task": {
+    "prompt": "Verify all 24 acceptance criteria from the 'project-creation-in-group' plan are satisfied by the current implementation. The plan covers: page-based create project UI (Vue 3), API Gateway handler (Go), auth-service backend (Go), proto changes, OpenAPI spec, i18n, tests (unit + E2E), docs, and traceability. All tasks are marked completed [x]. Produce a verification report that checks each criterion against actual source code.",
+    "ideal_result": "A verification report with each of the 24 acceptance criteria rated PASS/FAIL/SKIP, with evidence (file paths, code snippets, test results) for each verdict, and actionable fix instructions for any FAIL criteria."
+  },
+  "criteria": {
+    "name": "project-creation-ac-v1",
+    "version": 1,
+    "phase": {
+      "A": { "threshold": 1.0, "active_levels": ["A"] },
+      "B": { "threshold": 1.0, "active_levels": ["A", "B"] }
+    },
+    "rules": [
+      {
+        "id": "a.criteria.navigation",
+        "description": "`New project` on ProjectsPage opens `/dashboard/projects/new` (page), not a dialog",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "Verify ProjectsPage.vue uses router.push to navigate to 'project-create' route instead of opening CreateProjectDialog"
+      },
+      {
+        "id": "a.criteria.validation",
+        "description": "Create Project page requires selected Group and project name (inline validation errors)",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "Verify CreateProjectPage.vue has required validation for group selection and project name field"
+      },
+      {
+        "id": "a.criteria.group-selector",
+        "description": "Group selector shows human-readable group names (loaded from `listGroups()`)",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "Verify CreateProjectPage.vue loads groups via listGroups() and displays human-readable names in selector"
+      },
+      {
+        "id": "a.criteria.canonical-payload",
+        "description": "Frontend sends canonical JSON: `name`, `description`, `group_id`, `visibility`",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "Verify org.ts createProject sends payload with name, description, group_id, visibility fields (no label field)"
+      },
+      {
+        "id": "a.criteria.gateway-name",
+        "description": "API Gateway accepts `name` as canonical; `label` as deprecated fallback",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "Verify API Gateway org_handler.go HandleCreateProject uses name as canonical with label as deprecated fallback with warning log"
+      },
+      {
+        "id": "a.criteria.gateway-error-map",
+        "description": "API Gateway uses proper error mapping (not always 500)",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "Verify API Gateway org_handler.go HandleCreateProject uses mapGrpcCodeToHTTP() for error responses"
+      },
+      {
+        "id": "a.criteria.ontology-pairing",
+        "description": "Backend creates Project under Group with paired Ontology UUID v4 (`ontology_id`)",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "Verify auth-service CreateProject generates UUID v4 for ontology_id and pairs it with the created scope"
+      },
+      {
+        "id": "a.criteria.visibility-validation",
+        "description": "Visibility is validated: project cannot be more public than parent Group",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "Verify visibility enforcement logic: project visibility <= parent group visibility is validated server-side"
+      },
+      {
+        "id": "a.criteria.role-validation",
+        "description": "Backend validates caller has at least Maintainer role in parent Group",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "Verify auth-service CreateScope checks caller has Maintainer+ role in parent Group, returns ErrForbiddenInsufficientRole otherwise"
+      },
+      {
+        "id": "a.criteria.owner-membership",
+        "description": "User becomes Owner of created Project (Owner membership auto-assigned)",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "Verify auth-service CreateProject auto-assigns Owner membership for the creator via UpsertMembership"
+      },
+      {
+        "id": "a.criteria.success-redirect",
+        "description": "On success: Toast shown (`Project created successfully`) + redirect to `/project/:id/workspace`",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "Verify CreateProjectPage.vue shows success Toast and redirects to /project/:id/workspace after creation"
+      },
+      {
+        "id": "a.criteria.structured-logging",
+        "description": "Structured logging in all modified backend handlers (INFO request/success, ERROR failure)",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "Verify API Gateway and auth-service handlers have slog.Info for request/success and slog.Error for failures"
+      },
+      {
+        "id": "a.criteria.all-tests-pass",
+        "description": "All tests pass (frontend vitest, API Gateway Go test, auth-service Go test, E2E Playwright)",
+        "severity": "fail",
+        "weight": 2,
+        "phase": "A",
+        "check": "Run frontend vitest, API Gateway go test, auth-service go test and verify all pass"
+      },
+      {
+        "id": "a.criteria.project-list",
+        "description": "Project appears in list with human-readable `name`",
+        "severity": "warn",
+        "weight": 1,
+        "phase": "A",
+        "check": "Verify ProjectsPage.vue displays project name (not label or slug) in the project list"
+      },
+      {
+        "id": "a.criteria.specs-updated",
+        "description": "Specs updated: `US-org.projects.create.md`, `UC-org.projects.manage-project-lifecycle.md`, requirements",
+        "severity": "warn",
+        "weight": 1,
+        "phase": "A",
+        "check": "Verify spec files exist: US-org.projects.create.md, UC-org.projects.manage-project-lifecycle.md, REQ-FUN.ORG.project-creation.md"
+      },
+      {
+        "id": "a.criteria.design-created",
+        "description": "Design updated: `design/pages/create-project.pen` created",
+        "severity": "warn",
+        "weight": 1,
+        "phase": "A",
+        "check": "Verify design/pages/create-project.pen file exists"
+      },
+      {
+        "id": "a.criteria.openapi-updated",
+        "description": "OpenAPI spec updated with new contract",
+        "severity": "warn",
+        "weight": 1,
+        "phase": "A",
+        "check": "Verify openapi.json contains CreateProjectRequest with name, group_id, visibility fields and 201/400/403/404/409/422 responses"
+      },
+      {
+        "id": "a.criteria.i18n-keys",
+        "description": "i18n keys added for Projects flow (en + ru)",
+        "severity": "warn",
+        "weight": 1,
+        "phase": "A",
+        "check": "Verify en.json and ru.json contain projects.* keys for the create project flow"
+      },
+      {
+        "id": "a.criteria.docs-updated",
+        "description": "Antora docs updated (organization-model.adoc)",
+        "severity": "warn",
+        "weight": 1,
+        "phase": "A",
+        "check": "Verify organization-model.adoc documents project creation flow, visibility inheritance, Owner auto-assignment"
+      },
+      {
+        "id": "b.criteria.traceability",
+        "description": "Traceability.ttl updated with new artifact relationships",
+        "severity": "warn",
+        "weight": 1,
+        "phase": "B",
+        "check": "Verify traceability.ttl contains entries for new/updated artifacts: US, UC, req, design, frontend pages, API handler, tests"
+      },
+      {
+        "id": "b.criteria.tqs-minimum",
+        "description": "Test Quality Score (TQS) >= bronze (6.0) for new tests",
+        "severity": "warn",
+        "weight": 1,
+        "phase": "B",
+        "check": "Verify TQS of new test files meets bronze threshold (6.0) — check for B1-B7 anti-patterns"
+      },
+      {
+        "id": "b.criteria.no-b-antipatterns",
+        "description": "No B1–B7 anti-patterns in new test files",
+        "severity": "warn",
+        "weight": 1,
+        "phase": "B",
+        "check": "Verify no B1-B7 anti-patterns (sleep, assertTrue(true), empty catch, tautologies, inline tests in source, etc.) in test files"
+      },
+      {
+        "id": "b.criteria.trace-annotations",
+        "description": "Traceability annotations present (`// Validates: REQ-...`)",
+        "severity": "warn",
+        "weight": 1,
+        "phase": "B",
+        "check": "Verify new/modified source files contain traceability annotations referencing requirement IDs"
+      },
+      {
+        "id": "b.criteria.legacy-dialog-deleted",
+        "description": "Legacy `CreateProjectDialog.vue` deleted if unused",
+        "severity": "warn",
+        "weight": 1,
+        "phase": "B",
+        "check": "Verify CreateProjectDialog.vue is deleted or no other component imports it"
+      }
+    ]
+  },
+  "plan": [
+    "Read key source files: ProjectsPage.vue, CreateProjectPage.vue, org.ts, org_handler.go, auth-service server.go, openapi.json",
+    "Run frontend and backend tests (vitest + go test)",
+    "Check spec/design/docs/traceability files",
+    "Produce initial verification report (artifact.md) with PASS/FAIL per criterion"
+  ]
+  "prepared_checks": null,
+  "evaluation": {
+    "phase_a": {
+      "score": 1.0,
+      "passed": true,
+      "failed_rules": [],
+      "warn_rules": [],
+      "threshold": 1.0,
+      "active_rules": 19,
+      "passed_rules": 19
+    },
+    "phase_b": {
+      "score": 1.0,
+      "passed": true,
+      "failed_rules": [],
+      "warn_rules": [],
+      "threshold": 1.0,
+      "active_rules": 24,
+      "passed_rules": 24
+    }
+  },
+  "critique": null,
+  "stop": { "passed": true, "reason": "threshold_reached" },
+  "last_score": 1.0,
+  "stagnation_count": 0,
+  "created_at": "2026-07-29T12:45:00Z",
+  "updated_at": "2026-07-29T12:52:00Z"
+}
