@@ -78,6 +78,12 @@ const routes: RouteRecordRaw[] = [
 		meta: { requiresAuth: true, title: "Projects" },
 	},
 	{
+		path: "/dashboard/projects/new",
+		name: "project-create",
+		component: () => import("@/pages/CreateProjectPage.vue"),
+		meta: { requiresAuth: true, title: "New Project" },
+	},
+	{
 		path: "/dashboard/merge_requests",
 		name: "merge-requests",
 		component: () => import("@/pages/MergeRequestsPage.vue"),

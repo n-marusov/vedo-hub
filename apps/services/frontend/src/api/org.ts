@@ -244,6 +244,7 @@ export async function createProject(params: {
 	name: string;
 	description?: string;
 	groupId?: string | null;
+	visibility?: string;
 }): Promise<ProjectInfo> {
 	console.info(
 		JSON.stringify({
@@ -251,15 +252,25 @@ export async function createProject(params: {
 			msg: "org.projects.create.request",
 			name: params.name,
 			groupId: params.groupId,
+			visibility: params.visibility,
 			ts: new Date().toISOString(),
 		}),
 	);
 
 	try {
-		const { data } = await api.post("/projects", {
-			label: params.name,
+		const payload: Record<string, unknown> = {
+			name: params.name,
 			description: params.description,
 			group_id: params.groupId ?? undefined,
+			visibility: params.visibility ?? "Private",
+		};
+
+		// Add Idempotency-Key for safe retry (REQ-FUN.API.write-idempotency).
+		const idempotencyKey =
+			crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+
+		const { data } = await api.post("/projects", payload, {
+			headers: { "Idempotency-Key": idempotencyKey },
 		});
 		console.info(
 			JSON.stringify({
