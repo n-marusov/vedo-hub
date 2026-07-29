@@ -58,24 +58,33 @@ make typecheck               # TypeScript type checking (vue-tsc)
 
 ### Test
 
-```bash
-make test-unit-fast         # Unit tests — fail-fast (stops at first failure)
-make test-fast              # All tests — fail-fast (unit + integration + e2e + gates)
-make test-unit-full         # Unit tests — full statistics (collect all failures)
-make test-full              # All tests — full statistics
-make test-integration-fast  # Integration tests — fail-fast (requires Neo4j, Postgres)
-make test-e2e-api-fast      # API tests via Playwright — fail-fast
-make test-e2e-gui-fast      # GUI tests via Playwright — fail-fast
-make test-gates-fast        # Contract + BOLA/BFLA + quality gates
-make coverage               # Test coverage (Go only)
-```
+Every test target has two explicit modes:
+
+| Mode | Unit | Integration | E2E API | E2E GUI | Gates | All |
+|------|------|-------------|---------|---------|-------|-----|
+| ⚡ Fail-fast | `make test-unit-fast` | `make test-integration-fast` | `make test-e2e-api-fast` | `make test-e2e-gui-fast` | `make test-gates-fast` | `make test-fast` |
+| 📊 Full statistics | `make test-unit-full` | `make test-integration-full` | `make test-e2e-api-full` | `make test-e2e-gui-full` | `make test-gates-full` | `make test-full` |
+
+Additional targets:
+
+| Target | Description |
+|--------|-------------|
+| `make test-versioning-fast` / `-full` | Versioning-service tests (auto-starts PostgreSQL) |
+| `make coverage` | Test coverage (Go only) |
+
+> ⚡ **Fail-fast** stops at the first failure — ideal for development iteration.
+> 📊 **Full statistics** runs everything and collects all failures — use for CI nightly or release.
+> Integration and E2E tests require Docker (Neo4j, Postgres, test compose stack).
+> Use `ENV=test` for E2E: `make docker-up-test` starts the test stack with self-signed JWT tokens.
 
 ### CI
 
-```bash
-make ci-fast                # Build + lint + unit tests + typecheck (no Docker)
-make ci-full                # Full pipeline + integration + E2E + gates + quality
-```
+| Pipeline | Command | Description |
+|----------|---------|-------------|
+| ⚡ Fast CI | `make ci-fast` | proto + build + lint + test-fast + typecheck |
+| 📦 Full CI | `make ci-full` | Full pipeline + integration + E2E + gates + quality |
+
+> Both CI targets are fail-fast — they stop at the first failure to save pipeline minutes.
 
 ### Utility
 
