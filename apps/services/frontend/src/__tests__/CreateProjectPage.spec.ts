@@ -9,6 +9,9 @@ import {
 import { afterEach, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 
+// Helper to flush pending Vue async operations — standard Vue 3 testing pattern.
+const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 0));
+
 vi.mock("@/api/org", () => ({
 	listGroups: vi.fn(),
 	createProject: vi.fn(),
@@ -127,7 +130,7 @@ describePage("CreateProjectPage", () => {
 		await nextTick();
 
 		// Wait for groups to load
-		await new Promise((resolve) => setTimeout(resolve, 50));
+		await flushPromises();
 		await nextTick();
 
 		const select = wrapper.find("#cpp-group-select");
@@ -191,7 +194,7 @@ describePage("CreateProjectPage", () => {
 			id: "new-project-1",
 			name: "Knowledge Graph",
 			description: null,
-			visibility: "private",
+			visibility: "Private",
 			ontologyId: "ontology-uuid",
 			memberCount: 1,
 			updatedAt: null,
@@ -203,10 +206,10 @@ describePage("CreateProjectPage", () => {
 		await nextTick();
 
 		// Wait for groups to load
-		await new Promise((resolve) => setTimeout(resolve, 50));
+		await flushPromises();
 		await nextTick();
 
-		// Select a group
+		// Select a group first
 		const select = wrapper.find("#cpp-group-select");
 		await select.setValue("group-1");
 		await nextTick();
@@ -220,14 +223,14 @@ describePage("CreateProjectPage", () => {
 		const createBtn = wrapper.find(".cpp-btn-create");
 		await createBtn.trigger("click");
 
-		await new Promise((resolve) => setTimeout(resolve, 100));
+		await flushPromises();
 		await nextTick();
 
 		expect(createProject).toHaveBeenCalledWith(
 			expect.objectContaining({
 				name: "Knowledge Graph",
 				groupId: "group-1",
-				visibility: "private",
+				visibility: "Private",
 			}),
 		);
 	});
@@ -239,7 +242,7 @@ describePage("CreateProjectPage", () => {
 			id: "new-project-1",
 			name: "Test Project",
 			description: null,
-			visibility: "private",
+			visibility: "Private",
 			ontologyId: "ontology-uuid",
 			memberCount: 1,
 			updatedAt: null,
@@ -250,7 +253,7 @@ describePage("CreateProjectPage", () => {
 		await waitForQuery();
 		await nextTick();
 
-		await new Promise((resolve) => setTimeout(resolve, 50));
+		await flushPromises();
 		await nextTick();
 
 		const select = wrapper.find("#cpp-group-select");
@@ -264,7 +267,7 @@ describePage("CreateProjectPage", () => {
 		const createBtn = wrapper.find(".cpp-btn-create");
 		await createBtn.trigger("click");
 
-		await new Promise((resolve) => setTimeout(resolve, 100));
+		await flushPromises();
 		await nextTick();
 
 		// createProject should have been called
@@ -282,7 +285,7 @@ describePage("CreateProjectPage", () => {
 		await waitForQuery();
 		await nextTick();
 
-		await new Promise((resolve) => setTimeout(resolve, 50));
+		await flushPromises();
 		await nextTick();
 
 		const select = wrapper.find("#cpp-group-select");
@@ -296,7 +299,7 @@ describePage("CreateProjectPage", () => {
 		const createBtn = wrapper.find(".cpp-btn-create");
 		await createBtn.trigger("click");
 
-		await new Promise((resolve) => setTimeout(resolve, 100));
+		await flushPromises();
 		await nextTick();
 
 		// Page should still be visible (no redirect on error)

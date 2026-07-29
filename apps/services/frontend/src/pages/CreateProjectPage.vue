@@ -155,7 +155,7 @@ const nameError = ref("");
 const groupError = ref("");
 const creating = ref(false);
 const loadingGroups = ref(true);
-const selectedVisibility = ref("private");
+const selectedVisibility = ref("Private");
 
 interface VisOption {
 	value: string;
@@ -166,19 +166,19 @@ interface VisOption {
 
 const visOptions: VisOption[] = [
 	{
-		value: "private",
+		value: "Private",
 		labelKey: "projects.visibility_private",
 		descKey: "projects.visibility_private_desc",
 		icon: Lock,
 	},
 	{
-		value: "internal",
+		value: "Internal",
 		labelKey: "projects.visibility_internal",
 		descKey: "projects.visibility_internal_desc",
 		icon: Shield,
 	},
 	{
-		value: "public",
+		value: "Public",
 		labelKey: "projects.visibility_public",
 		descKey: "projects.visibility_public_desc",
 		icon: Globe,
@@ -224,7 +224,7 @@ async function fetchGroups() {
 			}),
 		);
 	} catch (err: unknown) {
-		const msg = err instanceof Error ? err.message : String(err);
+		const msg = err instanceof Error ? err.message : "Unknown error";
 		console.error(
 			JSON.stringify({
 				event: "CreateProjectPage.groups_load_failed",
@@ -284,10 +284,10 @@ async function handleCreate() {
 			}),
 		);
 
-		showToast(t("projects.create_success"));
+		showToast(t("projects.create_success"), "success");
 		router.push(`/project/${result.id}/workspace`);
 	} catch (err: unknown) {
-		const msg = err instanceof Error ? err.message : String(err);
+		const msg = err instanceof Error ? err.message : "Unknown error";
 		console.error(
 			JSON.stringify({
 				event: "CreateProjectPage.error",
