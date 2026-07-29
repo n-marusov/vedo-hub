@@ -176,9 +176,40 @@ build-%:
 
 ##@ Test — Unit
 
-test: test-rust-unit test-go test-python test-typescript ## Run all unit tests (T0) natively
+.PHONY: test test-all
+test: ## Run all unit tests (T0) natively
+	@failed=""; \
+	echo "[Test] Running all unit tests..."; \
+	$(MAKE) test-rust-unit 2>&1 || failed="$$failed rust"; \
+	$(MAKE) test-go 2>&1 || failed="$$failed go"; \
+	$(MAKE) test-python 2>&1 || failed="$$failed python"; \
+	$(MAKE) test-typescript 2>&1 || failed="$$failed typescript"; \
+	echo ""; \
+	echo "========================================"; \
+	if [ -z "$$failed" ]; then \
+		echo "  [PASS]  ALL UNIT TESTS PASSED"; \
+	else \
+		echo "  [FAIL]  UNIT TESTS FAILED:$$failed"; \
+	fi; \
+	echo "========================================"; \
+	if [ -n "$$failed" ]; then exit 1; fi
 
-test-all: test-rust test-go test-python test-typescript ## Run all tests including integration (T0+T1)
+test-all: ## Run all tests including integration (T0+T1)
+	@failed=""; \
+	echo "[Test] Running all tests (unit + integration)..."; \
+	$(MAKE) test-rust 2>&1 || failed="$$failed rust"; \
+	$(MAKE) test-go 2>&1 || failed="$$failed go"; \
+	$(MAKE) test-python 2>&1 || failed="$$failed python"; \
+	$(MAKE) test-typescript 2>&1 || failed="$$failed typescript"; \
+	echo ""; \
+	echo "========================================"; \
+	if [ -z "$$failed" ]; then \
+		echo "  [PASS]  ALL TESTS PASSED"; \
+	else \
+		echo "  [FAIL]  TESTS FAILED:$$failed"; \
+	fi; \
+	echo "========================================"; \
+	if [ -n "$$failed" ]; then exit 1; fi
 
 ##@ Test — Integration
 
