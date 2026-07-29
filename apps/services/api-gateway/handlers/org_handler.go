@@ -267,29 +267,70 @@ func (h *OrgHandler) HandleCreateProject(c *gin.Context) {
 	token := extractToken(c)
 
 	var req struct {
-		Label       string `json:"label"`
+		Name        string `json:"name"`
+		Label       string `json:"label"` // deprecated — use name
 		Description string `json:"description"`
 		GroupID     string `json:"group_id"`
+		Visibility  string `json:"visibility"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
+		slog.Warn("http.org.create_project.invalid_request", "error", err.Error())
 		c.JSON(http.StatusBadRequest, models.ErrorResponse{
 			Error: models.ErrorDetail{Code: "INVALID_REQUEST", Message: err.Error()},
 		})
 		return
 	}
 
+	// Canonical field is "name"; accept legacy "label" as fallback.
+	projectName := req.Name
+	if projectName == "" && req.Label != "" {
+		projectName = req.Label
+		slog.Warn("http.org.deprecated_label_project_name",
+			"label", req.Label,
+		)
+	}
+
+	slog.Info("http.org.create_project.request",
+		"name", projectName,
+		"group_id", req.GroupID,
+		"visibility", req.Visibility,
+	)
+
 	resp, err := h.orgClient.CreateProject(c.Request.Context(), &authv1.CreateProjectRequest{
-		Name:        req.Label,
+		Name:        projectName,
 		Description: req.Description,
 		GroupId:     req.GroupID,
+		Visibility:  req.Visibility,
 	}, token)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{
-			Error: models.ErrorDetail{Code: "GRPC_ERROR", Message: err.Error()},
-		})
+		st, ok := status.FromError(err)
+		if ok {
+			httpCode, errCode := mapGrpcCodeToHTTP(st.Code())
+			slog.Error("http.org.create_project.grpc_error",
+				"grpc_code", st.Code(),
+				"http_code", httpCode,
+				"error", st.Message(),
+			)
+			c.JSON(httpCode, models.ErrorResponse{
+				Error: models.ErrorDetail{Code: errCode, Message: st.Message()},
+			})
+		} else {
+			slog.Error("http.org.create_project.error", "error", err.Error())
+			c.JSON(http.StatusInternalServerError, models.ErrorResponse{
+				Error: models.ErrorDetail{Code: "GRPC_ERROR", Message: err.Error()},
+			})
+		}
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"data": resp.GetProject()})
+
+	project := resp.GetProject()
+	slog.Info("http.org.create_project.success",
+		"project_id", project.GetId(),
+		"name", projectName,
+		"visibility", project.GetVisibility(),
+		"ontology_id", project.GetOntologyId(),
+	)
+	c.JSON(http.StatusCreated, gin.H{"data": project})
 }
 
 func (h *OrgHandler) HandleGetProject(c *gin.Context) {
