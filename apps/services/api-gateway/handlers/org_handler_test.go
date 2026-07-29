@@ -45,6 +45,9 @@ func setupOrgTestRouter() *gin.Engine {
 	// Fork endpoint — required for contract tests
 	api.POST("/projects/:id/fork", handler.HandleForkProject)
 
+	// Create project — required for project creation tests
+	api.POST("/projects", handler.HandleCreateProject)
+
 	return r
 }
 
@@ -127,6 +130,24 @@ func TestOrgHandler_ProjectVisibilityAndPolicies_RouteRegistered(t *testing.T) {
 		if w.Code == http.StatusNotFound {
 			t.Errorf("%s %s: expected non-404 (route should be registered), got 404", tc.method, tc.path)
 		}
+	}
+}
+
+// TestOrgHandler_CreateProject_RouteRegistered validates that POST /api/v1/projects
+// is registered and dispatches to HandleCreateProject. With nil orgClient, the
+// handler panics on gRPC call and recovery returns 500.
+// Key assertion: route is NOT 404.
+//
+// Validates: REQ-FUN.ORG.project-creation
+func TestOrgHandler_CreateProject_RouteRegistered(t *testing.T) {
+	router := setupOrgTestRouter()
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", "/api/v1/projects", nil)
+	router.ServeHTTP(w, req)
+
+	if w.Code == http.StatusNotFound {
+		t.Fatal("expected non-404 for POST /api/v1/projects (route should be registered), got 404")
 	}
 }
 
