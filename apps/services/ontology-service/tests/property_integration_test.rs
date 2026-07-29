@@ -47,6 +47,16 @@ async fn test_create_object_property_stores_in_neo4j() {
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("create_obj_prop");
 
+    // Create class first: handler validates domain/range classes exist
+    common::execute_query(
+        &pool,
+        neo4rs::query("CREATE (c:Class {ontology_id:$id, id:$cid, label:$label})")
+            .param("id", oid.clone())
+            .param("cid", "Person".to_string())
+            .param("label", "Person".to_string()),
+    )
+    .await;
+
     let resp = app
         .clone()
         .oneshot(post_json(
@@ -78,6 +88,16 @@ async fn test_create_object_property_stores_in_neo4j() {
 async fn test_create_datatype_property_stores_in_neo4j() {
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("create_dt_prop");
+
+    // Create class first: handler validates domain class exists
+    common::execute_query(
+        &pool,
+        neo4rs::query("CREATE (c:Class {ontology_id:$id, id:$cid, label:$label})")
+            .param("id", oid.clone())
+            .param("cid", "Person".to_string())
+            .param("label", "Person".to_string()),
+    )
+    .await;
 
     let resp = app
         .clone()

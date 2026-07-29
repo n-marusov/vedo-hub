@@ -447,28 +447,28 @@ impl PropertyRepository {
         // Create property node
         let query = "\
             CREATE (p:Property {\
-                id: $id, ontology_id: $ontology_id,\
-                label: $label, comment: $comment,\
-                property_type: $property_type,\
-                is_datatype: $is_datatype,\
-                xsd_type: $xsd_type,\
-                functional: $functional,\
-                inverse_functional: $inverse_functional,\
-                transitive: $transitive,\
-                symmetric: $symmetric,\
-                min_cardinality: $min_cardinality,\
-                max_cardinality: $max_cardinality,\
-                annotations: $annotations\
-            })\
-            WITH p\
-            UNWIND $domain_ids AS domain_id\
-            MATCH (c:Class {id: domain_id, ontology_id: $ontology_id})\
-            CREATE (p)-[:DOMAIN]->(c)\
-            WITH p\
-            UNWIND $range_ids AS range_id\
-            MATCH (c:Class {id: range_id, ontology_id: $ontology_id})\
-            CREATE (p)-[:RANGE]->(c)\
-            RETURN p\
+                id: $id, ontology_id: $ontology_id, \
+                label: $label, comment: $comment, \
+                property_type: $property_type, \
+                is_datatype: $is_datatype, \
+                xsd_type: $xsd_type, \
+                functional: $functional, \
+                inverse_functional: $inverse_functional, \
+                transitive: $transitive, \
+                symmetric: $symmetric, \
+                min_cardinality: $min_cardinality, \
+                max_cardinality: $max_cardinality, \
+                annotations: $annotations \
+            }) \
+            WITH p \
+            UNWIND $domain_ids AS domain_id \
+            MATCH (c:Class {id: domain_id, ontology_id: $ontology_id}) \
+            CREATE (p)-[:DOMAIN]->(c) \
+            WITH p \
+            UNWIND $range_ids AS range_id \
+            MATCH (c:Class {id: range_id, ontology_id: $ontology_id}) \
+            CREATE (p)-[:RANGE]->(c) \
+            RETURN p \
         ";
 
         let q = neo4rs::Query::new(query.to_string())
