@@ -1,5 +1,9 @@
-allowBuilds:
-  '@biomejs/biome': true
-  esbuild: true
-  lefthook: true
-  vue-demi: true
+overrides:
+  brace-expansion: ^5.0.8
+  postcss: ^8.5.18
+
+onlyBuiltDependencies:
+  - '@biomejs/biome'
+  - esbuild
+  - lefthook
+  - vue-demi

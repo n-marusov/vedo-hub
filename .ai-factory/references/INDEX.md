@@ -12,3 +12,4 @@ Available knowledge references for AI agents.
 | [biome](biome.md) | Biome — Web toolchain: formatter and linter (Prettier/ESLint replacement) | biomejs.dev | 2026-07-16 |
 | [lefthook](lefthook.md) | Lefthook — Git hooks manager: install, configuration, commands, scripts, parallel execution, skip/only conditions, remotes, local configs, best practices | lefthook.dev, github.com/evilmartians/lefthook | 2026-07-25 |
 | [gitlab-projects-groups-api](gitlab-projects-groups-api.md) | GitLab REST API v4 — Projects & Groups management: CRUD, visibility, sharing, archiving, transfer, feature flags, pagination, access levels | docs.gitlab.com/api/groups, docs.gitlab.com/api/projects | 2026-07-21 |
+| [pnpm-v11-settings](pnpm-v11-settings.md) | pnpm v11 settings migration: overrides in pnpm-workspace.yaml, deprecated pnpm field in package.json, config format changes | pnpm.io/settings, pnpm.io/package_json | 2026-07-29 |
