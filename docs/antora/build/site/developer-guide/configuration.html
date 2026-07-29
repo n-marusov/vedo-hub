@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: Configuration</title>
+<meta name="description" content="Environment variables, config files, and Docker Compose profiles for development.">
+</head>
+<body class="default">
+<div class="sect1">
+<h2 id="_environment_variables"><a class="anchor" href="#_environment_variables"></a>Environment Variables</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>All services are configured via environment variables. Defaults are set in <code>deploy/docker-compose.yml</code>.</p>
+</div>
+<div class="sect2">
+<h3 id="_api_gateway"><a class="anchor" href="#_api_gateway"></a>API Gateway</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Variable</th>
+<th class="tableblock halign-left valign-top">Default</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>SERVICE_PORT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>8080</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Listen port</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ONTOLOGY_SERVICE_URL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><a href="http://ontology-service:8081" class="bare">http://ontology-service:8081</a></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ontology service backend URL</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>VERSIONING_SERVICE_URL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><a href="http://versioning-service:8082" class="bare">http://versioning-service:8082</a></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Versioning service backend URL</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>AUTH_SERVICE_URL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><a href="http://auth-service:8084" class="bare">http://auth-service:8084</a></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Auth service backend URL</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_ontology_service_rust"><a class="anchor" href="#_ontology_service_rust"></a>Ontology Service (Rust)</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Variable</th>
+<th class="tableblock halign-left valign-top">Default</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>HOST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0.0.0.0</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bind address</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>PORT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>8080</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Listen port</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NEO4J_URI</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>bolt://neo4j:7687</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Neo4j Bolt connection URI</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NEO4J_USER</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>neo4j</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Neo4j username</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NEO4J_PASSWORD</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>password</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Neo4j password</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_versioning_service_rust"><a class="anchor" href="#_versioning_service_rust"></a>Versioning Service (Rust)</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Variable</th>
+<th class="tableblock halign-left valign-top">Default</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>HOST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0.0.0.0</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bind address</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>PORT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>8080</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Listen port</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>DATABASE_URL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>postgres://postgres:password@postgres:5432/vedo_versioning</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PostgreSQL connection string</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_auth_service_go"><a class="anchor" href="#_auth_service_go"></a>Auth Service (Go)</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Variable</th>
+<th class="tableblock halign-left valign-top">Default</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>HOST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0.0.0.0</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bind address</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>PORT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>8080</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Listen port</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>KEYCLOAK_URL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><a href="http://keycloak:8080" class="bare">http://keycloak:8080</a></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Keycloak server URL</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_metrics_service_python"><a class="anchor" href="#_metrics_service_python"></a>Metrics Service (Python)</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Variable</th>
+<th class="tableblock halign-left valign-top">Default</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>HOST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0.0.0.0</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bind address</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>PORT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>8080</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Listen port</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RABBITMQ_URL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>amqp://guest:guest@rabbitmq:5672/</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">RabbitMQ connection URL</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>REDIS_URL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>redis://redis:6379</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Redis connection URL</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_frontend"><a class="anchor" href="#_frontend"></a>Frontend</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Variable</th>
+<th class="tableblock halign-left valign-top">Default</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>VITE_API_URL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><a href="http://localhost:8080" class="bare">http://localhost:8080</a></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">API Gateway URL (Vite env)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>VITE_WS_URL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ws://localhost:8080</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">WebSocket URL (Vite env)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_data_stores"><a class="anchor" href="#_data_stores"></a>Data Stores</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_neo4j"><a class="anchor" href="#_neo4j"></a>Neo4j</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Variable</th>
+<th class="tableblock halign-left valign-top">Default</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NEO4J_AUTH</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>neo4j/password</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Neo4j authentication credentials</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Ports: <code>7474</code> (Browser), <code>7687</code> (Bolt).</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_postgresql"><a class="anchor" href="#_postgresql"></a>PostgreSQL</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Variable</th>
+<th class="tableblock halign-left valign-top">Default</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POSTGRES_USER</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>postgres</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Database user</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POSTGRES_PASSWORD</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>password</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Database password</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POSTGRES_DB</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>vedo_versioning</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Default database name</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Port: <code>5432</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_redis"><a class="anchor" href="#_redis"></a>Redis</h3>
+<div class="paragraph">
+<p>Port: <code>6379</code>. No authentication in the default development setup.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_rabbitmq"><a class="anchor" href="#_rabbitmq"></a>RabbitMQ</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Variable</th>
+<th class="tableblock halign-left valign-top">Default</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RABBITMQ_DEFAULT_USER</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>guest</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">AMQP user</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RABBITMQ_DEFAULT_PASS</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>guest</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">AMQP password</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Ports: <code>5672</code> (AMQP), <code>15672</code> (Management UI).</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_keycloak"><a class="anchor" href="#_keycloak"></a>Keycloak</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Variable</th>
+<th class="tableblock halign-left valign-top">Default</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>KEYCLOAK_ADMIN</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>admin</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Admin username</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>KEYCLOAK_ADMIN_PASSWORD</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>admin</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Admin password</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>KC_HEALTH_ENABLED</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>true</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enable health endpoints</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Port: <code>8180</code> (mapped from internal <code>8080</code>).</p>
+</div>
+<div class="paragraph">
+<p>Realm configuration is imported from <code>deploy/keycloak/vedo-core-realm.json</code>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_docker_compose"><a class="anchor" href="#_docker_compose"></a>Docker Compose</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The main orchestration file is at <code>deploy/docker-compose.yml</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">include:
+  - path: ./docker-compose.docs.yaml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Compose profiles:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Profile</th>
+<th class="tableblock halign-left valign-top">Services</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(default)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">All services + databases + Keycloak</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>local</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Includes <code>vedo-cli-build</code> (compile-only)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ci</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Includes <code>vedo-cli-build</code> (compile-only)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_multi_environment_setup"><a class="anchor" href="#_multi_environment_setup"></a>Multi-Environment Setup</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The project ships three pre-configured env files with non-overlapping ports:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Environment</th>
+<th class="tableblock halign-left valign-top">Env file</th>
+<th class="tableblock halign-left valign-top">Port offset</th>
+<th class="tableblock halign-left valign-top">Project name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">dev</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>config/.env.dev</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">none</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>vedo-core-dev</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">test</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>config/.env.test</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+10000</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>vedo-core-test</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">staging</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>config/.env.staging</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+20000</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>vedo-core-staging</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">make docker-up-dev      # Dev
+make docker-up-test     # Test (includes JWT dev keys for Playwright)
+make docker-up-staging  # Staging</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_ways_to_configure"><a class="anchor" href="#_ways_to_configure"></a>Ways to Configure</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Method</th>
+<th class="tableblock halign-left valign-top">Example</th>
+<th class="tableblock halign-left valign-top">Best for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Shell env</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>export API_GATEWAY_PORT=9090 &amp;&amp; make docker-up</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">One-off overrides</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>.env</code> file</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create <code>.env</code> with <code>API_GATEWAY_PORT=9090</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Persistent project config</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Inline</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>API_GATEWAY_PORT=9090 make docker-up</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Temporary overrides</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_dev_environment_variables"><a class="anchor" href="#_dev_environment_variables"></a>Dev Environment Variables</h3>
+<div class="paragraph">
+<p>The <code>config/.env.example</code> file contains placeholder values for reference. For development:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Variable</th>
+<th class="tableblock halign-left valign-top">Default</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>KC_HOSTNAME</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>localhost</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Keycloak hostname (must resolve in your environment)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>KEYCLOAK_JWKS_URL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><a href="http://localhost:8180/realms/vedo-core/protocol/openid-connect/certs" class="bare">http://localhost:8180/realms/vedo-core/protocol/openid-connect/certs</a></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JWKS endpoint for token validation</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Override <code>KC_HOSTNAME</code> only if your Keycloak setup uses a different domain. Any override must be resolvable from the Docker network.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_essential_overrides"><a class="anchor" href="#_essential_overrides"></a>Essential Overrides</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Variable</th>
+<th class="tableblock halign-left valign-top">Default</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>LLM_PROVIDER</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>(empty — disabled)</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">LLM backend: <code>openai</code>, <code>anthropic</code>, <code>ollama</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>LLM_API_KEY</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>(empty)</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">API key for the chosen provider</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>LLM_MODEL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>(empty)</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Model name (e.g. <code>gpt-4o</code>, <code>claude-3-opus</code>, <code>llama3</code>)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>LLM_BASE_URL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>(empty)</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Custom OpenAI-compatible endpoint</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>LLM_PROVIDERS_OLLAMA_BASE_URL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><a href="http://localhost:11434/v1" class="bare">http://localhost:11434/v1</a></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ollama API endpoint</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>LLM_PROVIDERS_OLLAMA_MODEL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>llama3</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ollama model name</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GRPC_TLS_ENABLED</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enable mTLS for all gRPC services</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GRPC_CA_CERT_FILE</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>(empty)</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CA certificate path (api-gateway)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GRPC_TLS_CERT_FILE</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>(empty)</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">TLS certificate path (Rust services)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GRPC_TLS_KEY_FILE</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>(empty)</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">TLS key path (Rust services)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_ai_features_llm"><a class="anchor" href="#_ai_features_llm"></a>AI Features (LLM)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Document extraction and AI orchestration require an LLM provider. Use the bundled Ollama profile for local development:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Start VEDO + local Ollama (~4 GB)
+docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.llm.yaml --profile llm up -d
+
+# Pull a model into the running Ollama container
+docker compose -f deploy/docker-compose.llm.yaml exec ollama ollama pull llama3
+
+# Tell services to use Ollama
+export LLM_PROVIDER=ollama
+export LLM_PROVIDERS_OLLAMA_BASE_URL=http://ollama:11434/v1
+export LLM_PROVIDERS_OLLAMA_MODEL=llama3</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or use a cloud provider:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">export LLM_PROVIDER=openai
+export LLM_API_KEY=sk-...
+export LLM_MODEL=gpt-4o
+make docker-up</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="getting-started.html" class="xref page">Getting Started</a> — prerequisites and quick start</p>
+</li>
+<li>
+<p><a href="deployment.html" class="xref page">Deployment</a> — Docker setup and multi-env orchestration</p>
+</li>
+<li>
+<p><a href="testing.html" class="xref page">Testing</a> — test suites and how to run them</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>

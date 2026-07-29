@@ -37,7 +37,7 @@
 <script setup lang="ts">
 import { useI18n } from "@/composables/useI18n";
 import { useToast } from "@/composables/useToast";
-import { AlertCircle, CircleCheck, X } from "lucide-vue-next";
+import { AlertCircle, CircleCheck, X } from "@lucide/vue";
 
 const { t } = useI18n();
 const { toastMessage, toastType, toastVisible, dismissToast } = useToast();

@@ -70,314 +70,314 @@
 
 <script setup lang="ts">
 import {
-  type BranchInfo,
-  type CommitSummary,
-  type TagInfo,
-  listBranches,
-  listCommits,
-  listTags
-} from '@/api/versioning'
-import { GRAPH_NEIGHBORHOOD_QUERY } from '@/apollo/queries'
-import BranchList from '@/components/organisms/BranchList.vue'
-import CommitHistory from '@/components/organisms/CommitHistory.vue'
-import DiffView from '@/components/organisms/DiffView.vue'
-import RepositoryGraph from '@/components/organisms/RepositoryGraph.vue'
-import TagList from '@/components/organisms/TagList.vue'
-import { useQuery } from '@vue/apollo-composable'
-import { GitBranch, Search, User } from 'lucide-vue-next'
-import { computed, onMounted, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+	type BranchInfo,
+	type CommitSummary,
+	type TagInfo,
+	listBranches,
+	listCommits,
+	listTags,
+} from "@/api/versioning";
+import { GRAPH_NEIGHBORHOOD_QUERY } from "@/apollo/queries";
+import BranchList from "@/components/organisms/BranchList.vue";
+import CommitHistory from "@/components/organisms/CommitHistory.vue";
+import DiffView from "@/components/organisms/DiffView.vue";
+import RepositoryGraph from "@/components/organisms/RepositoryGraph.vue";
+import TagList from "@/components/organisms/TagList.vue";
+import { GitBranch, Search, User } from "@lucide/vue";
+import { useQuery } from "@vue/apollo-composable";
+import { computed, onMounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
-const view = computed(() => String(route.params.view || 'commits'))
-const ontologyId = computed(() => String(route.params.id))
+const view = computed(() => String(route.params.view || "commits"));
+const ontologyId = computed(() => String(route.params.id));
 
 const tabs = [
-  { id: 'commits', label: 'Commits' },
-  { id: 'branches', label: 'Branches' },
-  { id: 'compare', label: 'Compare' },
-  { id: 'tags', label: 'Tags' },
-  { id: 'graph', label: 'Graph' },
-  { id: 'merge_requests', label: 'Merge Requests' }
-]
+	{ id: "commits", label: "Commits" },
+	{ id: "branches", label: "Branches" },
+	{ id: "compare", label: "Compare" },
+	{ id: "tags", label: "Tags" },
+	{ id: "graph", label: "Graph" },
+	{ id: "merge_requests", label: "Merge Requests" },
+];
 
 function onArrowRight(e: KeyboardEvent) {
-  const target = e.target as HTMLElement
-  const parent = target?.closest('.ver-tabs')
-  if (!parent) return
-  const buttons = Array.from(parent.querySelectorAll('button'))
-  const idx = buttons.indexOf(target as HTMLButtonElement)
-  if (idx < buttons.length - 1) buttons[idx + 1]?.focus()
+	const target = e.target as HTMLElement;
+	const parent = target?.closest(".ver-tabs");
+	if (!parent) return;
+	const buttons = Array.from(parent.querySelectorAll("button"));
+	const idx = buttons.indexOf(target as HTMLButtonElement);
+	if (idx < buttons.length - 1) buttons[idx + 1]?.focus();
 }
 
 function onArrowLeft(e: KeyboardEvent) {
-  const target = e.target as HTMLElement
-  const parent = target?.closest('.ver-tabs')
-  if (!parent) return
-  const buttons = Array.from(parent.querySelectorAll('button'))
-  const idx = buttons.indexOf(target as HTMLButtonElement)
-  if (idx > 0) buttons[idx - 1]?.focus()
+	const target = e.target as HTMLElement;
+	const parent = target?.closest(".ver-tabs");
+	if (!parent) return;
+	const buttons = Array.from(parent.querySelectorAll("button"));
+	const idx = buttons.indexOf(target as HTMLButtonElement);
+	if (idx > 0) buttons[idx - 1]?.focus();
 }
 
 const titles: Record<string, string> = {
-  commits: 'Commit History',
-  branches: 'Branches',
-  compare: 'Compare Revisions',
-  tags: 'Tags',
-  graph: 'Repository Graph',
-  merge_requests: 'Merge Requests'
-}
+	commits: "Commit History",
+	branches: "Branches",
+	compare: "Compare Revisions",
+	tags: "Tags",
+	graph: "Repository Graph",
+	merge_requests: "Merge Requests",
+};
 
 // ── REST Data (migrated from Apollo) ─────────────────────────────────────────────
 
-const commitsLoading = ref(false)
-const commitsError = ref<string | null>(null)
-const commitsData = ref<CommitSummary[]>([])
+const commitsLoading = ref(false);
+const commitsError = ref<string | null>(null);
+const commitsData = ref<CommitSummary[]>([]);
 
-const branchesLoading = ref(false)
-const branchesError = ref<string | null>(null)
-const branchesData = ref<BranchInfo[]>([])
+const branchesLoading = ref(false);
+const branchesError = ref<string | null>(null);
+const branchesData = ref<BranchInfo[]>([]);
 
-const tagsLoading = ref(false)
-const tagsError = ref<string | null>(null)
-const tagsData = ref<TagInfo[]>([])
+const tagsLoading = ref(false);
+const tagsError = ref<string | null>(null);
+const tagsData = ref<TagInfo[]>([]);
 
-const compareLoading = ref(false)
-const compareError = ref<string | null>(null)
+const compareLoading = ref(false);
+const compareError = ref<string | null>(null);
 const compareData = ref<{
-  changes: Array<{
-    entityLabel?: string
-    entityId?: string
-    changeType: string
-    field?: string
-    oldValue?: string | null
-    newValue?: string | null
-  }>
-} | null>(null)
+	changes: Array<{
+		entityLabel?: string;
+		entityId?: string;
+		changeType: string;
+		field?: string;
+		oldValue?: string | null;
+		newValue?: string | null;
+	}>;
+} | null>(null);
 
 async function fetchCommits() {
-  commitsLoading.value = true
-  commitsError.value = null
-  try {
-    const result = await listCommits(ontologyId.value, undefined, 0, 50)
-    commitsData.value = result.items
-  } catch (e: unknown) {
-    commitsError.value = e instanceof Error ? e.message : String(e)
-  } finally {
-    commitsLoading.value = false
-  }
+	commitsLoading.value = true;
+	commitsError.value = null;
+	try {
+		const result = await listCommits(ontologyId.value, undefined, 0, 50);
+		commitsData.value = result.items;
+	} catch (e: unknown) {
+		commitsError.value = e instanceof Error ? e.message : String(e);
+	} finally {
+		commitsLoading.value = false;
+	}
 }
 
 async function fetchBranches() {
-  branchesLoading.value = true
-  branchesError.value = null
-  try {
-    const result = await listBranches(ontologyId.value)
-    branchesData.value = result.items
-  } catch (e: unknown) {
-    branchesError.value = e instanceof Error ? e.message : String(e)
-  } finally {
-    branchesLoading.value = false
-  }
+	branchesLoading.value = true;
+	branchesError.value = null;
+	try {
+		const result = await listBranches(ontologyId.value);
+		branchesData.value = result.items;
+	} catch (e: unknown) {
+		branchesError.value = e instanceof Error ? e.message : String(e);
+	} finally {
+		branchesLoading.value = false;
+	}
 }
 
 async function fetchTags() {
-  tagsLoading.value = true
-  tagsError.value = null
-  try {
-    tagsData.value = await listTags(ontologyId.value)
-  } catch (e: unknown) {
-    tagsError.value = e instanceof Error ? e.message : String(e)
-  } finally {
-    tagsLoading.value = false
-  }
+	tagsLoading.value = true;
+	tagsError.value = null;
+	try {
+		tagsData.value = await listTags(ontologyId.value);
+	} catch (e: unknown) {
+		tagsError.value = e instanceof Error ? e.message : String(e);
+	} finally {
+		tagsLoading.value = false;
+	}
 }
 
 onMounted(() => {
-  fetchCommits()
-  fetchBranches()
-  fetchTags()
-})
+	fetchCommits();
+	fetchBranches();
+	fetchTags();
+});
 
 // ── GraphQL (graph navigation — kept as-is) ────────────────────────────────────
 
 const {
-  result: graphResult,
-  loading: graphLoading,
-  error: graphError,
-  refetch: refetchGraph
+	result: graphResult,
+	loading: graphLoading,
+	error: graphError,
+	refetch: refetchGraph,
 } = useQuery(
-  GRAPH_NEIGHBORHOOD_QUERY,
-  () => ({
-    ontologyId: ontologyId.value,
-    classId: '',
-    depth: 2
-  }),
-  {
-    fetchPolicy: 'cache-and-network',
-    enabled: computed(() => view.value === 'graph')
-  }
-)
+	GRAPH_NEIGHBORHOOD_QUERY,
+	() => ({
+		ontologyId: ontologyId.value,
+		classId: "",
+		depth: 2,
+	}),
+	{
+		fetchPolicy: "cache-and-network",
+		enabled: computed(() => view.value === "graph"),
+	},
+);
 
 // ── Computed Data ───────────────────────────────────────────────────────────────
 
 const commits = computed(() =>
-  commitsData.value.map((c) => ({
-    author: c.authorName,
-    message: c.message,
-    sha: c.id,
-    date: c.createdAt,
-    branch: c.branchId
-  }))
-)
+	commitsData.value.map((c) => ({
+		author: c.authorName,
+		message: c.message,
+		sha: c.id,
+		date: c.createdAt,
+		branch: c.branchId,
+	})),
+);
 
 const branches = computed(() =>
-  branchesData.value.map((b) => ({
-    name: b.name,
-    status: b.isProtected ? ('active' as const) : ('default' as const),
-    lastCommit: b.headCommitId ?? ''
-  }))
-)
+	branchesData.value.map((b) => ({
+		name: b.name,
+		status: b.isProtected ? ("active" as const) : ("default" as const),
+		lastCommit: b.headCommitId ?? "",
+	})),
+);
 
 const tags = computed(() =>
-  tagsData.value.map((t) => ({
-    name: t.name,
-    commit: t.commitId,
-    description: t.message,
-    updated: t.createdAt
-  }))
-)
+	tagsData.value.map((t) => ({
+		name: t.name,
+		commit: t.commitId,
+		description: t.message,
+		updated: t.createdAt,
+	})),
+);
 
 const currentBranch = computed(() => {
-  if (branchesData.value.length) {
-    const active = branchesData.value.find((b) => b.isProtected)
-    return active?.name || 'main'
-  }
-  return 'main'
-})
+	if (branchesData.value.length) {
+		const active = branchesData.value.find((b) => b.isProtected);
+		return active?.name || "main";
+	}
+	return "main";
+});
 
 const changes = computed(() => {
-  const data = compareData.value
-  if (!data?.changes?.length) return []
-  return data.changes.map(
-    (c: {
-      entityLabel?: string
-      entityId?: string
-      changeType: string
-      field?: string
-      oldValue?: string | null
-      newValue?: string | null
-    }) => ({
-      path: String(c.entityLabel || c.entityId || ''),
-      type: (c.changeType === 'added'
-        ? 'added'
-        : c.changeType === 'removed'
-          ? 'removed'
-          : 'modified') as 'added' | 'removed' | 'modified',
-      diff: `@@ ${c.field || ''}: ${String(c.oldValue ?? '')} ➔ ${String(c.newValue ?? '')} @@`
-    })
-  )
-})
+	const data = compareData.value;
+	if (!data?.changes?.length) return [];
+	return data.changes.map(
+		(c: {
+			entityLabel?: string;
+			entityId?: string;
+			changeType: string;
+			field?: string;
+			oldValue?: string | null;
+			newValue?: string | null;
+		}) => ({
+			path: String(c.entityLabel || c.entityId || ""),
+			type: (c.changeType === "added"
+				? "added"
+				: c.changeType === "removed"
+					? "removed"
+					: "modified") as "added" | "removed" | "modified",
+			diff: `@@ ${c.field || ""}: ${String(c.oldValue ?? "")} ➔ ${String(c.newValue ?? "")} @@`,
+		}),
+	);
+});
 
-const commitOptions = computed(() => [])
+const commitOptions = computed(() => []);
 
 const graphNodes = computed(() => {
-  const data = graphResult.value?.graphNeighborhood
-  if (!data?.nodes) return []
-  return data.nodes.map((n: Record<string, unknown>, i: number) => ({
-    sha: n.id,
-    message: n.label,
-    type: 'commit' as const,
-    x: 120 + i * 80,
-    y: 100 + i * 40
-  }))
-})
+	const data = graphResult.value?.graphNeighborhood;
+	if (!data?.nodes) return [];
+	return data.nodes.map((n: Record<string, unknown>, i: number) => ({
+		sha: n.id,
+		message: n.label,
+		type: "commit" as const,
+		x: 120 + i * 80,
+		y: 100 + i * 40,
+	}));
+});
 
 // ── Combined Loading / Error ────────────────────────────────────────────────────
 
 const loading = computed(() => {
-  if (view.value === 'commits') return commitsLoading.value
-  if (view.value === 'branches') return branchesLoading.value
-  if (view.value === 'tags') return tagsLoading.value
-  if (view.value === 'compare') return compareLoading.value
-  if (view.value === 'graph') return graphLoading.value
-  return false
-})
+	if (view.value === "commits") return commitsLoading.value;
+	if (view.value === "branches") return branchesLoading.value;
+	if (view.value === "tags") return tagsLoading.value;
+	if (view.value === "compare") return compareLoading.value;
+	if (view.value === "graph") return graphLoading.value;
+	return false;
+});
 
 const error = computed(() => {
-  if (view.value === 'commits') return commitsError.value
-  if (view.value === 'branches') return branchesError.value
-  if (view.value === 'tags') return tagsError.value
-  if (view.value === 'compare') return compareError.value
-  if (view.value === 'graph') return graphError.value
-  return null
-})
+	if (view.value === "commits") return commitsError.value;
+	if (view.value === "branches") return branchesError.value;
+	if (view.value === "tags") return tagsError.value;
+	if (view.value === "compare") return compareError.value;
+	if (view.value === "graph") return graphError.value;
+	return null;
+});
 
 function refetchAll(): void {
-  fetchCommits()
-  fetchBranches()
-  fetchTags()
-  refetchGraph()
+	fetchCommits();
+	fetchBranches();
+	fetchTags();
+	refetchGraph();
 }
 
 // ── Navigation ───────────────────────────────────────────────────────────────────
 
 function go(next: string): void {
-  router.replace({
-    name: 'ontology-versioning',
-    params: { id: route.params.id, view: next }
-  })
+	router.replace({
+		name: "ontology-versioning",
+		params: { id: route.params.id, view: next },
+	});
 }
 
 // ── Logging ──────────────────────────────────────────────────────────────────────
 
 watch(commits, (val) => {
-  console.debug(
-    JSON.stringify({
-      level: 'debug',
-      msg: 'versioning.commits.loaded',
-      count: val.length,
-      ts: new Date().toISOString()
-    })
-  )
-})
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "versioning.commits.loaded",
+			count: val.length,
+			ts: new Date().toISOString(),
+		}),
+	);
+});
 
 watch(tags, (val) => {
-  console.debug(
-    JSON.stringify({
-      level: 'debug',
-      msg: 'versioning.tags.loaded',
-      count: val.length,
-      ts: new Date().toISOString()
-    })
-  )
-})
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "versioning.tags.loaded",
+			count: val.length,
+			ts: new Date().toISOString(),
+		}),
+	);
+});
 
 watch(changes, (val) => {
-  console.debug(
-    JSON.stringify({
-      level: 'debug',
-      msg: 'versioning.compare.loaded',
-      count: val.length,
-      ts: new Date().toISOString()
-    })
-  )
-})
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "versioning.compare.loaded",
+			count: val.length,
+			ts: new Date().toISOString(),
+		}),
+	);
+});
 
 watch(error, (err) => {
-  if (err) {
-    console.error(
-      JSON.stringify({
-        level: 'error',
-        msg: 'versioning.query.error',
-        error: String(err),
-        ts: new Date().toISOString()
-      })
-    )
-  }
-})
+	if (err) {
+		console.error(
+			JSON.stringify({
+				level: "error",
+				msg: "versioning.query.error",
+				error: String(err),
+				ts: new Date().toISOString(),
+			}),
+		);
+	}
+});
 </script>
 
 <style scoped>

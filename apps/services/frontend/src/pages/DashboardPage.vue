@@ -149,226 +149,229 @@
 </template>
 
 <script setup lang="ts">
-import { type DashboardData, getDashboard } from '@/api/dashboard'
-import { getUserRole } from '@/auth/session'
-import { useCurrentUser } from '@/composables/useCurrentUser'
+import { type DashboardData, getDashboard } from "@/api/dashboard";
+import { getUserRole } from "@/auth/session";
+import { useCurrentUser } from "@/composables/useCurrentUser";
 import {
-  AlertCircle,
-  ChevronDown,
-  ChevronRight,
-  FileText,
-  GitFork,
-  GitMerge,
-  MessageSquare,
-  Settings,
-  Smile,
-  User,
-  UserCheck
-} from 'lucide-vue-next'
-import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+	AlertCircle,
+	ChevronDown,
+	ChevronRight,
+	FileText,
+	GitFork,
+	GitMerge,
+	MessageSquare,
+	Settings,
+	Smile,
+	User,
+	UserCheck,
+} from "@lucide/vue";
+import { computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 
-const router = useRouter()
-const { displayName, displayInitials } = useCurrentUser()
-const userRole = computed(() => getUserRole() || 'Knowledge Engineer')
-const activityFilter = ref('All team')
-const attentionFilter = ref('Everything')
+const router = useRouter();
+const { displayName, displayInitials } = useCurrentUser();
+const userRole = computed(() => getUserRole() || "Knowledge Engineer");
+const activityFilter = ref("All team");
+const attentionFilter = ref("Everything");
 
 // @m4 — Dashboard migrated from GraphQL DASHBOARD_QUERY to REST
-const loading = ref(false)
-const error = ref<string | null>(null)
-const dashData = ref<DashboardData | null>(null)
+const loading = ref(false);
+const error = ref<string | null>(null);
+const dashData = ref<DashboardData | null>(null);
 
 async function fetchDashboard() {
-  loading.value = true
-  error.value = null
-  try {
-    dashData.value = await getDashboard()
-  } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : String(e)
-  } finally {
-    loading.value = false
-  }
+	loading.value = true;
+	error.value = null;
+	try {
+		dashData.value = await getDashboard();
+	} catch (e: unknown) {
+		error.value = e instanceof Error ? e.message : String(e);
+	} finally {
+		loading.value = false;
+	}
 }
 onMounted(() => {
-  fetchDashboard()
-})
+	fetchDashboard();
+});
 
 // ── Resolvers: map REST data to UI shapes ──
 
 interface WidgetItem {
-  title: string
-  value: string
-  subtitle: string
-  time: string
-  icon: typeof GitMerge
-  iconColor: string
+	title: string;
+	value: string;
+	subtitle: string;
+	time: string;
+	icon: typeof GitMerge;
+	iconColor: string;
 }
 
 function mapWidgetIcon(iconName: string): typeof GitMerge {
-  const icons: Record<string, typeof GitMerge> = {
-    'git-merge': GitMerge,
-    'user-check': UserCheck,
-    'message-square': MessageSquare
-  }
-  return icons[iconName] || GitMerge
+	const icons: Record<string, typeof GitMerge> = {
+		"git-merge": GitMerge,
+		"user-check": UserCheck,
+		"message-square": MessageSquare,
+	};
+	return icons[iconName] || GitMerge;
 }
 
-const demoProjects = computed(() => dashData.value?.demoProjects ?? [])
+const demoProjects = computed(() => dashData.value?.demoProjects ?? []);
 
 const resolvedWidgets = computed<WidgetItem[]>(() => {
-  const widgets = dashData.value?.widgets
-  if (!widgets) return []
-  return widgets.map(
-    (w: {
-      title: string
-      count: number
-      icon: string
-      subtitle: string
-      time: string
-    }) => ({
-      title: w.title,
-      value: String(w.count),
-      subtitle: w.subtitle,
-      time: w.time,
-      icon: mapWidgetIcon(w.icon),
-      iconColor: w.icon === 'message-square' ? 'icon-warning' : 'icon-primary'
-    })
-  )
-})
+	const widgets = dashData.value?.widgets;
+	if (!widgets) return [];
+	return widgets.map(
+		(w: {
+			title: string;
+			count: number;
+			icon: string;
+			subtitle: string;
+			time: string;
+		}) => ({
+			title: w.title,
+			value: String(w.count),
+			subtitle: w.subtitle,
+			time: w.time,
+			icon: mapWidgetIcon(w.icon),
+			iconColor: w.icon === "message-square" ? "icon-warning" : "icon-primary",
+		}),
+	);
+});
 
 interface AttentionItem {
-  id: string
-  text: string
-  severity: string
-  time: string
+	id: string;
+	text: string;
+	severity: string;
+	time: string;
 }
 
 const resolvedAttentionItems = computed<AttentionItem[]>(() => {
-  const items = dashData.value?.attentionItems
-  if (!items) return []
-  return items.map((a: { id: string; text: string; severity: string; count: number }) => ({
-    id: a.id,
-    text: a.text,
-    severity: a.severity,
-    time: ''
-  }))
-})
+	const items = dashData.value?.attentionItems;
+	if (!items) return [];
+	return items.map(
+		(a: { id: string; text: string; severity: string; count: number }) => ({
+			id: a.id,
+			text: a.text,
+			severity: a.severity,
+			time: "",
+		}),
+	);
+});
 
 function severityColor(severity: string): string {
-  const colors: Record<string, string> = {
-    warning: '#f59e0b',
-    error: '#ef4444',
-    info: '#6366f1'
-  }
-  return colors[severity] || '#6b7280'
+	const colors: Record<string, string> = {
+		warning: "#f59e0b",
+		error: "#ef4444",
+		info: "#6366f1",
+	};
+	return colors[severity] || "#6b7280";
 }
 
 interface ActivityGroup {
-  label: string
-  items: Array<{
-    id: string
-    icon: typeof GitMerge
-    color: string
-    bg: string
-    text: string
-    user: string
-    time: string
-  }>
+	label: string;
+	items: Array<{
+		id: string;
+		icon: typeof GitMerge;
+		color: string;
+		bg: string;
+		text: string;
+		user: string;
+		time: string;
+	}>;
 }
 
 function mapActivityIcon(type: string): typeof GitMerge {
-  const icons: Record<string, typeof GitMerge> = {
-    merge_request: GitMerge,
-    commit: GitMerge,
-    comment: MessageSquare
-  }
-  return icons[type] || AlertCircle
+	const icons: Record<string, typeof GitMerge> = {
+		merge_request: GitMerge,
+		commit: GitMerge,
+		comment: MessageSquare,
+	};
+	return icons[type] || AlertCircle;
 }
 
 function mapActivityColor(type: string): string {
-  const colors: Record<string, string> = {
-    merge_request: '#6366f1',
-    commit: '#10b981',
-    comment: '#f59e0b'
-  }
-  return colors[type] || '#ef4444'
+	const colors: Record<string, string> = {
+		merge_request: "#6366f1",
+		commit: "#10b981",
+		comment: "#f59e0b",
+	};
+	return colors[type] || "#ef4444";
 }
 
 const resolvedActivityGroups = computed<ActivityGroup[]>(() => {
-  const feed = dashData.value?.activityFeed
-  if (!feed) return []
-  const items = feed.map(
-    (a: {
-      id: string
-      text: string
-      author: string
-      timestamp: string
-      type: string
-    }) => ({
-      id: a.id,
-      icon: mapActivityIcon(a.type),
-      color: mapActivityColor(a.type),
-      bg: `${mapActivityColor(a.type)}1a`,
-      text: a.text,
-      user: a.author ? `@${a.author.toLowerCase()}` : '',
-      time: formatTimeAgo(a.timestamp)
-    })
-  )
-  return [{ label: 'Recent', items }]
-})
+	const feed = dashData.value?.activityFeed;
+	if (!feed) return [];
+	const items = feed.map(
+		(a: {
+			id: string;
+			text: string;
+			author: string;
+			timestamp: string;
+			type: string;
+		}) => ({
+			id: a.id,
+			icon: mapActivityIcon(a.type),
+			color: mapActivityColor(a.type),
+			bg: `${mapActivityColor(a.type)}1a`,
+			text: a.text,
+			user: a.author ? `@${a.author.toLowerCase()}` : "",
+			time: formatTimeAgo(a.timestamp),
+		}),
+	);
+	return [{ label: "Recent", items }];
+});
 
 interface RecentOntology {
-  id: string
-  name: string
-  description: string
-  visibility: string
+	id: string;
+	name: string;
+	description: string;
+	visibility: string;
 }
 
 const resolvedRecentOntologies = computed<RecentOntology[]>(() => {
-  const ontos = dashData.value?.recentOntologies
-  if (!ontos) return []
-  return ontos.map(
-    (o: {
-      id: string
-      name: string
-      description: string | null
-      visibility: string
-    }) => ({
-      id: o.id,
-      name: o.name,
-      description: o.description || '',
-      visibility: o.visibility || ''
-    })
-  )
-})
+	const ontos = dashData.value?.recentOntologies;
+	if (!ontos) return [];
+	return ontos.map(
+		(o: {
+			id: string;
+			name: string;
+			description: string | null;
+			visibility: string;
+		}) => ({
+			id: o.id,
+			name: o.name,
+			description: o.description || "",
+			visibility: o.visibility || "",
+		}),
+	);
+});
 
 // @m4 — Navigate to ontology workspace via router
 function navigateToOntology(ontologyId: string): void {
-  console.debug(
-    JSON.stringify({
-      level: 'debug',
-      msg: 'dashboard.navigate_to_ontology',
-      ontologyId,
-      ts: new Date().toISOString()
-    })
-  )
-  router.push(`/project/${ontologyId}/workspace`)
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "dashboard.navigate_to_ontology",
+			ontologyId,
+			ts: new Date().toISOString(),
+		}),
+	);
+	router.push(`/project/${ontologyId}/workspace`);
 }
 
 function toggleAttentionFilter(): void {
-  attentionFilter.value = attentionFilter.value === 'Everything' ? 'Unread' : 'Everything'
+	attentionFilter.value =
+		attentionFilter.value === "Everything" ? "Unread" : "Everything";
 }
 
 function formatTimeAgo(timestamp: string): string {
-  if (!timestamp) return ''
-  const now = Date.now()
-  const then = new Date(timestamp).getTime()
-  const minutes = Math.floor((now - then) / 60000)
-  if (minutes < 60) return `${minutes}m ago`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
-  return `${Math.floor(hours / 24)}d ago`
+	if (!timestamp) return "";
+	const now = Date.now();
+	const then = new Date(timestamp).getTime();
+	const minutes = Math.floor((now - then) / 60000);
+	if (minutes < 60) return `${minutes}m ago`;
+	const hours = Math.floor(minutes / 60);
+	if (hours < 24) return `${hours}h ago`;
+	return `${Math.floor(hours / 24)}d ago`;
 }
 </script>
 

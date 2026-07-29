@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: Quick Start Guide</title>
+</head>
+<body class="default">
+<div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_prerequisites">Prerequisites</a></li>
+<li><a href="#_step_1_create_an_ontology">Step 1: Create an Ontology</a></li>
+<li><a href="#_step_2_add_classes">Step 2: Add Classes</a></li>
+<li><a href="#_step_3_add_properties">Step 3: Add Properties</a></li>
+<li><a href="#_step_4_create_individuals">Step 4: Create Individuals</a></li>
+<li><a href="#_step_5_commit_changes">Step 5: Commit Changes</a></li>
+<li><a href="#_next_steps">Next Steps</a></li>
+</ul>
+</div>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This guide walks through creating your first ontology, adding classes and properties,
+and making your first commit.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_prerequisites"><a class="anchor" href="#_prerequisites"></a>Prerequisites</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>VEDO Core is deployed and accessible (see <a href="../admin-guide/deployment.html" class="xref page">Deployment</a>)</p>
+</li>
+<li>
+<p>You have a user account with appropriate permissions</p>
+</li>
+<li>
+<p>You have a web browser (Chrome, Firefox, Edge, or Safari)</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_step_1_create_an_ontology"><a class="anchor" href="#_step_1_create_an_ontology"></a>Step 1: Create an Ontology</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Navigate to the VEDO Core dashboard.</p>
+</li>
+<li>
+<p>Click <strong>New Ontology</strong> in the top navigation bar.</p>
+</li>
+<li>
+<p>Enter a name for your ontology (e.g., <code>ProductOntology</code>).</p>
+</li>
+<li>
+<p>Optionally add a description.</p>
+</li>
+<li>
+<p>Click <strong>Create</strong>.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The ontology workspace opens with a default <code>owl:Thing</code> class and a main branch.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_step_2_add_classes"><a class="anchor" href="#_step_2_add_classes"></a>Step 2: Add Classes</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>In the left <strong>Class Tree</strong> panel, click the + icon next to the root node.</p>
+</li>
+<li>
+<p>Enter a class name (e.g., <code>Person</code>).</p>
+</li>
+<li>
+<p>Click <strong>Create</strong>.</p>
+</li>
+<li>
+<p>Repeat to add more classes: <code>Organization</code>, <code>Product</code>, <code>Order</code>.</p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Classes can have multiple parents. Use the class edit dialog to add parent
+relationships.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_step_3_add_properties"><a class="anchor" href="#_step_3_add_properties"></a>Step 3: Add Properties</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Switch to the <strong>Properties</strong> tab in the right panel.</p>
+</li>
+<li>
+<p>Click <strong>Create Property</strong>.</p>
+</li>
+<li>
+<p>Choose property type:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>ObjectProperty</strong> — relates individuals to individuals (e.g., <code>hasEmployee</code>)</p>
+</li>
+<li>
+<p><strong>DatatypeProperty</strong> — relates individuals to literal values (e.g., <code>age</code>)</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Set domain and range classes.</p>
+</li>
+<li>
+<p>Click <strong>Create</strong>.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_step_4_create_individuals"><a class="anchor" href="#_step_4_create_individuals"></a>Step 4: Create Individuals</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Select a class in the class tree (e.g., <code>Person</code>).</p>
+</li>
+<li>
+<p>In the right panel, click <strong>Add Individual</strong>.</p>
+</li>
+<li>
+<p>Enter a label (e.g., <code>Alice_Johnson</code>).</p>
+</li>
+<li>
+<p>Optionally add property values.</p>
+</li>
+<li>
+<p>Click <strong>Create</strong>.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_step_5_commit_changes"><a class="anchor" href="#_step_5_commit_changes"></a>Step 5: Commit Changes</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Click the <strong>Commit</strong> button in the toolbar.</p>
+</li>
+<li>
+<p>Enter a commit message (e.g., "Initial ontology structure").</p>
+</li>
+<li>
+<p>Click <strong>Commit</strong>.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Your changes are now saved as a versioned commit. You can view the commit history
+in the <strong>Versioning</strong> tab.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_next_steps"><a class="anchor" href="#_next_steps"></a>Next Steps</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="classes.html" class="xref page">Working with Classes</a> — advanced class operations</p>
+</li>
+<li>
+<p><a href="properties.html" class="xref page">Working with Properties</a> — property characteristics and annotations</p>
+</li>
+<li>
+<p><a href="individuals.html" class="xref page">Working with Individuals</a> — managing instances</p>
+</li>
+<li>
+<p><a href="versioning.html" class="xref page">Versioning</a> — branches, checkout, and rollback</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: Architecture</title>
+<meta name="description" content="Microservices structure, service inventory, and communication patterns.">
+</head>
+<body class="default">
+<div class="sect1">
+<h2 id="_overview"><a class="anchor" href="#_overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>VEDO Core uses a <strong>microservices architecture</strong> organized as a monorepo. 14+ loosely coupled, independently deployable services — each owning its data, communicating through well-defined APIs (REST/gRPC/events), and scalable independently.</p>
+</div>
+<div class="paragraph">
+<p>The architecture was chosen because the project requires polyglot persistence (Neo4j, PostgreSQL, Redis), different scaling profiles per service (ontology queries need more CPU than auth), and independent team ownership across Go, Rust, Python, and TypeScript codebases.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_directory_structure"><a class="anchor" href="#_directory_structure"></a>Directory Structure</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">vedo-core/
+├── src/
+│   ├── services/
+│   │   ├── api-gateway/           # Go — Entry point, routing, auth proxy
+│   │   ├── auth-service/          # Go — Keycloak integration, RBAC
+│   │   ├── ontology-service/      # Rust — Neo4j CRUD, graph operations
+│   │   ├── versioning-service/    # Rust — Git-like commits, branches, diff
+│   │   ├── metrics-service/       # Python — Analytics, aggregation
+│   │   ├── publisher-service/    # Rust — Ontology publishing pipeline
+│   │   ├── public-browse-api/    # Rust — Public read-only API
+│   │   ├── commenting-service/   # Go — Comments &amp; collaboration
+│   │   ├── ticket-api/            # Go — Ticket management CRUD
+│   │   ├── ticket-classifier/    # Python — Auto-classification (ML)
+│   │   ├── ticket-notifier/      # Go — Email / WebSocket notifications
+│   │   ├── ticket-sync/          # Go — External system sync
+│   │   ├── ticket-telemetry-listener/ # Go — Telemetry ingestion
+│   │   ├── support-service/      # Go — Support operations
+│   │   ├── frontend/             # Vue 3 — Main web UI (BFF pattern)
+│   │   └── publish-browse-ui/   # Vue 3 — Published ontology viewer
+│   ├── cli/                      # Go — Operator CLI (vedo-cli)
+│   ├── docker/                   # Multi-stage Dockerfile templates
+│   ├── templates/               # Service scaffolds by language
+│   └── build/                   # Makefile includes per language
+├── deploy/                       # Infrastructure-as-Code
+│   ├── docker-compose.yml       # All-services orchestration
+│   ├── ci/gitlab-ci.yml         # CI/CD pipeline
+│   ├── helm/                    # Kubernetes Helm values
+│   ├── keycloak/                # Realm configuration
+│   └── observability/           # OTEL, Grafana, Prometheus, Loki, Tempo
+├── tests/                        # Cross-service test suites
+└── specs/                        # Specifications (submodule)</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_service_inventory"><a class="anchor" href="#_service_inventory"></a>Service Inventory</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_go_services"><a class="anchor" href="#_go_services"></a>Go Services</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Service</th>
+<th class="tableblock halign-left valign-top">Port</th>
+<th class="tableblock halign-left valign-top">Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>api-gateway</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8080</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Entry point, routing, auth proxy, BOLA/BFLA enforcement</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>auth-service</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8084</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Keycloak integration, role-based access control</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ai-orchestration-service</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">LLM orchestration, policy enforcement, audit logging, prompt templates</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>commenting-service</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Comments, node locking, real-time collaboration</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ticket-api</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ticket management CRUD</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ticket-notifier</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Email / WebSocket notifications</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ticket-sync</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">External system synchronization</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ticket-telemetry-listener</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Telemetry ingestion</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>support-service</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Support operations</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_rust_services"><a class="anchor" href="#_rust_services"></a>Rust Services</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Service</th>
+<th class="tableblock halign-left valign-top">Port</th>
+<th class="tableblock halign-left valign-top">Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ontology-service</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8081</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Neo4j CRUD, graph operations, imports/exports</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>versioning-service</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8082</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Git-like commits, branches, diffs (PostgreSQL)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>publisher-service</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ontology publishing pipeline</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>public-browse-api</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Public read-only API for published ontologies</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_python_services"><a class="anchor" href="#_python_services"></a>Python Services</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Service</th>
+<th class="tableblock halign-left valign-top">Port</th>
+<th class="tableblock halign-left valign-top">Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>document-extractor</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">AI document extraction, NL to OWL conversion</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>metrics-service</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8086</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Analytics, aggregation (RabbitMQ consumer)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ticket-classifier</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Auto-classification using ML</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_frontend_services"><a class="anchor" href="#_frontend_services"></a>Frontend Services</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Service</th>
+<th class="tableblock halign-left valign-top">Port</th>
+<th class="tableblock halign-left valign-top">Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>frontend</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3000</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Main web UI (Vue 3 + Apollo Client + Vue Flow)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>publish-browse-ui</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Published ontology public viewer</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_shared_libraries"><a class="anchor" href="#_shared_libraries"></a>Shared Libraries</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Library</th>
+<th class="tableblock halign-left valign-top">Language</th>
+<th class="tableblock halign-left valign-top">Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apps/shared/llm</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Go</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">LLM provider abstraction, registry, prompt templates, OTEL observability</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apps/shared/proto</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Go/Rust</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">gRPC protobuf definitions</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apps/shared/src</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Rust</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Health, metrics, tracing, protos</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_communication_patterns"><a class="anchor" href="#_communication_patterns"></a>Communication Patterns</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Pattern</th>
+<th class="tableblock halign-left valign-top">Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Synchronous (REST/gRPC)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">API Gateway proxies to backend services; ticket-api serves CLI/HTTP</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Asynchronous (RabbitMQ)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Metrics ingestion, ticket classification, notifications</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">WebSocket</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Real-time collaboration — commenting, node locking</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GraphQL (Apollo)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Frontend → API Gateway for complex data queries</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">Frontend ──(GraphQL/REST)──&gt; API Gateway ──(REST/gRPC)──&gt; Backend Services
+                                   │
+                                   ├─&gt; ontology-service ──&gt; Neo4j
+                                   ├─&gt; versioning-service ──&gt; PostgreSQL
+                                   ├─&gt; auth-service ──&gt; Keycloak
+                                   ├─&gt; ai-orchestration-service ──&gt; LLM providers
+                                   └─&gt; ...
+                               WebSocket ──&gt; commenting-service
+                               RabbitMQ ──&gt; metrics-service, ticket-classifier</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_key_patterns"><a class="anchor" href="#_key_patterns"></a>Key Patterns</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><strong>gRPC</strong> for inter-service communication, REST for external API, WebSocket for real-time</p>
+</li>
+<li>
+<p><strong>Structured logging</strong> with OpenTelemetry trace context propagation across all services</p>
+</li>
+<li>
+<p><strong>Health check endpoints</strong> (<code>/health</code>, <code>/ready</code>) on every service</p>
+</li>
+<li>
+<p><strong>Multi-stage Docker builds</strong> (Go: golang→alpine, Rust: rust→debian-slim, Python: python-slim, TS: node→nginx)</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_key_principles"><a class="anchor" href="#_key_principles"></a>Key Principles</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Service Autonomy</strong> — each service owns its data, runtime, and deployment.</p>
+</li>
+<li>
+<p><strong>API-First Contracts</strong> — interfaces defined as contracts before implementation.</p>
+</li>
+<li>
+<p><strong>Smart Endpoints, Dumb Pipes</strong> — business logic lives inside services; the gateway routes but does not orchestrate.</p>
+</li>
+<li>
+<p><strong>Design for Failure</strong> — circuit breakers, retries with backoff, timeouts, fallback strategies at the gateway level.</p>
+</li>
+<li>
+<p><strong>Polyglot Persistence</strong> — Neo4j for graphs, PostgreSQL for version history, Redis for caching/locks.</p>
+</li>
+<li>
+<p><strong>Observability by Default</strong> — OpenTelemetry trace context propagated through all services; structured JSON logging with <code>trace_id</code> and <code>request_id</code>.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_health_checks"><a class="anchor" href="#_health_checks"></a>Health Checks</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Every service exposes <code>/health</code> and <code>/ready</code> endpoints:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">// GET /health
+{"status": "healthy"}
+
+// GET /ready
+{"status": "ready"}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Prometheus metrics are available at <code>/metrics</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_anti_patterns_to_avoid"><a class="anchor" href="#_anti_patterns_to_avoid"></a>Anti-Patterns to Avoid</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌ <strong>Distributed Monolith</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Services coupled via synchronous calls requiring coordinated deploys</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌ <strong>Shared Database</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Multiple services accessing the same Neo4j/PostgreSQL tables</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌ <strong>Nano-services</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Services too small that operational overhead exceeds business value</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌ <strong>Leaky Gateway</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">API Gateway containing business logic instead of routing</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="getting-started.html" class="xref page">Getting Started</a> — prerequisites and quick start</p>
+</li>
+<li>
+<p><a href="deployment.html" class="xref page">Deployment</a> — Docker setup and environments</p>
+</li>
+<li>
+<p><a href="configuration.html" class="xref page">Configuration</a> — environment variables per service</p>
+</li>
+<li>
+<p><a href="testing.html" class="xref page">Testing</a> — test suites</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>

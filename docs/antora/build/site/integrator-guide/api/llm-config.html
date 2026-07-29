@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: LLM Provider Configuration</title>
+<meta name="description" content="Configure LLM providers for AI-assisted ontology features.">
+</head>
+<body class="default">
+<div class="sect1">
+<h2 id="_overview"><a class="anchor" href="#_overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>VEDO Core supports multiple LLM providers for AI-assisted ontology creation. The LLM provider is configured via environment variables, shared across the API Gateway and Document Extractor service.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_supported_providers"><a class="anchor" href="#_supported_providers"></a>Supported Providers</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Provider</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>LLM_PROVIDER</code> value</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">API Format</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">OpenAI</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>openai</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">OpenAI-compatible REST API</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Anthropic</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>anthropic</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Anthropic Messages API</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ollama (local)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ollama</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">OpenAI-compatible (Ollama proxy)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Generic compatible</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>openai</code> with <code>LLM_BASE_URL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">OpenAI-compatible REST API</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_global_configuration"><a class="anchor" href="#_global_configuration"></a>Global Configuration</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Variable</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Default</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Description</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>LLM_PROVIDER</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>openai</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Provider name</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>LLM_API_KEY</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">API key for the provider</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>LLM_MODEL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>gpt-4o</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Model identifier</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>LLM_BASE_URL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Base URL (for compatible APIs)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>LLM_TIMEOUT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>30s</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Request timeout</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>LLM_MAX_TOKENS</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>4096</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Maximum response tokens</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>LLM_TEMPERATURE</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>0.7</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Generation temperature (0.0–2.0)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_provider_specific_overrides"><a class="anchor" href="#_provider_specific_overrides"></a>Provider-Specific Overrides</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Override specific parameters per provider using the <code>LLM_PROVIDERS_&lt;NAME&gt;_&lt;KEY&gt;</code> pattern:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>LLM_PROVIDERS_OPENAI_API_KEY=sk-...
+LLM_PROVIDERS_OPENAI_MODEL=gpt-4o
+
+LLM_PROVIDERS_ANTHROPIC_API_KEY=sk-ant-...
+LLM_PROVIDERS_ANTHROPIC_MODEL=claude-3-opus-20240229
+
+LLM_PROVIDERS_OLLAMA_BASE_URL=http://localhost:11434/v1
+LLM_PROVIDERS_OLLAMA_MODEL=llama3</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_local_development_with_ollama"><a class="anchor" href="#_local_development_with_ollama"></a>Local Development with Ollama</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For development without external API calls:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Start the Ollama container:</p>
+<div class="literalblock">
+<div class="content">
+<pre>docker compose -f docker-compose.yml -f docker-compose.llm.yaml --profile llm up -d</pre>
+</div>
+</div>
+</li>
+<li>
+<p>Pull a model:</p>
+<div class="literalblock">
+<div class="content">
+<pre>docker exec -it vedo-core-ollama-1 ollama pull llama3</pre>
+</div>
+</div>
+</li>
+<li>
+<p>Set environment variables:</p>
+<div class="literalblock">
+<div class="content">
+<pre>export LLM_PROVIDER=ollama
+export LLM_PROVIDERS_OLLAMA_BASE_URL=http://ollama:11434/v1
+export LLM_PROVIDERS_OLLAMA_MODEL=llama3</pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</body>
+</html>

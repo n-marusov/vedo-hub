@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: Project ↔ Ontology Model</title>
+<meta name="description" content="The 1:1 Project ↔ Ontology model — Project is the workspace container, Ontology is the graph content.">
+</head>
+<body class="default">
+<div class="sect1">
+<h2 id="_overview"><a class="anchor" href="#_overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>VEDO Core separates two concepts that were previously conflated:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Project</strong> — the platform container for collaborative work. A Project is the analogue of a GitLab Project: the unit of access, versioning, and membership. It has its own Git-like repository and carries members, visibility, and ABAC policies.</p>
+</li>
+<li>
+<p><strong>Ontology</strong> — the graph content of a Project (TBox/ABox, classes, properties, individuals, axioms). An Ontology does not exist outside a Project.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The two are linked by a <strong>1:1 invariant</strong>: one Project contains exactly one Ontology, and one Ontology belongs to exactly one Project. Grouping multiple ontologies is done through the <code>Group</code> hierarchy, not by packing several ontologies into one Project.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_why_11"><a class="anchor" href="#_why_11"></a>Why 1:1</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The 1:1 invariant mirrors GitLab&#8217;s «one repository = one Project» model. In GitLab, a Project <strong>is</strong> the repository. In VEDO, the Project is the workspace and the Ontology is the content — but the access/versioning boundary is the same: one Project, one unit of work.</p>
+</div>
+<div class="paragraph">
+<p>Allowing a Project to contain multiple ontologies would break the GitLab-aligned access model: membership, visibility, and policies are scoped to the Project, and a Project with multiple ontologies would have no clear answer for «which ontology does this member have access to?». The 1:1 invariant keeps the access boundary unambiguous.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_responsibility_split"><a class="anchor" href="#_responsibility_split"></a>Responsibility Split</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 40%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Concept</th>
+<th class="tableblock halign-left valign-top">Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Project</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Workspace container: members, visibility, ABAC policies, Git-like repository, audit events. Created/deleted/moved via <code>/api/v1/projects/&#8230;&#8203;</code>. The unit of access and versioning.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ontology</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Graph content: TBox/ABox, classes, properties, individuals, axioms. Reached via <code>/api/v1/ontologies/{id}</code> where <code>{id}</code> is the ontology id. Inherits access/visibility from its Project via the 1:1 link.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Creating a Project atomically creates the paired Ontology. Deleting a Project cascades to the paired Ontology. There is no «standalone Ontology» flow in the canonical API — the deprecated <code>POST /api/v1/ontologies</code> endpoint is retained only for the legacy standalone-import migration window.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_rest_surface"><a class="anchor" href="#_rest_surface"></a>REST Surface</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The canonical REST contract is documented in <code>ADR-DES.API.organization-rest-endpoints</code> and exposed via <a href="#integrator-guide:api-reference.adoc" class="xref unresolved">integrator-guide:api-reference.adoc</a>. The project-scoped endpoints are:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>POST /api/v1/projects</code> — create Project (atomically creates paired Ontology; response includes <code>ontology_id</code>)</p>
+</li>
+<li>
+<p><code>GET /api/v1/projects/{id}</code> — project details (includes <code>ontology_id</code>)</p>
+</li>
+<li>
+<p><code>GET /api/v1/projects/{id}/members</code> — list members</p>
+</li>
+<li>
+<p><code>PUT /api/v1/projects/{id}/members/{userId}</code> — update role</p>
+</li>
+<li>
+<p><code>DELETE /api/v1/projects/{id}/members/{userId}</code> — remove member</p>
+</li>
+<li>
+<p><code>GET /api/v1/projects/{id}/visibility</code> — get visibility</p>
+</li>
+<li>
+<p><code>PUT /api/v1/projects/{id}/visibility</code> — set visibility</p>
+</li>
+<li>
+<p><code>GET /api/v1/projects/{id}/policies</code> — list ABAC policies</p>
+</li>
+<li>
+<p><code>POST /api/v1/projects/{id}/policies</code> — create policy</p>
+</li>
+<li>
+<p><code>DELETE /api/v1/projects/{id}/policies/{policyId}</code> — delete policy</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The Ontology is reached separately via <code>GET /api/v1/ontologies/{id}</code> (where <code>{id}</code> is the ontology id, not the project id). The mapping is bidirectional: <code>ProjectDetail.ontology_id</code> and <code>OntologyDetail.project_id</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_postgresql_schema"><a class="anchor" href="#_postgresql_schema"></a>PostgreSQL Schema</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>vedo_org</code> database stores the organizational model:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>scopes</code> — hierarchy nodes. After migration 007, <code>type='project'</code> replaces the legacy <code>type='ontology'</code>. Group nodes keep <code>type='group'</code>.</p>
+</li>
+<li>
+<p><code>ontologies</code> — 1:1 content rows paired with project scopes (migration 008). Each row references its Project via a foreign key and carries ontology-level metadata (label, description, IRI).</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The 1:1 invariant is enforced at the schema level: the <code>ontologies</code> table has a unique foreign key to the project scope, so a Project cannot have more than one Ontology row.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_migration_story"><a class="anchor" href="#_migration_story"></a>Migration Story</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Project ↔ Ontology separation is rolled out via three PostgreSQL migrations in <code>src/services/auth-service/migrations/</code>:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>009</strong> — backfill <code>ontologies</code> rows from legacy <code>type='ontology'</code> scopes. Runs <strong>before</strong> the type rename so that no data is lost.</p>
+</li>
+<li>
+<p><strong>007</strong> — rename <code>scopes.type='ontology'</code> to <code>scopes.type='project'</code>.</p>
+</li>
+<li>
+<p><strong>008</strong> — create the <code>ontologies</code> table with FK to the project scope.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>During the migration window, the auth-service accepts the legacy <code>"ontology/" + id</code> scope string as an alias for <code>"project/" + id</code>. The alias is removed in a follow-up cleanup task after all clients have switched to the canonical project-scoped endpoints.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="organization-model.html" class="xref page">Organizational Model</a> — the full organization model (groups, projects, roles, inheritance).</p>
+</li>
+<li>
+<p><a href="#integrator-guide:api-reference.adoc" class="xref unresolved">API Reference</a> — the complete REST contract.</p>
+</li>
+<li>
+<p><code>ADR-DES.SECURITY.gitlab-like-organization-model</code> — the GitLab-aligned organization model decision.</p>
+</li>
+<li>
+<p><code>ADR-DES.API.organization-rest-endpoints</code> — the canonical REST surface for the organization model.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>

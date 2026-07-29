@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: Batch Upload</title>
+<meta name="description" content="Upload and process multiple documents for ontology extraction.">
+</head>
+<body class="default">
+<div class="sect1">
+<h2 id="_overview"><a class="anchor" href="#_overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The batch upload feature allows you to upload multiple documents at once and process them together. The extracted structures are merged into a combined preview, with deduplication and conflict resolution.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_how_batch_processing_works"><a class="anchor" href="#_how_batch_processing_works"></a>How Batch Processing Works</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Select multiple files (up to 10 at a time)</p>
+</li>
+<li>
+<p>Each document is processed independently by the Document Extractor</p>
+</li>
+<li>
+<p>Results are combined into a single preview sequence</p>
+</li>
+<li>
+<p>Duplicate classes and properties are detected and merged</p>
+</li>
+<li>
+<p>Conflicts (e.g., same property with different types) are flagged for resolution</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_conflict_resolution"><a class="anchor" href="#_conflict_resolution"></a>Conflict Resolution</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When conflicts are detected between extracted structures:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Type conflicts:</strong> Same property name with different data types — choose which type to keep</p>
+</li>
+<li>
+<p><strong>Relationship conflicts:</strong> Same relationship with different domains/ranges — review and select</p>
+</li>
+<li>
+<p><strong>Naming conflicts:</strong> Similar class names that may represent the same concept — merge or keep separate</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_step_by_step_guide"><a class="anchor" href="#_step_by_step_guide"></a>Step-by-Step Guide</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Click <strong>Batch Upload</strong> in the AI Creation section</p>
+</li>
+<li>
+<p>Select multiple documents (hold Ctrl/Cmd to select multiple)</p>
+</li>
+<li>
+<p>Wait for all documents to be processed</p>
+</li>
+<li>
+<p>Review the combined preview with source attribution</p>
+</li>
+<li>
+<p>Resolve any conflicts flagged by the system</p>
+</li>
+<li>
+<p>Click <strong>Apply</strong> to commit all changes</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_limitations"><a class="anchor" href="#_limitations"></a>Limitations</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Maximum 10 files per batch</p>
+</li>
+<li>
+<p>Each file must be under 20 MB</p>
+</li>
+<li>
+<p>Total batch processing time depends on LLM provider response times</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>

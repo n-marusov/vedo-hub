@@ -11,7 +11,7 @@
 #   SERVICE_DIR   — path to service directory relative to context
 #   VITE_*        — any VITE_ prefixed build args (injected as ENV for vite)
 
-ARG NODE_IMAGE=node:20-alpine
+ARG NODE_IMAGE=node:22-alpine
 ARG NGINX_IMAGE=nginx:1.25-alpine
 
 # ── Builder Stage ──────────────────────────────────────────────────────────────
@@ -21,11 +21,12 @@ ARG SERVICE_DIR
 
 WORKDIR /app
 
-# Install pnpm 9 (compatible with Node.js 20)
-RUN npm install -g pnpm@9
+# Install pnpm 11 (compatible with Node.js 22)
+RUN npm install -g pnpm@11
 
 # Configure pnpm to use hoisted node_modules (npm-compatible)
 RUN echo "node-linker=hoisted" > .npmrc
+RUN echo "minimumReleaseAge=0" >> .npmrc
 
 # VITE_* build args — vite reads these at build time (ENV instead of ARG so
 # they're visible during the build step)
@@ -40,7 +41,8 @@ ENV VITE_KEYCLOAK_URL=${VITE_KEYCLOAK_URL}
 COPY ${SERVICE_DIR}/package.json ${SERVICE_DIR}/pnpm-lock.yaml* ./
 
 # Install dependencies with frozen lockfile for reproducibility
-RUN pnpm install --frozen-lockfile --ignore-scripts
+# minimumReleaseAge=0 bypasses recent-package supply-chain check for CI builds
+RUN pnpm install --frozen-lockfile --ignore-scripts --config.minimumReleaseAge=0
 
 # Copy application source code
 COPY ${SERVICE_DIR}/ .

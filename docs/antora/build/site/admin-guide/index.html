@@ -1,3 +1,51 @@
-<!doctype html>
-<html><head><meta charset="utf-8"><title>Admin Guide</title></head>
-<body><h1>Admin Guide</h1><p>Stub Antora output for local preview.</p></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: Admin Guide</title>
+</head>
+<body class="default">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Operational procedures, observability, security configuration, and deployment guidance for VEDO Core administrators.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_guides"><a class="anchor" href="#_guides"></a>Guides</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="deployment.html" class="xref page">Deployment</a> — Docker Compose, Helm, and CI/CD pipeline</p>
+</li>
+<li>
+<p><a href="observability.html" class="xref page">Observability</a> — tracing, metrics, and logging</p>
+</li>
+<li>
+<p><a href="security.html" class="xref page">Security</a> — Keycloak, BOLA/BFLA, and OWASP compliance</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_offline_bundle"><a class="anchor" href="#_offline_bundle"></a>Offline Bundle</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Ensure static site artifacts are available for disconnected environments by building the Antora site:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cd src/docs/antora &amp;&amp; antora antora-playbook.yml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Output is written to <code>build/site/</code>.</p>
+</div>
+</div>
+</div>
+</body>
+</html>

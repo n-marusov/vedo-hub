@@ -52,22 +52,22 @@
 </template>
 
 <script setup lang="ts">
-import { runValidation as apiRunValidation } from '@/api/validation'
-import type { ValidationViolation } from '@/api/validation'
-import SHACLRuleBuilder from '@/components/organisms/SHACLRuleBuilder.vue'
-import PrimaryButton from '@/components/ui-kit/PrimaryButton.vue'
-import { useErrorPresentation } from '@/composables/useErrorPresentation'
-import { gql } from '@apollo/client'
-import { useQuery } from '@vue/apollo-composable'
-import { AlertTriangle, ChevronRight, FileText, Shield } from 'lucide-vue-next'
-import { computed, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { runValidation as apiRunValidation } from "@/api/validation";
+import type { ValidationViolation } from "@/api/validation";
+import SHACLRuleBuilder from "@/components/organisms/SHACLRuleBuilder.vue";
+import PrimaryButton from "@/components/ui-kit/PrimaryButton.vue";
+import { useErrorPresentation } from "@/composables/useErrorPresentation";
+import { gql } from "@apollo/client";
+import { AlertTriangle, ChevronRight, FileText, Shield } from "@lucide/vue";
+import { useQuery } from "@vue/apollo-composable";
+import { computed, ref } from "vue";
+import { useRoute } from "vue-router";
 
-const route = useRoute()
-const ontologyId = computed(() => (route.params.id as string) || '')
-const ontologyName = computed(() => (route.query.name as string) || '')
+const route = useRoute();
+const ontologyId = computed(() => (route.params.id as string) || "");
+const ontologyName = computed(() => (route.query.name as string) || "");
 
-const { addError } = useErrorPresentation()
+const { addError } = useErrorPresentation();
 
 // ── SHACL rules query ────────────────────────────────────────────────────────
 // Placeholder — real SHACL rule storage is post-M4
@@ -82,99 +82,99 @@ const SHACL_RULES_QUERY = gql`
       action
     }
   }
-`
+`;
 
 const {
-  result,
-  loading,
-  error: queryError,
-  refetch
-} = useQuery(SHACL_RULES_QUERY, { ontologyId: ontologyId.value || 'default' })
+	result,
+	loading,
+	error: queryError,
+	refetch,
+} = useQuery(SHACL_RULES_QUERY, { ontologyId: ontologyId.value || "default" });
 
 const rules = computed(() => {
-  if (!result.value?.shaclRules) return []
-  return result.value.shaclRules as Array<{
-    id: string
-    name: string
-    severity: string
-    target: string
-    condition: string
-    action: string
-  }>
-})
+	if (!result.value?.shaclRules) return [];
+	return result.value.shaclRules as Array<{
+		id: string;
+		name: string;
+		severity: string;
+		target: string;
+		condition: string;
+		action: string;
+	}>;
+});
 
 const error = computed(() => {
-  if (!queryError.value) return null
-  const msg = queryError.value.message || 'Failed to load SHACL rules'
-  addError('SHACL-RULES-LOAD-FAILED', msg)
-  return msg
-})
+	if (!queryError.value) return null;
+	const msg = queryError.value.message || "Failed to load SHACL rules";
+	addError("SHACL-RULES-LOAD-FAILED", msg);
+	return msg;
+});
 
 // ── Validation handler ───────────────────────────────────────────────────────
 
 const validationResult = ref<{
-  status: string
-  violations: ValidationViolation[]
-  validatedAt: string
-} | null>(null)
+	status: string;
+	violations: ValidationViolation[];
+	validatedAt: string;
+} | null>(null);
 
-const validating = ref(false)
+const validating = ref(false);
 
 async function runValidation(): Promise<void> {
-  if (validating.value) return
-  validating.value = true
-  try {
-    const report = await apiRunValidation(ontologyId.value || 'default')
-    const { status, validatedAt, violations } = report
-    console.debug(
-      JSON.stringify({
-        level: 'debug',
-        msg: 'Shacl.page.validation_completed',
-        status,
-        validatedAt,
-        violationsCount: violations?.length || 0,
-        ts: new Date().toISOString()
-      })
-    )
-    if (status === 'ok' && (!violations || violations.length === 0)) {
-      validationResult.value = {
-        status: 'ok',
-        violations: [],
-        validatedAt: validatedAt ?? new Date().toISOString()
-      }
-    } else {
-      validationResult.value = {
-        status: status ?? 'error',
-        violations: violations ?? [],
-        validatedAt: validatedAt ?? new Date().toISOString()
-      }
-    }
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e)
-    addError('SHACL-VALIDATION-FAILED', msg)
-    console.error(
-      JSON.stringify({
-        level: 'error',
-        msg: 'Shacl.page.validation_failed',
-        error: msg,
-        ts: new Date().toISOString()
-      })
-    )
-  } finally {
-    validating.value = false
-  }
+	if (validating.value) return;
+	validating.value = true;
+	try {
+		const report = await apiRunValidation(ontologyId.value || "default");
+		const { status, validatedAt, violations } = report;
+		console.debug(
+			JSON.stringify({
+				level: "debug",
+				msg: "Shacl.page.validation_completed",
+				status,
+				validatedAt,
+				violationsCount: violations?.length || 0,
+				ts: new Date().toISOString(),
+			}),
+		);
+		if (status === "ok" && (!violations || violations.length === 0)) {
+			validationResult.value = {
+				status: "ok",
+				violations: [],
+				validatedAt: validatedAt ?? new Date().toISOString(),
+			};
+		} else {
+			validationResult.value = {
+				status: status ?? "error",
+				violations: violations ?? [],
+				validatedAt: validatedAt ?? new Date().toISOString(),
+			};
+		}
+	} catch (e) {
+		const msg = e instanceof Error ? e.message : String(e);
+		addError("SHACL-VALIDATION-FAILED", msg);
+		console.error(
+			JSON.stringify({
+				level: "error",
+				msg: "Shacl.page.validation_failed",
+				error: msg,
+				ts: new Date().toISOString(),
+			}),
+		);
+	} finally {
+		validating.value = false;
+	}
 }
 
 async function retry(): Promise<void> {
-  console.debug(
-    JSON.stringify({
-      level: 'debug',
-      msg: 'Shacl.page.retry',
-      ontologyId: ontologyId.value,
-      ts: new Date().toISOString()
-    })
-  )
-  await refetch()
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "Shacl.page.retry",
+			ontologyId: ontologyId.value,
+			ts: new Date().toISOString(),
+		}),
+	);
+	await refetch();
 }
 </script>
 

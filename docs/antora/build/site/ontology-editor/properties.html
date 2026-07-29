@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: Working with Properties</title>
+</head>
+<body class="default">
+<div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_property_types">Property Types</a>
+<ul class="sectlevel2">
+<li><a href="#_objectproperty">ObjectProperty</a></li>
+<li><a href="#_datatypeproperty">DatatypeProperty</a></li>
+</ul>
+</li>
+<li><a href="#_creating_properties">Creating Properties</a></li>
+<li><a href="#_property_domains_and_ranges">Property Domains and Ranges</a></li>
+<li><a href="#_editing_properties">Editing Properties</a></li>
+<li><a href="#_deleting_properties">Deleting Properties</a></li>
+<li><a href="#_annotations">Annotations</a></li>
+<li><a href="#_property_operations_summary">Property Operations Summary</a></li>
+</ul>
+</div>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Properties define relationships between classes (ObjectProperty) or between classes
+and literal values (DatatypeProperty).</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_property_types"><a class="anchor" href="#_property_types"></a>Property Types</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_objectproperty"><a class="anchor" href="#_objectproperty"></a>ObjectProperty</h3>
+<div class="paragraph">
+<p>Relates individuals to other individuals. Examples:
+* <code>hasEmployee</code> — domain: Organization, range: Person
+* <code>worksFor</code> — domain: Person, range: Organization</p>
+</div>
+<div class="paragraph">
+<p>ObjectProperties have characteristics:
+* <strong>Functional</strong> — each individual has at most one value
+* <strong>Inverse Functional</strong> — each individual is the value for at most one
+* <strong>Transitive</strong> — if A relates to B and B relates to C, then A relates to C
+* <strong>Symmetric</strong> — if A relates to B, then B relates to A</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_datatypeproperty"><a class="anchor" href="#_datatypeproperty"></a>DatatypeProperty</h3>
+<div class="paragraph">
+<p>Relates individuals to literal values with an XSD type. Examples:
+* <code>age</code> — domain: Person, xsd type: integer
+* <code>name</code> — domain: Person, xsd type: string
+* <code>birthDate</code> — domain: Person, xsd type: date</p>
+</div>
+<div class="paragraph">
+<p>Valid XSD types: <code>string</code>, <code>integer</code>, <code>boolean</code>, <code>date</code>, <code>float</code>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_creating_properties"><a class="anchor" href="#_creating_properties"></a>Creating Properties</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Navigate to the <strong>Properties</strong> section in the ontology workspace.</p>
+</li>
+<li>
+<p>Click <strong>Create Property</strong>.</p>
+</li>
+<li>
+<p>Set the property ID and label.</p>
+</li>
+<li>
+<p>Choose the property type (Object or Datatype).</p>
+</li>
+<li>
+<p>Set domain classes (which classes this property applies to).</p>
+</li>
+<li>
+<p>For ObjectProperty: set range classes.</p>
+</li>
+<li>
+<p>For DatatypeProperty: set the XSD type.</p>
+</li>
+<li>
+<p>Configure characteristics (ObjectProperty only).</p>
+</li>
+<li>
+<p>Click <strong>Create</strong>.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_property_domains_and_ranges"><a class="anchor" href="#_property_domains_and_ranges"></a>Property Domains and Ranges</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Properties in a class hierarchy are inherited by subclasses:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A property with domain <code>Person</code> is also available for <code>Employee</code> (if Employee is a subclass of Person)</p>
+</li>
+<li>
+<p>Properties can have multiple domain/range classes</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_editing_properties"><a class="anchor" href="#_editing_properties"></a>Editing Properties</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Select the property from the list.</p>
+</li>
+<li>
+<p>Click <strong>Edit</strong>.</p>
+</li>
+<li>
+<p>Modify any field (note: property type cannot be changed after creation).</p>
+</li>
+<li>
+<p>Click <strong>Save</strong>.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_deleting_properties"><a class="anchor" href="#_deleting_properties"></a>Deleting Properties</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Select the property.</p>
+</li>
+<li>
+<p>Click <strong>Delete</strong>.</p>
+</li>
+<li>
+<p>If other entities reference this property, a warning is shown.</p>
+</li>
+<li>
+<p>Confirm deletion.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_annotations"><a class="anchor" href="#_annotations"></a>Annotations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Custom annotation properties can be added to any ontology property:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>In the property edit dialog, expand the <strong>Annotations</strong> section.</p>
+</li>
+<li>
+<p>Click <strong>Add Annotation</strong>.</p>
+</li>
+<li>
+<p>Enter the annotation property IRI (e.g., <code>skos:definition</code>).</p>
+</li>
+<li>
+<p>Enter the annotation value.</p>
+</li>
+<li>
+<p>Click <strong>Save</strong>.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_property_operations_summary"><a class="anchor" href="#_property_operations_summary"></a>Property Operations Summary</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 30%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Operation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REST Endpoint</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Description</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST /api/v1/ontologies/{id}/properties</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create a new property</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Read</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET /api/v1/ontologies/{id}/properties/{propId}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Get property details</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Update</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>PUT /api/v1/ontologies/{id}/properties/{propId}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Update property</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Delete</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>DELETE /api/v1/ontologies/{id}/properties/{propId}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Delete property</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET /api/v1/ontologies/{id}/properties</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List properties with type filter</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</body>
+</html>

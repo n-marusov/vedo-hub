@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: Versioning</title>
+</head>
+<body class="default">
+<div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_concepts">Concepts</a>
+<ul class="sectlevel2">
+<li><a href="#_commits">Commits</a></li>
+<li><a href="#_branches">Branches</a></li>
+<li><a href="#_materialized_state">Materialized State</a></li>
+</ul>
+</li>
+<li><a href="#_making_commits">Making Commits</a></li>
+<li><a href="#_viewing_commit_history">Viewing Commit History</a></li>
+<li><a href="#_creating_branches">Creating Branches</a></li>
+<li><a href="#_switching_branches">Switching Branches</a></li>
+<li><a href="#_merging_branches">Merging Branches</a></li>
+<li><a href="#_rolling_back">Rolling Back</a></li>
+<li><a href="#_versioning_operations_summary">Versioning Operations Summary</a></li>
+</ul>
+</div>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>VEDO Core includes a Git-like versioning engine that tracks all changes to
+ontologies. Every modification is recorded as a delta, enabling full history,
+branches, and rollback.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_concepts"><a class="anchor" href="#_concepts"></a>Concepts</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_commits"><a class="anchor" href="#_commits"></a>Commits</h3>
+<div class="paragraph">
+<p>A commit captures the state of an ontology at a point in time. Each commit contains:
+* A message describing the change
+* The author (user who made the change)
+* A delta — the difference from the previous state
+* A timestamp</p>
+</div>
+<div class="paragraph">
+<p>Deltas are stored in JSONB format in PostgreSQL:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "added_triples": [
+    {"s": "Person", "p": "rdfs:subClassOf", "o": "owl:Thing"}
+  ],
+  "removed_triples": [],
+  "modified_triples": []
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_branches"><a class="anchor" href="#_branches"></a>Branches</h3>
+<div class="paragraph">
+<p>Branches allow parallel development:
+* Each ontology has a default branch (<code>main</code>)
+* Create branches for experimental changes
+* Switch between branches to work on different features
+* Merge branches when work is complete</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_materialized_state"><a class="anchor" href="#_materialized_state"></a>Materialized State</h3>
+<div class="paragraph">
+<p>The current state of each branch is materialized in Neo4j for fast queries.
+When you switch branches, the versioning service replays deltas to compute
+the new materialized state.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_making_commits"><a class="anchor" href="#_making_commits"></a>Making Commits</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Make changes to the ontology (add classes, properties, individuals).</p>
+</li>
+<li>
+<p>Click the <strong>Commit</strong> button in the toolbar.</p>
+</li>
+<li>
+<p>Enter a descriptive commit message.</p>
+</li>
+<li>
+<p>Click <strong>Commit</strong>.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The commit is created and the workspace shows as clean.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_viewing_commit_history"><a class="anchor" href="#_viewing_commit_history"></a>Viewing Commit History</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Navigate to the <strong>Versioning</strong> tab.</p>
+</li>
+<li>
+<p>Select <strong>Commits</strong> to see the history.</p>
+</li>
+<li>
+<p>Each commit shows: message, author, timestamp, branch.</p>
+</li>
+<li>
+<p>Click a commit to see its full details.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_creating_branches"><a class="anchor" href="#_creating_branches"></a>Creating Branches</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>In the <strong>Versioning</strong> tab, select <strong>Branches</strong>.</p>
+</li>
+<li>
+<p>Click <strong>New Branch</strong>.</p>
+</li>
+<li>
+<p>Enter a branch name (e.g., <code>feature/new-property</code>).</p>
+</li>
+<li>
+<p>Select the source branch.</p>
+</li>
+<li>
+<p>Click <strong>Create</strong>.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>You are now on the new branch. Changes made here won&#8217;t affect other branches.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_switching_branches"><a class="anchor" href="#_switching_branches"></a>Switching Branches</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>In the <strong>Versioning</strong> tab, select <strong>Branches</strong>.</p>
+</li>
+<li>
+<p>Find the branch you want to switch to.</p>
+</li>
+<li>
+<p>Click <strong>Switch</strong>.</p>
+</li>
+<li>
+<p>The workspace loads the materialized state of that branch.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_merging_branches"><a class="anchor" href="#_merging_branches"></a>Merging Branches</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Switch to the target branch (e.g., <code>main</code>).</p>
+</li>
+<li>
+<p>Click <strong>Merge</strong>.</p>
+</li>
+<li>
+<p>Select the source branch to merge from.</p>
+</li>
+<li>
+<p>If there are conflicts:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Conflicts are resolved automatically with source preference</p>
+</li>
+<li>
+<p>A merge commit is created with two parent commits</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>The merged state is available immediately.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_rolling_back"><a class="anchor" href="#_rolling_back"></a>Rolling Back</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To revert to a previous state:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>View the commit history.</p>
+</li>
+<li>
+<p>Find the commit you want to roll back to.</p>
+</li>
+<li>
+<p>Click <strong>Rollback</strong>.</p>
+</li>
+<li>
+<p>Confirm the rollback.</p>
+</li>
+<li>
+<p>An inverse delta commit is created, restoring the state.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_versioning_operations_summary"><a class="anchor" href="#_versioning_operations_summary"></a>Versioning Operations Summary</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 30%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Operation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REST Endpoint</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Description</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create commit</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST /api/v1/versioning/commits</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create a new commit</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List commits</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET /api/v1/versioning/commits</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Paginated commit history</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Get commit</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET /api/v1/versioning/commits/{id}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Commit details with delta preview</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create branch</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST /api/v1/versioning/branches</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create a new branch</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List branches</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET /api/v1/versioning/branches</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List all branches</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Delete branch</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>DELETE /api/v1/versioning/branches/{id}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Delete a branch</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Merge branches</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST /api/v1/versioning/branches/{id}/merge</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Merge source into target</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Checkout</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST /api/v1/versioning/checkout</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Switch to a branch/commit</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: Ontology Editor</title>
+</head>
+<body class="default">
+<div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_architecture_overview">Architecture Overview</a></li>
+<li><a href="#_getting_started">Getting Started</a></li>
+<li><a href="#_features">Features</a>
+<ul class="sectlevel2">
+<li><a href="#_tbox_editor">TBox Editor</a></li>
+<li><a href="#_abox_editor">ABox Editor</a></li>
+<li><a href="#_versioning">Versioning</a></li>
+<li><a href="#_import_export">Import &amp; Export</a></li>
+<li><a href="#_rest_api">REST API</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The VEDO Ontology Editor is a web-based tool for creating and managing OWL ontologies.
+It supports class hierarchies (TBox), property definitions, individual instances (ABox),
+Git-like versioning, and multiple import/export formats.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_architecture_overview"><a class="anchor" href="#_architecture_overview"></a>Architecture Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The ontology editor follows a three-panel layout:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Class Tree (left)</strong> — hierarchical browser for OWL classes</p>
+</li>
+<li>
+<p><strong>Graph Panel (center)</strong> — displays individuals and their property values</p>
+</li>
+<li>
+<p><strong>Property Panel (right)</strong> — detailed view of selected entities</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_getting_started"><a class="anchor" href="#_getting_started"></a>Getting Started</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="quickstart.html" class="xref page">Quick Start Guide</a> walks through creating your first ontology,
+adding classes and properties, and making your first commit.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_features"><a class="anchor" href="#_features"></a>Features</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_tbox_editor"><a class="anchor" href="#_tbox_editor"></a>TBox Editor</h3>
+<div class="paragraph">
+<p>Create and manage class hierarchies with multiple inheritance, define Object and
+Datatype properties with domain/range constraints. See <a href="classes.html" class="xref page">Classes</a>
+and <a href="properties.html" class="xref page">Properties</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_abox_editor"><a class="anchor" href="#_abox_editor"></a>ABox Editor</h3>
+<div class="paragraph">
+<p>Create individual instances of classes, assign property values (literals and references),
+and navigate linked individuals. See <a href="individuals.html" class="xref page">Individuals</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_versioning"><a class="anchor" href="#_versioning"></a>Versioning</h3>
+<div class="paragraph">
+<p>Built-in Git-like versioning with commits, branches, checkout, and rollback.
+All changes are tracked as deltas. See <a href="versioning.html" class="xref page">Versioning</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_import_export"><a class="anchor" href="#_import_export"></a>Import &amp; Export</h3>
+<div class="paragraph">
+<p>Import ontologies from Turtle/RDF/XML files and export to canonical Turtle format.
+<a href="import-export.html" class="xref page">Learn more →</a></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_rest_api"><a class="anchor" href="#_rest_api"></a>REST API</h3>
+<div class="paragraph">
+<p>Full REST API for integration: CRUD on classes, properties, individuals, SPARQL and
+CYPHER query endpoints, and OpenAPI documentation. See <a href="api-reference.html" class="xref page">API Reference</a>.</p>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

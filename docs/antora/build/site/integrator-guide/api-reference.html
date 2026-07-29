@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: API Reference</title>
+<meta name="description" content="REST and GraphQL endpoints exposed through the API Gateway.">
+</head>
+<body class="default">
+<div class="sect1">
+<h2 id="_base_url"><a class="anchor" href="#_base_url"></a>Base URL</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">http://localhost:8080          # API Gateway (development)
+https://api.vedo-core.example  # Production</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>All external requests go through the API Gateway. The frontend never accesses backend services directly.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_health_metrics"><a class="anchor" href="#_health_metrics"></a>Health &amp; Metrics</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Method</th>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Service info (name, version)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/health</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Liveness check</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/ready</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Readiness check</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/metrics</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Prometheus metrics</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_ontologies_api_gateway_ontology_service"><a class="anchor" href="#_ontologies_api_gateway_ontology_service"></a>Ontologies (API Gateway → ontology-service)</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Method</th>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/ontologies</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create a new ontology</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/ontologies</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List ontologies</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/ontologies/{id}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Get ontology by ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>PUT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/ontologies/{id}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Update ontology</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>DELETE</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/ontologies/{id}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Delete ontology</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/ontologies/{id}/import</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Import from Turtle/RDF/XML/OWL</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/ontologies/{id}/export</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Export to Turtle/RDF/XML/OWL</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_versioning_api_gateway_versioning_service"><a class="anchor" href="#_versioning_api_gateway_versioning_service"></a>Versioning (API Gateway → versioning-service)</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Method</th>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/ontologies/{id}/commits</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create a commit</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/ontologies/{id}/commits</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List commits</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/ontologies/{id}/branches</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create a branch</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/ontologies/{id}/branches</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List branches</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/ontologies/{id}/merge</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Merge branches</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/ontologies/{id}/diff</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Diff between commits/branches</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_comments_collaboration"><a class="anchor" href="#_comments_collaboration"></a>Comments &amp; Collaboration</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Method</th>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/ontologies/{id}/comments</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Add a comment on a node</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/ontologies/{id}/comments</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List comments</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>WebSocket</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/ws/ontologies/{id}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Real-time lock/comment events</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_organization_access_control"><a class="anchor" href="#_organization_access_control"></a>Organization &amp; Access Control</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Organizational model endpoints for group hierarchy, project catalog, membership management, visibility, and access policies. The canonical REST contract is defined in <code>ADR-DES.API.organization-rest-endpoints</code> — see that ADR for the full endpoint list, RBAC rules, and audit semantics.</p>
+</div>
+<div class="sect2">
+<h3 id="_groups"><a class="anchor" href="#_groups"></a>Groups</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Method</th>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/groups</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List groups (paginated, searchable)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/groups</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create a group (Owner, idempotent)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/groups/{id}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Get group details</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>PUT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/groups/{id}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Update group (Owner, idempotent)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>DELETE</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/groups/{id}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Delete group (Owner, must be empty)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/groups/{id}/subgroups</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List child groups</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/groups/{id}/members</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List group members</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_projects"><a class="anchor" href="#_projects"></a>Projects</h3>
+<div class="paragraph">
+<p>Projects follow the 1:1 Project ↔ Ontology model: creating a Project atomically creates its paired Ontology (response includes <code>ontology_id</code>); deleting a Project cascades to the paired Ontology. Members, visibility, and policies live on the Project.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Method</th>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/projects</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List projects (paginated, searchable)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/projects</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create a project (Owner, idempotent; atomically creates paired Ontology)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/projects/{id}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Get project details (includes <code>ontology_id</code> for the 1:1 paired Ontology)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>PUT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/projects/{id}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Update project (Owner, idempotent)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>DELETE</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/projects/{id}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Delete project (Owner, idempotent; cascades to paired Ontology)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>PUT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/projects/{id}/move</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Move project to another group (Owner, idempotent)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_members"><a class="anchor" href="#_members"></a>Members</h3>
+<div class="paragraph">
+<p>Members live on Project (not Ontology), matching GitLab <code>/projects/:id/members</code>.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Method</th>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/projects/{id}/members</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List project members</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/projects/{id}/members</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Add member (Owner, idempotent)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>PUT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/projects/{id}/members/{userId}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Update role (Owner, idempotent)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>DELETE</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/projects/{id}/members/{userId}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Remove member (Owner, idempotent)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_visibility"><a class="anchor" href="#_visibility"></a>Visibility</h3>
+<div class="paragraph">
+<p>Visibility is a Project attribute; the paired Ontology inherits it via the 1:1 link.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Method</th>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/projects/{id}/visibility</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Get visibility level</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>PUT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/projects/{id}/visibility</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set visibility (Owner, idempotent)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_access_policies"><a class="anchor" href="#_access_policies"></a>Access Policies</h3>
+<div class="paragraph">
+<p>ABAC policies live on Project.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Method</th>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/projects/{id}/policies</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List ABAC policies</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/projects/{id}/policies</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create policy (Owner, idempotent)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>DELETE</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/projects/{id}/policies/{policyId}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Delete policy (Owner, idempotent)</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Role values: <code>Guest</code>, <code>Reporter</code>, <code>Developer</code>, <code>Maintainer</code>, <code>Owner</code>. Legacy <code>Viewer</code>/<code>Editor</code> aliases accepted for backward compatibility.</p>
+</div>
+<div class="paragraph">
+<p>Visibility values: <code>private</code>, <code>internal</code>, <code>public</code>. Private requires explicit membership; internal allows any authenticated org member; public allows anonymous read access.</p>
+</div>
+<div class="paragraph">
+<p>Write endpoints support <code>Idempotency-Key</code> header (UUID). Membership endpoints require it (400 if missing).</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_merge_requests"><a class="anchor" href="#_merge_requests"></a>Merge Requests</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Method</th>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/merge-requests</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create a merge request</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/merge-requests</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List merge requests</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/merge-requests/{id}/approve</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Approve merge request</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/v1/merge-requests/{id}/merge</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Execute merge</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_graphql"><a class="anchor" href="#_graphql"></a>GraphQL</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The frontend uses Apollo Client to query the API Gateway&#8217;s GraphQL endpoint for complex data operations:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-graphql hljs" data-lang="graphql">query GetOntology($id: ID!) {
+  ontology(id: $id) {
+    id
+    name
+    description
+    classes {
+      id
+      label
+      properties { name type }
+    }
+    relationships {
+      from
+      to
+      type
+    }
+  }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_error_codes"><a class="anchor" href="#_error_codes"></a>Error Codes</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">HTTP Status</th>
+<th class="tableblock halign-left valign-top">Error Code</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">400</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>BAD_REQUEST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Malformed request body or parameters</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">401</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>UNAUTHORIZED</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Missing or invalid authentication token</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">403</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>FORBIDDEN</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Insufficient permissions (RBAC)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">404</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NOT_FOUND</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Resource does not exist</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">405</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>METHOD_NOT_ALLOWED</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">HTTP method not supported on this endpoint</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">409</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CONFLICT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Version conflict or duplicate resource</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">422</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>UNPROCESSABLE_ENTITY</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Semantic validation failure</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">429</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RATE_LIMITED</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Rate limit exceeded</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">500</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>INTERNAL_ERROR</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Unhandled server error</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Error responses follow a consistent JSON shape:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "error": "NOT_FOUND",
+  "message": "Ontology with id 'abc123' was not found",
+  "trace_id": "a1b2c3d4-e5f6"
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_security"><a class="anchor" href="#_security"></a>Security</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><strong>BOLA/BFLA enforcement</strong> at the API Gateway level — object-level and function-level authorization checks prevent unauthorized access.</p>
+</li>
+<li>
+<p><strong>Negative authorization tests</strong> are part of the test suite (<code>tests/security/</code>).</p>
+</li>
+<li>
+<p><strong>SAST/DAST security gates</strong> run in CI alongside dependency scanning.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>See <a href="authentication.html" class="xref page">Authentication</a> for token flow and identity providers.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="authentication.html" class="xref page">Authentication</a> — Keycloak, OIDC, identity providers</p>
+</li>
+<li>
+<p><a href="integration-config.html" class="xref page">Integration Configuration</a> — service URLs and environment</p>
+</li>
+<li>
+<p><a href="index.html" class="xref page">Integrator Guide Home</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>

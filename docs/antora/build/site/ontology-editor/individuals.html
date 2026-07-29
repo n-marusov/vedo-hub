@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: Working with Individuals</title>
+</head>
+<body class="default">
+<div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_creating_individuals">Creating Individuals</a></li>
+<li><a href="#_reading_individuals">Reading Individuals</a></li>
+<li><a href="#_editing_individuals">Editing Individuals</a>
+<ul class="sectlevel2">
+<li><a href="#_adding_literal_values">Adding Literal Values</a></li>
+<li><a href="#_adding_reference_values">Adding Reference Values</a></li>
+</ul>
+</li>
+<li><a href="#_deleting_individuals">Deleting Individuals</a></li>
+<li><a href="#_filtering_individuals">Filtering Individuals</a></li>
+<li><a href="#_cross_link_navigation">Cross-Link Navigation</a></li>
+<li><a href="#_individual_operations_summary">Individual Operations Summary</a></li>
+</ul>
+</div>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Individuals (ABox — Assertional Box) are instances of classes. They represent
+specific objects in the domain being modeled.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_creating_individuals"><a class="anchor" href="#_creating_individuals"></a>Creating Individuals</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Select a class in the <strong>Class Tree</strong> (e.g., <code>Person</code>).</p>
+</li>
+<li>
+<p>In the right panel, click <strong>Add Individual</strong>.</p>
+</li>
+<li>
+<p>Enter a label for the individual (e.g., <code>Alice_Johnson</code>).</p>
+</li>
+<li>
+<p>Optionally enter an ID (auto-generated if omitted).</p>
+</li>
+<li>
+<p>Optionally add property values:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Literal values</strong> — for DatatypeProperties (e.g., name, age)</p>
+</li>
+<li>
+<p><strong>Reference values</strong> — for ObjectProperties (e.g., worksFor → Organization)</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Click <strong>Create</strong>.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_reading_individuals"><a class="anchor" href="#_reading_individuals"></a>Reading Individuals</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Select an individual to view its full card:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>ID and label</p>
+</li>
+<li>
+<p>Class type</p>
+</li>
+<li>
+<p>All literal property values (property → value)</p>
+</li>
+<li>
+<p>All reference property values (property → linked individual)</p>
+</li>
+<li>
+<p>Direct links to navigate to linked individuals</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_editing_individuals"><a class="anchor" href="#_editing_individuals"></a>Editing Individuals</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To modify an individual:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Select the individual.</p>
+</li>
+<li>
+<p>Click <strong>Edit</strong>.</p>
+</li>
+<li>
+<p>Modify the label or comment.</p>
+</li>
+<li>
+<p>Add/remove literal values and reference values.</p>
+</li>
+<li>
+<p>Click <strong>Save</strong>.</p>
+</li>
+</ol>
+</div>
+<div class="sect2">
+<h3 id="_adding_literal_values"><a class="anchor" href="#_adding_literal_values"></a>Adding Literal Values</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>In the edit dialog, locate <strong>Literal Values</strong>.</p>
+</li>
+<li>
+<p>Select a DatatypeProperty from the dropdown.</p>
+</li>
+<li>
+<p>Enter the value.</p>
+</li>
+<li>
+<p>Click <strong>Add</strong>.</p>
+</li>
+<li>
+<p>The value is saved immediately.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_adding_reference_values"><a class="anchor" href="#_adding_reference_values"></a>Adding Reference Values</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>In the edit dialog, locate <strong>Reference Values</strong>.</p>
+</li>
+<li>
+<p>Select an ObjectProperty from the dropdown.</p>
+</li>
+<li>
+<p>Search for the target individual.</p>
+</li>
+<li>
+<p>Select the target.</p>
+</li>
+<li>
+<p>Click <strong>Add</strong>.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_deleting_individuals"><a class="anchor" href="#_deleting_individuals"></a>Deleting Individuals</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Select the individual.</p>
+</li>
+<li>
+<p>Click <strong>Delete</strong>.</p>
+</li>
+<li>
+<p>If other individuals reference this one, a warning shows the count.</p>
+</li>
+<li>
+<p>Optionally cascade delete (removes incoming references).</p>
+</li>
+<li>
+<p>Confirm deletion.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_filtering_individuals"><a class="anchor" href="#_filtering_individuals"></a>Filtering Individuals</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The individual list supports:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Class filter</strong> — show only individuals of a specific class</p>
+</li>
+<li>
+<p><strong>Text search</strong> — search by label and ID</p>
+</li>
+<li>
+<p><strong>Property filter</strong> — filter by literal value in format <code>property_id:operator:value</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Example property filter: <code>age:eq:30</code> — shows individuals with age equal to 30.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_cross_link_navigation"><a class="anchor" href="#_cross_link_navigation"></a>Cross-Link Navigation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Reference values are clickable links. Click a linked individual to navigate
+to its full card, enabling exploration of the ontology graph.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_individual_operations_summary"><a class="anchor" href="#_individual_operations_summary"></a>Individual Operations Summary</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 30%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Operation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REST Endpoint</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Description</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST /api/v1/ontologies/{id}/individuals</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create a new individual</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Read</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET /api/v1/ontologies/{id}/individuals/{indId}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Get individual card</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Update</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>PUT /api/v1/ontologies/{id}/individuals/{indId}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Update individual</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Delete</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>DELETE /api/v1/ontologies/{id}/individuals/{indId}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Delete individual</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET /api/v1/ontologies/{id}/individuals</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List with class filter</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</body>
+</html>

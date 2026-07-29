@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: Getting Started</title>
+<meta name="description" content="Prerequisites, build, and local development environment for VEDO Core.">
+</head>
+<body class="default">
+<div class="sect1">
+<h2 id="_prerequisites"><a class="anchor" href="#_prerequisites"></a>Prerequisites</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Tool</th>
+<th class="tableblock halign-left valign-top">Version</th>
+<th class="tableblock halign-left valign-top">Required for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Docker</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">24+</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">All services (containers)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Docker Compose</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">v2+</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Full-stack orchestration</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Make</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">any</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Build orchestrator (<code>src/Makefile</code>)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Go</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.21+</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Go services, <code>vedo-cli</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Rust</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.75+</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Rust services (ontology, versioning, publisher)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Python</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.11+</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Python services (metrics, classifier)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Node.js</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">20+</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Frontend services</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">pnpm</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8+</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Frontend package manager</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>If you just want to run the stack, Docker + Make is enough — language toolchains are only needed for local development and building from source.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_quick_start_with_docker"><a class="anchor" href="#_quick_start_with_docker"></a>Quick Start with Docker</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">git clone --recurse-submodules &lt;repo-url&gt; vedo-hub
+cd vedo-hub
+
+# Start all services + databases + Keycloak
+cd src &amp;&amp; make docker-up</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The full stack includes 28 containers (14 application services, 4 databases, Keycloak, and build steps). Health checks are configured on every service; <code>make docker-up</code> returns once all are healthy.</p>
+</div>
+<div class="sect2">
+<h3 id="_verify_the_stack"><a class="anchor" href="#_verify_the_stack"></a>Verify the Stack</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># API Gateway health
+curl http://localhost:8080/health
+# {"status":"healthy"}
+
+# Frontend
+curl http://localhost:3000/
+
+# Neo4j Browser — http://localhost:7474 (neo4j / password)</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_default_ports"><a class="anchor" href="#_default_ports"></a>Default Ports</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Service</th>
+<th class="tableblock halign-left valign-top">Port</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Frontend</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3000</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">API Gateway</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8080</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ontology Service (Rust)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8081</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Versioning Service (Rust)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8082</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Auth Service (Go)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8084</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Metrics Service (Python)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8086</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Neo4j (Bolt / Browser)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">7687 / 7474</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PostgreSQL</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5432</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Redis</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6379</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">RabbitMQ (AMQP / Management)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5672 / 15672</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Keycloak (UI)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8180</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Keycloak default admin credentials: <code>admin</code> / <code>admin</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_running_individual_services"><a class="anchor" href="#_running_individual_services"></a>Running Individual Services</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_frontend"><a class="anchor" href="#_frontend"></a>Frontend</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cd src &amp;&amp; make dev-frontend
+# Starts Vite dev server with hot-module replacement on :3000</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_api_gateway"><a class="anchor" href="#_api_gateway"></a>API Gateway</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cd src &amp;&amp; make dev-api
+# Starts Go API Gateway on :8080</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_rust_services"><a class="anchor" href="#_rust_services"></a>Rust Services</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cd src/services/ontology-service &amp;&amp; cargo run</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See <a href="architecture.html" class="xref page">Architecture</a> for all services and their entry points.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_building_from_source"><a class="anchor" href="#_building_from_source"></a>Building from Source</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Build all services (Rust, Go, Python, TypeScript)
+cd src &amp;&amp; make build
+
+# Build only Docker images
+cd src &amp;&amp; make docker-build
+
+# Lint everything
+cd src &amp;&amp; make lint
+
+# Run unit tests (fast, no infrastructure needed)
+cd src &amp;&amp; make test
+
+# Run all tests (including integration, requires DB)
+cd src &amp;&amp; make test-all
+
+# Full CI check (build + lint + test + typecheck)
+cd src &amp;&amp; make ci</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="architecture.html" class="xref page">Architecture</a> — microservices structure and communication patterns</p>
+</li>
+<li>
+<p><a href="configuration.html" class="xref page">Configuration</a> — environment variables and defaults reference</p>
+</li>
+<li>
+<p><a href="testing.html" class="xref page">Testing</a> — test suites and how to run them</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>

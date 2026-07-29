@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: Observability</title>
+<meta name="description" content="OpenTelemetry tracing, Prometheus metrics, Loki logs, and Grafana dashboards.">
+</head>
+<body class="default">
+<div class="sect1">
+<h2 id="_overview"><a class="anchor" href="#_overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>VEDO Core uses a full observability stack powered by OpenTelemetry, Prometheus, Loki, Tempo, and Grafana. Configuration files are in <code>deploy/observability/</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_components"><a class="anchor" href="#_components"></a>Components</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Component</th>
+<th class="tableblock halign-left valign-top">Config Path</th>
+<th class="tableblock halign-left valign-top">Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">OpenTelemetry Collector</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>deploy/observability/otel-collector.yml</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Trace context propagation across services</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Prometheus</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>deploy/observability/prometheus.yml</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Metrics scraping (<code>/metrics</code> on every service)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Grafana</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>deploy/observability/grafana/</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Dashboards and visualization</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Loki</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>deploy/observability/loki.yml</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Log aggregation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tempo</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>deploy/observability/tempo.yml</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Distributed tracing backend</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_distributed_tracing"><a class="anchor" href="#_distributed_tracing"></a>Distributed Tracing</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>OpenTelemetry trace context is propagated through all services. Every request entering the API Gateway receives a <code>trace_id</code> that flows through to backend services via gRPC/REST headers.</p>
+</div>
+<div class="sect2">
+<h3 id="_trace_headers"><a class="anchor" href="#_trace_headers"></a>Trace Headers</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Header</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>X-Trace-Id</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Unique trace identifier (propagated end-to-end)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>X-Correlation-Id</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Request correlation identifier</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_metrics"><a class="anchor" href="#_metrics"></a>Metrics</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Every service exposes a Prometheus-compatible <code>/metrics</code> endpoint:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl http://localhost:8080/metrics
+# HELP vedo_service_requests_total Total service requests
+# TYPE vedo_service_requests_total counter
+vedo_service_requests_total{service="api-gateway"} 1234</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Prometheus scrapes these endpoints based on the configuration in <code>deploy/observability/prometheus.yml</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_logging"><a class="anchor" href="#_logging"></a>Logging</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>All services emit structured JSON logs with trace context:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "service": "api-gateway",
+  "path": "/api/v1/ontologies",
+  "status": 200,
+  "trace_id": "a1b2c3d4",
+  "correlation_id": "e5f6g7h8"
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Logs are aggregated by Loki and queryable in Grafana via LogQL.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_grafana_dashboards"><a class="anchor" href="#_grafana_dashboards"></a>Grafana Dashboards</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Grafana provides pre-built dashboards for:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Service health overview (liveness, readiness, request rates)</p>
+</li>
+<li>
+<p>Latency percentiles (p95, p99)</p>
+</li>
+<li>
+<p>Error rates by service</p>
+</li>
+<li>
+<p>Distributed trace visualization (via Tempo integration)</p>
+</li>
+<li>
+<p>Log exploration (via Loki integration)</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="deployment.html" class="xref page">Deployment</a> — Docker Compose, Helm, CI/CD</p>
+</li>
+<li>
+<p><a href="security.html" class="xref page">Security</a> — Keycloak, BOLA/BFLA, security gates</p>
+</li>
+<li>
+<p><a href="index.html" class="xref page">Admin Guide Home</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>

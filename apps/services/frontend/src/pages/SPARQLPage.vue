@@ -59,161 +59,166 @@
 // to REST `POST /api/v1/sparql`. Per ADR-DES.API.rest-graphql-mutation-boundary.md,
 // SPARQL execution is REST-only so it goes through the gateway DoS defenses
 // (CircuitBreakerMiddleware, rate limiting, query complexity checks).
-import { executeSparql } from '@/api/sparql'
-import SPARQLQueryEditor from '@/components/organisms/SPARQLQueryEditor.vue'
-import { useErrorPresentation } from '@/composables/useErrorPresentation'
-import { Folder, GitBranch, Search } from 'lucide-vue-next'
-import { computed, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { executeSparql } from "@/api/sparql";
+import SPARQLQueryEditor from "@/components/organisms/SPARQLQueryEditor.vue";
+import { useErrorPresentation } from "@/composables/useErrorPresentation";
+import { Folder, GitBranch, Search } from "@lucide/vue";
+import { computed, ref } from "vue";
+import { useRoute } from "vue-router";
 
-const route = useRoute()
-const ontologyId = ref(route.params.id as string)
-const error = ref<string | null>(null)
-const queryText = ref('')
+const route = useRoute();
+const ontologyId = ref(route.params.id as string);
+const error = ref<string | null>(null);
+const queryText = ref("");
 const results = ref<{
-  columns: string[]
-  rows: unknown[][]
-  total: number
-  executionTimeMs: number
-} | null>(null)
-const loading = ref(false)
-const { addError } = useErrorPresentation()
+	columns: string[];
+	rows: unknown[][];
+	total: number;
+	executionTimeMs: number;
+} | null>(null);
+const loading = ref(false);
+const { addError } = useErrorPresentation();
 
 // Transform REST columns/rows format → SPARQL JSON format (head.vars / results.bindings)
 // Same shape as the prior GraphQL path so SPARQLQueryEditor needs no changes.
 const resultsData = computed(() => {
-  if (!results.value) return undefined
-  const r = results.value
-  return {
-    head: { vars: r.columns },
-    results: {
-      bindings: r.rows.map((row) => {
-        const binding: Record<string, { value: string }> = {}
-        r.columns.forEach((col, idx) => {
-          binding[col] = {
-            value: row[idx] !== null && row[idx] !== undefined ? String(row[idx]) : ''
-          }
-        })
-        return binding
-      })
-    },
-    total_results: r.total,
-    execution_time_ms: r.executionTimeMs
-  }
-})
+	if (!results.value) return undefined;
+	const r = results.value;
+	return {
+		head: { vars: r.columns },
+		results: {
+			bindings: r.rows.map((row) => {
+				const binding: Record<string, { value: string }> = {};
+				r.columns.forEach((col, idx) => {
+					binding[col] = {
+						value:
+							row[idx] !== null && row[idx] !== undefined
+								? String(row[idx])
+								: "",
+					};
+				});
+				return binding;
+			}),
+		},
+		total_results: r.total,
+		execution_time_ms: r.executionTimeMs,
+	};
+});
 
 async function onRunQuery(q?: string): Promise<void> {
-  const sparqlQuery = q || queryText.value
-  if (!sparqlQuery || !sparqlQuery.trim()) return
+	const sparqlQuery = q || queryText.value;
+	if (!sparqlQuery || !sparqlQuery.trim()) return;
 
-  error.value = null
-  results.value = null
-  loading.value = true
+	error.value = null;
+	results.value = null;
+	loading.value = true;
 
-  console.debug(
-    JSON.stringify({
-      level: 'debug',
-      msg: 'sparql.query.executing',
-      ontologyId: ontologyId.value,
-      queryLength: sparqlQuery.length,
-      ts: new Date().toISOString()
-    })
-  )
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "sparql.query.executing",
+			ontologyId: ontologyId.value,
+			queryLength: sparqlQuery.length,
+			ts: new Date().toISOString(),
+		}),
+	);
 
-  try {
-    // REST call — goes through API Gateway DoS protection (CircuitBreakerMiddleware).
-    const data = await executeSparql({
-      ontologyId: ontologyId.value,
-      query: sparqlQuery,
-      limit: 100,
-      offset: 0
-    })
+	try {
+		// REST call — goes through API Gateway DoS protection (CircuitBreakerMiddleware).
+		const data = await executeSparql({
+			ontologyId: ontologyId.value,
+			query: sparqlQuery,
+			limit: 100,
+			offset: 0,
+		});
 
-    results.value = {
-      columns: data.columns || [],
-      rows: data.rows || [],
-      total: data.total || 0,
-      executionTimeMs: data.executionTimeMs || 0
-    }
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err)
-    error.value = message
-    addError('SPARQL_EXECUTION_ERROR', message)
-    console.error(
-      JSON.stringify({
-        level: 'error',
-        msg: 'sparql.query.failed',
-        ontologyId: ontologyId.value,
-        error: message,
-        ts: new Date().toISOString()
-      })
-    )
-  } finally {
-    loading.value = false
-  }
+		results.value = {
+			columns: data.columns || [],
+			rows: data.rows || [],
+			total: data.total || 0,
+			executionTimeMs: data.executionTimeMs || 0,
+		};
+	} catch (err) {
+		const message = err instanceof Error ? err.message : String(err);
+		error.value = message;
+		addError("SPARQL_EXECUTION_ERROR", message);
+		console.error(
+			JSON.stringify({
+				level: "error",
+				msg: "sparql.query.failed",
+				ontologyId: ontologyId.value,
+				error: message,
+				ts: new Date().toISOString(),
+			}),
+		);
+	} finally {
+		loading.value = false;
+	}
 }
 
 function onExportQuery(_q: string): void {
-  if (!results.value) return
-  const format = 'csv'
-  let content = ''
-  const cols = results.value.columns
-  if (format === 'csv') {
-    content = `${cols.join(',')}\n`
-    content += results.value.rows
-      .map((row) => row.map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','))
-      .join('\n')
-  } else {
-    content = JSON.stringify(
-      { columns: cols, rows: results.value.rows, total: results.value.total },
-      null,
-      2
-    )
-  }
-  const blob = new Blob([content], { type: 'text/csv' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `sparql-results.${format}`
-  a.click()
-  URL.revokeObjectURL(url)
+	if (!results.value) return;
+	const format = "csv";
+	let content = "";
+	const cols = results.value.columns;
+	if (format === "csv") {
+		content = `${cols.join(",")}\n`;
+		content += results.value.rows
+			.map((row) =>
+				row.map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(","),
+			)
+			.join("\n");
+	} else {
+		content = JSON.stringify(
+			{ columns: cols, rows: results.value.rows, total: results.value.total },
+			null,
+			2,
+		);
+	}
+	const blob = new Blob([content], { type: "text/csv" });
+	const url = URL.createObjectURL(blob);
+	const a = document.createElement("a");
+	a.href = url;
+	a.download = `sparql-results.${format}`;
+	a.click();
+	URL.revokeObjectURL(url);
 
-  console.debug(
-    JSON.stringify({
-      level: 'debug',
-      msg: 'SPARQL.export',
-      format,
-      rows: results.value.total,
-      ts: new Date().toISOString()
-    })
-  )
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "SPARQL.export",
+			format,
+			rows: results.value.total,
+			ts: new Date().toISOString(),
+		}),
+	);
 }
 
 function onFormatQuery(q: string): void {
-  if (!q || !q.trim()) return
-  // Simple SPARQL formatting — uppercase keywords, normalize whitespace, newlines before clauses
-  const formatted = q
-    .replace(/\s+/g, ' ')
-    .trim()
-    .replace(
-      /\b(select|where|filter|limit|offset|order\s+by|group\s+by|having|optional|union|minus|bind|values|distinct|reduced|as|desc|asc|prefix|base|construct|describe|ask|from|named|graph|service|sameTerm|isIRI|isBlank|isLiteral|str|lang|datatype|bound|if|coalesce|exists|not\s+exists|in|not\s+in|replace|regex|substr|strlen|ucase|lcase|encode_for_uri|contains|strstarts|strends|abs|round|ceil|floor|rand|now|year|month|day|hours|minutes|seconds|timezone|tz|md5|sha1|sha256|sha384|sha512|true|false|a)\b/gi,
-      (match: string) => match.toUpperCase()
-    )
-    .replace(
-      /(SELECT|WHERE|FILTER|LIMIT|OFFSET|ORDER BY|GROUP BY|HAVING|OPTIONAL|UNION|MINUS|BIND|VALUES|DISTINCT|REDUCED|PREFIX|BASE|CONSTRUCT|DESCRIBE|ASK|FROM|NAMED|GRAPH|SERVICE)\s/g,
-      '\n$1 '
-    )
-    .replace(/\n\s*\n/g, '\n')
-  queryText.value = formatted
-  error.value = null
+	if (!q || !q.trim()) return;
+	// Simple SPARQL formatting — uppercase keywords, normalize whitespace, newlines before clauses
+	const formatted = q
+		.replace(/\s+/g, " ")
+		.trim()
+		.replace(
+			/\b(select|where|filter|limit|offset|order\s+by|group\s+by|having|optional|union|minus|bind|values|distinct|reduced|as|desc|asc|prefix|base|construct|describe|ask|from|named|graph|service|sameTerm|isIRI|isBlank|isLiteral|str|lang|datatype|bound|if|coalesce|exists|not\s+exists|in|not\s+in|replace|regex|substr|strlen|ucase|lcase|encode_for_uri|contains|strstarts|strends|abs|round|ceil|floor|rand|now|year|month|day|hours|minutes|seconds|timezone|tz|md5|sha1|sha256|sha384|sha512|true|false|a)\b/gi,
+			(match: string) => match.toUpperCase(),
+		)
+		.replace(
+			/(SELECT|WHERE|FILTER|LIMIT|OFFSET|ORDER BY|GROUP BY|HAVING|OPTIONAL|UNION|MINUS|BIND|VALUES|DISTINCT|REDUCED|PREFIX|BASE|CONSTRUCT|DESCRIBE|ASK|FROM|NAMED|GRAPH|SERVICE)\s/g,
+			"\n$1 ",
+		)
+		.replace(/\n\s*\n/g, "\n");
+	queryText.value = formatted;
+	error.value = null;
 
-  console.debug(
-    JSON.stringify({
-      level: 'debug',
-      msg: 'sparql.query.formatted',
-      ts: new Date().toISOString()
-    })
-  )
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "sparql.query.formatted",
+			ts: new Date().toISOString(),
+		}),
+	);
 }
 </script>
 

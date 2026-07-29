@@ -72,7 +72,7 @@ import {
 	Lock,
 	Shield,
 	Users,
-} from "lucide-vue-next";
+} from "@lucide/vue";
 import type { Component } from "vue";
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";

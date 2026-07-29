@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: Security</title>
+<meta name="description" content="Keycloak realm configuration, BOLA/BFLA enforcement, and security gates.">
+</head>
+<body class="default">
+<div class="sect1">
+<h2 id="_keycloak_configuration"><a class="anchor" href="#_keycloak_configuration"></a>Keycloak Configuration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Keycloak realm is defined in <code>deploy/keycloak/vedo-core-realm.json</code> and imported automatically on container startup.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 66.6667%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Admin URL</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><a href="http://localhost:8180" class="bare">http://localhost:8180</a></code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Admin credentials</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>admin</code> / <code>admin</code> (change in production)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Realm name</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>vedo-core</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Rotate all default credentials before deploying to production. Use <code>vedo-cli</code> for secret rotation operations.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_bola_bfla_enforcement"><a class="anchor" href="#_bola_bfla_enforcement"></a>BOLA / BFLA Enforcement</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The API Gateway enforces two layers of authorization:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>BOLA (Broken Object-Level Authorization)</strong> — every request is checked to ensure the authenticated user has access to the specific resource (ontology, group, merge request) they are requesting.</p>
+</li>
+<li>
+<p><strong>BFLA (Broken Function-Level Authorization)</strong> — every endpoint is checked to ensure the user&#8217;s role permits the requested operation.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Negative authorization tests in <code>tests/security/</code> verify that unauthorized access is properly rejected.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_security_gates_in_ci"><a class="anchor" href="#_security_gates_in_ci"></a>Security Gates in CI</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Gate</th>
+<th class="tableblock halign-left valign-top">Stage</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SAST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Static analysis</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Source code vulnerability scanning before deploy</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DAST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Dynamic analysis</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Running application vulnerability scanning on staging</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Dependency scanning</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supply chain</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Known CVEs in Go, Rust, Python, npm dependencies</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BOLA/BFLA tests</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Test</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Authorization tests run as part of <code>make test</code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_identity_providers"><a class="anchor" href="#_identity_providers"></a>Identity Providers</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Keycloak is configured with support for Russian OAuth providers and Google:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>ESIA / Gosuslagi</p>
+</li>
+<li>
+<p>Yandex</p>
+</li>
+<li>
+<p>VK</p>
+</li>
+<li>
+<p>Google</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Provider configuration is stored in the realm JSON and managed through the Keycloak admin console.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_owasp_top_10_compliance"><a class="anchor" href="#_owasp_top_10_compliance"></a>OWASP Top 10 Compliance</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>VEDO Core follows OWASP Top 10 mitigation practices:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Risk</th>
+<th class="tableblock halign-left valign-top">Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Injection</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Parameterized queries (Neo4j Cypher, PostgreSQL), input validation at gateway</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Broken Authentication</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Keycloak OIDC/OAuth2 with JWT validation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sensitive Data Exposure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">TLS in production, secrets via environment variables</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">XXE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No XML external entity processing</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Broken Access Control</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BOLA/BFLA enforcement at API Gateway</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Security Misconfiguration</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Docker multi-stage builds, minimal base images</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">XSS</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Vue 3 auto-escaping, CSP headers</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Insecure Deserialization</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Type-safe parsers, no untrusted deserialization</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Known Vulnerabilities</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Dependency scanning in CI</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Insufficient Logging</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Structured JSON logs with trace_id on all services</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="deployment.html" class="xref page">Deployment</a> — CI/CD pipeline and security gates</p>
+</li>
+<li>
+<p><a href="observability.html" class="xref page">Observability</a> — tracing and audit logs</p>
+</li>
+<li>
+<p><a href="index.html" class="xref page">Admin Guide Home</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>

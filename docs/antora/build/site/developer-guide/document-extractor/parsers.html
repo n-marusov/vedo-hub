@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: Parser Design and Extension Guide</title>
+<meta name="description" content="How the Document Extractor parsers work and how to add new ones.">
+</head>
+<body class="default">
+<div class="sect1">
+<h2 id="_parser_architecture"><a class="anchor" href="#_parser_architecture"></a>Parser Architecture</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Each file format is handled by a dedicated parser module in the <code>parsers/</code> directory. All parsers implement a common interface:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>class BaseParser:
+    def parse(self, content: bytes, filename: str) -&gt; ParsedDocument:
+        ...</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>ParsedDocument</code> type contains:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>title</code> — document title extracted from filename or metadata</p>
+</li>
+<li>
+<p><code>content</code> — plain text content extracted from the document</p>
+</li>
+<li>
+<p><code>metadata</code> — format-specific metadata (e.g., author, page count)</p>
+</li>
+<li>
+<p><code>sections</code> — optional hierarchy of sections with headings</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_available_parsers"><a class="anchor" href="#_available_parsers"></a>Available Parsers</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_text_parsers_md_txt"><a class="anchor" href="#_text_parsers_md_txt"></a>Text Parsers (MD, TXT)</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>text_parser.py</code> — Handles Markdown and plain text files</p>
+</li>
+<li>
+<p>Markdown headings (<code><mark></code>, <code></mark>#</code>, etc.) are converted to section hierarchy</p>
+</li>
+<li>
+<p>Code blocks, tables, and lists are preserved in the extracted content</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_pdf_parser"><a class="anchor" href="#_pdf_parser"></a>PDF Parser</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>pdf_parser.py</code> — Uses PyPDF2 and pdfplumber for text extraction</p>
+</li>
+<li>
+<p>Detects scanned (image-only) PDFs and returns an error</p>
+</li>
+<li>
+<p>Extracts text page by page with page number metadata</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_docx_parser"><a class="anchor" href="#_docx_parser"></a>DOCX Parser</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>docx_parser.py</code> — Uses python-docx for Word document parsing</p>
+</li>
+<li>
+<p>Extracts paragraphs, tables, and headings</p>
+</li>
+<li>
+<p>Preserves document structure with heading levels</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_json_parser"><a class="anchor" href="#_json_parser"></a>JSON Parser</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>json_parser.py</code> — Parses JSON files into ontology structures</p>
+</li>
+<li>
+<p>Top-level keys become candidate classes</p>
+</li>
+<li>
+<p>Nested objects suggest class hierarchies</p>
+</li>
+<li>
+<p>Arrays of primitives suggest data properties</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_xml_parser"><a class="anchor" href="#_xml_parser"></a>XML Parser</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>xml_parser.py</code> — Parses XML files</p>
+</li>
+<li>
+<p>Element tags suggest class names</p>
+</li>
+<li>
+<p>Attributes suggest data properties</p>
+</li>
+<li>
+<p>Nested elements suggest object properties</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_csv_parser"><a class="anchor" href="#_csv_parser"></a>CSV Parser</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>csv_parser.py</code> — Parses CSV files</p>
+</li>
+<li>
+<p>Header row → property names</p>
+</li>
+<li>
+<p>Each row → an individual</p>
+</li>
+<li>
+<p>File name → class name</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_xlsx_parser"><a class="anchor" href="#_xlsx_parser"></a>XLSX Parser</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>xlsx_parser.py</code> — Uses openpyxl for Excel files</p>
+</li>
+<li>
+<p>Sheet names → class name candidates</p>
+</li>
+<li>
+<p>First row → property names</p>
+</li>
+<li>
+<p>Subsequent rows → individuals</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_adding_a_new_parser"><a class="anchor" href="#_adding_a_new_parser"></a>Adding a New Parser</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create a new file in the <code>parsers/</code> directory (e.g., <code>yaml_parser.py</code>)</p>
+</li>
+<li>
+<p>Implement the parsing logic following the established pattern</p>
+</li>
+<li>
+<p>Register the new parser in <code>api/routes.py</code> by adding the format to the supported types dictionary</p>
+</li>
+<li>
+<p>Add the corresponding Python package to <code>pyproject.toml</code> dependencies if needed</p>
+</li>
+<li>
+<p>Add tests for the new parser in <code>tests/</code></p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</body>
+</html>

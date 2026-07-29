@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: Integration Configuration</title>
+<meta name="description" content="Service URLs, ports, and environment settings for external integration.">
+</head>
+<body class="default">
+<div class="sect1">
+<h2 id="_service_urls"><a class="anchor" href="#_service_urls"></a>Service URLs</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When integrating with VEDO Core, use the API Gateway as the single entry point:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Environment</th>
+<th class="tableblock halign-left valign-top">API Gateway URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Development (Docker Compose)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><a href="http://localhost:8080" class="bare">http://localhost:8080</a></code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Production</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><a href="https://api.vedo-core.example" class="bare">https://api.vedo-core.example</a></code> (configurable)</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Never access backend services (ontology-service, versioning-service, etc.) directly. All requests must go through the API Gateway for authentication, authorization, and routing.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_websocket"><a class="anchor" href="#_websocket"></a>WebSocket</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Real-time collaboration events are available via WebSocket:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">ws://localhost:8080/ws/ontologies/{ontology_id}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Events include node lock/unlock, comment additions, and presence notifications.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_key_environment_variables_for_integration"><a class="anchor" href="#_key_environment_variables_for_integration"></a>Key Environment Variables for Integration</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Variable</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>API_GATEWAY_URL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Base URL for REST/GraphQL API calls</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>WS_URL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">WebSocket endpoint for real-time events</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>KEYCLOAK_URL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Keycloak server for OAuth2 token exchange</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>KEYCLOAK_REALM</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Keycloak realm name (<code>vedo-core</code>)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>KEYCLOAK_CLIENT_ID</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">OAuth2 client ID for your integration</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>KEYCLOAK_CLIENT_SECRET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">OAuth2 client secret for confidential flows</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_docker_compose_service_ports"><a class="anchor" href="#_docker_compose_service_ports"></a>Docker Compose Service Ports</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For direct network access (internal integrations within Docker network):</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Service</th>
+<th class="tableblock halign-left valign-top">Container Port</th>
+<th class="tableblock halign-left valign-top">Host Port</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">API Gateway</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8080</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8080</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ontology Service</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8080</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8081</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Versioning Service</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8080</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8082</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Auth Service</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8080</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8084</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Metrics Service</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8080</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8086</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_rate_limiting"><a class="anchor" href="#_rate_limiting"></a>Rate Limiting</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The API Gateway enforces rate limits. Exceeding the limit returns HTTP 429 with a <code>Retry-After</code> header.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Rate limit thresholds are configurable per client and per endpoint. Contact your administrator for specific limits.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="api-reference.html" class="xref page">API Reference</a> — full endpoint listing</p>
+</li>
+<li>
+<p><a href="authentication.html" class="xref page">Authentication</a> — OAuth2 token flow</p>
+</li>
+<li>
+<p><a href="index.html" class="xref page">Integrator Guide Home</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>

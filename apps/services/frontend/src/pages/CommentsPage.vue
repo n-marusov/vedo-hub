@@ -33,104 +33,104 @@
 
 <script setup lang="ts">
 import {
-  type CommentInfo,
-  createComment as apiCreateComment,
-  listComments as apiListComments
-} from '@/api/comments'
-import Comments from '@/components/organisms/Comments.vue'
-import { ChevronRight } from 'lucide-vue-next'
-import { computed, onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+	type CommentInfo,
+	createComment as apiCreateComment,
+	listComments as apiListComments,
+} from "@/api/comments";
+import Comments from "@/components/organisms/Comments.vue";
+import { ChevronRight } from "@lucide/vue";
+import { computed, onMounted, ref, watch } from "vue";
+import { useRoute } from "vue-router";
 
-const route = useRoute()
-const ontologyId = (route.params.ontologyId as string) || 'default'
+const route = useRoute();
+const ontologyId = (route.params.ontologyId as string) || "default";
 
 // ── REST Data ────────────────────────────────────────────────────────────────────
 
-const loading = ref(false)
-const error = ref<string | null>(null)
-const feedData = ref<CommentInfo[]>([])
+const loading = ref(false);
+const error = ref<string | null>(null);
+const feedData = ref<CommentInfo[]>([]);
 
 async function fetchFeed() {
-  loading.value = true
-  error.value = null
-  try {
-    const result = await apiListComments(ontologyId, ontologyId, 1, 50)
-    feedData.value = result.comments
-  } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : String(e)
-  } finally {
-    loading.value = false
-  }
+	loading.value = true;
+	error.value = null;
+	try {
+		const result = await apiListComments(ontologyId, ontologyId, 1, 50);
+		feedData.value = result.comments;
+	} catch (e: unknown) {
+		error.value = e instanceof Error ? e.message : String(e);
+	} finally {
+		loading.value = false;
+	}
 }
 
 onMounted(() => {
-  fetchFeed()
-})
+	fetchFeed();
+});
 
 const commentItems = computed(() =>
-  feedData.value.map((c) => ({
-    author: c.authorName ?? c.author ?? '',
-    handle: `@${c.author ?? ''}`,
-    timestamp: formatRelativeTime(c.createdAt ?? ''),
-    action: `commented on entity ${c.entityId}`,
-    text: c.text ?? ''
-  }))
-)
+	feedData.value.map((c) => ({
+		author: c.authorName ?? c.author ?? "",
+		handle: `@${c.author ?? ""}`,
+		timestamp: formatRelativeTime(c.createdAt ?? ""),
+		action: `commented on entity ${c.entityId}`,
+		text: c.text ?? "",
+	})),
+);
 
-const mutationError = ref<string | null>(null)
-const newCommentText = ref('')
+const mutationError = ref<string | null>(null);
+const newCommentText = ref("");
 
 async function submitComment() {
-  if (!newCommentText.value.trim()) return
-  try {
-    await apiCreateComment(ontologyId, ontologyId, newCommentText.value.trim())
-    newCommentText.value = ''
-    await fetchFeed()
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Unknown error'
-    mutationError.value = message
-  }
+	if (!newCommentText.value.trim()) return;
+	try {
+		await apiCreateComment(ontologyId, ontologyId, newCommentText.value.trim());
+		newCommentText.value = "";
+		await fetchFeed();
+	} catch (err: unknown) {
+		const message = err instanceof Error ? err.message : "Unknown error";
+		mutationError.value = message;
+	}
 }
 
 function formatRelativeTime(dateStr: string): string {
-  const now = Date.now()
-  const then = new Date(dateStr).getTime()
-  const diffMs = now - then
-  const minutes = Math.floor(diffMs / 60000)
-  if (minutes < 1) return 'just now'
-  if (minutes < 60) return `${minutes}m ago`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
-  const days = Math.floor(hours / 24)
-  return `${days}d ago`
+	const now = Date.now();
+	const then = new Date(dateStr).getTime();
+	const diffMs = now - then;
+	const minutes = Math.floor(diffMs / 60000);
+	if (minutes < 1) return "just now";
+	if (minutes < 60) return `${minutes}m ago`;
+	const hours = Math.floor(minutes / 60);
+	if (hours < 24) return `${hours}h ago`;
+	const days = Math.floor(hours / 24);
+	return `${days}d ago`;
 }
 
 // ── Logging ─────────────────────────────────────────────────────────────────
 
 watch(commentItems, (val) => {
-  console.debug(
-    JSON.stringify({
-      level: 'debug',
-      msg: 'comments.feed.loaded',
-      count: val.length,
-      ts: new Date().toISOString()
-    })
-  )
-})
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "comments.feed.loaded",
+			count: val.length,
+			ts: new Date().toISOString(),
+		}),
+	);
+});
 
 watch(error, (err) => {
-  if (err) {
-    console.error(
-      JSON.stringify({
-        level: 'error',
-        msg: 'comments.query.error',
-        error: String(err),
-        ts: new Date().toISOString()
-      })
-    )
-  }
-})
+	if (err) {
+		console.error(
+			JSON.stringify({
+				level: "error",
+				msg: "comments.query.error",
+				error: String(err),
+				ts: new Date().toISOString(),
+			}),
+		);
+	}
+});
 </script>
 
 <style scoped>

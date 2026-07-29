@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: Organizational Model</title>
+<meta name="description" content="Multi-team organization model with group hierarchy, project catalog, role-based membership, and visibility levels.">
+</head>
+<body class="default">
+<div class="sect1">
+<h2 id="_overview"><a class="anchor" href="#_overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The organizational model provides GitLab-like group hierarchy and project catalog for multi-tenant ontology management. It replaces the Apollo GraphQL test fixtures with a real backend backed by PostgreSQL.</p>
+</div>
+<div class="paragraph">
+<p>Architecture: <code>auth-service</code> owns org data (PostgreSQL), exposes gRPC API. <code>api-gateway</code> proxies REST/GraphQL to auth-service gRPC.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_key_concepts"><a class="anchor" href="#_key_concepts"></a>Key Concepts</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Group: hierarchical scope node (type=group) with parent-child relationships</p>
+</li>
+<li>
+<p>Project: scope node (type=project) under a group; the unit of access, versioning, and membership</p>
+</li>
+<li>
+<p>Ontology: graph content of a Project (TBox/ABox, classes, properties, individuals). Ratio 1:1 with Project — one Project contains exactly one Ontology</p>
+</li>
+<li>
+<p>Membership: role assignment (user_id + scope + role) — stored on Project, inherited by the paired Ontology</p>
+</li>
+<li>
+<p>Visibility: Private | Internal | Public per Group and Project. Groups carry their own visibility level. Subgroup visibility is inherited from the parent and cannot exceed it (Private &gt; Internal &gt; Public).</p>
+</li>
+<li>
+<p>Inheritance: memberships propagate from parent to child (max-role-wins)</p>
+</li>
+<li>
+<p>Max Role Wins: highest role across inherited and direct memberships</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>See <a href="project-ontology-model.html" class="xref page">Project ↔ Ontology Model</a> for the dedicated explanation of the 1:1 invariant and the responsibility split between Project (workspace) and Ontology (graph content).</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_role_hierarchy"><a class="anchor" href="#_role_hierarchy"></a>Role Hierarchy</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 50%;">
+<col style="width: 25%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MVP Role</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Priority</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Legacy Alias</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Guest</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Viewer (mapped as alias)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Reporter</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Developer</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Editor (mapped as alias)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Maintainer</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Maintainer</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Owner</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Owner</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Legacy roles <code>Viewer</code> and <code>Editor</code> are accepted as backward-compatible aliases for <code>Guest</code> and <code>Developer</code> respectively. Enterprise/ops roles (<code>SupportEngineer</code>, <code>SRE</code>, <code>SecurityLead</code>, <code>ProductOwner</code>) exist in the data model but are outside the MVP happy path.</p>
+</div>
+<div class="paragraph">
+<p>Only Owners can manage memberships, change visibility, and manage policies. Permission inheritance follows max-role-wins: the highest role across direct and inherited memberships determines effective permissions.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_group_hierarchy"><a class="anchor" href="#_group_hierarchy"></a>Group Hierarchy</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Groups can be nested up to 5 levels deep. Creating or moving a group beyond this limit returns a <code>HIERARCHY_DEPTH_EXCEEDED</code> validation error.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_project_movement"><a class="anchor" href="#_project_movement"></a>Project Movement</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A project can be moved from one group to another. Moving a project updates effective membership and inherited roles for all members based on the new parent group. The paired Ontology moves with the Project (1:1 invariant). Authorization caches for the affected scopes are invalidated on move.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_postgresql_schema"><a class="anchor" href="#_postgresql_schema"></a>PostgreSQL Schema</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>vedo_org</code> database contains four tables:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>scopes</code> — group/project hierarchy nodes with visibility + tenant isolation. After migration 007, <code>type='project'</code> replaces the legacy <code>type='ontology'</code>.</p>
+</li>
+<li>
+<p><code>ontologies</code> — 1:1 content rows paired with project scopes (migration 008). Each row references its Project via a foreign key and carries the ontology-level metadata (label, description, IRI).</p>
+</li>
+<li>
+<p><code>memberships</code> — role assignments with UNIQUE(scope, user_id) and CHECK constraint validating role enum</p>
+</li>
+<li>
+<p><code>attribute_policies</code> — ABAC policy definitions (JSONB pattern)</p>
+</li>
+<li>
+<p><code>audit_events</code> — authorization audit trail (event, reason, user_id, object_type, object_id, source_ip, trace_id)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Migrations: <code>src/services/auth-service/migrations/</code> (001-009). Migrations 007-009 are part of the Project ↔ Ontology separation:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>007 — rename <code>scopes.type='ontology'</code> to <code>scopes.type='project'</code></p>
+</li>
+<li>
+<p>008 — create the <code>ontologies</code> table with FK to the project scope (preserves the 1:1 invariant)</p>
+</li>
+<li>
+<p>009 — backfill <code>ontologies</code> rows from legacy <code>type='ontology'</code> scopes (runs before the type rename)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Migration 006 adds MVP role vocabulary (<code>Guest</code>, <code>Reporter</code>, <code>Developer</code>, <code>Maintainer</code>, <code>Owner</code>) to the memberships CHECK constraint while preserving legacy roles (<code>Viewer</code>, <code>Editor</code>) as backward-compatible aliases.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_project_lifecycle"><a class="anchor" href="#_project_lifecycle"></a>Project Lifecycle</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Projects follow a simple lifecycle:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Create</strong> — a new Project is created inside a Group with a paired Ontology (1:1).</p>
+</li>
+<li>
+<p><strong>Fork</strong> — copy a Project (with its Ontology) into the user&#8217;s workspace. See <a href="#_fork_model">Fork Model</a> below.</p>
+</li>
+<li>
+<p><strong>(post-MVP)</strong> Merge upstream — incorporate changes from the source Project into the fork.</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_fork_model"><a class="anchor" href="#_fork_model"></a>Fork Model</h3>
+<div class="paragraph">
+<p>Forking creates a copy of a Project (with its paired Ontology) linked to the source via <code>upstream_project_id</code>. The fork is private by default; the user becomes Owner of the new Project.</p>
+</div>
+<div class="paragraph">
+<p>Fork mechanics:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Endpoint:</strong> <code>POST /api/v1/projects/{id}/fork</code></p>
+</li>
+<li>
+<p><strong>Request body:</strong> empty (<code>Idempotency-Key</code> header required)</p>
+</li>
+<li>
+<p><strong>Response:</strong> <code>201 Created</code> with <code>{project_id, ontology_id, upstream_project_id}</code></p>
+</li>
+<li>
+<p><strong>RBAC:</strong> any user with read access to the source Project can fork. Guest role can fork public/internal projects.</p>
+</li>
+<li>
+<p><strong>Saga:</strong> creates Project scope → paired Ontology → copies main branch via Versioning Service gRPC → emits <code>project.forked</code> audit event. On failure, compensating action deletes the new Project + Ontology.</p>
+</li>
+<li>
+<p><strong>Idempotency:</strong> <code>Idempotency-Key</code> header required (same as other write endpoints).</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_upstream_project_id_field"><a class="anchor" href="#_upstream_project_id_field"></a><code>upstream_project_id</code> field</h3>
+<div class="paragraph">
+<p>The <code>upstream_project_id</code> field on Project (<code>scopes</code> table) is nullable:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>When non-null: this Project is a fork of the referenced upstream Project.</p>
+</li>
+<li>
+<p>When null: this is an original (non-forked) Project.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Database constraints:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>ON DELETE SET NULL</code> — when the upstream Project is deleted, the fork remains as an orphan (consistent with the Git model).</p>
+</li>
+<li>
+<p>Partial index: <code>idx_scopes_upstream</code> on <code>upstream_project_id WHERE upstream_project_id IS NOT NULL</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_audit_events"><a class="anchor" href="#_audit_events"></a>Audit Events</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Structured audit events are emitted for the following organizational lifecycle operations:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Group create, delete, move</p>
+</li>
+<li>
+<p>Project create, delete, move, fork</p>
+</li>
+<li>
+<p>Member add, remove, role change</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Each audit event includes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>event</code> — operation name</p>
+</li>
+<li>
+<p><code>reason</code> — reason or authorization context</p>
+</li>
+<li>
+<p><code>user_id</code> — acting user</p>
+</li>
+<li>
+<p><code>object_type</code>, <code>object_id</code> — target scope</p>
+</li>
+<li>
+<p><code>source_ip</code> — request origin</p>
+</li>
+<li>
+<p><code>trace_id</code> — OpenTelemetry trace correlation</p>
+</li>
+<li>
+<p><code>timestamp</code> — event time</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Audit events are persisted in the <code>audit_events</code> table and logged as structured JSON via <code>slog</code> at INFO/WARN level. Tokens, secrets, and PII beyond stable user/scope identifiers are excluded.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_environment_variables"><a class="anchor" href="#_environment_variables"></a>Environment Variables</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 66.6667%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Variable</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Description</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>AUTH_SERVICE_DATABASE_URL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PostgreSQL connection string for org data</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>REDIS_URL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Redis connection for idempotency cache</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_rest_api_endpoints"><a class="anchor" href="#_rest_api_endpoints"></a>REST API Endpoints</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>All endpoints require <code>Authorization: Bearer &lt;JWT&gt;</code> header.</p>
+</div>
+<div class="sect2">
+<h3 id="_groups"><a class="anchor" href="#_groups"></a>Groups</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>GET /api/v1/groups</code> — list all groups (supports <code>?search=</code> for filtering)</p>
+</li>
+<li>
+<p><code>POST /api/v1/groups</code> — create group (Owner). Request body: <code>{ name (required, canonical), slug? (auto-generated), description?, visibility?, parent_id? }</code>. The deprecated <code>label</code> field is accepted as a fallback for <code>name</code> (backward compatibility).</p>
+</li>
+<li>
+<p><code>GET /api/v1/groups/:id</code> — get group details</p>
+</li>
+<li>
+<p><code>PUT /api/v1/groups/:id</code> — update group (Owner)</p>
+</li>
+<li>
+<p><code>DELETE /api/v1/groups/:id</code> — delete group (Owner, must be empty)</p>
+</li>
+<li>
+<p><code>GET /api/v1/groups/:id/subgroups</code> — list child groups</p>
+</li>
+<li>
+<p><code>GET /api/v1/groups/:id/members</code> — list group members</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_projects"><a class="anchor" href="#_projects"></a>Projects</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Create: <code>POST /api/v1/projects</code> — create project in a group (Owner/Maintainer in parent group).</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Required: <code>name</code> (string, canonical), <code>group_id</code> (UUID of parent group).</p>
+</li>
+<li>
+<p>Optional: <code>description</code> (string), <code>visibility</code> (Private | Internal | Public, default: Private).</p>
+</li>
+<li>
+<p>The deprecated <code>label</code> field is accepted as a fallback for <code>name</code> (backward compatibility).</p>
+</li>
+<li>
+<p><code>Idempotency-Key</code> header required.</p>
+</li>
+<li>
+<p>Visibility inheritance: project visibility cannot exceed parent group visibility (enforced server-side).</p>
+</li>
+<li>
+<p>Response <code>201</code>: <code>{ id, name, type, parent_id, visibility, ontology_id }</code> — includes UUID v4 for the paired Ontology.</p>
+</li>
+<li>
+<p>Owner membership is auto-assigned to the caller.</p>
+</li>
+<li>
+<p>UI: creation is handled via a dedicated page at <code>/dashboard/projects/new</code> (not a dialog).</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>GET /api/v1/projects</code> — list projects (paginated, searchable)</p>
+</li>
+<li>
+<p><code>GET /api/v1/projects/:id</code> — get project details (includes <code>ontology_id</code> for the 1:1 paired Ontology)</p>
+</li>
+<li>
+<p><code>PUT /api/v1/projects/:id</code> — update project (Owner)</p>
+</li>
+<li>
+<p><code>DELETE /api/v1/projects/:id</code> — delete project (Owner; cascades to the paired Ontology)</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_members"><a class="anchor" href="#_members"></a>Members</h3>
+<div class="paragraph">
+<p>Members live on Project (not Ontology), matching GitLab <code>/projects/:id/members</code>.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>GET /api/v1/projects/:id/members</code> — list project members</p>
+</li>
+<li>
+<p><code>POST /api/v1/projects/:id/members</code> — add member (Owner)</p>
+</li>
+<li>
+<p><code>PUT /api/v1/projects/:id/members/:userId</code> — update role (Owner)</p>
+</li>
+<li>
+<p><code>DELETE /api/v1/projects/:id/members/:userId</code> — remove member (Owner)</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_visibility"><a class="anchor" href="#_visibility"></a>Visibility</h3>
+<div class="paragraph">
+<p>Visibility is a Project attribute; the paired Ontology inherits it via the 1:1 link.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>GET /api/v1/projects/:id/visibility</code> — get visibility</p>
+</li>
+<li>
+<p><code>PUT /api/v1/projects/:id/visibility</code> — set visibility (Owner)</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_access_policies"><a class="anchor" href="#_access_policies"></a>Access Policies</h3>
+<div class="paragraph">
+<p>ABAC policies live on Project.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>GET /api/v1/projects/:id/policies</code> — list policies</p>
+</li>
+<li>
+<p><code>POST /api/v1/projects/:id/policies</code> — create policy (Owner)</p>
+</li>
+<li>
+<p><code>DELETE /api/v1/projects/:id/policies/:policyId</code> — delete policy (Owner)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>See <a href="#integrator-guide:api-reference.adoc" class="xref unresolved">integrator-guide:api-reference.adoc</a> for the full REST contract and ADR-DES.API.organization-rest-endpoints for the canonical endpoint list.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_idempotency"><a class="anchor" href="#_idempotency"></a>Idempotency</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>All write endpoints support <code>Idempotency-Key</code> header (REQ-FUN.API.write-idempotency).</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Same key + same body: returns cached response</p>
+</li>
+<li>
+<p>Same key + different body: 409 IDEMPOTENCY_KEY_REUSED_WITH_DIFFERENT_PAYLOAD</p>
+</li>
+<li>
+<p>Missing key on membership endpoints: 400 INVALID_IDEMPOTENCY_KEY</p>
+</li>
+<li>
+<p>TTL: 24 hours (Redis or in-memory storage)</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>

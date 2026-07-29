@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: Import &amp;amp; Export</title>
+</head>
+<body class="default">
+<div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_supported_formats">Supported Formats</a></li>
+<li><a href="#_exporting_ontologies">Exporting Ontologies</a>
+<ul class="sectlevel2">
+<li><a href="#_export_via_rest_api">Export via REST API</a></li>
+<li><a href="#_export_performance">Export Performance</a></li>
+</ul>
+</li>
+<li><a href="#_importing_ontologies">Importing Ontologies</a>
+<ul class="sectlevel2">
+<li><a href="#_import_via_rest_api">Import via REST API</a></li>
+<li><a href="#_import_performance">Import Performance</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>VEDO Core supports importing and exporting ontologies in standard
+RDF serialization formats.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_supported_formats"><a class="anchor" href="#_supported_formats"></a>Supported Formats</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Format</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Extension</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MIME Type</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Import</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Export</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Turtle</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>.ttl</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>text/turtle</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">RDF/XML</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>.rdf</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>application/rdf+xml</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exporting_ontologies"><a class="anchor" href="#_exporting_ontologies"></a>Exporting Ontologies</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Open the ontology you want to export.</p>
+</li>
+<li>
+<p>Click the <strong>Export</strong> button in the toolbar.</p>
+</li>
+<li>
+<p>Select the format (Turtle or RDF/XML).</p>
+</li>
+<li>
+<p>The file downloads automatically.</p>
+</li>
+</ol>
+</div>
+<div class="sect2">
+<h3 id="_export_via_rest_api"><a class="anchor" href="#_export_via_rest_api"></a>Export via REST API</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http hljs" data-lang="http">GET /api/v1/ontologies/{id}/export?format=turtle
+Accept: text/turtle</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Response: The ontology serialized as Turtle (or RDF/XML).</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_export_performance"><a class="anchor" href="#_export_performance"></a>Export Performance</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Up to 100K triples → exported in under 10 seconds</p>
+</li>
+<li>
+<p>Streaming for large ontologies (chunks of 10K triples)</p>
+</li>
+<li>
+<p>Canonical sorting for deterministic output</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_importing_ontologies"><a class="anchor" href="#_importing_ontologies"></a>Importing Ontologies</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Click <strong>Import</strong> in the toolbar.</p>
+</li>
+<li>
+<p>Select a Turtle or RDF/XML file.</p>
+</li>
+<li>
+<p>The system validates the file:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Checks that referenced classes exist</p>
+</li>
+<li>
+<p>Configurable: create stubs for missing classes or reject</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Click <strong>Import</strong>.</p>
+</li>
+<li>
+<p>Review the import report:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Entities created, updated, skipped</p>
+</li>
+<li>
+<p>Warnings and errors</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>A commit is created automatically after successful import.</p>
+</li>
+</ol>
+</div>
+<div class="sect2">
+<h3 id="_import_via_rest_api"><a class="anchor" href="#_import_via_rest_api"></a>Import via REST API</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http hljs" data-lang="http">POST /api/v1/ontologies/{id}/import
+Content-Type: multipart/form-data
+
+file=@ontology.ttl</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Response:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "entities_created": 15,
+  "entities_updated": 0,
+  "warnings": ["Class 'UnknownType' not found, created as stub"],
+  "errors": []
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_import_performance"><a class="anchor" href="#_import_performance"></a>Import Performance</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Up to 100K triples → imported in under 15 seconds</p>
+</li>
+<li>
+<p>Streaming parser — no full file buffering</p>
+</li>
+<li>
+<p>Validation pass before application</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

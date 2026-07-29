@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: Authentication</title>
+<meta name="description" content="Keycloak OIDC/OAuth2 authentication, token flow, and supported identity providers.">
+</head>
+<body class="default">
+<div class="sect1">
+<h2 id="_overview"><a class="anchor" href="#_overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Authentication is handled by <strong>Keycloak</strong> via OIDC/OAuth2. The <code>auth-service</code> integrates with Keycloak for token validation and role-based access control (RBAC).</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_supported_identity_providers"><a class="anchor" href="#_supported_identity_providers"></a>Supported Identity Providers</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>ESIA / Gosuslugi</p>
+</li>
+<li>
+<p>Yandex</p>
+</li>
+<li>
+<p>VK</p>
+</li>
+<li>
+<p>Google</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_token_flow"><a class="anchor" href="#_token_flow"></a>Token Flow</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">Client ──(login)──&gt; Keycloak ──(JWT)──&gt; Client
+Client ──(JWT)──&gt; API Gateway ──(validate)──&gt; auth-service ──&gt; Backend</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>All protected API endpoints require a valid <code>Authorization: Bearer &lt;token&gt;</code> header.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_request_example"><a class="anchor" href="#_request_example"></a>Request Example</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl -H "Authorization: Bearer &lt;JWT_TOKEN&gt;" \
+  http://localhost:8080/api/v1/ontologies</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_keycloak_configuration"><a class="anchor" href="#_keycloak_configuration"></a>Keycloak Configuration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Keycloak realm is configured in <code>deploy/keycloak/vedo-core-realm.json</code> and imported automatically on startup.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 66.6667%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Keycloak Admin URL</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><a href="http://localhost:8180" class="bare">http://localhost:8180</a></code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Admin credentials</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>admin</code> / <code>admin</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Realm name</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>vedo-core</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Change the default admin credentials in production. The development realm is for local use only.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_roles_permissions"><a class="anchor" href="#_roles_permissions"></a>Roles &amp; Permissions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>RBAC roles are managed in Keycloak and enforced at the API Gateway:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Role</th>
+<th class="tableblock halign-left valign-top">Permissions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>admin</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Full system access, user management, guardrail controls</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>editor</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create/edit ontologies, commits, branches, merge requests</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>viewer</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Read-only access to published ontologies</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>integrator</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">API access for external integrations</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="api-reference.html" class="xref page">API Reference</a> — REST/GraphQL endpoints</p>
+</li>
+<li>
+<p><a href="integration-config.html" class="xref page">Integration Configuration</a> — service URLs and environment</p>
+</li>
+<li>
+<p><a href="index.html" class="xref page">Integrator Guide Home</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>

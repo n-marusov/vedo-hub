@@ -24,7 +24,7 @@ GO_RUNTIME_IMAGE ?= alpine:3.19
 PYTHON_IMAGE          ?= python:3.12-slim
 PYTHON_RUNTIME_IMAGE ?= python:3.12-slim
 
-NODE_IMAGE  ?= node:20-alpine
+NODE_IMAGE  ?= node:22-alpine
 NGINX_IMAGE ?= nginx:1.25-alpine
 
 .PHONY: docker-build-rust

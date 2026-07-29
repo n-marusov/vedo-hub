@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: Development</title>
+<meta name="description" content="Native builds, per-service operations, linting, formatting, Git hooks, and cleanup.">
+</head>
+<body class="default">
+<div class="sect1">
+<h2 id="_native_build_without_docker"><a class="anchor" href="#_native_build_without_docker"></a>Native Build (without Docker)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Build or test individual services locally using host toolchains (Git, Rust, Python, Node.js must be installed):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Per-service native builds (detects language automatically)
+make build-api-gateway      # Go
+make build-ontology-service  # Rust
+make build-frontend          # TypeScript
+make build-document-extractor # Python
+
+# By language (all services of that language)
+make build-rust
+make build-go
+make build-python
+make build-typescript
+
+# All services
+make build</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Each service detects its language from project files in its directory (Cargo.toml, go.mod, pyproject.toml, package.json).</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_linting"><a class="anchor" href="#_linting"></a>Linting</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">make lint                        # All linters
+make lint-rust                   # Rust only (cargo clippy)
+make lint-go                     # Go only (golangci-lint)
+make lint-python                 # Python only (ruff check)
+make lint-typescript             # TypeScript only (biome check)
+
+# Per-service linting
+make lint-api-gateway
+make lint-ontology-service</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_formatting"><a class="anchor" href="#_formatting"></a>Formatting</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">make fmt                         # All languages
+make fmt-rust                    # cargo fmt
+make fmt-go                      # gofmt
+make fmt-python                  # ruff format
+make fmt-typescript              # biome check --write</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_dev_servers"><a class="anchor" href="#_dev_servers"></a>Dev Servers</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">make dev-frontend     # Vue 3 frontend with hot reload (Vite)
+make dev-api          # API gateway with go run</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_local_native_development"><a class="anchor" href="#_local_native_development"></a>Local Native Development</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Running a service outside Docker (for debugging / hot-reload): start only infrastructure, then point the service at <code>localhost</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Start infra only
+make infra-up
+
+# Example: run API Gateway natively
+export API_GATEWAY_PORT=8080
+export ONTOLOGY_SERVICE_URL=http://localhost:8082
+export AUTH_SERVICE_URL=http://localhost:8081
+export KEYCLOAK_JWKS_URL=http://localhost:8180/realms/vedo-core/protocol/openid-connect/certs
+cd apps/services/api-gateway &amp;&amp; go run .</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Each service reads its config from env vars — see the <code>environment:</code> block in <code>deploy/docker-compose.yml</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_git_hooks"><a class="anchor" href="#_git_hooks"></a>Git Hooks</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Git hooks management via Lefthook:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">make install-hooks      # Install Git hooks
+make uninstall-hooks    # Remove hooks
+make run-hooks          # Run pre-commit hooks on staged files
+make validate-hooks     # Validate lefthook.yml configuration</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_vendoring"><a class="anchor" href="#_vendoring"></a>Vendoring</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Go services require a <code>vendor/</code> directory for offline Docker builds:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">make vendor-go    # Populate vendor/ for all Go services</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_typescript_type_checking"><a class="anchor" href="#_typescript_type_checking"></a>TypeScript Type Checking</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">make typecheck    # vue-tsc --noEmit for all TypeScript services</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_cleanup"><a class="anchor" href="#_cleanup"></a>Cleanup</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">make clean        # Remove build artifacts
+make clean-all    # Deep clean: artifacts + vendor/ + .venv + node_modules</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_list_services"><a class="anchor" href="#_list_services"></a>List Services</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">make list-services    # Show all services grouped by language</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="deployment.html" class="xref page">Deployment</a> — Docker setup and environments</p>
+</li>
+<li>
+<p><a href="configuration.html" class="xref page">Configuration</a> — environment variables and ports</p>
+</li>
+<li>
+<p><a href="testing.html" class="xref page">Testing</a> — test suite reference</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>

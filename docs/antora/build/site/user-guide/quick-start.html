@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: Quick Start</title>
+<meta name="description" content="How to access VEDO Core and start working with ontologies.">
+</head>
+<body class="default">
+<div class="sect1">
+<h2 id="_accessing_the_platform"><a class="anchor" href="#_accessing_the_platform"></a>Accessing the Platform</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Once the VEDO Core stack is running (see the <a href="../../developer-guide/modules/ROOT/pages/getting-started.adoc">Developer Guide — Getting Started</a> for setup), open the frontend in your browser:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">http://localhost:3000</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_logging_in"><a class="anchor" href="#_logging_in"></a>Logging In</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Authentication is handled via Keycloak. After navigating to the frontend, you will be redirected to the login page.</p>
+</div>
+<div class="paragraph">
+<p>Supported identity providers:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>ESIA / Gosuslugi</p>
+</li>
+<li>
+<p>Yandex</p>
+</li>
+<li>
+<p>VK</p>
+</li>
+<li>
+<p>Google</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_creating_groups"><a class="anchor" href="#_creating_groups"></a>Creating Groups</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Groups organize your projects into teams, departments, or domains. Groups can be nested (subgroups) up to 5 levels deep.</p>
+</div>
+<div class="paragraph">
+<p>To create a group:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Navigate to <strong>Groups</strong> from the sidebar.</p>
+</li>
+<li>
+<p>Click <strong>New group</strong> — you will be taken to the create group page (<code>/dashboard/groups/new</code>).</p>
+</li>
+<li>
+<p>Enter a <strong>Group name</strong> (required) — a URL-friendly slug is auto-generated from the name.</p>
+</li>
+<li>
+<p>Choose a <strong>Visibility level</strong>:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Private</strong> — only members can view the group and its projects.</p>
+</li>
+<li>
+<p><strong>Internal</strong> — any authenticated user (except external) can view.</p>
+</li>
+<li>
+<p><strong>Public</strong> — anyone can view without authentication.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Click <strong>Create group</strong>.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>After creation:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A success Toast notification appears at the bottom-right.</p>
+</li>
+<li>
+<p>You are redirected to the group detail page (<code>/dashboard/groups/:id</code>).</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_creating_subgroups"><a class="anchor" href="#_creating_subgroups"></a>Creating Subgroups</h3>
+<div class="paragraph">
+<p>To create a group inside another group (subgroup):</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Navigate to the parent group page.</p>
+</li>
+<li>
+<p>Click <strong>New group</strong> (or navigate to <code>/dashboard/groups/new?parent_id=&lt;uuid&gt;</code>).</p>
+</li>
+<li>
+<p>The visibility is inherited from the parent group (read-only on the create page).</p>
+</li>
+<li>
+<p>A subgroup cannot be more visible than its parent (e.g., a <strong>Public</strong> subgroup under a <strong>Private</strong> parent is rejected).</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_creating_your_first_ontology"><a class="anchor" href="#_creating_your_first_ontology"></a>Creating Your First Ontology</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Click <strong>New Ontology</strong> on the dashboard.</p>
+</li>
+<li>
+<p>Enter a name and description.</p>
+</li>
+<li>
+<p>Click <strong>Create</strong> — you will be taken to the ontology editor.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_importing_an_existing_ontology"><a class="anchor" href="#_importing_an_existing_ontology"></a>Importing an Existing Ontology</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>VEDO Core supports importing from the following formats:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Turtle (<code>.ttl</code>)</p>
+</li>
+<li>
+<p>RDF/XML (<code>.rdf</code>, <code>.owl</code>)</p>
+</li>
+<li>
+<p>OWL (<code>.owl</code>)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To import:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Open the ontology list.</p>
+</li>
+<li>
+<p>Click <strong>Import</strong>.</p>
+</li>
+<li>
+<p>Select the file and format.</p>
+</li>
+<li>
+<p>Click <strong>Upload</strong>.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="ontology-editing.html" class="xref page">Ontology Editing</a> — working with classes, properties, and relationships</p>
+</li>
+<li>
+<p><a href="versioning.html" class="xref page">Versioning</a> — commits, branches, and merge requests</p>
+</li>
+<li>
+<p><a href="index.html" class="xref page">User Guide Home</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>

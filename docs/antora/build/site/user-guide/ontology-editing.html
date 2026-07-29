@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: Ontology Editing</title>
+<meta name="description" content="Working with classes, properties, and relationships in the VEDO Core editor.">
+</head>
+<body class="default">
+<div class="sect1">
+<h2 id="_ontology_editor"><a class="anchor" href="#_ontology_editor"></a>Ontology Editor</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The ontology editor provides a visual graph interface powered by Vue Flow. It supports:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Drag-and-drop node creation and positioning</p>
+</li>
+<li>
+<p>Class and property editing panels</p>
+</li>
+<li>
+<p>Relationship drawing between classes</p>
+</li>
+<li>
+<p>Real-time collaboration with other users</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_classes"><a class="anchor" href="#_classes"></a>Classes</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_creating_a_class"><a class="anchor" href="#_creating_a_class"></a>Creating a Class</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Right-click on the canvas and select <strong>Add Class</strong>.</p>
+</li>
+<li>
+<p>Enter a class name (IRI label).</p>
+</li>
+<li>
+<p>Optionally add a description.</p>
+</li>
+<li>
+<p>The class node appears on the canvas.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_editing_a_class"><a class="anchor" href="#_editing_a_class"></a>Editing a Class</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Click on a class node to open the properties panel.</p>
+</li>
+<li>
+<p>Edit the label, description, or annotations.</p>
+</li>
+<li>
+<p>Changes are saved to the current working branch.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_properties"><a class="anchor" href="#_properties"></a>Properties</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Data property</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Links a class to a literal value (string, integer, boolean)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Object property</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Links a class to another class (relationship)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Annotation property</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Metadata about a class or property (label, comment, version)</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>To add a property:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Select a class node.</p>
+</li>
+<li>
+<p>In the properties panel, click <strong>Add Property</strong>.</p>
+</li>
+<li>
+<p>Choose the property type.</p>
+</li>
+<li>
+<p>Enter the property name and range.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_relationships"><a class="anchor" href="#_relationships"></a>Relationships</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Relationships (object properties) are drawn as edges between class nodes:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Hover over a class node — connection handles appear.</p>
+</li>
+<li>
+<p>Drag from the handle to another class node.</p>
+</li>
+<li>
+<p>Enter the relationship name.</p>
+</li>
+<li>
+<p>The edge is created and visible on the canvas.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_real_time_collaboration"><a class="anchor" href="#_real_time_collaboration"></a>Real-time Collaboration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Multiple users can edit the same ontology simultaneously:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Node locking</strong> — when a user is editing a node, it is visually locked for others.</p>
+</li>
+<li>
+<p><strong>Comments</strong> — attach comments to any node for discussion.</p>
+</li>
+<li>
+<p><strong>Presence</strong> — see who is currently viewing the ontology.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Collaboration events are communicated via WebSocket through the API Gateway.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_performance"><a class="anchor" href="#_performance"></a>Performance</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The editor is designed to handle ontologies with up to 1 million axioms:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>p95 response time &lt; 1 second for navigation operations</p>
+</li>
+<li>
+<p>Incremental rendering — only visible nodes are rendered</p>
+</li>
+<li>
+<p>Efficient diff updates via GraphQL subscriptions</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_fork_demo_projects"><a class="anchor" href="#_fork_demo_projects"></a>Fork Demo Projects</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Instead of creating an ontology from scratch, you can fork one of the 5 demo projects in the <code>VEDO Demos</code> group:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Navigate to the <strong>Projects</strong> page.</p>
+</li>
+<li>
+<p>Click <strong>Fork demo project</strong>.</p>
+</li>
+<li>
+<p>Browse the available demo projects (Organization, Product, Process, Glossary, Event).</p>
+</li>
+<li>
+<p>Click <strong>Fork</strong> on the project you want to use as a starting point.</p>
+</li>
+<li>
+<p>A new private project is created in your personal workspace with a copy of the ontology.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>You can also fork any public or internal project by visiting the project page and clicking the <strong>Fork</strong> button.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="quick-start.html" class="xref page">Quick Start</a> — accessing the platform and creating your first ontology</p>
+</li>
+<li>
+<p><a href="versioning.html" class="xref page">Versioning</a> — commits, branches, and merge requests</p>
+</li>
+<li>
+<p><a href="index.html" class="xref page">User Guide Home</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>

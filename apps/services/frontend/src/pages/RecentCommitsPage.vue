@@ -17,8 +17,8 @@
 </template>
 
 <script setup lang="ts">
-import RecentCommits from '@/components/organisms/RecentCommits.vue'
-import { ChevronRight } from 'lucide-vue-next'
+import RecentCommits from "@/components/organisms/RecentCommits.vue";
+import { ChevronRight } from "@lucide/vue";
 </script>
 
 <style scoped>

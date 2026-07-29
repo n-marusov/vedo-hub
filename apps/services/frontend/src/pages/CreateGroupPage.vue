@@ -40,7 +40,7 @@
       <div class="cgp-field">
         <label class="cgp-label">{{ t('groups.group_url') }}</label>
         <div class="cgp-slug-wrap">
-          <span class="cgp-slug-prefix">vedo-core.local/groups/</span>
+          <span class="cgp-slug-prefix">vedo-core.local/</span>
           <span class="cgp-slug-value">{{ slugPreview || t('groups.slug_placeholder') }}</span>
         </div>
       </div>
@@ -106,9 +106,9 @@ import {
 	FolderTree,
 	Globe,
 	Lock,
-	Shield,
 	Loader as Spinner,
-} from "lucide-vue-next";
+	Users,
+} from "@lucide/vue";
 import type { Component } from "vue";
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -145,7 +145,7 @@ const visOptions: VisOption[] = [
 		value: "internal",
 		labelKey: "groups.visibility_internal",
 		descKey: "groups.visibility_internal_desc",
-		icon: Shield,
+		icon: Users,
 	},
 	{
 		value: "public",
@@ -286,14 +286,14 @@ onMounted(() => {
 .cgp-title {
   margin: 0 0 8px 0;
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 600;
 }
 
 .cgp-desc {
   margin: 0 0 24px 0;
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--muted-foreground);
 }
 

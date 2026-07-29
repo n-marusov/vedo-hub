@@ -127,56 +127,69 @@
 </template>
 
 <script setup lang="ts">
-import { AlertCircle, CheckCircle, GitCommit } from 'lucide-vue-next'
-import { computed } from 'vue'
-import type { ApplyProgress, ApplyResult, SequenceStep } from '../../types/extraction'
+import { AlertCircle, CheckCircle, GitCommit } from "@lucide/vue";
+import { computed } from "vue";
+import type {
+	ApplyProgress,
+	ApplyResult,
+	SequenceStep,
+} from "../../types/extraction";
 
 const props = defineProps<{
-  visible: boolean
-  status: ApplyProgress['status']
-  totalSteps: number
-  completedSteps: number
-  percentage: number
-  currentStepLabel: string
-  errorMessage?: string
-  commitMessage: string
-  steps?: SequenceStep[]
-  applyResult?: ApplyResult | null
-}>()
+	visible: boolean;
+	status: ApplyProgress["status"];
+	totalSteps: number;
+	completedSteps: number;
+	percentage: number;
+	currentStepLabel: string;
+	errorMessage?: string;
+	commitMessage: string;
+	steps?: SequenceStep[];
+	applyResult?: ApplyResult | null;
+}>();
 
 const emit = defineEmits<{
-  confirm: []
-  cancel: []
-  close: []
-  retry: []
-  'update:commitMessage': [value: string]
-}>()
+	confirm: [];
+	cancel: [];
+	close: [];
+	retry: [];
+	"update:commitMessage": [value: string];
+}>();
 
 // ── Summary computation ─────────────────────────────────────────────────────
 
 const classCount = computed(
-  () => props.steps?.filter((s) => s.included && s.operation === 'CREATE_CLASS').length ?? 0
-)
+	() =>
+		props.steps?.filter((s) => s.included && s.operation === "CREATE_CLASS")
+			.length ?? 0,
+);
 const propertyCount = computed(
-  () => props.steps?.filter((s) => s.included && s.operation === 'CREATE_PROPERTY').length ?? 0
-)
+	() =>
+		props.steps?.filter((s) => s.included && s.operation === "CREATE_PROPERTY")
+			.length ?? 0,
+);
 const individualCount = computed(
-  () => props.steps?.filter((s) => s.included && s.operation === 'CREATE_INDIVIDUAL').length ?? 0
-)
+	() =>
+		props.steps?.filter(
+			(s) => s.included && s.operation === "CREATE_INDIVIDUAL",
+		).length ?? 0,
+);
 const otherCount = computed(
-  () =>
-    props.steps?.filter(
-      (s) =>
-        s.included &&
-        !['CREATE_CLASS', 'CREATE_PROPERTY', 'CREATE_INDIVIDUAL'].includes(s.operation)
-    ).length ?? 0
-)
+	() =>
+		props.steps?.filter(
+			(s) =>
+				s.included &&
+				!["CREATE_CLASS", "CREATE_PROPERTY", "CREATE_INDIVIDUAL"].includes(
+					s.operation,
+				),
+		).length ?? 0,
+);
 
 function onOverlayClick() {
-  // Only allow close on idle/success/error states — not during confirming/applying
-  if (props.status === 'success' || props.status === 'error') {
-    emit('close')
-  }
+	// Only allow close on idle/success/error states — not during confirming/applying
+	if (props.status === "success" || props.status === "error") {
+		emit("close");
+	}
 }
 </script>
 

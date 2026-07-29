@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: API Reference</title>
+</head>
+<body class="default">
+<div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_base_url">Base URL</a></li>
+<li><a href="#_authentication">Authentication</a>
+<ul class="sectlevel2">
+<li><a href="#_getting_a_token">Getting a Token</a></li>
+</ul>
+</li>
+<li><a href="#_standard_response_format">Standard Response Format</a>
+<ul class="sectlevel2">
+<li><a href="#_success">Success</a></li>
+<li><a href="#_error">Error</a></li>
+</ul>
+</li>
+<li><a href="#_endpoints">Endpoints</a>
+<ul class="sectlevel2">
+<li><a href="#_ontology">Ontology</a></li>
+<li><a href="#_classes">Classes</a></li>
+<li><a href="#_properties">Properties</a></li>
+<li><a href="#_individuals">Individuals</a></li>
+<li><a href="#_query_endpoints">Query Endpoints</a></li>
+<li><a href="#_versioning">Versioning</a></li>
+<li><a href="#_exportimport">Export/Import</a></li>
+<li><a href="#_openapi_documentation">OpenAPI Documentation</a></li>
+</ul>
+</li>
+<li><a href="#_rate_limiting">Rate Limiting</a></li>
+</ul>
+</div>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The VEDO Core REST API provides programmatic access to all ontology operations,
+query endpoints, and versioning functionality. The full OpenAPI 3.1 specification
+is available at <code>GET /api/v1/openapi.json</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_base_url"><a class="anchor" href="#_base_url"></a>Base URL</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>All API endpoints are prefixed with <code>/api/v1</code>:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>https://your-vedo-instance.com/api/v1</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_authentication"><a class="anchor" href="#_authentication"></a>Authentication</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Most endpoints require authentication via JWT bearer token:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http hljs" data-lang="http">GET /api/v1/ontologies
+Authorization: Bearer &lt;your-jwt-token&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Public endpoints (health, public ontology views) do not require authentication.</p>
+</div>
+<div class="sect2">
+<h3 id="_getting_a_token"><a class="anchor" href="#_getting_a_token"></a>Getting a Token</h3>
+<div class="paragraph">
+<p>Obtain a JWT token through the login endpoint:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http hljs" data-lang="http">POST /api/v1/auth/login
+Content-Type: application/json
+
+{
+  "username": "your-username",
+  "password": "your-password"
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Response:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "access_token": "eyJhbGciOiJSUzI1NiIs...",
+  "token_type": "Bearer",
+  "expires_in": 3600
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_standard_response_format"><a class="anchor" href="#_standard_response_format"></a>Standard Response Format</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_success"><a class="anchor" href="#_success"></a>Success</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "data": { ... },
+  "meta": {
+    "page": 0,
+    "per_page": 20,
+    "total": 42,
+    "total_pages": 3
+  }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_error"><a class="anchor" href="#_error"></a>Error</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "error": {
+    "code": "ONT-CLASS-NOT-FOUND",
+    "message": "Class not found: UnknownClass"
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Error codes are domain-prefixed:
+* <code>ONT-<strong></code> — Ontology service errors
+* <code>VER-</strong></code> — Versioning service errors
+* <code>GATEWAY-<strong></code> — API Gateway errors
+* <code>AUTH-</strong></code> — Authentication errors</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_endpoints"><a class="anchor" href="#_endpoints"></a>Endpoints</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_ontology"><a class="anchor" href="#_ontology"></a>Ontology</h3>
+<div class="sect3">
+<h4 id="_list_ontologies"><a class="anchor" href="#_list_ontologies"></a>List Ontologies</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http hljs" data-lang="http">GET /api/v1/ontologies?page=0&amp;per_page=20&amp;q=text</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_get_ontology"><a class="anchor" href="#_get_ontology"></a>Get Ontology</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http hljs" data-lang="http">GET /api/v1/ontologies/{id}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_classes"><a class="anchor" href="#_classes"></a>Classes</h3>
+<div class="paragraph">
+<p>Full CRUD for OWL classes. See <a href="classes.html" class="xref page">Classes documentation</a> for details.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Method</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Path</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Description</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GET</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/ontologies/{id}/classes</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List classes (paginated, searchable)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">POST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/ontologies/{id}/classes</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create class</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GET</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/ontologies/{id}/classes/{classId}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Get class details</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PUT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/ontologies/{id}/classes/{classId}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Update class</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DELETE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/ontologies/{id}/classes/{classId}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Delete class</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect3">
+<h4 id="_create_class"><a class="anchor" href="#_create_class"></a>Create Class</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http hljs" data-lang="http">POST /api/v1/ontologies/{id}/classes
+Content-Type: application/json
+
+{
+  "id": "Person",
+  "label": "Person",
+  "comment": "A human being",
+  "parents": ["owl:Thing"]
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_properties"><a class="anchor" href="#_properties"></a>Properties</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Method</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Path</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Description</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GET</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/ontologies/{id}/properties</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List properties (type filter)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">POST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/ontologies/{id}/properties</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create property</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GET</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/ontologies/{id}/properties/{propId}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Get property details</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PUT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/ontologies/{id}/properties/{propId}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Update property</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DELETE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/ontologies/{id}/properties/{propId}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Delete property</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect3">
+<h4 id="_create_objectproperty"><a class="anchor" href="#_create_objectproperty"></a>Create ObjectProperty</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http hljs" data-lang="http">POST /api/v1/ontologies/{id}/properties
+Content-Type: application/json
+
+{
+  "id": "hasEmployee",
+  "label": "has employee",
+  "property_type": "object",
+  "domains": ["Organization"],
+  "ranges": ["Person"],
+  "characteristics": {
+    "functional": false,
+    "inverse_functional": false,
+    "transitive": false,
+    "symmetric": false
+  }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_create_datatypeproperty"><a class="anchor" href="#_create_datatypeproperty"></a>Create DatatypeProperty</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http hljs" data-lang="http">POST /api/v1/ontologies/{id}/properties
+Content-Type: application/json
+
+{
+  "id": "age",
+  "label": "age",
+  "property_type": "datatype",
+  "domains": ["Person"],
+  "xsd_type": "integer"
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_individuals"><a class="anchor" href="#_individuals"></a>Individuals</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Method</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Path</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Description</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GET</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/ontologies/{id}/individuals</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List individuals (class filter)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">POST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/ontologies/{id}/individuals</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create individual</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GET</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/ontologies/{id}/individuals/{indId}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Get individual card</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PUT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/ontologies/{id}/individuals/{indId}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Update individual</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DELETE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/ontologies/{id}/individuals/{indId}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Delete individual</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_query_endpoints"><a class="anchor" href="#_query_endpoints"></a>Query Endpoints</h3>
+<div class="sect3">
+<h4 id="_sparql"><a class="anchor" href="#_sparql"></a>SPARQL</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http hljs" data-lang="http">POST /api/v1/sparql
+Content-Type: application/json
+
+{
+  "query": "SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 10"
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Read-only only — mutation queries (INSERT/DELETE) are rejected.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_cypher"><a class="anchor" href="#_cypher"></a>CYPHER</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http hljs" data-lang="http">POST /api/v1/cypher
+Content-Type: application/json
+
+{
+  "query": "MATCH (n) RETURN n LIMIT 10"
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Read-only only — mutation queries (CREATE/DELETE) are rejected.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_versioning"><a class="anchor" href="#_versioning"></a>Versioning</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Method</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Path</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Description</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GET</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/versioning/commits</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List commits</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">POST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/versioning/commits</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create commit</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GET</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/versioning/branches</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List branches</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">POST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/versioning/branches</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create branch</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DELETE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/versioning/branches/{id}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Delete branch</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">POST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/versioning/branches/{id}/merge</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Merge branches</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_exportimport"><a class="anchor" href="#_exportimport"></a>Export/Import</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Method</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Path</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Description</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GET</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/ontologies/{id}/export?format=turtle</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Export ontology</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">POST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/ontologies/{id}/import</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Import ontology file</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_openapi_documentation"><a class="anchor" href="#_openapi_documentation"></a>OpenAPI Documentation</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-http hljs" data-lang="http">GET /api/v1/openapi.json</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Returns the full OpenAPI 3.1 specification.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_rate_limiting"><a class="anchor" href="#_rate_limiting"></a>Rate Limiting</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Query endpoints (SPARQL/CYPHER) have per-tier rate limits:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tier</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Limit</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Anonymous</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">10 requests/minute</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Free</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">100 requests/minute</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Pro</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">500 requests/minute</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enterprise</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1000 requests/minute</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>When rate limit is exceeded, the API returns <code>429 Too Many Requests</code> with
+a <code>Retry-After</code> header.</p>
+</div>
+</div>
+</div>
+</body>
+</html>

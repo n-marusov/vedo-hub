@@ -42,89 +42,80 @@
 </template>
 
 <script setup lang="ts">
-import { listMergeRequests } from '@/api/merge-requests'
-import MergeRequests from '@/components/organisms/MergeRequests.vue'
-import Tab from '@/components/ui-kit/Tab.vue'
-import { ChevronDown, ChevronRight } from 'lucide-vue-next'
-import { computed, onMounted, ref, watch } from 'vue'
+import { listMergeRequests } from "@/api/merge-requests";
+import type { MergeRequestInfo } from "@/api/merge-requests";
+import MergeRequests from "@/components/organisms/MergeRequests.vue";
+import Tab from "@/components/ui-kit/Tab.vue";
+import { ChevronDown, ChevronRight } from "@lucide/vue";
+import { computed, onMounted, ref, watch } from "vue";
 
 const tabs = [
-  { value: 'active', label: 'Active' },
-  { value: 'merged', label: 'Merged' },
-  { value: 'all', label: 'Search' }
-]
+	{ value: "active", label: "Active" },
+	{ value: "merged", label: "Merged" },
+	{ value: "all", label: "Search" },
+];
 
-const activeTab = ref('active')
+const activeTab = ref("active");
 
-const loading = ref(false)
-const error = ref<string | null>(null)
-const mrData = ref<any[]>([])
+const loading = ref(false);
+const error = ref<string | null>(null);
+const mrData = ref<MergeRequestInfo[]>([]);
 
 async function fetchMRs() {
-  loading.value = true
-  error.value = null
-  try {
-    mrData.value = await listMergeRequests(activeTab.value === 'all' ? undefined : activeTab.value)
-  } catch (e: any) {
-    error.value = e.message ?? String(e)
-  } finally {
-    loading.value = false
-  }
+	loading.value = true;
+	error.value = null;
+	try {
+		mrData.value = await listMergeRequests(
+			activeTab.value === "all" ? undefined : activeTab.value,
+		);
+	} catch (e: unknown) {
+		const err = e as { message?: string };
+		error.value = err.message ?? String(e);
+	} finally {
+		loading.value = false;
+	}
 }
 
 onMounted(() => {
-  fetchMRs()
-})
+	fetchMRs();
+});
 
 watch(activeTab, () => {
-  fetchMRs()
-})
+	fetchMRs();
+});
 
-interface MREntry {
-  id: string
-  title: string
-  description: string
-  sourceBranch: string
-  targetBranch: string
-  authorName: string
-  status: string
-  mergeStatus: string
-  createdAt: string
-  commentCount: number
-}
-
-const filteredMRs = computed<MREntry[]>(() => {
-  const mrs = mrData.value
-  if (!mrs) return []
-  if (activeTab.value === 'all') return mrs
-  return mrs.filter((mr: MREntry) => mr.status === activeTab.value)
-})
+const filteredMRs = computed<MergeRequestInfo[]>(() => {
+	const mrs = mrData.value;
+	if (!mrs) return [];
+	if (activeTab.value === "all") return mrs;
+	return mrs.filter((mr) => mr.status === activeTab.value);
+});
 
 // ── Logging ─────────────────────────────────────────────────────────────────
 
 watch(filteredMRs, (val) => {
-  console.debug(
-    JSON.stringify({
-      level: 'debug',
-      msg: 'merge_requests.list.loaded',
-      count: val.length,
-      ts: new Date().toISOString()
-    })
-  )
-})
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "merge_requests.list.loaded",
+			count: val.length,
+			ts: new Date().toISOString(),
+		}),
+	);
+});
 
 watch(error, (err) => {
-  if (err) {
-    console.error(
-      JSON.stringify({
-        level: 'error',
-        msg: 'merge_requests.query.error',
-        error: String(err),
-        ts: new Date().toISOString()
-      })
-    )
-  }
-})
+	if (err) {
+		console.error(
+			JSON.stringify({
+				level: "error",
+				msg: "merge_requests.query.error",
+				error: String(err),
+				ts: new Date().toISOString(),
+			}),
+		);
+	}
+});
 </script>
 
 <style scoped>

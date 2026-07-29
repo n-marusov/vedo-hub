@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: Deployment</title>
+<meta name="description" content="Docker Compose, Helm, and CI/CD pipeline for VEDO Core.">
+</head>
+<body class="default">
+<div class="sect1">
+<h2 id="_docker_compose_development"><a class="anchor" href="#_docker_compose_development"></a>Docker Compose (Development)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The fastest way to run the full stack:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cd src &amp;&amp; make docker-up     # Start all 28 containers
+cd src &amp;&amp; make docker-down   # Stop all containers
+cd src &amp;&amp; make docker-logs   # Tail logs from all services
+cd src &amp;&amp; make docker-ps     # List running containers</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_open_a_shell_in_a_container"><a class="anchor" href="#_open_a_shell_in_a_container"></a>Open a Shell in a Container</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">make docker-shell SVC=ontology-service
+make docker-shell SVC=api-gateway</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_build_all_docker_images"><a class="anchor" href="#_build_all_docker_images"></a>Build All Docker Images</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cd src &amp;&amp; make docker-build</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Multi-stage Dockerfiles per language in <code>src/services/*/Dockerfile</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Language</th>
+<th class="tableblock halign-left valign-top">Base → Final</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Go</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>golang</code> → <code>alpine</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Rust</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>rust</code> → <code>debian-slim</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Python</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>python-slim</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">TypeScript</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>node</code> → <code>nginx</code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_port_reference"><a class="anchor" href="#_port_reference"></a>Port Reference</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>All host ports are configurable via environment variables in <code>config/.env.dev</code>, <code>config/.env.test</code>, and <code>config/.env.staging</code>.</p>
+</div>
+<div class="sect2">
+<h3 id="_convention"><a class="anchor" href="#_convention"></a>Convention</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>XXX_PORT</code> — host port (changes between environments)</p>
+</li>
+<li>
+<p><code>XXX_CONTAINER_PORT</code> — container port (same across all environments)</p>
+</li>
+<li>
+<p>Dev: default ports (no offset)</p>
+</li>
+<li>
+<p>Test: +10000 to all host ports (RabbitMQ AMQP: +10001)</p>
+</li>
+<li>
+<p>Staging: +20000 to all host ports (RabbitMQ AMQP: +20002)</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application_services"><a class="anchor" href="#_application_services"></a>Application Services</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 33.3336%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Service</th>
+<th class="tableblock halign-left valign-top">Dev</th>
+<th class="tableblock halign-left valign-top">Test (+10000)</th>
+<th class="tableblock halign-left valign-top">Staging (+20000)</th>
+<th class="tableblock halign-left valign-top">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Frontend (SPA)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3000</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">13000</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">23000</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Vue 3 SPA with hot-reload</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Publish Browse UI</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3002</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">13002</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">23002</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Public ontology viewer (Vue 3)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">API Gateway</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8080</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">18080</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">28080</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REST/GraphQL entry point</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Auth Service (gRPC)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9003</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">19003</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">29003</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Keycloak integration, RBAC</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Versioning Service (gRPC)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9002</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">19002</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">29002</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Git-like commits, branches, diff</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Metrics Service</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8084</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">18084</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">28084</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Analytics and aggregation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Publisher Service (gRPC)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9005</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">19005</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">29005</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ontology publishing pipeline</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Public Browse API (gRPC)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9011</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">19011</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">29011</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Public read-only API</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Commenting Service (gRPC)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9004</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">19004</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">29004</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Comments and collaboration</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ticket API (REST)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8088</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">18088</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">28088</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ticket management CRUD</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ticket API (gRPC)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9010</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">19010</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">29010</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ticket management gRPC</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ticket Classifier</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8089</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">18089</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">28089</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Auto-classification ML</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ticket Telemetry Listener</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8090</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">18090</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">28090</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Telemetry ingestion</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ticket Notifier</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8091</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">18091</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">28091</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Email/WebSocket notifications</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Document Extractor (gRPC)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9013</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">19013</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">29013</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">AI document extraction \&amp; NL→OWL</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">AI Orchestration (health)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8093</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">18093</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">28093</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">LLM orchestration health</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">AI Orchestration (gRPC)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9014</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">19014</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">29014</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">LLM orchestration gRPC</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_infrastructure"><a class="anchor" href="#_infrastructure"></a>Infrastructure</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 33.3336%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Service</th>
+<th class="tableblock halign-left valign-top">Dev</th>
+<th class="tableblock halign-left valign-top">Test (+10000)</th>
+<th class="tableblock halign-left valign-top">Staging (+20000)</th>
+<th class="tableblock halign-left valign-top">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Neo4j (HTTP)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">7474</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">17474</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">27474</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Neo4j Browser UI</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Neo4j (Bolt)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">7687</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">17687</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">27687</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Neo4j Bolt protocol</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PostgreSQL</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5432</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">15432</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">25432</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Version history, org data</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Redis</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6379</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">16379</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">26379</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Cache and locks</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">RabbitMQ (AMQP)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5672</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">15673</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">25674</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Message queue (AMQP offset +10001/+20002)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">RabbitMQ (Management)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">15672</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">25672</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">35672</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">RabbitMQ management UI</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MinIO (API)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9000</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">19000</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">29000</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">S3-compatible object storage</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MinIO (Console)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9001</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">19001</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">29001</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MinIO admin console</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Keycloak</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8180</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">18180</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">28180</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">OIDC/OAuth2 (container: 8080)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_observability_profile_obs"><a class="anchor" href="#_observability_profile_obs"></a>Observability (profile: <code>obs</code>)</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 33.3336%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Service</th>
+<th class="tableblock halign-left valign-top">Dev</th>
+<th class="tableblock halign-left valign-top">Test (+10000)</th>
+<th class="tableblock halign-left valign-top">Staging (+20000)</th>
+<th class="tableblock halign-left valign-top">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Prometheus</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9090</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">19090</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">29090</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Metrics collection</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Grafana</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3001</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">13001</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">23001</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Dashboards (container: 3000)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Loki</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3100</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">13100</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">23100</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Log aggregation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tempo (HTTP)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3200</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">13200</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">23200</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tracing HTTP endpoint</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tempo (OTLP gRPC)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4317</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">14317</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">24317</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">OTLP gRPC receiver</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tempo (OTLP HTTP)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4318</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">14318</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">24318</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">OTLP HTTP receiver</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">OTEL Collector (Prometheus)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8888</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">18888</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">28888</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Prometheus metrics export</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">OTEL Collector (Health)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8889</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">18889</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">28889</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Collector health endpoint</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_llm_profile_llm"><a class="anchor" href="#_llm_profile_llm"></a>LLM (profile: <code>llm</code>)</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 33.3336%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Service</th>
+<th class="tableblock halign-left valign-top">Dev</th>
+<th class="tableblock halign-left valign-top">Test (+10000)</th>
+<th class="tableblock halign-left valign-top">Staging (+20000)</th>
+<th class="tableblock halign-left valign-top">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ollama</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">11434</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">21434</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">31434</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Local LLM server</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_documentation_profile_documentation"><a class="anchor" href="#_documentation_profile_documentation"></a>Documentation (profile: <code>documentation</code>)</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 33.3336%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Service</th>
+<th class="tableblock halign-left valign-top">Dev</th>
+<th class="tableblock halign-left valign-top">Test (+10000)</th>
+<th class="tableblock halign-left valign-top">Staging (+20000)</th>
+<th class="tableblock halign-left valign-top">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">User Guide</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5000</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">15000</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">25000</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Antora user guide site</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Developer Guide</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5001</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">15001</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">25001</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Antora developer guide site</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Admin Guide</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5002</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">15002</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">25002</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Antora admin guide site</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Integrator Guide</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5003</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">15003</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">25003</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Antora integrator guide site</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_kubernetes_helm"><a class="anchor" href="#_kubernetes_helm"></a>Kubernetes (Helm)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Helm chart values are in <code>deploy/helm/</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">helm install vedo-core deploy/helm/ -f deploy/helm/values.yaml</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Area</th>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Values</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>deploy/helm/values.yaml</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Service replicas, resources, ingress</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Charts</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>deploy/helm/</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Helm chart templates</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_cicd_pipeline"><a class="anchor" href="#_cicd_pipeline"></a>CI/CD Pipeline</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The pipeline is defined in <code>deploy/ci/gitlab-ci.yml</code> and runs on GitLab CI.</p>
+</div>
+<div class="sect2">
+<h3 id="_pipeline_stages"><a class="anchor" href="#_pipeline_stages"></a>Pipeline Stages</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Run all CI checks locally
+cd src &amp;&amp; make ci
+# Runs: build + lint + test + typecheck</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Stage</th>
+<th class="tableblock halign-left valign-top">Commands</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Build</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>make build</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Compile all services (Rust, Go, Python, TypeScript)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Lint</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>make lint</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Linters for all languages + YAML</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Test</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>make test</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Unit and integration tests</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Typecheck</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>make typecheck</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">TypeScript type checking</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Docker</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>make docker-build</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Build Docker images for all services</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Security</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SAST / DAST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Security scanning gates + dependency scanning</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Deploy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">—</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Deploy to target environment</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_security_gates"><a class="anchor" href="#_security_gates"></a>Security Gates</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Gate</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SAST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Static analysis</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Source code vulnerability scanning</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DAST</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Dynamic analysis</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Running application vulnerability scanning</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Dependency scanning</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supply chain</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Known CVEs in dependencies</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BOLA/BFLA tests</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Authorization</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Object-level and function-level access control tests</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Security test suites are in <code>tests/security/</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_health_checks"><a class="anchor" href="#_health_checks"></a>Health Checks</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Every service container has a health check configured in <code>docker-compose.yml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">healthcheck:
+  interval: 10s
+  timeout: 5s
+  retries: 3
+  test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8080/health"]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Compose waits for <code>condition: service_healthy</code> before starting dependent services.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_seed_data_vedo_demos_bootstrap"><a class="anchor" href="#_seed_data_vedo_demos_bootstrap"></a>Seed Data: VEDO Demos Bootstrap</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After deploying the stack, run the bootstrap script to create the <code>VEDO Demos</code> group with 5 demo projects:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cd deploy/seeds/vedo-demos
+bash bootstrap.sh</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The bootstrap script:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Creates the <code>VEDO Demos</code> group (idempotent — checks by slug).</p>
+</li>
+<li>
+<p>For each of the 5 demo projects (Organization, Product, Process, Glossary, Event):</p>
+<div class="olist loweralpha">
+<ol class="loweralpha" type="a">
+<li>
+<p>Creates a Project in the group.</p>
+</li>
+<li>
+<p>Applies the ontology sequence via the <code>ontology.ApplySequence</code> gRPC (reuses the Published Language <code>ApplySequenceRequest</code>).</p>
+</li>
+<li>
+<p>Sets visibility to <code>public</code>.</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p>Logs completion with the count of created projects.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Each demo project is a forkable starting point for users to explore the ontology editor without creating content from scratch. See <a href="#user-guide:ontology-editing.adoc" class="xref unresolved">Fork Demo Projects</a> in the User Guide.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_organizational_database"><a class="anchor" href="#_organizational_database"></a>Organizational Database</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>vedo_org</code> PostgreSQL database stores group/project hierarchy, role memberships, attribute policies, and audit events. It is created automatically via the init script at <code>deploy/postgres/init/01-create-org-db.sql</code>.</p>
+</div>
+<div class="paragraph">
+<p>The <code>auth-service</code> requires the <code>AUTH_SERVICE_DATABASE_URL</code> environment variable to connect:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">AUTH_SERVICE_DATABASE_URL=postgres://postgres:password@postgres:5432/vedo_org?sslmode=disable</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Migrations are applied automatically on auth-service startup (see <code>src/services/auth-service/migrations/</code>). If PostgreSQL is unavailable, auth-service falls back to an in-memory store for development.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="observability.html" class="xref page">Observability</a> — tracing, metrics, and logging</p>
+</li>
+<li>
+<p><a href="security.html" class="xref page">Security</a> — Keycloak realm, BOLA/BFLA, security configuration</p>
+</li>
+<li>
+<p><a href="index.html" class="xref page">Admin Guide Home</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>

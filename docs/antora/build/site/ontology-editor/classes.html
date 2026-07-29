@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: Working with Classes</title>
+</head>
+<body class="default">
+<div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_creating_classes">Creating Classes</a></li>
+<li><a href="#_class_hierarchy">Class Hierarchy</a>
+<ul class="sectlevel2">
+<li><a href="#_multiple_inheritance">Multiple Inheritance</a></li>
+</ul>
+</li>
+<li><a href="#_editing_classes">Editing Classes</a></li>
+<li><a href="#_deleting_classes">Deleting Classes</a></li>
+<li><a href="#_graph_neighborhood">Graph Neighborhood</a></li>
+<li><a href="#_class_operations_summary">Class Operations Summary</a></li>
+</ul>
+</div>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Classes are the fundamental building blocks of an ontology (TBox — Terminological Box).
+They represent categories or types of things in the domain.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_creating_classes"><a class="anchor" href="#_creating_classes"></a>Creating Classes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To create a new class:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Open the ontology workspace.</p>
+</li>
+<li>
+<p>In the <strong>Class Tree</strong> panel, locate the parent class.</p>
+</li>
+<li>
+<p>Click the + icon to add a child class.</p>
+</li>
+<li>
+<p>Enter the class ID and label.</p>
+</li>
+<li>
+<p>Optionally add a comment (rdfs:comment).</p>
+</li>
+<li>
+<p>Click <strong>Create</strong>.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>A class can have multiple parents (multiple inheritance). Use the class edit dialog
+to add or remove parent relationships.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_class_hierarchy"><a class="anchor" href="#_class_hierarchy"></a>Class Hierarchy</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The class tree displays the hierarchy with nested children:
+- Expand/collapse nodes using the ▶/▼ toggle
+- Select a class to view its details in the property panel
+- Search/filter classes using the search bar</p>
+</div>
+<div class="sect2">
+<h3 id="_multiple_inheritance"><a class="anchor" href="#_multiple_inheritance"></a>Multiple Inheritance</h3>
+<div class="paragraph">
+<p>To add additional parents to a class:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Select the class in the tree.</p>
+</li>
+<li>
+<p>Open the edit dialog.</p>
+</li>
+<li>
+<p>In the <strong>Parents</strong> field, add parent class IDs separated by commas.</p>
+</li>
+<li>
+<p>Click <strong>Update</strong>.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_editing_classes"><a class="anchor" href="#_editing_classes"></a>Editing Classes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To edit a class:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Select the class in the tree.</p>
+</li>
+<li>
+<p>Click the <strong>Edit</strong> button in the property panel.</p>
+</li>
+<li>
+<p>Modify the label, comment, or parent relationships.</p>
+</li>
+<li>
+<p>Click <strong>Save</strong>.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Changes are applied immediately and shown in the tree.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_deleting_classes"><a class="anchor" href="#_deleting_classes"></a>Deleting Classes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To delete a class:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Select the class in the tree.</p>
+</li>
+<li>
+<p>Click the <strong>Delete</strong> button.</p>
+</li>
+<li>
+<p>If the class has dependent entities (subclasses, properties referencing it in domain/range),
+a warning is shown with the count of dependencies.</p>
+</li>
+<li>
+<p>Optionally cascade the deletion.</p>
+</li>
+<li>
+<p>Confirm the deletion.</p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+Cascade deletion removes all dependent subclasses. Use with caution.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_graph_neighborhood"><a class="anchor" href="#_graph_neighborhood"></a>Graph Neighborhood</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Select a class and use the <strong>Graph View</strong> to see:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Connected classes via ObjectProperties (subject → property → object triples)</p>
+</li>
+<li>
+<p>Configurable depth (1 = directly connected only)</p>
+</li>
+<li>
+<p>Visual graph with nodes and edges</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_class_operations_summary"><a class="anchor" href="#_class_operations_summary"></a>Class Operations Summary</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 30%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Operation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REST Endpoint</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Description</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST /api/v1/ontologies/{id}/classes</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Create a new class</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Read</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET /api/v1/ontologies/{id}/classes/{classId}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Get class details</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Update</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>PUT /api/v1/ontologies/{id}/classes/{classId}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Update class</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Delete</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>DELETE /api/v1/ontologies/{id}/classes/{classId}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Delete class</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET /api/v1/ontologies/{id}/classes</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List classes with pagination</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tree</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET &#8230;&#8203;/classes/root</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Get root classes (hierarchy)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Children</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET &#8230;&#8203;/classes/{id}/children</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Get direct children</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ancestors</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET &#8230;&#8203;/classes/{id}/ancestors</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Get ancestor chain</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Descendants</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET &#8230;&#8203;/classes/{id}/descendants</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Get descendant tree</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Breadcrumb</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET &#8230;&#8203;/classes/{id}/breadcrumb</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Get breadcrumb path</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Neighborhood</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET &#8230;&#8203;/classes/{id}/neighborhood</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Get graph neighborhood</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Autocomplete</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET &#8230;&#8203;/classes/search/autocomplete</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Search classes by label</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</body>
+</html>

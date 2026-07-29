@@ -89,33 +89,37 @@
 </template>
 
 <script setup lang="ts">
-import { AlertTriangle } from 'lucide-vue-next'
-import { computed } from 'vue'
-import type { ConflictResolution } from '../../types/extraction'
+import { AlertTriangle } from "@lucide/vue";
+import { computed } from "vue";
+import type { ConflictResolution } from "../../types/extraction";
 
 const props = defineProps<{
-  visible: boolean
-  conflicts: ConflictResolution[]
-}>()
+	visible: boolean;
+	conflicts: ConflictResolution[];
+}>();
 
 const emit = defineEmits<{
-  resolve: [index: number, resolution: ConflictResolution['resolution'], customValue?: string]
-  close: []
-  apply: []
-}>()
+	resolve: [
+		index: number,
+		resolution: ConflictResolution["resolution"],
+		customValue?: string,
+	];
+	close: [];
+	apply: [];
+}>();
 
-const allResolved = computed(() => props.conflicts.length > 0)
+const allResolved = computed(() => props.conflicts.length > 0);
 
 function selectResolution(
-  index: number,
-  resolution: ConflictResolution['resolution'],
-  customValue?: string
+	index: number,
+	resolution: ConflictResolution["resolution"],
+	customValue?: string,
 ) {
-  emit('resolve', index, resolution, customValue)
+	emit("resolve", index, resolution, customValue);
 }
 
 function onCustomInput(index: number, value: string) {
-  emit('resolve', index, 'custom', value)
+	emit("resolve", index, "custom", value);
 }
 </script>
 

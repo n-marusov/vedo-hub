@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: Document Extraction</title>
+<meta name="description" content="Extract ontology structures from documents using AI.">
+</head>
+<body class="default">
+<div class="sect1">
+<h2 id="_overview"><a class="anchor" href="#_overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The document extraction feature allows you to upload documents and automatically extract ontology structures (classes, properties, relationships) using an LLM. Supported formats include:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Text documents:</strong> Markdown (<code>.md</code>), Plain Text (<code>.txt</code>), PDF (<code>.pdf</code>), Word (<code>.docx</code>)</p>
+</li>
+<li>
+<p><strong>Structured data:</strong> JSON (<code>.json</code>), XML (<code>.xml</code>), CSV (<code>.csv</code>), Excel (<code>.xlsx</code>)</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_how_it_works"><a class="anchor" href="#_how_it_works"></a>How It Works</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Upload</strong> a document using the upload interface</p>
+</li>
+<li>
+<p>The <strong>Document Extractor</strong> service parses the document content</p>
+</li>
+<li>
+<p>The parsed content is sent to the configured <strong>LLM provider</strong> for ontology extraction</p>
+</li>
+<li>
+<p>The extracted structure is presented as a <strong>preview sequence</strong> of ontology operations</p>
+</li>
+<li>
+<p>You can review, edit, and <strong>apply</strong> the sequence to your ontology</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_supported_formats"><a class="anchor" href="#_supported_formats"></a>Supported Formats</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_text_documents"><a class="anchor" href="#_text_documents"></a>Text Documents</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Format</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Extension</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Notes</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Markdown</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>.md</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Full support with heading hierarchy detection</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Plain Text</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>.txt</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Full support</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PDF</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>.pdf</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Text extraction; scanned PDFs are detected and reported</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Word</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>.docx</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Full support with paragraph and table extraction</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_structured_data"><a class="anchor" href="#_structured_data"></a>Structured Data</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Format</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Extension</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Notes</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JSON</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>.json</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Nested objects → class hierarchy</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">XML</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>.xml</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tags/attributes → class/property mapping</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CSV</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>.csv</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Column headers → property names, rows → individuals</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Excel</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>.xlsx</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sheet tabs → class groups, columns → properties, rows → individuals</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_step_by_step_guide"><a class="anchor" href="#_step_by_step_guide"></a>Step-by-Step Guide</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Click <strong>Upload Document</strong> in the AI Creation section</p>
+</li>
+<li>
+<p>Select a document file (max 20 MB)</p>
+</li>
+<li>
+<p>Wait for the extraction to complete</p>
+</li>
+<li>
+<p>Review the generated sequence in the preview table</p>
+</li>
+<li>
+<p>Edit labels or toggle step inclusion as needed</p>
+</li>
+<li>
+<p>Click <strong>Apply</strong> to commit the changes to your ontology</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_limitations"><a class="anchor" href="#_limitations"></a>Limitations</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Maximum file size: 20 MB (synchronous), larger files trigger async processing</p>
+</li>
+<li>
+<p>Scanned PDFs (image-only) cannot be extracted — OCR is not yet supported</p>
+</li>
+<li>
+<p>CSV files must have a header row for property detection</p>
+</li>
+<li>
+<p>Excel files use the first sheet by default</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>

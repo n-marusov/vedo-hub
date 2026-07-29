@@ -91,71 +91,71 @@
 
 <script setup lang="ts">
 import {
-  Cog,
-  Folders,
-  GitMerge,
-  History,
-  Info,
-  type LucideIcon,
-  MessageSquare,
-  PanelLeftClose,
-  PanelLeftOpen
-} from 'lucide-vue-next'
-import { computed } from 'vue'
-import { useRouter } from 'vue-router'
+	Cog,
+	Folders,
+	GitMerge,
+	History,
+	Info,
+	type LucideIcon,
+	MessageSquare,
+	PanelLeftClose,
+	PanelLeftOpen,
+} from "@lucide/vue";
+import { computed } from "vue";
+import { useRouter } from "vue-router";
 
 const props = withDefaults(
-  defineProps<{
-    collapsed?: boolean
-    groupName?: string
-  }>(),
-  {
-    groupName: 'company'
-  }
-)
+	defineProps<{
+		collapsed?: boolean;
+		groupName?: string;
+	}>(),
+	{
+		groupName: "company",
+	},
+);
 
-const router = useRouter()
+const router = useRouter();
 
 type NavItem = {
-  label: string
-  icon: LucideIcon
-  to: string
-  badge?: string
-}
+	label: string;
+	icon: LucideIcon;
+	to: string;
+	badge?: string;
+};
 
 const groupNameLabel = computed(() => {
-  return props.groupName.charAt(0).toUpperCase() + props.groupName.slice(1)
-})
+	return props.groupName.charAt(0).toUpperCase() + props.groupName.slice(1);
+});
 
 const navItems = computed<NavItem[]>(() => {
-  const base = `/${props.groupName}`
-  return [
-    {
-      label: 'Merge requests',
-      icon: GitMerge,
-      to: `${base}/merge_requests`,
-      badge: '0'
-    },
-    { label: 'Commits', icon: History, to: `${base}/commits`, badge: '0' },
-    {
-      label: 'Comments',
-      icon: MessageSquare,
-      to: `${base}/comments`,
-      badge: '0'
-    }
-  ]
-})
+	const base = `/${props.groupName}`;
+	return [
+		{
+			label: "Merge requests",
+			icon: GitMerge,
+			to: `${base}/merge_requests`,
+			badge: "0",
+		},
+		{ label: "Commits", icon: History, to: `${base}/commits`, badge: "0" },
+		{
+			label: "Comments",
+			icon: MessageSquare,
+			to: `${base}/comments`,
+			badge: "0",
+		},
+	];
+});
 
 function navigate(to: string): void {
-  router.push(to)
+	router.push(to);
 }
 
 const emit = defineEmits<{
-  toggle: []
-}>()
+	toggle: [];
+}>();
 
 function toggleCollapse(): void {
-  emit('toggle')
+	emit("toggle");
 }
 </script>
 

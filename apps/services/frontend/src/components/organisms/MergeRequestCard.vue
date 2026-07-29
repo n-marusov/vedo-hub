@@ -17,18 +17,18 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronDown } from 'lucide-vue-next'
+import { ChevronDown } from "@lucide/vue";
 
 defineProps<{
-  title: string
-  open: boolean
-  count?: number
-  emptyText?: string
-}>()
+	title: string;
+	open: boolean;
+	count?: number;
+	emptyText?: string;
+}>();
 
 defineEmits<{
-  toggle: []
-}>()
+	toggle: [];
+}>();
 </script>
 
 <style scoped>

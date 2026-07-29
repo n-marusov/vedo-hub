@@ -41,9 +41,9 @@ echo "=== Running BOLA/BFLA/RBAC negative test suite with $GO_CMD ==="
 cd "$ROOT/apps/services/api-gateway" && "$GO_CMD" test ./auth/... -v -count=1 -run "TestCT_SEC|TestProperty|TestInvariant" 2>&1
 
 # run org-level access control tests (membership, policies, visibility enforcement)
-cd "$ROOT/apps/services/auth-service/org" && "$GO_CMD" test ./... -v -count=1 2>&1
+cd "$ROOT/apps/services/auth-service/org" && "$GO_CMD" test ./... -count=1 2>&1
 
 # run existing BOLA/BFLA fixture tests and comprehensive RBAC suite
-cd "$ROOT/tests/security/authorization" && "$GO_CMD" test ./... -v -count=1 2>&1
+cd "$ROOT/tests/security/authorization" && "$GO_CMD" test ./... -count=1 2>&1
 
 echo "=== BOLA/BFLA/RBAC suite complete ==="

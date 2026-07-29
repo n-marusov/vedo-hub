@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: Iterative Refinement</title>
+<meta name="description" content="Refine generated ontologies with natural language feedback.">
+</head>
+<body class="default">
+<div class="sect1">
+<h2 id="_overview"><a class="anchor" href="#_overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The iterative refinement feature lets you improve AI-generated ontology structures through natural language feedback. Instead of starting over, you can provide specific instructions to modify the existing structure.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_how_refinement_works"><a class="anchor" href="#_how_refinement_works"></a>How Refinement Works</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Generate an initial ontology (via document extraction, NL→OWL, or template)</p>
+</li>
+<li>
+<p>Review the proposed sequence of ontology operations</p>
+</li>
+<li>
+<p>Provide natural language feedback (e.g., "Merge Employee and Customer into Person with roles")</p>
+</li>
+<li>
+<p>The LLM generates a refined sequence incorporating your feedback</p>
+</li>
+<li>
+<p>Multiple rounds of refinement can be applied sequentially</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_refinement_examples"><a class="anchor" href="#_refinement_examples"></a>Refinement Examples</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">Before refinement</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">Classes: Person, Employee, Customer, Vendor</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Feedback</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">Merge Employee and Customer into Person with a "type" property.
+Add Organization class and relate Person via "memberOf".</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">After refinement</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">Classes: Person (with type property: employee, customer, vendor)
+         Organization
+Object property: memberOf (Person → Organization)</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_tips"><a class="anchor" href="#_tips"></a>Tips</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Be specific about what to add, modify, or remove</p>
+</li>
+<li>
+<p>Reference existing class and property names in your feedback</p>
+</li>
+<li>
+<p>Use multiple rounds for complex refinements — each round builds on the previous</p>
+</li>
+<li>
+<p>Review the changes before applying to ensure they match your intent</p>
+</li>
+<li>
+<p>If the result is unsatisfactory, provide more detailed feedback in the next round</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>

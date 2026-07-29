@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: NL→OWL Generation</title>
+<meta name="description" content="Convert natural language descriptions into OWL ontology axioms.">
+</head>
+<body class="default">
+<div class="sect1">
+<h2 id="_overview"><a class="anchor" href="#_overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The NL→OWL (Natural Language to OWL) feature lets you describe ontology structures in plain language and converts them into formal OWL axioms. This is useful for rapid prototyping and iterating on ontology designs.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_how_it_works"><a class="anchor" href="#_how_it_works"></a>How It Works</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Enter a natural language description of your ontology in the text input</p>
+</li>
+<li>
+<p>Describe classes, properties, relationships, and constraints in plain English</p>
+</li>
+<li>
+<p>The LLM generates a structured sequence of ontology operations</p>
+</li>
+<li>
+<p>Review the generated axioms in the preview table</p>
+</li>
+<li>
+<p>Edit, refine, or apply the sequence to your ontology</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_example"><a class="anchor" href="#_example"></a>Example</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Entering:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">Create a class Person with properties: name (string), age (integer), and email (string).
+Person can have a property "worksAt" pointing to Organization.
+Organization has properties: name and industry.</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Generates:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Class: <code>Person</code> with data properties <code>name</code> (xsd:string), <code>age</code> (xsd:integer), <code>email</code> (xsd:string)</p>
+</li>
+<li>
+<p>Class: <code>Organization</code> with data properties <code>name</code> (xsd:string), <code>industry</code> (xsd:string)</p>
+</li>
+<li>
+<p>Object property: <code>worksAt</code> with domain <code>Person</code> and range <code>Organization</code></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_best_practices"><a class="anchor" href="#_best_practices"></a>Best Practices</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Be specific about data types (string, integer, date, etc.)</p>
+</li>
+<li>
+<p>Mention relationship direction explicitly</p>
+</li>
+<li>
+<p>Use consistent naming throughout the description</p>
+</li>
+<li>
+<p>Break complex ontologies into smaller descriptions and refine iteratively</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>

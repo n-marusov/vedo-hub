@@ -130,7 +130,7 @@ import {
 	Search,
 	Sun,
 	User,
-} from "lucide-vue-next";
+} from "@lucide/vue";
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { applyThemeMode } from "./theme/manager";

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: Deployment</title>
+<meta name="description" content="Docker Compose orchestration, multi-environment setup, container management, and documentation.">
+</head>
+<body class="default">
+<div class="sect1">
+<h2 id="_quick_start"><a class="anchor" href="#_quick_start"></a>Quick Start</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cd &lt;project-root&gt; &amp;&amp; make docker-up
+# Builds all images and starts containers — one command</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Open <a href="http://localhost:3000" class="bare">http://localhost:3000</a> — the frontend is ready. The API Gateway is at <a href="http://localhost:8080" class="bare">http://localhost:8080</a>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The first <code>make docker-up</code> builds all images from source — can take 20–40 minutes.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_build_images_only"><a class="anchor" href="#_build_images_only"></a>Build Images Only</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Use <code>make docker-build</code> when you want images without starting containers (CI, registry push, pre-building):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">make docker-build                 # All service images
+make docker-build-rust            # Rust: ontology, versioning, publisher, public-browse
+make docker-build-go              # Go: api-gateway, auth, commenting, tickets, AI
+make docker-build-python          # Python: metrics, classifier, document-extractor
+make docker-build-typescript      # TypeScript: frontend, publish-browse-ui
+make docker-build-api-gateway     # Single service via compose</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Images are tagged <code>vedo-core/&lt;service&gt;:latest</code>.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Go services require a <code>vendor/</code> directory. Run <code>make vendor-go</code> to populate it. Services without <code>vendor/</code> are skipped.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_multi_environment_setup"><a class="anchor" href="#_multi_environment_setup"></a>Multi-Environment Setup</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The project ships three pre-configured env files with non-overlapping ports for parallel stacks:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Environment</th>
+<th class="tableblock halign-left valign-top">Env file</th>
+<th class="tableblock halign-left valign-top">Port offset</th>
+<th class="tableblock halign-left valign-top">COMPOSE_PROJECT_NAME</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">dev</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>config/.env.dev</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">none (defaults)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>vedo-core-dev</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">test</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>config/.env.test</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+10000</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>vedo-core-test</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">staging</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>config/.env.staging</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">+20000</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>vedo-core-staging</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">make docker-up-dev      # Dev environment
+make docker-up-test     # Test environment (includes JWT dev keys)
+make docker-up-staging  # Staging environment
+
+make docker-down-dev    # Stop dev
+make docker-down-test   # Stop test
+make docker-down-staging  # Stop staging</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_docker_compose_selection"><a class="anchor" href="#_docker_compose_selection"></a>Docker Compose Selection</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Scenario</th>
+<th class="tableblock halign-left valign-top">Compose File</th>
+<th class="tableblock halign-left valign-top">Key Difference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Development</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>deploy/docker-compose.yml</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Uses Keycloak JWKS for auth validation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">E2E Testing</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>deploy/docker-compose.test.yml</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Uses <code>JWT_DEV_PUBLIC_KEY_PEM</code> for self-signed test tokens</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CI Pipeline</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>deploy/docker-compose.test.yml</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Same as E2E — self-signed tokens match CI test JWTs</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The test compose file extends the main compose via <code>include</code> and sets <code>JWT_DEV_PUBLIC_KEY_PEM</code> on the API Gateway, which takes highest priority in the auth resolution chain. The <code>webServer.url</code> in Playwright configs uses port 3000 (frontend nginx proxy), not port 8080 (API Gateway direct).</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_raw_docker_compose"><a class="anchor" href="#_raw_docker_compose"></a>Raw Docker Compose</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Dev
+docker compose --env-file config/.env.dev -f deploy/docker-compose.yml up -d
+
+# Test
+docker compose --env-file config/.env.test -f deploy/docker-compose.yml up -d
+
+# Staging
+docker compose --env-file config/.env.staging -f deploy/docker-compose.yml up -d</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Each env file defines separate host ports while keeping container ports identical — inter-service communication always works through the Docker network.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_infrastructure_only"><a class="anchor" href="#_infrastructure_only"></a>Infrastructure Only</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Start only the backing services without the application stack — useful for local native development:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">make infra-up     # Neo4j, Postgres, Redis, RabbitMQ, Keycloak, MinIO
+make infra-down   # Stop infrastructure</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_container_management"><a class="anchor" href="#_container_management"></a>Container Management</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">make docker-status        # Health table (Name, Health, Ports)
+make docker-status-full   # Full machine-readable JSON
+make docker-logs          # Tail logs from all services
+make docker-shell SVC=&lt;name&gt;  # Open shell in a service container
+make docker-config        # Validate compose configuration</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_documentation_antora"><a class="anchor" href="#_documentation_antora"></a>Documentation (Antora)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The project includes full Antora documentation covering multiple guides:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Guide</th>
+<th class="tableblock halign-left valign-top">Local Address</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">User Guide</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://localhost:5000" class="bare">http://localhost:5000</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Developer Guide</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://localhost:5001" class="bare">http://localhost:5001</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Admin Guide</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://localhost:5002" class="bare">http://localhost:5002</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Integrator Guide</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://localhost:5003" class="bare">http://localhost:5003</a></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Build locally:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cd docs/antora &amp;&amp; npx antora antora-playbook.yml
+# Output: docs/antora/build/site/index.html</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or via Docker:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">docker compose -f deploy/docker-compose.docs.yaml --profile documentation up -d</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="getting-started.html" class="xref page">Getting Started</a> — prerequisites and quick start</p>
+</li>
+<li>
+<p><a href="development.html" class="xref page">Development</a> — native builds and per-service operations</p>
+</li>
+<li>
+<p><a href="configuration.html" class="xref page">Configuration</a> — environment variables and overrides</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>

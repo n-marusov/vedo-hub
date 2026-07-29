@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: gRPC Service Contracts</title>
+<meta name="description" content="gRPC usage, proto generation, and service contracts in VEDO Core.">
+</head>
+<body class="default">
+<div class="sect1">
+<h2 id="_overview"><a class="anchor" href="#_overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>VEDO Core uses gRPC for inter-service communication. All service contracts are defined in Protocol Buffers (protobuf) and shared across language boundaries.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_proto_definitions"><a class="anchor" href="#_proto_definitions"></a>Proto Definitions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>All <code>.proto</code> files are located in <code>src/services/shared/proto/</code>:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>proto/
+├── buf.yaml                 # Buf configuration
+├── common/
+│   └── v1/
+│       └── common.proto     # Shared types (ErrorDetail, etc.)
+├── ontology/
+│   └── v1/
+│       └── ontology.proto   # Ontology CRUD operations
+├── versioning/
+│   └── v1/
+│       └── versioning.proto # Versioning operations
+├── auth/
+│   └── v1/
+│       └── auth.proto       # Authentication operations
+├── commenting/
+│   └── v1/
+│       └── commenting.proto # Commenting operations
+├── publisher/
+│   └── v1/
+│       └── publisher.proto  # Publishing operations
+└── public_browse/
+    └── v1/
+        └── public_browse.proto  # Public read-only API</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_code_generation"><a class="anchor" href="#_code_generation"></a>Code Generation</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_go"><a class="anchor" href="#_go"></a>Go</h3>
+<div class="paragraph">
+<p>Go stubs are generated using <code>buf generate</code>:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>make proto-generate</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_rust"><a class="anchor" href="#_rust"></a>Rust</h3>
+<div class="paragraph">
+<p>Rust stubs are generated at compile-time via <code>tonic_build</code> in each service&#8217;s <code>build.rs</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_python"><a class="anchor" href="#_python"></a>Python</h3>
+<div class="paragraph">
+<p>Python stubs for the document-extractor service:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>make proto-generate-python</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_port_mapping"><a class="anchor" href="#_port_mapping"></a>Port Mapping</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Service</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">gRPC Port</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">HTTP Health Port</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ontology Service</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9001</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8082</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Versioning Service</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9002</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8083</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Auth Service</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9003</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8081</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Commenting Service</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9004</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8085</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Publisher Service</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9005</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8086</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ticket API</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9010</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8088</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Public Browse API</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9011</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8087</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Document Extractor</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9013</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8092</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_tls_configuration"><a class="anchor" href="#_tls_configuration"></a>TLS Configuration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>gRPC connections support TLS via the <code>GRPC_TLS_ENABLED</code> environment variable:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Default:</strong> disabled (<code>GRPC_TLS_ENABLED=false</code>)</p>
+</li>
+<li>
+<p><strong>Client:</strong> verifies server certificate via system CA pool</p>
+</li>
+<li>
+<p><strong>Server:</strong> reads cert/key from <code>GRPC_TLS_CERT_FILE</code> and <code>GRPC_TLS_KEY_FILE</code></p>
+</li>
+<li>
+<p><strong>CI:</strong> use the <code>tls-certs</code> job to generate self-signed certificates</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>

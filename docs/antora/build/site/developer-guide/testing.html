@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: Testing</title>
+<meta name="description" content="Test suites, how to run them, and what they cover.">
+</head>
+<body class="default">
+<div class="sect1">
+<h2 id="_quick_reference"><a class="anchor" href="#_quick_reference"></a>Quick Reference</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Test suite</th>
+<th class="tableblock halign-left valign-top">Make target</th>
+<th class="tableblock halign-left valign-top">Requirements</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Unit tests</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>make test</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Language toolchains only</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Integration tests</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>make test-integration</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Live infra (Neo4j, Postgres)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">E2E — API</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>make test-e2e-api</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Docker test stack</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">E2E — GUI</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>make test-e2e-gui</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Docker test stack + frontend</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">E2E — all</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>make test-e2e</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Docker test stack</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Contract / gate tests</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>make test-gates</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Go toolchain + Docker stack</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Full CI</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>make ci</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Language toolchains only</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Full CI + e2e</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>make ci-full</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Docker test stack + infra</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_test_suites"><a class="anchor" href="#_test_suites"></a>Test Suites</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Cross-service test suites are in <code>tests/</code>:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Suite</th>
+<th class="tableblock halign-left valign-top">Path</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">E2E — API</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>tests/e2e/specs/api/</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REST, GraphQL, SPARQL integration tests</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">E2E — GUI</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>tests/e2e/specs/gui/</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Pages, user stories, a11y tests</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Security</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>tests/security/</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BOLA/BFLA authorization tests</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CLI</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>tests/cli/</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">vedo-cli integration tests</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Integration</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>tests/integration/</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Go integration tests (ticket-api, org-api)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gates</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>tests/gates/</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gate-level test scripts</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_running_tests"><a class="anchor" href="#_running_tests"></a>Running Tests</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_unit_tests_fast"><a class="anchor" href="#_unit_tests_fast"></a>Unit Tests (Fast)</h3>
+<div class="paragraph">
+<p>No test environment required — tests run natively with language toolchains.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">make test              # All unit tests
+make test-rust         # cargo test --lib
+make test-go           # go test ./...
+make test-python       # pytest
+make test-typescript   # pnpm test</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_integration_tests"><a class="anchor" href="#_integration_tests"></a>Integration Tests</h3>
+<div class="paragraph">
+<p>Requires live database infrastructure (Neo4j, Postgres).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">make test-integration        # All integration tests
+make test-integration-rust   # Rust only (NEO4J_URI, DATABASE_URL required)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Integration tests gracefully skip with a clear message to stderr when the relevant environment variable is unset.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_coverage"><a class="anchor" href="#_coverage"></a>Coverage</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">make coverage    # Go tests with coverage profiles (cover.out per service)</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_e2e_tests_playwright"><a class="anchor" href="#_e2e_tests_playwright"></a>E2E Tests (Playwright)</h3>
+<div class="paragraph">
+<p>Requires the Docker test stack. Two-phase execution — API runs first (fast feedback), GUI runs second.</p>
+</div>
+<div class="paragraph">
+<p>Playwright configs automatically start the backend using <code>deploy/docker-compose.test.yml</code>, which overrides the API Gateway to accept self-signed test JWT tokens instead of requiring Keycloak.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Start the test stack first (or let Playwright auto-start it)
+make docker-up-test
+
+# Phase 1: API tests (REST, GraphQL, SPARQL)
+make test-e2e-api
+
+# Phase 2: GUI tests (pages, user stories, a11y)
+make test-e2e-gui
+
+# Or run both phases together
+make test-e2e</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>GUI tests use <code>maxFailures: 1</code> — stops on first failure for fast feedback. API tests use <code>retries: 2</code>.</p>
+</div>
+<div class="sect3">
+<h4 id="_running_a_single_gui_test"><a class="anchor" href="#_running_a_single_gui_test"></a>Running a Single GUI Test</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">cd tests/e2e
+pnpm exec playwright test --config=config/playwright.gui.config.ts -g "Dashboard Navigation"
+pnpm exec playwright test --config=config/playwright.gui.config.ts specs/gui/pages/dashboard-navigation.spec.ts
+
+# Override maxFailures for a subset
+pnpm exec playwright test --config=config/playwright.gui.config.ts specs/gui/user-stories/ --max-failures=0</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_security_tests_bolabfla"><a class="anchor" href="#_security_tests_bolabfla"></a>Security Tests (BOLA/BFLA)</h3>
+<div class="paragraph">
+<p>Security tests in <code>tests/security/</code> verify:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>BOLA</strong> (Broken Object-Level Authorization) — users cannot access other users' ontologies, groups, or merge requests.</p>
+</li>
+<li>
+<p><strong>BFLA</strong> (Broken Function-Level Authorization) — users cannot invoke admin-level operations without proper roles.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">bash tests/gates/test_bola_bfla_gate.sh</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_ci_pipeline"><a class="anchor" href="#_ci_pipeline"></a>CI Pipeline</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">make ci        # proto-all → build → lint → test → typecheck
+make ci-full   # ci + test-integration + test-e2e + test-gates</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>ci</code> runs everything that doesn&#8217;t require Docker. <code>ci-full</code> adds integration, E2E, and gate tests.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_test_structure"><a class="anchor" href="#_test_structure"></a>Test Structure</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre>tests/
+├── e2e/
+│   ├── config/playwright.api.config.ts   # API test config
+│   ├── config/playwright.gui.config.ts   # GUI test config
+│   ├── specs/api/                        # REST, GraphQL, SPARQL tests
+│   ├── specs/gui/                        # Pages, user stories, a11y
+│   ├── scripts/run-ci.sh                 # CI gate runner
+│   └── package.json
+├── integration/                          # Go integration tests
+│   ├── ticket-api/
+│   └── org-api/
+├── gates/                                # Gate-level test scripts
+└── security/                             # BOLA/BFLA authorization tests</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also"><a class="anchor" href="#_see_also"></a>See Also</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><a href="getting-started.html" class="xref page">Getting Started</a> — prerequisites and build</p>
+</li>
+<li>
+<p><a href="deployment.html" class="xref page">Deployment</a> — Docker environments and compose setup</p>
+</li>
+<li>
+<p><a href="configuration.html" class="xref page">Configuration</a> — environment variables and ports</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>

@@ -47,82 +47,109 @@
 <script setup lang="ts">
 // @ctx: Sidebar navigation items and collapse state persistence per GUI-OW-001
 import {
-  Cloud,
-  Folder,
-  GitMerge,
-  History,
-  Info,
-  Layers,
-  LayoutDashboard,
-  type LucideIcon,
-  MessageSquare,
-  PanelLeftClose,
-  PanelLeftOpen
-} from 'lucide-vue-next'
-import { onBeforeUnmount, onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+	Cloud,
+	Folder,
+	GitMerge,
+	History,
+	Info,
+	Layers,
+	LayoutDashboard,
+	type LucideIcon,
+	MessageSquare,
+	PanelLeftClose,
+	PanelLeftOpen,
+} from "@lucide/vue";
+import { onBeforeUnmount, onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
 interface NavItem {
-  label: string
-  icon: LucideIcon
-  to: string
-  matches: string[]
-  badge?: string
+	label: string;
+	icon: LucideIcon;
+	to: string;
+	matches: string[];
+	badge?: string;
 }
 
 const navItems: NavItem[] = [
-  { label: 'Home', icon: LayoutDashboard, to: '/dashboard/home', matches: ['/dashboard/home'] },
-  { label: 'Groups', icon: Layers, to: '/dashboard/groups', matches: ['/dashboard/groups'] },
-  { label: 'Projects', icon: Folder, to: '/dashboard/projects', matches: ['/dashboard/projects'] },
-  {
-    label: 'Merge requests',
-    icon: GitMerge,
-    to: '/dashboard/merge_requests',
-    matches: ['/dashboard/merge_requests'],
-    badge: '0'
-  },
-  { label: 'Commits', icon: History, to: '/commits', matches: ['/commits'], badge: '0' },
-  { label: 'Comments', icon: MessageSquare, to: '/comments', matches: ['/comments'], badge: '0' },
-  {
-    label: 'Deployments',
-    icon: Cloud,
-    to: '/dashboard/deployments',
-    matches: ['/dashboard/deployments'],
-    badge: '0'
-  }
-]
+	{
+		label: "Home",
+		icon: LayoutDashboard,
+		to: "/dashboard/home",
+		matches: ["/dashboard/home"],
+	},
+	{
+		label: "Groups",
+		icon: Layers,
+		to: "/dashboard/groups",
+		matches: ["/dashboard/groups"],
+	},
+	{
+		label: "Projects",
+		icon: Folder,
+		to: "/dashboard/projects",
+		matches: ["/dashboard/projects"],
+	},
+	{
+		label: "Merge requests",
+		icon: GitMerge,
+		to: "/dashboard/merge_requests",
+		matches: ["/dashboard/merge_requests"],
+		badge: "0",
+	},
+	{
+		label: "Commits",
+		icon: History,
+		to: "/commits",
+		matches: ["/commits"],
+		badge: "0",
+	},
+	{
+		label: "Comments",
+		icon: MessageSquare,
+		to: "/comments",
+		matches: ["/comments"],
+		badge: "0",
+	},
+	{
+		label: "Deployments",
+		icon: Cloud,
+		to: "/dashboard/deployments",
+		matches: ["/dashboard/deployments"],
+		badge: "0",
+	},
+];
 
-const collapsed = ref(false)
-const route = useRoute()
-const router = useRouter()
+const collapsed = ref(false);
+const route = useRoute();
+const router = useRouter();
 
 function isActive(matches: string[]): boolean {
-  return matches.some((value) => route.path.startsWith(value))
+	return matches.some((value) => route.path.startsWith(value));
 }
 
 function navigate(to: string): void {
-  router.push(to)
+	router.push(to);
 }
 
 // @hlv Navigation State Store must persist sidebar collapse state per user session
-const STORAGE_KEY = 'vedo-sidebar-collapsed'
+const STORAGE_KEY = "vedo-sidebar-collapsed";
 
 onMounted(() => {
-  const stored = localStorage.getItem(STORAGE_KEY)
-  if (stored !== null) {
-    collapsed.value = stored === 'true'
-  }
-})
+	const stored = localStorage.getItem(STORAGE_KEY);
+	if (stored !== null) {
+		collapsed.value = stored === "true";
+	}
+});
 
 onBeforeUnmount(() => {
-  localStorage.setItem(STORAGE_KEY, String(collapsed.value))
-})
+	localStorage.setItem(STORAGE_KEY, String(collapsed.value));
+});
 
 function toggleSidebar(): void {
-  collapsed.value = !collapsed.value
+	collapsed.value = !collapsed.value;
 }
 
-defineExpose({ collapsed })
+defineExpose({ collapsed });
 </script>
 
 <style scoped>

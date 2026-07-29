@@ -114,154 +114,154 @@
 </template>
 
 <script setup lang="ts">
-import { FileText, Upload, X } from 'lucide-vue-next'
-import { ref } from 'vue'
-import { ALLOWED_FORMATS } from '../../api/extraction'
-import { useBatchUpload } from '../../composables/useBatchUpload'
-import type { ConflictResolution, SequenceStep } from '../../types/extraction'
-import ConflictResolver from './ConflictResolver.vue'
+import { FileText, Upload, X } from "@lucide/vue";
+import { ref } from "vue";
+import { ALLOWED_FORMATS } from "../../api/extraction";
+import { useBatchUpload } from "../../composables/useBatchUpload";
+import type { ConflictResolution, SequenceStep } from "../../types/extraction";
+import ConflictResolver from "./ConflictResolver.vue";
 
 const props = defineProps<{
-  ontologyId: string
-}>()
+	ontologyId: string;
+}>();
 
 const emit = defineEmits<{
-  'batch-complete': [result: { steps: SequenceStep[] }]
-  'batch-error': [error: string]
-  reset: []
-}>()
+	"batch-complete": [result: { steps: SequenceStep[] }];
+	"batch-error": [error: string];
+	reset: [];
+}>();
 
 // ── Batch composable ────────────────────────────────────────────────────────
 
 const {
-  files,
-  mergedSteps,
-  conflicts,
-  isProcessing,
-  hasConflicts,
-  allDone,
-  pendingCount,
-  successCount,
-  failedCount,
-  hasFailedFiles,
-  addFiles,
-  removeFile,
-  uploadAll,
-  cancelUpload: cancelBatchUpload,
-  resolveConflict
-} = useBatchUpload()
+	files,
+	mergedSteps,
+	conflicts,
+	isProcessing,
+	hasConflicts,
+	allDone,
+	pendingCount,
+	successCount,
+	failedCount,
+	hasFailedFiles,
+	addFiles,
+	removeFile,
+	uploadAll,
+	cancelUpload: cancelBatchUpload,
+	resolveConflict,
+} = useBatchUpload();
 
 // ── Component state ─────────────────────────────────────────────────────────
 
-const isDragOver = ref(false)
-const showConflicts = ref(false)
-const fileInputRef = ref<HTMLInputElement | null>(null)
-let dragCounter = 0
+const isDragOver = ref(false);
+const showConflicts = ref(false);
+const fileInputRef = ref<HTMLInputElement | null>(null);
+let dragCounter = 0;
 
 // ── Drag & drop ─────────────────────────────────────────────────────────────
 
 function onDragEnter() {
-  if (isProcessing.value) return
-  dragCounter++
-  isDragOver.value = true
+	if (isProcessing.value) return;
+	dragCounter++;
+	isDragOver.value = true;
 }
 
 function onDragOver() {
-  if (isProcessing.value) return
-  isDragOver.value = true
+	if (isProcessing.value) return;
+	isDragOver.value = true;
 }
 
 function onDragLeave() {
-  dragCounter--
-  if (dragCounter <= 0) {
-    dragCounter = 0
-    isDragOver.value = false
-  }
+	dragCounter--;
+	if (dragCounter <= 0) {
+		dragCounter = 0;
+		isDragOver.value = false;
+	}
 }
 
 function onDrop(event: DragEvent) {
-  dragCounter = 0
-  isDragOver.value = false
-  if (isProcessing.value) return
+	dragCounter = 0;
+	isDragOver.value = false;
+	if (isProcessing.value) return;
 
-  const droppedFiles = event.dataTransfer?.files
-  if (!droppedFiles || droppedFiles.length === 0) return
+	const droppedFiles = event.dataTransfer?.files;
+	if (!droppedFiles || droppedFiles.length === 0) return;
 
-  handleFiles(Array.from(droppedFiles))
+	handleFiles(Array.from(droppedFiles));
 }
 
 // ── Browse ──────────────────────────────────────────────────────────────────
 
 function onBrowseClick() {
-  if (isProcessing.value) return
-  fileInputRef.value?.click()
+	if (isProcessing.value) return;
+	fileInputRef.value?.click();
 }
 
 function onFileSelected(event: Event) {
-  const input = event.target as HTMLInputElement
-  const selectedFiles = input.files
-  if (selectedFiles) {
-    handleFiles(Array.from(selectedFiles))
-  }
-  input.value = ''
+	const input = event.target as HTMLInputElement;
+	const selectedFiles = input.files;
+	if (selectedFiles) {
+		handleFiles(Array.from(selectedFiles));
+	}
+	input.value = "";
 }
 
 // ── File handling ───────────────────────────────────────────────────────────
 
 function handleFiles(newFiles: File[]) {
-  // Validate total count
-  const totalAfterAdd = files.value.length + newFiles.length
-  if (totalAfterAdd > 10) {
-    console.warn('[BatchUploader] too many files, max 10')
-    return
-  }
+	// Validate total count
+	const totalAfterAdd = files.value.length + newFiles.length;
+	if (totalAfterAdd > 10) {
+		console.warn("[BatchUploader] too many files, max 10");
+		return;
+	}
 
-  addFiles(newFiles)
+	addFiles(newFiles);
 }
 
 async function startUpload() {
-  console.info('[BatchUploader] starting upload', {
-    pendingCount: pendingCount.value
-  })
+	console.info("[BatchUploader] starting upload", {
+		pendingCount: pendingCount.value,
+	});
 
-  await uploadAll(props.ontologyId)
+	await uploadAll(props.ontologyId);
 
-  if (hasConflicts.value) {
-    showConflicts.value = true
-  } else if (allDone.value && mergedSteps.value.length > 0) {
-    console.info('[BatchUploader] all files processed', {
-      totalSteps: mergedSteps.value.length
-    })
-    emit('batch-complete', { steps: mergedSteps.value })
-  }
+	if (hasConflicts.value) {
+		showConflicts.value = true;
+	} else if (allDone.value && mergedSteps.value.length > 0) {
+		console.info("[BatchUploader] all files processed", {
+			totalSteps: mergedSteps.value.length,
+		});
+		emit("batch-complete", { steps: mergedSteps.value });
+	}
 }
 
 function cancelUpload() {
-  cancelBatchUpload()
+	cancelBatchUpload();
 }
 
 function retryFailed() {
-  startUpload()
+	startUpload();
 }
 
 // ── Conflict resolution ─────────────────────────────────────────────────────
 
 function onResolveConflict(
-  index: number,
-  resolution: ConflictResolution['resolution'],
-  customValue?: string
+	index: number,
+	resolution: ConflictResolution["resolution"],
+	customValue?: string,
 ) {
-  resolveConflict(index, resolution, customValue)
+	resolveConflict(index, resolution, customValue);
 }
 
 function onConflictsApplied() {
-  showConflicts.value = false
+	showConflicts.value = false;
 
-  console.info('[BatchUploader] conflicts resolved, emitting merged steps', {
-    totalSteps: mergedSteps.value.length
-  })
+	console.info("[BatchUploader] conflicts resolved, emitting merged steps", {
+		totalSteps: mergedSteps.value.length,
+	});
 
-  emit('batch-complete', { steps: mergedSteps.value })
+	emit("batch-complete", { steps: mergedSteps.value });
 }
 </script>
 

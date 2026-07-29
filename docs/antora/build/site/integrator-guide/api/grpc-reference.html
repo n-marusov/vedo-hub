@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDO Core Docs :: gRPC API Reference</title>
+<meta name="description" content="gRPC service contracts and API reference for external integrators.">
+</head>
+<body class="default">
+<div class="sect1">
+<h2 id="_overview"><a class="anchor" href="#_overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>VEDO Core exposes gRPC services for internal service-to-service communication. This reference documents the available gRPC services, RPCs, and message types.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_ontologyservice"><a class="anchor" href="#_ontologyservice"></a>OntologyService</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Located in <code>proto/ontology/v1/ontology.proto</code>.</p>
+</div>
+<div class="sect2">
+<h3 id="_applysequence"><a class="anchor" href="#_applysequence"></a>ApplySequence</h3>
+<div class="paragraph">
+<p>Applies a sequence of ontology operations (class/property/individual creation) in a single transactional call.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>rpc ApplySequence(ApplySequenceRequest) returns (ApplySequenceResponse);</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Request</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-protobuf hljs" data-lang="protobuf">message ApplySequenceRequest {
+  string ontology_id = 1;
+  string commit_message = 2;
+  repeated SequenceStep steps = 3;
+}
+
+message SequenceStep {
+  string operation = 1;     // "CREATE_CLASS", "CREATE_PROPERTY", "DELETE", "UPDATE"
+  string entity_type = 2;   // "CLASS", "OBJECT_PROPERTY", "DATA_PROPERTY", "INDIVIDUAL"
+  string entity_id = 3;
+  map&lt;string, string&gt; attributes = 4;
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Response</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-protobuf hljs" data-lang="protobuf">message ApplySequenceResponse {
+  string commit_id = 1;
+  int32 entities_created = 2;
+  int32 entities_modified = 3;
+  repeated string warnings = 4;
+  ErrorDetail error = 5;
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_getclass"><a class="anchor" href="#_getclass"></a>GetClass</h3>
+<div class="literalblock">
+<div class="content">
+<pre>rpc GetClass(GetClassRequest) returns (GetClassResponse);</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_listclasses"><a class="anchor" href="#_listclasses"></a>ListClasses</h3>
+<div class="literalblock">
+<div class="content">
+<pre>rpc ListClasses(ListClassesRequest) returns (ListClassesResponse);</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_versioningservice"><a class="anchor" href="#_versioningservice"></a>VersioningService</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Located in <code>proto/versioning/v1/versioning.proto</code>.</p>
+</div>
+<div class="sect2">
+<h3 id="_createcommit"><a class="anchor" href="#_createcommit"></a>CreateCommit</h3>
+<div class="literalblock">
+<div class="content">
+<pre>rpc CreateCommit(CreateCommitRequest) returns (CreateCommitResponse);</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_listcommits"><a class="anchor" href="#_listcommits"></a>ListCommits</h3>
+<div class="literalblock">
+<div class="content">
+<pre>rpc ListCommits(ListCommitsRequest) returns (ListCommitsResponse);</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_authservice"><a class="anchor" href="#_authservice"></a>AuthService</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Located in <code>proto/auth/v1/auth.proto</code>.</p>
+</div>
+<div class="sect2">
+<h3 id="_validatetoken"><a class="anchor" href="#_validatetoken"></a>ValidateToken</h3>
+<div class="literalblock">
+<div class="content">
+<pre>rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_error_handling"><a class="anchor" href="#_error_handling"></a>Error Handling</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>All gRPC responses include standard gRPC status codes:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Code</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Description</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">OK</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Success</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">INVALID_ARGUMENT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Invalid request parameters</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NOT_FOUND</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Resource not found</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PERMISSION_DENIED</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Authentication/authorization failure</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">INTERNAL</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Internal server error</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DEADLINE_EXCEEDED</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Timeout from upstream service</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_connection_details"><a class="anchor" href="#_connection_details"></a>Connection Details</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Target:</strong> <code>api-gateway:8080</code> (REST/GraphQL entry point)</p>
+</li>
+<li>
+<p><strong>Internal services:</strong> Direct gRPC on ports 9001-9013</p>
+</li>
+<li>
+<p><strong>TLS:</strong> Optional, via <code>GRPC_TLS_ENABLED</code> (default: disabled)</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>

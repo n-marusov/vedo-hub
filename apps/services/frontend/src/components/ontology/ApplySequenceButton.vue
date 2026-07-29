@@ -36,94 +36,98 @@
 </template>
 
 <script setup lang="ts">
-import { Upload } from 'lucide-vue-next'
-import { computed, ref } from 'vue'
-import { useApplySequence } from '../../composables/useApplySequence'
-import type { SequenceStep } from '../../types/extraction'
-import ApplyProgressModal from './ApplyProgressModal.vue'
+import { Upload } from "@lucide/vue";
+import { computed, ref } from "vue";
+import { useApplySequence } from "../../composables/useApplySequence";
+import type { SequenceStep } from "../../types/extraction";
+import ApplyProgressModal from "./ApplyProgressModal.vue";
 
 const props = defineProps<{
-  ontologyId: string
-  steps: SequenceStep[]
-  disabled?: boolean
-}>()
+	ontologyId: string;
+	steps: SequenceStep[];
+	disabled?: boolean;
+}>();
 
 const emit = defineEmits<{
-  'apply-success': [result: { commitId?: string; commitUrl?: string }]
-  'apply-error': [error: string]
-}>()
+	"apply-success": [result: { commitId?: string; commitUrl?: string }];
+	"apply-error": [error: string];
+}>();
 
 // ── Apply composable ────────────────────────────────────────────────────────
 
 const {
-  progress,
-  applyResult,
-  commitMessage,
-  isApplying,
-  isSuccess,
-  isError,
-  percentage,
-  requestConfirm,
-  executeApply,
-  cancelApply,
-  reset
-} = useApplySequence()
+	progress,
+	applyResult,
+	commitMessage,
+	isApplying,
+	isSuccess,
+	isError,
+	percentage,
+	requestConfirm,
+	executeApply,
+	cancelApply,
+	reset,
+} = useApplySequence();
 
 // ── Local state ─────────────────────────────────────────────────────────────
 
-const modalVisible = ref(false)
-const selectedSteps = ref<SequenceStep[]>([])
+const modalVisible = ref(false);
+const selectedSteps = ref<SequenceStep[]>([]);
 
 // ── Computed ────────────────────────────────────────────────────────────────
 
-const stepCount = computed(() => props.steps.filter((s) => s.included).length)
+const stepCount = computed(() => props.steps.filter((s) => s.included).length);
 const buttonLabel = computed(() => {
-  if (stepCount.value === 0) return 'Apply Import'
-  return `Apply Import (${stepCount.value})`
-})
+	if (stepCount.value === 0) return "Apply Import";
+	return `Apply Import (${stepCount.value})`;
+});
 
 // ── Handlers ────────────────────────────────────────────────────────────────
 
 function onApplyClick() {
-  selectedSteps.value = props.steps
-  requestConfirm(props.steps)
-  modalVisible.value = true
+	selectedSteps.value = props.steps;
+	requestConfirm(props.steps);
+	modalVisible.value = true;
 }
 
 async function onConfirm() {
-  await executeApply(props.ontologyId, selectedSteps.value, commitMessage.value)
+	await executeApply(
+		props.ontologyId,
+		selectedSteps.value,
+		commitMessage.value,
+	);
 
-  if (isSuccess.value && applyResult.value) {
-    console.info('[ApplySequenceButton] apply success', {
-      commitId: applyResult.value.commitId
-    })
-    emit('apply-success', {
-      commitId: applyResult.value.commitId,
-      commitUrl: applyResult.value.commitUrl
-    })
-  } else if (isError.value) {
-    const errMsg = progress.value.errorMessage || 'Unknown error'
-    console.error('[ApplySequenceButton] apply error', { error: errMsg })
-    emit('apply-error', errMsg)
-  }
+	if (isSuccess.value && applyResult.value) {
+		console.info("[ApplySequenceButton] apply success", {
+			commitId: applyResult.value.commitId,
+		});
+		emit("apply-success", {
+			commitId: applyResult.value.commitId,
+			commitUrl: applyResult.value.commitUrl,
+		});
+	} else if (isError.value) {
+		const errMsg = progress.value.errorMessage || "Unknown error";
+		console.error("[ApplySequenceButton] apply error", { error: errMsg });
+		emit("apply-error", errMsg);
+	}
 }
 
 function onCancel() {
-  if (isApplying.value) {
-    cancelApply()
-  }
-  modalVisible.value = false
-  reset()
+	if (isApplying.value) {
+		cancelApply();
+	}
+	modalVisible.value = false;
+	reset();
 }
 
 function onClose() {
-  modalVisible.value = false
-  reset()
+	modalVisible.value = false;
+	reset();
 }
 
 function onRetry() {
-  // Go back to confirming state
-  requestConfirm(selectedSteps.value)
+	// Go back to confirming state
+	requestConfirm(selectedSteps.value);
 }
 </script>
 
