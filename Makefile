@@ -199,6 +199,49 @@ test-integration-go: ## Run Go integration tests in tests/integration/
 		cd "$(ROOT)/tests/integration/org-api" && go test ./... 2>&1 || true; \
 	fi
 
+.PHONY: test-versioning
+test-versioning: ## Run versioning-service integration tests (auto-starts PostgreSQL if not running)
+	@echo "[Versioning] checking PostgreSQL availability..."
+	@PG_URL="postgres://postgres:password@localhost:5432/vedo_versioning"; \
+	PG_STARTED=""; \
+	if command -v pg_isready >/dev/null 2>&1; then \
+		if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
+			echo "[Versioning] PostgreSQL is already running"; \
+		else \
+			echo "[Versioning] Starting PostgreSQL via Docker Compose..."; \
+			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d postgres 2>&1; \
+			PG_STARTED="yes"; \
+			echo "[Versioning] Waiting for PostgreSQL to become healthy..."; \
+			i=0; \
+			while [ $$i -lt 30 ]; do \
+				if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
+					echo "[Versioning] PostgreSQL is ready!"; \
+					break; \
+				fi; \
+				sleep 1; \
+				i=$$((i + 1)); \
+			done; \
+			if [ $$i -ge 30 ]; then \
+				echo "[Versioning] ERROR: PostgreSQL did not become ready within 30 seconds"; \
+				exit 1; \
+			fi; \
+		fi; \
+	else \
+		echo "[Versioning] pg_isready not found, assuming PostgreSQL is available at localhost:5432"; \
+	fi; \
+	export PG_TEST_DATABASE_URL="$$PG_URL"; \
+	export DATABASE_URL="$$PG_URL"; \
+	echo "[Versioning] Running versioning-service unit tests..."; \
+	cd "$(ROOT)/apps/services/versioning-service" && cargo test --lib 2>&1 || exit 1; \
+	echo "[Versioning] Running versioning-service integration tests..."; \
+	cd "$(ROOT)/apps/services/versioning-service" && cargo test --test '*' -- --test-threads=1 --nocapture 2>&1; \
+	RESULT=$$?; \
+	if [ -n "$$PG_STARTED" ]; then \
+		echo "[Versioning] Stopping auto-started PostgreSQL..."; \
+		cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml stop postgres 2>&1; \
+	fi; \
+	exit $$RESULT
+
 ##@ Test — E2E (requires Docker test stack)
 
 test-e2e: test-e2e-api test-e2e-gui ## Run all E2E tests (API + GUI)
@@ -221,16 +264,16 @@ test-e2e-gui: ## Run E2E GUI tests via Playwright (requires Docker test stack)
 
 .PHONY: test-gates
 test-gates: ## Run all gate-level test scripts (contracts, BOLA/BFLA, etc.)
-	@failed=0
+	@gate_failures=""
 	@echo "[Gates] running contract tests..."
-	@bash $(ROOT)/tests/gates/test_contract_gate.sh 2>&1 || failed=1
+	@bash $(ROOT)/tests/gates/test_contract_gate.sh 2>&1 || gate_failures="$${gate_failures} contract"
 	@echo "[Gates] running BOLA/BFLA security tests..."
-	@bash $(ROOT)/tests/gates/test_bola_bfla_gate.sh 2>&1 || failed=1
+	@bash $(ROOT)/tests/gates/test_bola_bfla_gate.sh 2>&1 || gate_failures="$${gate_failures} bola-bfla"
 	@echo "[Gates] running Python service manifest validation..."
-	@bash $(ROOT)/tests/gates/test_python_manifests.sh 2>&1 || failed=1
-	@if [ $$failed -ne 0 ]; then \
+	@bash $(ROOT)/tests/gates/test_python_manifests.sh 2>&1 || gate_failures="$${gate_failures} python-manifests"
+	@if [ -n "$$gate_failures" ]; then \
 		echo ""; \
-		echo "!!! Gates FAILED !!!"; \
+		echo "!!! Gates FAILED:$$gate_failures !!!"; \
 		exit 1; \
 	fi
 	@echo "[Gates] all gates passed"
