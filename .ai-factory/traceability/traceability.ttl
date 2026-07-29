@@ -6551,5 +6551,68 @@ base:test/frontend.toast a vdo:TestSuite ;
 base:test/auth-service.org-visibility a vdo:TestSuite ;
     rdfs:label "Org Visibility Tests"@en ;
     rdfs:comment "Go unit tests for visibility inheritance enforcement — subgroup visibility rules, top-level any visibility"@en ;
-    vdo:filePath "apps/services/auth-service/org/org_visibility_test.go" ;
-    vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
+   	 vdo:filePath "apps/services/auth-service/org/org_visibility_test.go" ;
+   	 vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .
+
+   # =============================================================================
+   # Project Creation (M5) — traceability entries
+   # =============================================================================
+
+   # User Story
+   base:us/US-org.projects.create a vdo:UserStory ;
+   	 rdfs:label "US-org.projects.create: Create project in group"@ru ;
+   	 rdfs:comment "Пользователь создаёт проект в выбранной группе через страницу создания"@ru ;
+   	 vdo:filePath "specs/user-stories/US-org.projects.create.md" .
+
+   # Use Case
+   base:uc/UC-org.projects.manage-project-lifecycle a vdo:UseCase ;
+   	 rdfs:label "UC-org.projects.manage-project-lifecycle: Project lifecycle management"@ru ;
+   	 rdfs:comment "Управление жизненным циклом проектов: создание, просмотр, обновление, перемещение, удаление, форк"@ru ;
+   	 vdo:filePath "specs/use-cases/UC-org.projects.manage-project-lifecycle.md" .
+
+   # Requirements
+   base:req/REQ-FUN.ORG.project-creation a vdo:FunctionalRequirement ;
+   	 rdfs:label "FUN ORG project creation"@en ;
+   	 rdfs:comment "Requirements for project creation in group: name canonical, group_id required, visibility, page-based UI, Toast feedback"@en ;
+   	 vdo:priority "P0" ;
+   	 vdo:area "ORG" ;
+   	 vdo:filePath "specs/requirements/REQ-FUN.ORG.project-creation.md" .
+
+   # Design
+   base:design/page/create-project a vdo:DesignArtifact ;
+   	 rdfs:label "Create Project Page Design"@en ;
+   	 rdfs:comment "Create project page — group selector, project name, URL preview, description, visibility options, actions"@en ;
+   	 vdo:filePath "design/pages/create-project.pen" .
+
+   # Code Artifacts
+   base:code/frontend.pages.CreateProjectPage a vdo:CodeArtifact ;
+   	 rdfs:label "CreateProjectPage.vue"@en ;
+   	 rdfs:comment "Vue 3 page component for creating a project in a group with group selector, validation, i18n, Toast, redirect"@en ;
+   	 vdo:filePath "apps/services/frontend/src/pages/CreateProjectPage.vue" ;
+   	 vdo:implements base:us/US-org.projects.create ;
+   	 vdo:implements base:req/REQ-FUN.ORG.project-creation .
+
+   base:code/frontend.api.org a vdo:CodeArtifact ;
+   	 rdfs:label "org.ts API client"@en ;
+   	 rdfs:comment "REST API client for organization model — createProject updated with name, group_id, visibility, Idempotency-Key"@en ;
+   	 vdo:filePath "apps/services/frontend/src/api/org.ts" ;
+   	 vdo:implements base:req/REQ-FUN.ORG.project-creation .
+
+   base:code/frontend.router a vdo:CodeArtifact ;
+   	 rdfs:label "Router index.ts"@en ;
+   	 rdfs:comment "Vue Router config — added /dashboard/projects/new route for CreateProjectPage"@en ;
+   	 vdo:filePath "apps/services/frontend/src/router/index.ts" .
+
+   # Test Suites
+   base:test/frontend.create-project-page a vdo:TestSuite ;
+   	 rdfs:label "CreateProjectPage Tests"@en ;
+   	 rdfs:comment "Vitest unit tests for CreateProjectPage — render, group selector human-readable names, validation, createProject call, toast, redirect"@en ;
+   	 vdo:filePath "apps/services/frontend/src/__tests__/CreateProjectPage.spec.ts" ;
+   	 vdo:validates base:req/REQ-FUN.ORG.project-creation .
+
+   base:test/e2e.org-lifecycle a vdo:TestSuite ;
+   	 rdfs:label "Org Lifecycle E2E Tests"@en ;
+   	 rdfs:comment "Playwright E2E tests for organizational model lifecycle — group and project CRUD, GUI project creation flow"@en ;
+   	 vdo:filePath "tests/e2e/specs/gui/flows/org-lifecycle.spec.ts" ;
+   	 vdo:validates base:req/REQ-FUN.ORG.project-creation ;
+   	 vdo:validates base:req/REQ-NFR.SECURITY.organization-access-model .

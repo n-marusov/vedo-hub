@@ -141,8 +141,16 @@ All endpoints require `Authorization: Bearer <JWT>` header.
 
 === Projects
 
+* Create: `POST /api/v1/projects` — create project in a group (Owner/Maintainer in parent group).
+  ** Required: `name` (string, canonical), `group_id` (UUID of parent group).
+  ** Optional: `description` (string), `visibility` (Private | Internal | Public, default: Private).
+  ** The deprecated `label` field is accepted as a fallback for `name` (backward compatibility).
+  ** `Idempotency-Key` header required.
+  ** Visibility inheritance: project visibility cannot exceed parent group visibility (enforced server-side).
+  ** Response `201`: `{ id, name, type, parent_id, visibility, ontology_id }` — includes UUID v4 for the paired Ontology.
+  ** Owner membership is auto-assigned to the caller.
+  ** UI: creation is handled via a dedicated page at `/dashboard/projects/new` (not a dialog).
 * `GET /api/v1/projects` — list projects (paginated, searchable)
-* `POST /api/v1/projects` — create project (Owner)
 * `GET /api/v1/projects/:id` — get project details (includes `ontology_id` for the 1:1 paired Ontology)
 * `PUT /api/v1/projects/:id` — update project (Owner)
 * `DELETE /api/v1/projects/:id` — delete project (Owner; cascades to the paired Ontology)
