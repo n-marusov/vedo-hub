@@ -446,9 +446,8 @@ func (h *OrgHandler) HandleForkProject(c *gin.Context) {
 // RBAC: Only Owner of both source and target groups can move.
 // Audit: emits project.moved event with object_id, target_group_id.
 //
-// TODO (Task 3.1): Uncomment gRPC path once `buf generate` regenerates
-// protobuf Go types for MoveProjectRequest/Response. For now, returns 501
-// Not Implemented.
+// @debt (M5): Uncomment gRPC path once `buf generate` regenerates
+// protobuf Go types for MoveProjectRequest/Response. Current stub returns 501.
 func (h *OrgHandler) HandleMoveProject(c *gin.Context) {
 	traceID := c.GetHeader("X-Trace-Id")
 	projectID := c.Param("id")
@@ -466,7 +465,7 @@ func (h *OrgHandler) HandleMoveProject(c *gin.Context) {
 		},
 	})
 
-	// TODO: gRPC path (uncomment after buf generate):
+	// @debt (M5): gRPC path (uncomment after buf generate):
 	// token := extractToken(c)
 	// var req struct {
 	// 	TargetGroupID string `json:"target_group_id"`
