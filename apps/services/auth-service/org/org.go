@@ -479,6 +479,19 @@ func (s *OrgService) CreateScope(requesterID string, node ScopeNode) error {
 			return ErrScopeNotFound
 		}
 
+		// @hlv:sec [AUTH_BOUNDARY] — Caller must have at least Maintainer role
+		// in the parent group to create a project under it.
+		if node.Type == ScopeProject {
+			var role string
+			role, err = s.GetEffectiveRole(requesterID, node.ParentID)
+			if err != nil {
+				return err
+			}
+			if !IsMaintainerOrAbove(role) {
+				return ErrForbiddenInsufficientRole
+			}
+		}
+
 		// @hlv CYCLE_DETECTED — Circular group membership MUST be detected and rejected at creation.
 		if hasCycle, _ := s.detectCycle(node.ParentID, node.ID); hasCycle {
 			return ErrCycleDetected

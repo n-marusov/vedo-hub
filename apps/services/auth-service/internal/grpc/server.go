@@ -212,6 +212,12 @@ func (s *OrgGrpcServer) ListChildGroups(ctx context.Context, req *authv1.ListChi
 func (s *OrgGrpcServer) CreateProject(ctx context.Context, req *authv1.CreateProjectRequest) (*authv1.CreateProjectResponse, error) {
 	requesterID := extractUserID(ctx)
 
+	// Default visibility to Private if not specified.
+	projectVisibility := req.Visibility
+	if projectVisibility == "" {
+		projectVisibility = "Private"
+	}
+
 	projectID := newUUID()
 	node := org.ScopeNode{
 		ID:          projectID,
@@ -219,9 +225,17 @@ func (s *OrgGrpcServer) CreateProject(ctx context.Context, req *authv1.CreatePro
 		TenantID:    req.OrganizationId,
 		Name:        req.Name,
 		Description: req.Description,
+		ParentID:    req.GroupId,
+		Visibility:  org.Visibility(projectVisibility),
 	}
 
 	if err := s.svc.CreateScope(requesterID, node); err != nil {
+		slog.Error("project.create.scope_failed",
+			"project_id", projectID,
+			"name", req.Name,
+			"group_id", req.GroupId,
+			"error", err.Error(),
+		)
 		return nil, mapOrgError(err)
 	}
 
@@ -239,13 +253,31 @@ func (s *OrgGrpcServer) CreateProject(ctx context.Context, req *authv1.CreatePro
 		return nil, status.Errorf(codes.Internal, "PROJECT_CREATE_ONTOLOGY_PAIRING_FAILED: %v", err)
 	}
 
+	// Assign the caller as Owner of the created project.
+	if err := s.svc.Store().UpsertMembership(org.OrgMembership{
+		UserID: requesterID,
+		Scope:  projectID,
+		Role:   "Owner",
+	}); err != nil {
+		slog.Error("project.create.owner_membership_failed", "project_id", projectID, "user_id", requesterID, "err", err)
+		// Non-fatal: project and ontology already created.
+	}
+
 	scope, _ := s.svc.Store().GetScope(projectID)
 	proto := scopeNodeToProto(scope)
 	if proto != nil {
 		proto.OntologyId = ontologyID
 	}
-	slog.Info("project.create", "project_id", projectID, "ontology_id", ontologyID)
-	log.Printf(`{"event":"grpc.request","method":"CreateProject","scope":"%s","ontology_id":"%s"}`, projectID, ontologyID)
+
+	slog.Info("project.create.success",
+		"project_id", projectID,
+		"ontology_id", ontologyID,
+		"name", req.Name,
+		"group_id", req.GroupId,
+		"visibility", projectVisibility,
+		"requester", requesterID,
+	)
+	log.Printf(`{"event":"audit.project.created","project_id":"%s","ontology_id":"%s","requester":"%s","group_id":"%s","visibility":"%s"}`, projectID, ontologyID, requesterID, req.GroupId, projectVisibility)
 	return &authv1.CreateProjectResponse{Project: proto}, nil
 }
 
