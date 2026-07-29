@@ -74,7 +74,20 @@ Additional targets:
 
 > ⚡ **Fail-fast** stops at the first failure — ideal for development iteration.
 > 📊 **Full statistics** runs everything and collects all failures — use for CI nightly or release.
-> Integration and E2E tests require Docker (Neo4j, Postgres, test compose stack).
+
+**Infrastructure requirements:**
+
+| Test type | Requires | Auto-started | Command |
+|-----------|----------|-------------|---------|
+| Unit (Rust/Go/Python/TS) | Nothing | — | `make test-unit-fast` |
+| Rust integration (Neo4j) | Docker | ✅ `make test-integration-rust-fast` starts Neo4j | `make test-integration-rust-fast` |
+| Versioning integration (PostgreSQL) | Docker + `pg_isready` | ✅ `make test-versioning-fast` starts Postgres | `make test-versioning-fast` |
+| Go integration (ticket-api, org-api, auth) | Running services | ❌ Must be up manually | `make test-integration-go-fast` |
+| E2E API | Docker test stack | ✅ Playwright auto-starts compose | `make test-e2e-api-fast` |
+| E2E GUI | Docker test stack + frontend | ✅ Playwright auto-starts compose | `make test-e2e-gui-fast` |
+| Gates (contract, BOLA/BFLA, quality) | Go + Docker | ❌ Partial | `make test-gates-fast` |
+
+> Use `make infra-up` to start all infrastructure services (Neo4j, Postgres, Redis, RabbitMQ, Keycloak, MinIO) without the app stack.
 > Use `ENV=test` for E2E: `make docker-up-test` starts the test stack with self-signed JWT tokens.
 
 ### CI

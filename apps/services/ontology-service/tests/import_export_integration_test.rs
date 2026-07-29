@@ -76,7 +76,7 @@ async fn test_export_rdfxml_returns_content() {
     let resp = app
         .clone()
         .oneshot(get(&format!(
-            "/api/v1/ontologies/{oid}/export?format=rdfxml"
+            "/api/v1/ontologies/{oid}/export?format=rdf-xml"
         )))
         .await
         .unwrap();
