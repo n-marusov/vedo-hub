@@ -62,7 +62,7 @@ async fn test_create_individual_stores_in_neo4j() {
         ))
         .await
         .unwrap();
-    assert_eq!(resp.status(), StatusCode::OK);
+    assert_eq!(resp.status(), StatusCode::CREATED);
 
     let mut result = pool
         .graph()
@@ -82,13 +82,12 @@ async fn test_get_individual_returns_data() {
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("get_indiv");
     seed_class(&pool, &oid, "Person").await;
-    let _ = pool
-        .graph()
-        .execute(
-            neo4rs::query("CREATE (i:Individual {ontology_id:$id,id:'jane',label:'Jane'})")
-                .param("id", oid.clone()),
-        )
-        .await;
+    common::execute_query(
+        &pool,
+        neo4rs::query("CREATE (i:Individual {ontology_id:$id,id:'jane',label:'Jane'})")
+            .param("id", oid.clone()),
+    )
+    .await;
 
     let resp = app
         .clone()
@@ -104,13 +103,12 @@ async fn test_update_individual_changes_label() {
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("update_indiv");
     seed_class(&pool, &oid, "Person").await;
-    let _ = pool
-        .graph()
-        .execute(
-            neo4rs::query("CREATE (i:Individual {ontology_id:$id,id:'bob',label:'Bob'})")
-                .param("id", oid.clone()),
-        )
-        .await;
+    common::execute_query(
+        &pool,
+        neo4rs::query("CREATE (i:Individual {ontology_id:$id,id:'bob',label:'Bob'})")
+            .param("id", oid.clone()),
+    )
+    .await;
 
     let resp = app
         .clone()
@@ -174,13 +172,12 @@ async fn test_delete_individual_removes_from_neo4j() {
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("delete_indiv");
     seed_class(&pool, &oid, "Person").await;
-    let _ = pool
-        .graph()
-        .execute(
-            neo4rs::query("CREATE (i:Individual {ontology_id:$id,id:'temp',label:'Temp'})")
-                .param("id", oid.clone()),
-        )
-        .await;
+    common::execute_query(
+        &pool,
+        neo4rs::query("CREATE (i:Individual {ontology_id:$id,id:'temp',label:'Temp'})")
+            .param("id", oid.clone()),
+    )
+    .await;
 
     let resp = app
         .clone()

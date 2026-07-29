@@ -45,6 +45,23 @@
 - **E2E tests:** Playwright for frontend at `tests/e2e/`
 - **Test boundaries:** Contract tests (per-service), integration tests (cross-service), security gates, platform integrity checks
 
+## Integration Tests Must Be Spec-Driven
+
+**Integration tests MUST be derived from the actual handler code, not written independently.**
+
+Hand-written integration tests that are not checked against the handler's actual signatures inevitably drift from the implementation. The following rules prevent this:
+
+- **Status codes:** Test assertions for HTTP status codes MUST match the handler's actual return type, not guessed values. If a handler returns `StatusCode::CREATED` (201), the test MUST expect 201, not 200 OK.
+- **Request/response shapes:** Test payloads and expected responses MUST be derived from the handler's request/response types (Rust structs, Go types, etc.), not re-invented.
+- **Direct DB seeding:** When tests seed data directly via database queries (bypassing the API), they MUST replicate ALL relationships and constraints the handler would create. Prefer calling the API endpoint itself for setup over raw DB queries, as this guarantees the data matches the handler's expectations.
+- **Route patterns:** Test URL paths MUST match the routes registered in the router (`build_app` / `lib.rs`), not be guessed independently.
+- **AI agents:** When generating integration tests, read the handler source code first, then derive expectations from it. Never write test assertions without first confirming the handler's actual behavior.
+
+**Common failure patterns addressed by this rule:**
+- Handler returns 201 Created, test expects 200 OK → assertion failure
+- Direct Neo4j `CREATE` skips `INSTANCE_OF` relationship → handler can't find the entity → 404
+- URL pattern uses `:{param}` in router but `{param}` or different path in test → 404
+
 ## TDD Compliance (Override Rule)
 
 **This rule overrides the `aif-implement` skill's general «NEVER write tests» instruction whenever a plan task explicitly includes test files or TDD requirements.**
