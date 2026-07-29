@@ -59,20 +59,22 @@ make typecheck               # TypeScript type checking (vue-tsc)
 ### Test
 
 ```bash
-make test                    # Unit tests (no infra required)
-make test-integration        # Integration tests (requires Neo4j, Postgres)
-make test-e2e-api            # API tests via Playwright
-make test-e2e-gui            # GUI tests via Playwright
-make test-e2e                # All E2E tests
-make test-gates              # Contract + BOLA/BFLA security tests
-make coverage                # Test coverage (Go)
+make test-unit-fast         # Unit tests — fail-fast (stops at first failure)
+make test-fast              # All tests — fail-fast (unit + integration + e2e + gates)
+make test-unit-full         # Unit tests — full statistics (collect all failures)
+make test-full              # All tests — full statistics
+make test-integration-fast  # Integration tests — fail-fast (requires Neo4j, Postgres)
+make test-e2e-api-fast      # API tests via Playwright — fail-fast
+make test-e2e-gui-fast      # GUI tests via Playwright — fail-fast
+make test-gates-fast        # Contract + BOLA/BFLA + quality gates
+make coverage               # Test coverage (Go only)
 ```
 
 ### CI
 
 ```bash
-make ci                      # Build + lint + unit tests + typecheck (no Docker)
-make ci-full                 # Full pipeline + integration + E2E + gates
+make ci-fast                # Build + lint + unit tests + typecheck (no Docker)
+make ci-full                # Full pipeline + integration + E2E + gates + quality
 ```
 
 ### Utility

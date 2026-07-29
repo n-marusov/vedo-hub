@@ -38,6 +38,9 @@ coverage/
 **/*out.txt
 **/*output.txt
 
+# ── Quality Trending ────────────────────────────────────────────────────────────
+.quality-trends/*.json
+
 # ── E2E (Playwright) ───────────────────────────────────────────────────────────
 tests/e2e/test-results/
 tests/e2e/test-output*.txt

@@ -25,6 +25,25 @@ COMMIT     ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 BUILD_TIME := $(shell date -u '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || echo "unknown")
 ROOT       := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 
+# --- ANSI Color Codes (CI-safe) ----------------------------------------------
+# Disabled in dumb terminals (CI pipelines, non-TTY).
+# Usage: printf "$(C_GREEN)[PASS]$(C_RESET) message\n"
+ifeq ($(TERM),dumb)
+  C_RED   :=
+  C_GREEN :=
+  C_YELLOW:=
+  C_CYAN  :=
+  C_BOLD  :=
+  C_RESET :=
+else
+  C_RED   := \033[31m
+  C_GREEN := \033[32m
+  C_YELLOW:= \033[33m
+  C_CYAN  := \033[36m
+  C_BOLD  := \033[1m
+  C_RESET := \033[0m
+endif
+
 # --- Service Paths -----------------------------------------------------------
 SERVICE_DIR     := apps/services
 SRC_SERVICE_DIR := src/services
@@ -176,73 +195,102 @@ build-%:
 
 ##@ Test — Unit
 
-.PHONY: test test-all
-test: ## Run all unit tests (T0) natively
-	@failed=""; \
-	echo "[Test] Running all unit tests..."; \
-	$(MAKE) test-rust-unit 2>&1 || failed="$$failed rust"; \
-	$(MAKE) test-go 2>&1 || failed="$$failed go"; \
-	$(MAKE) test-python 2>&1 || failed="$$failed python"; \
-	$(MAKE) test-typescript 2>&1 || failed="$$failed typescript"; \
-	echo ""; \
-	echo "========================================"; \
-	if [ -z "$$failed" ]; then \
-		echo "  [PASS]  ALL UNIT TESTS PASSED"; \
-	else \
-		echo "  [FAIL]  UNIT TESTS FAILED:$$failed"; \
-	fi; \
-	echo "========================================"; \
-	if [ -n "$$failed" ]; then exit 1; fi
+##@ Test — Unit
 
-test-all: ## Run all tests including integration (T0+T1)
-	@failed=""; \
-	echo "[Test] Running all tests (unit + integration)..."; \
-	$(MAKE) test-rust 2>&1 || failed="$$failed rust"; \
-	$(MAKE) test-go 2>&1 || failed="$$failed go"; \
-	$(MAKE) test-python 2>&1 || failed="$$failed python"; \
-	$(MAKE) test-typescript 2>&1 || failed="$$failed typescript"; \
-	echo ""; \
-	echo "========================================"; \
-	if [ -z "$$failed" ]; then \
-		echo "  [PASS]  ALL TESTS PASSED"; \
-	else \
-		echo "  [FAIL]  TESTS FAILED:$$failed"; \
+.PHONY: test-unit-fast test-unit-full test-fast test-full
+
+test-unit-fast: ## Unit tests — fail-fast (unit only, stops at first failure)
+	@printf "$(C_CYAN)[Unit]$(C_RESET) fail-fast mode\n"
+	@$(MAKE) test-rust-fast-unit
+	@$(MAKE) test-go-fast
+	@$(MAKE) test-python-fast
+	@$(MAKE) test-typescript-fast
+	@printf "$(C_GREEN)[PASS]$(C_RESET) ALL UNIT TESTS PASSED\n"
+
+test-unit-full: ## Unit tests — full statistics (collect all failures)
+	@failed=0; \
+	printf "$(C_CYAN)[Unit]$(C_RESET) full statistics mode\n"; \
+	$(MAKE) test-rust-full-unit 2>&1 || failed=1; \
+	$(MAKE) test-go-full 2>&1 || failed=1; \
+	$(MAKE) test-python-full 2>&1 || failed=1; \
+	$(MAKE) test-typescript-full 2>&1 || failed=1; \
+	if [ $$failed -ne 0 ]; then \
+		printf "$(C_RED)[FAIL]$(C_RESET) SOME UNIT TESTS FAILED\n"; \
+		exit 1; \
 	fi; \
-	echo "========================================"; \
-	if [ -n "$$failed" ]; then exit 1; fi
+	printf "$(C_GREEN)[PASS]$(C_RESET) ALL UNIT TESTS PASSED\n"
+
+test-fast: ## Run ALL tests — fail-fast (unit + integration + e2e + gates)
+	@printf "$(C_CYAN)=== test-fast ===$(C_RESET)\n"
+	@$(MAKE) test-unit-fast
+	@$(MAKE) test-integration-fast
+	@$(MAKE) test-e2e-fast
+	@$(MAKE) test-gates-fast
+	@printf "$(C_GREEN)[PASS]$(C_RESET) test-fast complete\n"
+
+test-full: ## Run ALL tests — full statistics (collect all failures)
+	@failed=0; \
+	printf "$(C_CYAN)=== test-full ===$(C_RESET)\n"; \
+	$(MAKE) test-unit-full 2>&1 || failed=1; \
+	$(MAKE) test-integration-full 2>&1 || failed=1; \
+	$(MAKE) test-e2e-full 2>&1 || failed=1; \
+	$(MAKE) test-gates-full 2>&1 || failed=1; \
+	if [ $$failed -ne 0 ]; then \
+		printf "$(C_RED)[FAIL]$(C_RESET) SOME TESTS FAILED\n"; \
+		exit 1; \
+	fi; \
+	printf "$(C_GREEN)[PASS]$(C_RESET) ALL TESTS PASSED\n"
 
 ##@ Test — Integration
 
-test-integration: test-integration-rust test-integration-go ## Run integration tests (requires live infra — Neo4j auto-started, PG, Go services)
+##@ Test — Integration
 
-.PHONY: test-integration-rust
-test-integration-rust: ## Run Rust integration tests (auto-starts Neo4j if not running)
+.PHONY: test-integration-fast test-integration-full
+test-integration-fast: ## Integration tests — fail-fast (rust + go + versioning)
+	@printf "$(C_CYAN)[Integration]$(C_RESET) fail-fast mode\n"
+	@$(MAKE) test-integration-rust-fast
+	@$(MAKE) test-integration-go-fast
+	@$(MAKE) test-versioning-fast
+
+test-integration-full: ## Integration tests — full statistics (collect all failures)
+	@failed=0; \
+	printf "$(C_CYAN)[Integration]$(C_RESET) full statistics mode\n"; \
+	$(MAKE) test-integration-rust-full 2>&1 || failed=1; \
+	$(MAKE) test-integration-go-full 2>&1 || failed=1; \
+	$(MAKE) test-versioning-full 2>&1 || failed=1; \
+	if [ $$failed -ne 0 ]; then \
+		printf "$(C_RED)[FAIL]$(C_RESET) Some integration tests failed\n"; \
+		exit 1; \
+	fi; \
+	printf "$(C_GREEN)[PASS]$(C_RESET) All integration tests passed\n"
+
+.PHONY: test-integration-rust-fast test-integration-rust-full
+test-integration-rust-fast: ## Rust integration tests — fail-fast (auto-starts Neo4j if not running)
 	@NEO4J_STARTED=""; \
 	NEO4J_HOST="localhost"; \
 	NEO4J_PORT="$${NEO4J_BOLT_PORT:-7687}"; \
 	NEO4J_USER="$${NEO4J_USER:-neo4j}"; \
 	NEO4J_PASSWORD="$${NEO4J_PASSWORD:-password}"; \
 	NEO4J_TEST_URI="bolt://$${NEO4J_HOST}:$${NEO4J_PORT}"; \
-	echo "[Integration] checking Neo4j at $${NEO4J_HOST}:$${NEO4J_PORT}..."; \
+	printf "$(C_CYAN)[Integration]$(C_RESET) checking Neo4j at $${NEO4J_HOST}:$${NEO4J_PORT}...\n"; \
 	if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps neo4j 2>/dev/null | grep -q "healthy"; then \
-		echo "[Integration] Neo4j is already running (Docker healthy)"; \
+		printf "$(C_GREEN)[Integration]$(C_RESET) Neo4j is already running (Docker healthy)\n"; \
 	else \
-		echo "[Integration] Starting Neo4j via Docker Compose..."; \
+		printf "$(C_YELLOW)[Integration]$(C_RESET) Starting Neo4j via Docker Compose...\n"; \
 		cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d neo4j 2>&1; \
 		NEO4J_STARTED="yes"; \
-		echo "[Integration] Waiting for Neo4j healthcheck..."; \
+		printf "$(C_YELLOW)[Integration]$(C_RESET) Waiting for Neo4j healthcheck...\n"; \
 		i=0; \
 		while [ $$i -lt 60 ]; do \
 			if docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps neo4j 2>/dev/null | grep -q "healthy"; then \
-				echo "[Integration] Neo4j is ready!"; \
+				printf "$(C_GREEN)[Integration]$(C_RESET) Neo4j is ready!\n"; \
 				break; \
 			fi; \
 			sleep 2; \
 			i=$$((i + 1)); \
-			echo "[Integration]   ...waiting for Neo4j ($${i}s)"; \
 		done; \
 		if [ $$i -ge 60 ]; then \
-			echo "[Integration] ERROR: Neo4j did not become ready within 120 seconds"; \
+			printf "$(C_RED)[Integration]$(C_RESET) ERROR: Neo4j did not become ready within 120 seconds\n"; \
 			docker compose -f "$(ROOT)/deploy/docker-compose.yml" logs neo4j 2>&1 | tail -20; \
 			exit 1; \
 		fi; \
@@ -251,119 +299,270 @@ test-integration-rust: ## Run Rust integration tests (auto-starts Neo4j if not r
 	export NEO4J_USER="$$NEO4J_USER"; \
 	export NEO4J_PASSWORD="$$NEO4J_PASSWORD"; \
 	export NEO4J_URI="$${NEO4J_TEST_URI}"; \
-	echo "[Integration] Running ontology-service Neo4j integration tests..."; \
+	printf "$(C_CYAN)[Integration]$(C_RESET) Running ontology-service Neo4j integration tests (fail-fast)...\n"; \
+	cd "$(ROOT)/apps/services/ontology-service"; \
+	for test_file in tests/*integration_test.rs tests/*p0_test.rs; do \
+		test_name="$$(basename "$$test_file" .rs)"; \
+		printf "  [$${test_name}]\n"; \
+		cargo test --test "$${test_name}" -- --test-threads=1 --nocapture 2>&1 || { printf "$(C_RED)[FAIL]$(C_RESET) $${test_name}\n"; exit 1; }; \
+	done; \
+	if [ -n "$$NEO4J_STARTED" ]; then \
+		printf "$(C_YELLOW)[Integration]$(C_RESET) Stopping auto-started Neo4j...\n"; \
+		cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev stop neo4j 2>&1; \
+	fi
+
+test-integration-rust-full: ## Rust integration tests — full statistics (collect all failures)
+	@NEO4J_STARTED=""; \
+	NEO4J_HOST="localhost"; \
+	NEO4J_PORT="$${NEO4J_BOLT_PORT:-7687}"; \
+	NEO4J_USER="$${NEO4J_USER:-neo4j}"; \
+	NEO4J_PASSWORD="$${NEO4J_PASSWORD:-password}"; \
+	NEO4J_TEST_URI="bolt://$${NEO4J_HOST}:$${NEO4J_PORT}"; \
+	printf "$(C_CYAN)[Integration]$(C_RESET) checking Neo4j at $${NEO4J_HOST}:$${NEO4J_PORT}...\n"; \
+	if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps neo4j 2>/dev/null | grep -q "healthy"; then \
+		printf "$(C_GREEN)[Integration]$(C_RESET) Neo4j is already running (Docker healthy)\n"; \
+	else \
+		printf "$(C_YELLOW)[Integration]$(C_RESET) Starting Neo4j via Docker Compose...\n"; \
+		cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d neo4j 2>&1; \
+		NEO4J_STARTED="yes"; \
+		printf "$(C_YELLOW)[Integration]$(C_RESET) Waiting for Neo4j healthcheck...\n"; \
+		i=0; \
+		while [ $$i -lt 60 ]; do \
+			if docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps neo4j 2>/dev/null | grep -q "healthy"; then \
+				printf "$(C_GREEN)[Integration]$(C_RESET) Neo4j is ready!\n"; \
+				break; \
+			fi; \
+			sleep 2; \
+			i=$$((i + 1)); \
+		done; \
+		if [ $$i -ge 60 ]; then \
+			printf "$(C_RED)[Integration]$(C_RESET) ERROR: Neo4j did not become ready within 120 seconds\n"; \
+			docker compose -f "$(ROOT)/deploy/docker-compose.yml" logs neo4j 2>&1 | tail -20; \
+			exit 1; \
+		fi; \
+	fi; \
+	export NEO4J_TEST_URI="$${NEO4J_TEST_URI}"; \
+	export NEO4J_USER="$$NEO4J_USER"; \
+	export NEO4J_PASSWORD="$$NEO4J_PASSWORD"; \
+	export NEO4J_URI="$${NEO4J_TEST_URI}"; \
+	printf "$(C_CYAN)[Integration]$(C_RESET) Running ontology-service Neo4j integration tests (full)...\n"; \
 	cd "$(ROOT)/apps/services/ontology-service"; \
 	RESULT=0; \
 	for test_file in tests/*integration_test.rs tests/*p0_test.rs; do \
 		test_name="$$(basename "$$test_file" .rs)"; \
-		echo "[Integration]   [$${test_name}]"; \
-		cargo test --test "$${test_name}" -- --test-threads=1 --nocapture 2>&1 || { RESULT=1; break; }; \
+		printf "  [$${test_name}]\n"; \
+		cargo test --test "$${test_name}" -- --test-threads=1 --nocapture 2>&1 || { RESULT=1; printf "$(C_RED)[FAIL]$(C_RESET) $${test_name}\n"; }; \
 	done; \
 	if [ -n "$$NEO4J_STARTED" ]; then \
-		echo "[Integration] Stopping auto-started Neo4j..."; \
+		printf "$(C_YELLOW)[Integration]$(C_RESET) Stopping auto-started Neo4j...\n"; \
 		cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev stop neo4j 2>&1; \
 		cd "$(ROOT)/apps/services/ontology-service"; \
 	fi; \
 	if [ $$RESULT -ne 0 ]; then \
+		printf "$(C_RED)[FAIL]$(C_RESET) Some Rust integration tests failed\n"; \
 		exit 1; \
 	fi
 
-.PHONY: test-integration-go
-test-integration-go: ## Run Go integration tests in tests/integration/
-	@if [ -d "$(ROOT)/tests/integration/ticket-api" ]; then \
-		echo "[Go] integration tests — ticket-api"
-		cd "$(ROOT)/tests/integration/ticket-api" && go test ./... 2>&1 || true; \
-	fi
-	@if [ -d "$(ROOT)/tests/integration/org-api" ]; then \
-		echo "[Go] integration tests — org-api"
-		cd "$(ROOT)/tests/integration/org-api" && go test ./... 2>&1 || true; \
+.PHONY: test-integration-go-fast test-integration-go-full
+test-integration-go-fast: ## Go integration tests — fail-fast (ticket-api, org-api, auth-service-org)
+	@for dir in ticket-api org-api auth-service-org; do \
+		p="$(ROOT)/tests/integration/$$dir"; \
+		if [ -d "$$p" ]; then \
+			printf "$(C_CYAN)[Go]$(C_RESET) integration — $$dir\n"; \
+			cd "$$p" && go test ./... 2>&1; \
+		fi; \
+	done
+
+test-integration-go-full: ## Go integration tests — full statistics (collect all failures)
+	@failed=""; \
+	for dir in ticket-api org-api auth-service-org; do \
+		p="$(ROOT)/tests/integration/$$dir"; \
+		if [ -d "$$p" ]; then \
+			printf "$(C_CYAN)[Go]$(C_RESET) integration — $$dir\n"; \
+			cd "$$p" && go test ./... 2>&1 || failed="$$failed $$dir"; \
+		fi; \
+	done; \
+	if [ -n "$$failed" ]; then \
+		printf "$(C_RED)[FAIL]$(C_RESET) Go integration tests failed in:$$failed\n"; \
+		exit 1; \
 	fi
 
-.PHONY: test-versioning
-test-versioning: ## Run versioning-service integration tests (auto-starts PostgreSQL if not running)
-	@echo "[Versioning] checking PostgreSQL availability..."
+.PHONY: test-versioning-fast test-versioning-full
+test-versioning-fast: ## Versioning integration — fail-fast (auto-starts PostgreSQL if not running)
+	@printf "$(C_CYAN)[Versioning]$(C_RESET) checking PostgreSQL availability...\n"
 	@PG_URL="postgres://postgres:password@localhost:5432/vedo_versioning"; \
 	PG_STARTED=""; \
 	if command -v pg_isready >/dev/null 2>&1; then \
 		if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
-			echo "[Versioning] PostgreSQL is already running"; \
+			printf "$(C_GREEN)[Versioning]$(C_RESET) PostgreSQL is already running\n"; \
 		else \
-			echo "[Versioning] Starting PostgreSQL via Docker Compose..."; \
+			printf "$(C_YELLOW)[Versioning]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
 			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d postgres 2>&1; \
 			PG_STARTED="yes"; \
-			echo "[Versioning] Waiting for PostgreSQL to become healthy..."; \
+			printf "$(C_YELLOW)[Versioning]$(C_RESET) Waiting for PostgreSQL...\n"; \
 			i=0; \
 			while [ $$i -lt 30 ]; do \
 				if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
-					echo "[Versioning] PostgreSQL is ready!"; \
+					printf "$(C_GREEN)[Versioning]$(C_RESET) PostgreSQL is ready!\n"; \
 					break; \
 				fi; \
 				sleep 1; \
 				i=$$((i + 1)); \
 			done; \
 			if [ $$i -ge 30 ]; then \
-				echo "[Versioning] ERROR: PostgreSQL did not become ready within 30 seconds"; \
+				printf "$(C_RED)[Versioning]$(C_RESET) ERROR: PostgreSQL did not become ready\n"; \
 				exit 1; \
 			fi; \
 		fi; \
 	else \
-		echo "[Versioning] pg_isready not found, assuming PostgreSQL is available at localhost:5432"; \
+		printf "$(C_YELLOW)[Versioning]$(C_RESET) pg_isready not found, assuming PG available\n"; \
 	fi; \
 	export PG_TEST_DATABASE_URL="$$PG_URL"; \
 	export DATABASE_URL="$$PG_URL"; \
-	echo "[Versioning] Running versioning-service unit tests..."; \
-	cd "$(ROOT)/apps/services/versioning-service" && cargo test --lib 2>&1 || exit 1; \
-	echo "[Versioning] Running versioning-service integration tests..."; \
+	printf "$(C_CYAN)[Versioning]$(C_RESET) Running unit tests (fail-fast)...\n"; \
+	cd "$(ROOT)/apps/services/versioning-service" && cargo test --lib 2>&1; \
+	printf "$(C_CYAN)[Versioning]$(C_RESET) Running integration tests (fail-fast)...\n"; \
 	cd "$(ROOT)/apps/services/versioning-service" && cargo test --test '*' -- --test-threads=1 --nocapture 2>&1; \
 	RESULT=$$?; \
 	if [ -n "$$PG_STARTED" ]; then \
-		echo "[Versioning] Stopping auto-started PostgreSQL..."; \
+		printf "$(C_YELLOW)[Versioning]$(C_RESET) Stopping auto-started PostgreSQL...\n"; \
+		cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml stop postgres 2>&1; \
+	fi; \
+	if [ $$RESULT -ne 0 ]; then \
+		printf "$(C_RED)[FAIL]$(C_RESET) Versioning tests failed\n"; \
+		exit 1; \
+	fi
+
+test-versioning-full: ## Versioning integration — full statistics (collect all failures)
+	@printf "$(C_CYAN)[Versioning]$(C_RESET) checking PostgreSQL availability...\n"
+	@PG_URL="postgres://postgres:password@localhost:5432/vedo_versioning"; \
+	PG_STARTED=""; \
+	if command -v pg_isready >/dev/null 2>&1; then \
+		if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
+			printf "$(C_GREEN)[Versioning]$(C_RESET) PostgreSQL is already running\n"; \
+		else \
+			printf "$(C_YELLOW)[Versioning]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
+			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d postgres 2>&1; \
+			PG_STARTED="yes"; \
+			printf "$(C_YELLOW)[Versioning]$(C_RESET) Waiting for PostgreSQL...\n"; \
+			i=0; \
+			while [ $$i -lt 30 ]; do \
+				if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
+					printf "$(C_GREEN)[Versioning]$(C_RESET) PostgreSQL is ready!\n"; \
+					break; \
+				fi; \
+				sleep 1; \
+				i=$$((i + 1)); \
+			done; \
+			if [ $$i -ge 30 ]; then \
+				printf "$(C_RED)[Versioning]$(C_RESET) ERROR: PostgreSQL did not become ready\n"; \
+				exit 1; \
+			fi; \
+		fi; \
+	else \
+		printf "$(C_YELLOW)[Versioning]$(C_RESET) pg_isready not found, assuming PG available\n"; \
+	fi; \
+	export PG_TEST_DATABASE_URL="$$PG_URL"; \
+	export DATABASE_URL="$$PG_URL"; \
+	printf "$(C_CYAN)[Versioning]$(C_RESET) Running unit tests...\n"; \
+	cd "$(ROOT)/apps/services/versioning-service" && cargo test --lib 2>&1; \
+	printf "$(C_CYAN)[Versioning]$(C_RESET) Running integration tests...\n"; \
+	cd "$(ROOT)/apps/services/versioning-service" && cargo test --test '*' -- --test-threads=1 --nocapture 2>&1; \
+	RESULT=$$?; \
+	if [ -n "$$PG_STARTED" ]; then \
+		printf "$(C_YELLOW)[Versioning]$(C_RESET) Stopping auto-started PostgreSQL...\n"; \
 		cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml stop postgres 2>&1; \
 	fi; \
 	exit $$RESULT
 
 ##@ Test — E2E (requires Docker test stack)
 
-test-e2e: test-e2e-api test-e2e-gui ## Run all E2E tests (API + GUI)
+.PHONY: test-e2e-fast test-e2e-full
+test-e2e-fast: ## E2E — fail-fast (API + GUI)
+	@printf "$(C_CYAN)[E2E]$(C_RESET) fail-fast mode\n"
+	@$(MAKE) test-e2e-api-fast
+	@$(MAKE) test-e2e-gui-fast
 
-.PHONY: test-e2e-api
-test-e2e-api: ## Run E2E API tests via Playwright (requires Docker test stack)
-	@echo "[E2E] installing dependencies..."
-	@cd "$(ROOT)/tests/e2e" && pnpm install --frozen-lockfile 2>&1 || pnpm install 2>&1
-	@cd "$(ROOT)/tests/e2e" && npx playwright install chromium 2>&1 || true
-	@echo "[E2E] running API tests..."
-	@cd "$(ROOT)/tests/e2e" && pnpm exec playwright test --config=config/playwright.api.config.ts
-
-.PHONY: test-e2e-gui
-test-e2e-gui: ## Run E2E GUI tests via Playwright (requires Docker test stack)
-	@echo "[E2E] installing dependencies..."
-	@cd "$(ROOT)/tests/e2e" && pnpm install --frozen-lockfile 2>&1 || pnpm install 2>&1
-	@cd "$(ROOT)/tests/e2e" && npx playwright install chromium 2>&1 || true
-	@echo "[E2E] running GUI tests..."
-	@cd "$(ROOT)/tests/e2e" && pnpm exec playwright test --config=config/playwright.gui.config.ts
-
-.PHONY: test-gates
-test-gates: ## Run all gate-level test scripts (contracts, BOLA/BFLA, etc.)
-	@gate_failures=""
-	@echo "[Gates] running contract tests..."
-	@bash $(ROOT)/tests/gates/test_contract_gate.sh 2>&1 || gate_failures="$${gate_failures} contract"
-	@echo "[Gates] running BOLA/BFLA security tests..."
-	@bash $(ROOT)/tests/gates/test_bola_bfla_gate.sh 2>&1 || gate_failures="$${gate_failures} bola-bfla"
-	@echo "[Gates] running Python service manifest validation..."
-	@bash $(ROOT)/tests/gates/test_python_manifests.sh 2>&1 || gate_failures="$${gate_failures} python-manifests"
-	@if [ -n "$$gate_failures" ]; then \
-		echo ""; \
-		echo "!!! Gates FAILED:$$gate_failures !!!"; \
+test-e2e-full: ## E2E — full statistics (API + GUI)
+	@failed=0; \
+	printf "$(C_CYAN)[E2E]$(C_RESET) full statistics mode\n"; \
+	$(MAKE) test-e2e-api-full 2>&1 || failed=1; \
+	$(MAKE) test-e2e-gui-full 2>&1 || failed=1; \
+	if [ $$failed -ne 0 ]; then \
+		printf "$(C_RED)[FAIL]$(C_RESET) Some E2E tests failed\n"; \
 		exit 1; \
 	fi
-	@echo "[Gates] all gates passed"
+
+.PHONY: test-e2e-api-fast test-e2e-api-full
+test-e2e-api-fast: ## E2E API tests — fail-fast (max-failures=1)
+	@printf "$(C_CYAN)[E2E]$(C_RESET) installing dependencies...\n"
+	@cd "$(ROOT)/tests/e2e" && pnpm install --frozen-lockfile 2>&1 || pnpm install 2>&1
+	@cd "$(ROOT)/tests/e2e" && npx playwright install chromium 2>&1 || true
+	@printf "$(C_CYAN)[E2E]$(C_RESET) running API tests (fail-fast)...\n"
+	@cd "$(ROOT)/tests/e2e" && pnpm exec playwright test --config=config/playwright.api.config.ts --max-failures=1
+
+test-e2e-api-full: ## E2E API tests — full run (with retries, no max-failures)
+	@printf "$(C_CYAN)[E2E]$(C_RESET) installing dependencies...\n"
+	@cd "$(ROOT)/tests/e2e" && pnpm install --frozen-lockfile 2>&1 || pnpm install 2>&1
+	@cd "$(ROOT)/tests/e2e" && npx playwright install chromium 2>&1 || true
+	@printf "$(C_CYAN)[E2E]$(C_RESET) running API tests (full)...\n"
+	@cd "$(ROOT)/tests/e2e" && pnpm exec playwright test --config=config/playwright.api.config.ts
+
+.PHONY: test-e2e-gui-fast test-e2e-gui-full
+test-e2e-gui-fast: ## E2E GUI tests — fail-fast (maxFailures=1 in config)
+	@printf "$(C_CYAN)[E2E]$(C_RESET) installing dependencies...\n"
+	@cd "$(ROOT)/tests/e2e" && pnpm install --frozen-lockfile 2>&1 || pnpm install 2>&1
+	@cd "$(ROOT)/tests/e2e" && npx playwright install chromium 2>&1 || true
+	@printf "$(C_CYAN)[E2E]$(C_RESET) running GUI tests (fail-fast)...\n"
+	@cd "$(ROOT)/tests/e2e" && pnpm exec playwright test --config=config/playwright.gui.config.ts
+
+test-e2e-gui-full: ## E2E GUI tests — full run (no max-failures)
+	@printf "$(C_CYAN)[E2E]$(C_RESET) installing dependencies...\n"
+	@cd "$(ROOT)/tests/e2e" && pnpm install --frozen-lockfile 2>&1 || pnpm install 2>&1
+	@cd "$(ROOT)/tests/e2e" && npx playwright install chromium 2>&1 || true
+	@printf "$(C_CYAN)[E2E]$(C_RESET) running GUI tests (full)...\n"
+	@cd "$(ROOT)/tests/e2e" && pnpm exec playwright test --config=config/playwright.gui.config.ts --max-failures=0
+
+.PHONY: test-gates-fast test-gates-full
+test-gates-fast: ## Gate tests — fail-fast (contract + security + manifests + quality)
+	@printf "$(C_CYAN)[Gates]$(C_RESET) fail-fast mode\n"
+	@printf "$(C_CYAN)[Gates]$(C_RESET) contract tests...\n"
+	@bash $(ROOT)/tests/gates/test_contract_gate.sh
+	@printf "$(C_CYAN)[Gates]$(C_RESET) BOLA/BFLA security tests...\n"
+	@bash $(ROOT)/tests/gates/test_bola_bfla_gate.sh
+	@printf "$(C_CYAN)[Gates]$(C_RESET) Python service manifest validation...\n"
+	@bash $(ROOT)/tests/gates/test_python_manifests.sh
+	@printf "$(C_CYAN)[Gates]$(C_RESET) static test quality (anti-patterns + TQS)...\n"
+	@bash $(ROOT)/tools/scripts/test-quality-gate.sh --score $(ROOT)/apps/services
+	@printf "$(C_CYAN)[Gates]$(C_RESET) traceability (TTL → RCS)...\n"
+	@bash $(ROOT)/tools/scripts/traceability-validator.sh
+	@printf "$(C_GREEN)[Gates]$(C_RESET) all gates + quality checks passed\n"
+
+test-gates-full: ## Gate tests — full statistics (collect all failures)
+	@gate_failures=""; \
+	printf "$(C_CYAN)[Gates]$(C_RESET) full statistics mode\n"; \
+	printf "$(C_CYAN)[Gates]$(C_RESET) contract tests...\n"; \
+	bash $(ROOT)/tests/gates/test_contract_gate.sh 2>&1 || gate_failures="$${gate_failures} contract"; \
+	printf "$(C_CYAN)[Gates]$(C_RESET) BOLA/BFLA security tests...\n"; \
+	bash $(ROOT)/tests/gates/test_bola_bfla_gate.sh 2>&1 || gate_failures="$${gate_failures} bola-bfla"; \
+	printf "$(C_CYAN)[Gates]$(C_RESET) Python service manifest validation...\n"; \
+	bash $(ROOT)/tests/gates/test_python_manifests.sh 2>&1 || gate_failures="$${gate_failures} python-manifests"; \
+	printf "$(C_CYAN)[Gates]$(C_RESET) static test quality...\n"; \
+	bash $(ROOT)/tools/scripts/test-quality-gate.sh --score $(ROOT)/apps/services 2>&1 || gate_failures="$${gate_failures} test-quality"; \
+	printf "$(C_CYAN)[Gates]$(C_RESET) traceability...\n"; \
+	bash $(ROOT)/tools/scripts/traceability-validator.sh 2>&1 || gate_failures="$${gate_failures} traceability"; \
+	if [ -n "$$gate_failures" ]; then \
+		printf "$(C_RED)[FAIL]$(C_RESET) Gates FAILED:$$gate_failures\n"; \
+		exit 1; \
+	fi; \
+	printf "$(C_GREEN)[Gates]$(C_RESET) all gates + quality checks passed\n"
 
 .PHONY: coverage
 coverage: ## Run tests with coverage (Go only)
-	@echo "[Coverage] running tests with coverage..."
+	@printf "$(C_CYAN)[Coverage]$(C_RESET) running tests with coverage...\n"
 	@if [ -n "$(GO_DIRS)" ]; then \
 		for dir in $(GO_DIRS); do \
-			echo "[Go] coverage for $$(basename $$dir)"; \
+			printf "$(C_CYAN)[Go]$(C_RESET) coverage for $$(basename $$dir)\n"; \
 			cd $(ROOT)/$$dir && go test -coverprofile=cover.out ./... 2>&1 || true; \
 		done; \
 	fi
@@ -601,25 +800,25 @@ test-quality-gate: ## Run static test quality gate (anti-patterns, tautologies, 
 
 .PHONY: docs-lint
 docs-lint: ## Verify Antora documentation builds without errors
-	@echo "[Docs] verifying Antora documentation build..."
+	@printf "$(C_CYAN)[Docs]$(C_RESET) verifying Antora documentation build...\n"
 	@if command -v npx &>/dev/null; then \
 		cd $(ROOT)/docs/antora && npx antora --fetch antora-playbook.yml 2>&1 | tail -5 || \
-		echo "[Docs] WARN: antora build failed — check docs/antora/antora-playbook.yml"; \
+		printf "$(C_YELLOW)[Docs]$(C_RESET) WARN: antora build failed — check antora-playbook.yml\n"; \
 	else \
-		echo "[Docs] SKIP: npx not available"; \
+		printf "$(C_YELLOW)[Docs]$(C_RESET) SKIP: npx not available\n"; \
 	fi
 
 .PHONY: npm-audit
 npm-audit: ## Run npm/pnpm audit on frontend dependencies
-	@echo "[Security] auditing frontend dependencies..."
+	@printf "$(C_CYAN)[Security]$(C_RESET) auditing frontend dependencies...\n"
 	@if [ -f "$(ROOT)/$(SERVICE_DIR)/frontend/package.json" ]; then \
 		cd $(ROOT)/$(SERVICE_DIR)/frontend && \
 		if command -v pnpm &>/dev/null; then \
-			pnpm audit --audit-level=high 2>&1 || echo "[Security] WARN: audit found vulnerabilities"; \
+			pnpm audit --audit-level=high 2>&1 || printf "$(C_YELLOW)[Security]$(C_RESET) WARN: audit found vulnerabilities\n"; \
 		elif command -v npm &>/dev/null; then \
-			npm audit --audit-level=high 2>&1 || echo "[Security] WARN: audit found vulnerabilities"; \
+			npm audit --audit-level=high 2>&1 || printf "$(C_YELLOW)[Security]$(C_RESET) WARN: audit found vulnerabilities\n"; \
 		else \
-			echo "[Security] SKIP: neither pnpm nor npm available"; \
+			printf "$(C_YELLOW)[Security]$(C_RESET) SKIP: neither pnpm nor npm available\n"; \
 		fi; \
 	else \
 		echo "[Security] SKIP: frontend/package.json not found"; \
@@ -631,47 +830,34 @@ npm-audit: ## Run npm/pnpm audit on frontend dependencies
 
 ##@ CI
 
-.PHONY: ci
+.PHONY: ci-fast
 
-ci: ## Run full CI pipeline (proto + build + lint + unit tests + typecheck)
-	@failed=0
-	@echo "=== CI Pipeline Started ==="
-	@$(MAKE) proto-all || failed=1
-	@$(MAKE) build || failed=1
-	@$(MAKE) lint || failed=1
-	@$(MAKE) test || failed=1
-	@$(MAKE) typecheck || failed=1
-	@if [ $$failed -ne 0 ]; then \
-		echo ""; \
-		echo "!!! CI Pipeline FAILED !!!"; \
-		exit 1; \
-	fi
-	@echo ""
-	@echo "=== CI pipeline passed (proto + build + lint + unit tests + typecheck) ==="
-	@echo "To run integration tests:  make test-integration"
-	@echo "To run E2E tests:          make test-e2e (requires Docker test stack)"
-	@echo "To run gate tests:         make test-gates"
+ci-fast: ## CI pipeline — fail-fast (proto + build + lint + test-fast + typecheck)
+	@printf "$(C_BOLD)$(C_CYAN)=== CI Pipeline Started ===$(C_RESET)\n"
+	@$(MAKE) proto-all
+	@$(MAKE) build
+	@$(MAKE) lint
+	@$(MAKE) test-fast
+	@$(MAKE) typecheck-typescript
+	@printf "$(C_GREEN)=== CI pipeline passed (proto + build + lint + test-fast + typecheck) ===$(C_RESET)\n"
 
-ci-full: ## Run full CI pipeline including quality gates, Docker build, integration, E2E, and security (auto-starts Docker test stack)
-	@failed=0
-	@echo "=== Full CI Pipeline Started ==="
-	@$(MAKE) vendor-go || failed=1
-	@$(MAKE) ci || failed=1
-	@$(MAKE) test-quality-gate || failed=1
-	@$(MAKE) docs-lint || failed=1
-	@echo "[ci-full] Ensuring Docker test stack is up..."
+ci-full: ## Full CI pipeline — fail-fast (vendor-go + ci-fast + quality + integration + e2e + gates + security)
+	@printf "$(C_BOLD)$(C_CYAN)=== Full CI Pipeline Started ===$(C_RESET)\n"
+	@$(MAKE) vendor-go
+	@$(MAKE) ci-fast
+	@printf "$(C_CYAN)[ci-full]$(C_RESET) static test quality gate...\n"
+	@bash $(ROOT)/tools/scripts/test-quality-gate.sh $(ROOT)/apps/services
+	@$(MAKE) docs-lint
+	@printf "$(C_CYAN)[ci-full]$(C_RESET) Ensuring Docker test stack is up...\n"
 	@$(MAKE) docker-up-test 2>/dev/null || true
-	@$(MAKE) test-integration || failed=1
-	@$(MAKE) test-e2e || failed=1
-	@$(MAKE) test-gates || failed=1
-	@$(MAKE) npm-audit || failed=1
-	@if [ $$failed -ne 0 ]; then \
-		echo ""; \
-		echo "!!! Full CI Pipeline FAILED !!!"; \
-		exit 1; \
-	fi
-	@echo ""
-	@echo "=== Full CI pipeline passed (vendor-go + ci + quality-gate + docs-lint + integration + E2E + gates + npm-audit) ==="
+	@$(MAKE) test-integration-fast
+	@$(MAKE) test-e2e-fast
+	@$(MAKE) test-gates-fast
+	@$(MAKE) npm-audit
+	@printf "$(C_CYAN)[ci-full]$(C_RESET) saving quality trend snapshot...\n"
+	@mkdir -p $(ROOT)/.quality-trends
+	@bash $(ROOT)/tools/scripts/test-quality-gate.sh --json $(ROOT)/apps/services 2>/dev/null > $(ROOT)/.quality-trends/$$(date +%Y-%m-%d).json || true
+	@printf "$(C_GREEN)=== Full CI pipeline passed (vendor-go + ci-fast + quality + integration + E2E + gates + security) ===$(C_RESET)\n"
 
 # ==============================================================================
 # HOOKS — Git hooks management via Lefthook
