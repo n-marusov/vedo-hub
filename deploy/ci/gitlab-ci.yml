@@ -55,7 +55,7 @@ frontend-lint:
   stage: lint
   image: node:20-alpine
   before_script:
-    - npm install -g pnpm@9
+    - npm install -g pnpm@11
   script:
     - cd apps/services/frontend
     - pnpm install --frozen-lockfile --ignore-scripts
@@ -159,7 +159,7 @@ contract-tests-frontend:
   stage: test
   image: node:20-alpine
   before_script:
-    - npm install -g pnpm@9
+    - npm install -g pnpm@11
   script:
     - cd apps/services/frontend
     - pnpm install --frozen-lockfile --ignore-scripts
@@ -352,7 +352,7 @@ integration-tests:
   stage: integration
   image: node:20-alpine
   before_script:
-    - npm install -g pnpm@9
+    - npm install -g pnpm@11
   script:
     - cd apps/services/frontend
     - pnpm install --frozen-lockfile --ignore-scripts
