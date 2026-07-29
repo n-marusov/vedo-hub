@@ -5,7 +5,8 @@
 //!
 //! Integration tests for class (TBox) CRUD operations.
 //!
-//! Requires running Neo4j. Set NEO4J_TEST_URI env var to enable.
+//! Requires running Neo4j. Run via `make test-integration-rust` (auto-starts Neo4j via Docker Compose).
+//! Set NEO4J_TEST_URI env var to run manually: `NEO4J_TEST_URI=bolt://localhost:7687 cargo test`
 mod common;
 
 use axum::{
@@ -63,9 +64,6 @@ fn ontology_url(o: &str) -> String {
 
 #[tokio::test]
 async fn test_create_class_creates_node_in_neo4j() {
-    if !common::skip_if_no_neo4j() {
-        return;
-    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("create_class");
 
@@ -77,7 +75,11 @@ async fn test_create_class_creates_node_in_neo4j() {
         ))
         .await
         .unwrap();
-    assert_eq!(resp.status(), StatusCode::OK);
+    assert_eq!(
+        resp.status(),
+        StatusCode::CREATED,
+        "create class should return 201"
+    );
 
     let mut result = pool
         .graph()
@@ -98,13 +100,10 @@ async fn test_create_class_creates_node_in_neo4j() {
 
 #[tokio::test]
 async fn test_get_class_returns_correct_data() {
-    if !common::skip_if_no_neo4j() {
-        return;
-    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("get_class");
 
-    let _ = pool
+    let mut stream = pool
         .graph()
         .execute(
             neo4rs::query("CREATE (c:Class {ontology_id: $id, id: $cid, label: $label})")
@@ -112,15 +111,18 @@ async fn test_get_class_returns_correct_data() {
                 .param("cid", "Vehicle".to_string())
                 .param("label", "Vehicle".to_string()),
         )
-        .await;
+        .await
+        .expect("CREATE should succeed");
+    while let Ok(Some(_)) = stream.next().await {}
 
     let resp = app
         .clone()
         .oneshot(get(&format!("/api/v1/ontologies/{oid}/classes/Vehicle")))
         .await
         .unwrap();
-    assert_eq!(resp.status(), StatusCode::OK);
+    let status = resp.status();
     let body = body_text(resp).await;
+    assert_eq!(status, StatusCode::OK);
     assert!(body.contains("Vehicle"), "response should contain Vehicle");
 
     common::clean_ontology(&pool, &oid).await;
@@ -128,24 +130,20 @@ async fn test_get_class_returns_correct_data() {
 
 #[tokio::test]
 async fn test_update_class_modifies_node_in_neo4j() {
-    if !common::skip_if_no_neo4j() {
-        return;
-    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("update_class");
 
-    let _ = pool
-        .graph()
-        .execute(
-            neo4rs::query(
-                "CREATE (c:Class {ontology_id: $id, id: $cid, label: $label, comment: $comment})",
-            )
-            .param("id", oid.clone())
-            .param("cid", "Task".to_string())
-            .param("label", "Task".to_string())
-            .param("comment", "".to_string()),
+    common::execute_query(
+        &pool,
+        neo4rs::query(
+            "CREATE (c:Class {ontology_id: $id, id: $cid, label: $label, comment: $comment})",
         )
-        .await;
+        .param("id", oid.clone())
+        .param("cid", "Task".to_string())
+        .param("label", "Task".to_string())
+        .param("comment", "".to_string()),
+    )
+    .await;
 
     let resp = app
         .clone()
@@ -176,21 +174,17 @@ async fn test_update_class_modifies_node_in_neo4j() {
 
 #[tokio::test]
 async fn test_delete_class_removes_node_from_neo4j() {
-    if !common::skip_if_no_neo4j() {
-        return;
-    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("delete_class");
 
-    let _ = pool
-        .graph()
-        .execute(
-            neo4rs::query("CREATE (c:Class {ontology_id: $id, id: $cid, label: $label})")
-                .param("id", oid.clone())
-                .param("cid", "Obsolete".to_string())
-                .param("label", "Obsolete".to_string()),
-        )
-        .await;
+    common::execute_query(
+        &pool,
+        neo4rs::query("CREATE (c:Class {ontology_id: $id, id: $cid, label: $label})")
+            .param("id", oid.clone())
+            .param("cid", "Obsolete".to_string())
+            .param("label", "Obsolete".to_string()),
+    )
+    .await;
 
     let resp = app
         .clone()
@@ -219,14 +213,11 @@ async fn test_delete_class_removes_node_from_neo4j() {
 
 #[tokio::test]
 async fn test_list_classes_returns_data() {
-    if !common::skip_if_no_neo4j() {
-        return;
-    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("list_classes");
 
     for cls in &["ClassA", "ClassB", "ClassC"] {
-        let _ = pool
+        let mut stream = pool
             .graph()
             .execute(
                 neo4rs::query("CREATE (c:Class {ontology_id: $id, id: $cid, label: $label})")
@@ -234,7 +225,9 @@ async fn test_list_classes_returns_data() {
                     .param("cid", cls.to_string())
                     .param("label", cls.to_string()),
             )
-            .await;
+            .await
+            .expect("CREATE should succeed");
+        while let Ok(Some(_)) = stream.next().await {}
     }
 
     let resp = app
@@ -245,27 +238,25 @@ async fn test_list_classes_returns_data() {
     assert_eq!(resp.status(), StatusCode::OK);
     let body = body_text(resp).await;
     assert!(!body.is_empty(), "response should contain class data");
+    assert!(body.contains("ClassA"), "response should contain ClassA");
+    assert!(body.contains("ClassB"), "response should contain ClassB");
 
     common::clean_ontology(&pool, &oid).await;
 }
 
 #[tokio::test]
 async fn test_create_duplicate_class_returns_error() {
-    if !common::skip_if_no_neo4j() {
-        return;
-    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("duplicate_class");
 
-    let _ = pool
-        .graph()
-        .execute(
-            neo4rs::query("CREATE (c:Class {ontology_id: $id, id: $cid, label: $label})")
-                .param("id", oid.clone())
-                .param("cid", "Unique".to_string())
-                .param("label", "UniqueClass".to_string()),
-        )
-        .await;
+    common::execute_query(
+        &pool,
+        neo4rs::query("CREATE (c:Class {ontology_id: $id, id: $cid, label: $label})")
+            .param("id", oid.clone())
+            .param("cid", "Unique".to_string())
+            .param("label", "UniqueClass".to_string()),
+    )
+    .await;
 
     let resp = app
         .clone()
@@ -285,9 +276,6 @@ async fn test_create_duplicate_class_returns_error() {
 
 #[tokio::test]
 async fn test_create_class_missing_fields_returns_error() {
-    if !common::skip_if_no_neo4j() {
-        return;
-    }
     let (app, _pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("missing_fields");
 
@@ -312,9 +300,6 @@ async fn test_create_class_missing_fields_returns_error() {
 /// Creates a parent class, then creates a child class referencing the parent,
 /// and verifies the CHILD_OF relationship exists in Neo4j.
 async fn test_create_class_with_parent_creates_hierarchy() {
-    if !common::skip_if_no_neo4j() {
-        return;
-    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("hierarchy");
 
@@ -377,36 +362,30 @@ async fn test_create_class_with_parent_creates_hierarchy() {
 /// Creates a parent class with a subclass, then attempts to delete the parent
 /// without cascade=true. Expects HTTP 409 CONFLICT with ONT-CLASS-HAS-DEPENDENTS.
 async fn test_delete_class_with_dependents_returns_error() {
-    if !common::skip_if_no_neo4j() {
-        return;
-    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("delete_dep");
 
     // Create parent class "Department"
-    let _ = pool
-        .graph()
-        .execute(
-            neo4rs::query("CREATE (c:Class {ontology_id: $id, id: $cid, label: $label})")
-                .param("id", oid.clone())
-                .param("cid", "Department".to_string())
-                .param("label", "Department".to_string()),
-        )
-        .await;
+    common::execute_query(
+        &pool,
+        neo4rs::query("CREATE (c:Class {ontology_id: $id, id: $cid, label: $label})")
+            .param("id", oid.clone())
+            .param("cid", "Department".to_string())
+            .param("label", "Department".to_string()),
+    )
+    .await;
 
     // Create child class "Engineering" with CHILD_OF → Department
-    let _ = pool
-        .graph()
-        .execute(
-            neo4rs::query(
-                "MATCH (p:Class {ontology_id: $id, id: $pid}) CREATE (c:Class {ontology_id: $id, id: $cid, label: $label})-[:CHILD_OF]->(p)",
-            )
-            .param("id", oid.clone())
-            .param("pid", "Department".to_string())
-            .param("cid", "Engineering".to_string())
-            .param("label", "Engineering".to_string()),
+    common::execute_query(
+        &pool,
+        neo4rs::query(
+            "MATCH (p:Class {ontology_id: $id, id: $pid}) CREATE (c:Class {ontology_id: $id, id: $cid, label: $label})-[:CHILD_OF]->(p)",
         )
-        .await;
+        .param("id", oid.clone())
+        .param("pid", "Department".to_string())
+        .param("cid", "Engineering".to_string())
+        .param("label", "Engineering".to_string()),
+    ).await;
 
     // Attempt to delete Department without cascade — should be blocked
     let resp = app
@@ -445,9 +424,6 @@ async fn test_delete_class_with_dependents_returns_error() {
 ///
 /// Edge case: deleting a nonexistent class returns 404 NotFound.
 async fn test_delete_nonexistent_class_returns_404() {
-    if !common::skip_if_no_neo4j() {
-        return;
-    }
     let (app, _pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("delete_nope");
 

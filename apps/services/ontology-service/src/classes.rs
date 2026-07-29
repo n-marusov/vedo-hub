@@ -222,11 +222,11 @@ impl ClassRepository {
 
         let comment = req.comment.as_deref().unwrap_or("");
         let query = "\
-            CREATE (c:Class {id: $id, label: $label, comment: $comment, ontology_id: $ontology_id})\
-            WITH c\
-            UNWIND $parent_ids AS parent_id\
-            MATCH (p:Class {id: parent_id, ontology_id: $ontology_id})\
-            CREATE (c)-[:CHILD_OF]->(p)\
+            CREATE (c:Class {id: $id, label: $label, comment: $comment, ontology_id: $ontology_id}) \
+            WITH c \
+            UNWIND $parent_ids AS parent_id \
+            MATCH (p:Class {id: parent_id, ontology_id: $ontology_id}) \
+            CREATE (c)-[:CHILD_OF]->(p) \
             RETURN c\
         ";
 
@@ -261,15 +261,14 @@ impl ClassRepository {
         debug!(ontology_id, %class_id, "Reading class");
 
         let query = "\
-            MATCH (c:Class {id: $class_id, ontology_id: $ontology_id})\
-            OPTIONAL MATCH (c)-[:CHILD_OF]->(p:Class)\
-            OPTIONAL MATCH (child:Class)-[:CHILD_OF]->(c)\
+            MATCH (c:Class {id: $class_id, ontology_id: $ontology_id}) \
+            OPTIONAL MATCH (c)-[:CHILD_OF]->(p:Class) \
+            OPTIONAL MATCH (child:Class)-[:CHILD_OF]->(c) \
             RETURN \
                 c.id AS id, c.label AS label, c.comment AS comment, \
                 collect(DISTINCT p.id) AS parent_ids, \
                 collect(DISTINCT child.id) AS child_ids\
         ";
-
         let q = neo4rs::Query::new(query.to_string())
             .param("ontology_id", ontology_id)
             .param("class_id", class_id);
@@ -340,14 +339,15 @@ impl ClassRepository {
 
         // Delete old parent rels, then create new ones
         let query = "\
-            MATCH (c:Class {id: $class_id, ontology_id: $ontology_id})\
-            SET c.label = $label, c.comment = $comment\
-            OPTIONAL MATCH (c)-[r:CHILD_OF]->()\
-            DELETE r\
-            WITH c\
-            UNWIND $parent_ids AS parent_id\
-            MATCH (p:Class {id: parent_id, ontology_id: $ontology_id})\
-            CREATE (c)-[:CHILD_OF]->(p)\
+            MATCH (c:Class {id: $class_id, ontology_id: $ontology_id})
+            SET c.label = $label, c.comment = $comment
+            WITH c
+            OPTIONAL MATCH (c)-[r:CHILD_OF]->()
+            DELETE r
+            WITH c
+            UNWIND $parent_ids AS parent_id
+            MATCH (p:Class {id: parent_id, ontology_id: $ontology_id})
+            CREATE (c)-[:CHILD_OF]->(p)
             RETURN c\
         ";
 
@@ -571,9 +571,9 @@ impl ClassRepository {
         let limit = params.per_page.min(100);
 
         let query = "\
-            MATCH (c:Class {ontology_id: $ontology_id})-[:CHILD_OF]->(p:Class {id: $parent_id})\
-            WHERE $search = '' OR toLower(c.label) CONTAINS toLower($search)\
-            RETURN c.id AS id, c.label AS label, c.comment AS comment\
+            MATCH (c:Class {ontology_id: $ontology_id})-[:CHILD_OF]->(p:Class {id: $parent_id}) \
+            WHERE $search = '' OR toLower(c.label) CONTAINS toLower($search) \
+            RETURN c.id AS id, c.label AS label, c.comment AS comment \
             ORDER BY c.label SKIP $skip LIMIT $limit\
         ";
 
@@ -652,9 +652,9 @@ impl ClassRepository {
         class_id: &str,
     ) -> Result<(u64, u64), ClassError> {
         let query = "\
-            MATCH (c:Class {id: $class_id, ontology_id: $ontology_id})\
-            OPTIONAL MATCH (c)<-[:CHILD_OF]-(dependent:Class)\
-            OPTIONAL MATCH (c)<-[:DOMAIN]-(prop:Property)\
+            MATCH (c:Class {id: $class_id, ontology_id: $ontology_id}) \
+            OPTIONAL MATCH (c)<-[:CHILD_OF]-(dependent:Class) \
+            OPTIONAL MATCH (c)<-[:DOMAIN]-(prop:Property) \
             RETURN count(DISTINCT dependent) AS dep_count, count(DISTINCT prop) AS prop_count\
         ";
         let mut result = self
@@ -796,11 +796,10 @@ impl ClassRepository {
         };
         let query = format!(
             "\
-            MATCH (c:Class {{id: $class_id, ontology_id: $ontology_id}})\
-            MATCH (c)-[:CHILD_OF*1..{depth}]->(ancestor:Class)\
-            RETURN DISTINCT ancestor.id AS id, ancestor.label AS label,\
-                   ancestor.comment AS comment\
-            ORDER BY length((c)-[:CHILD_OF*]->(ancestor))\
+            MATCH path = (c:Class {{id: $class_id, ontology_id: $ontology_id}})-[:CHILD_OF*1..{depth}]->(ancestor:Class) \
+            RETURN ancestor.id AS id, ancestor.label AS label, \
+                   ancestor.comment AS comment \
+            ORDER BY length(path)\
         "
         );
 
@@ -852,12 +851,12 @@ impl ClassRepository {
         };
         let query = format!(
             "\
-            MATCH (c:Class {{id: $class_id, ontology_id: $ontology_id}})\
-            MATCH (descendant:Class)-[:CHILD_OF*1..{depth}]->(c)\
-            OPTIONAL MATCH (descendant)-[:CHILD_OF]->(direct_parent:Class)\
-            WITH descendant, collect(DISTINCT direct_parent.id) AS pids\
-            RETURN descendant.id AS id, descendant.label AS label,\
-                   descendant.comment AS comment, pids\
+            MATCH (c:Class {{id: $class_id, ontology_id: $ontology_id}}) \
+            MATCH (descendant:Class)-[:CHILD_OF*1..{depth}]->(c) \
+            OPTIONAL MATCH (descendant)-[:CHILD_OF]->(direct_parent:Class) \
+            WITH descendant, collect(DISTINCT direct_parent.id) AS pids \
+            RETURN descendant.id AS id, descendant.label AS label, \
+                   descendant.comment AS comment, pids \
             ORDER BY descendant.label\
         "
         );
@@ -943,15 +942,15 @@ impl ClassRepository {
         debug!(ontology_id, %class_id, "Getting breadcrumb");
 
         let query = "\
-            MATCH (c:Class {id: $class_id, ontology_id: $ontology_id})\
-            MATCH path = (root:Class)-[:CHILD_OF*0..]->(c)\
-            WHERE NOT EXISTS((root)-[:CHILD_OF]->())\
-            WITH root, length(path) AS depth\
-            ORDER BY depth ASC\
-            LIMIT 1\
-            MATCH path2 = (root)-[:CHILD_OF*0..]->(c)\
-            WITH nodes(path2) AS chain\
-            UNWIND chain AS node\
+            MATCH (c:Class {id: $class_id, ontology_id: $ontology_id}) \
+            MATCH path = (c)-[:CHILD_OF*0..]->(root:Class) \
+            WHERE NOT EXISTS((root)-[:CHILD_OF]->()) \
+            WITH root, c, length(path) AS depth \
+            ORDER BY depth ASC \
+            LIMIT 1 \
+            MATCH path2 = (root)<-[:CHILD_OF*0..]-(c) \
+            WITH nodes(path2) AS chain \
+            UNWIND chain AS node \
             RETURN DISTINCT node.id AS id, node.label AS label\
         ";
 
@@ -991,10 +990,10 @@ impl ClassRepository {
 
         let max_limit = limit.min(20);
         let query = "\
-            MATCH (c:Class {ontology_id: $ontology_id})\
-            WHERE toLower(c.label) CONTAINS toLower($search)\
-            RETURN c.id AS id, c.label AS label, c.comment AS comment\
-            ORDER BY c.label\
+            MATCH (c:Class {ontology_id: $ontology_id}) \
+            WHERE toLower(c.label) CONTAINS toLower($search) \
+            RETURN c.id AS id, c.label AS label, c.comment AS comment \
+            ORDER BY c.label \
             LIMIT $limit\
         ";
 
@@ -1058,16 +1057,16 @@ impl ClassRepository {
 
         // Depth 1: direct neighbor classes via property domain/range relationships
         let query = "\
-            MATCH (c:Class {id: $class_id, ontology_id: $ontology_id})\
-            MATCH (c)<-[:DOMAIN|:RANGE]-(p:Property)-[:DOMAIN|:RANGE]->(other:Class)\
-            WHERE other.id <> $class_id AND other.ontology_id = $ontology_id\
-            RETURN DISTINCT\
-                other.id AS node_id, other.label AS node_label,\
-                p.id AS edge_property_id, p.label AS edge_property_label,\
-                CASE\
-                    WHEN (p)-[:DOMAIN]->(c) AND (p)-[:RANGE]->(other) THEN 'outgoing'\
-                    WHEN (p)-[:RANGE]->(c) AND (p)-[:DOMAIN]->(other) THEN 'incoming'\
-                    ELSE 'undirected'\
+            MATCH (c:Class {id: $class_id, ontology_id: $ontology_id}) \
+            MATCH (c)<-[:DOMAIN|:RANGE]-(p:Property)-[:DOMAIN|:RANGE]->(other:Class) \
+            WHERE other.id <> $class_id AND other.ontology_id = $ontology_id \
+            RETURN DISTINCT \
+                other.id AS node_id, other.label AS node_label, \
+                p.id AS edge_property_id, p.label AS edge_property_label, \
+                CASE \
+                    WHEN (p)-[:DOMAIN]->(c) AND (p)-[:RANGE]->(other) THEN 'outgoing' \
+                    WHEN (p)-[:RANGE]->(c) AND (p)-[:DOMAIN]->(other) THEN 'incoming' \
+                    ELSE 'undirected' \
                 END AS direction\
         ";
 

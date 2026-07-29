@@ -213,11 +213,60 @@ test-all: ## Run all tests including integration (T0+T1)
 
 ##@ Test — Integration
 
-test-integration: test-integration-rust test-integration-go ## Run integration tests (requires live infra: Neo4j, Postgres, etc.)
+test-integration: test-integration-rust test-integration-go ## Run integration tests (requires live infra — Neo4j auto-started, PG, Go services)
 
 .PHONY: test-integration-rust
-test-integration-rust: ## Run Rust integration tests (requires NEO4J_URI, DATABASE_URL)
-	@bash $(ROOT)/tests/run_integration_rust.sh
+test-integration-rust: ## Run Rust integration tests (auto-starts Neo4j if not running)
+	@NEO4J_STARTED=""; \
+	NEO4J_HOST="localhost"; \
+	NEO4J_PORT="$${NEO4J_BOLT_PORT:-7687}"; \
+	NEO4J_USER="$${NEO4J_USER:-neo4j}"; \
+	NEO4J_PASSWORD="$${NEO4J_PASSWORD:-password}"; \
+	NEO4J_TEST_URI="bolt://$${NEO4J_HOST}:$${NEO4J_PORT}"; \
+	echo "[Integration] checking Neo4j at $${NEO4J_HOST}:$${NEO4J_PORT}..."; \
+	if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps neo4j 2>/dev/null | grep -q "healthy"; then \
+		echo "[Integration] Neo4j is already running (Docker healthy)"; \
+	else \
+		echo "[Integration] Starting Neo4j via Docker Compose..."; \
+		cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d neo4j 2>&1; \
+		NEO4J_STARTED="yes"; \
+		echo "[Integration] Waiting for Neo4j healthcheck..."; \
+		i=0; \
+		while [ $$i -lt 60 ]; do \
+			if docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps neo4j 2>/dev/null | grep -q "healthy"; then \
+				echo "[Integration] Neo4j is ready!"; \
+				break; \
+			fi; \
+			sleep 2; \
+			i=$$((i + 1)); \
+			echo "[Integration]   ...waiting for Neo4j ($${i}s)"; \
+		done; \
+		if [ $$i -ge 60 ]; then \
+			echo "[Integration] ERROR: Neo4j did not become ready within 120 seconds"; \
+			docker compose -f "$(ROOT)/deploy/docker-compose.yml" logs neo4j 2>&1 | tail -20; \
+			exit 1; \
+		fi; \
+	fi; \
+	export NEO4J_TEST_URI="$${NEO4J_TEST_URI}"; \
+	export NEO4J_USER="$$NEO4J_USER"; \
+	export NEO4J_PASSWORD="$$NEO4J_PASSWORD"; \
+	export NEO4J_URI="$${NEO4J_TEST_URI}"; \
+	echo "[Integration] Running ontology-service Neo4j integration tests..."; \
+	cd "$(ROOT)/apps/services/ontology-service"; \
+	RESULT=0; \
+	for test_file in tests/*integration_test.rs tests/*p0_test.rs; do \
+		test_name="$$(basename "$$test_file" .rs)"; \
+		echo "[Integration]   [$${test_name}]"; \
+		cargo test --test "$${test_name}" -- --test-threads=1 --nocapture 2>&1 || { RESULT=1; break; }; \
+	done; \
+	if [ -n "$$NEO4J_STARTED" ]; then \
+		echo "[Integration] Stopping auto-started Neo4j..."; \
+		cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev stop neo4j 2>&1; \
+		cd "$(ROOT)/apps/services/ontology-service"; \
+	fi; \
+	if [ $$RESULT -ne 0 ]; then \
+		exit 1; \
+	fi
 
 .PHONY: test-integration-go
 test-integration-go: ## Run Go integration tests in tests/integration/

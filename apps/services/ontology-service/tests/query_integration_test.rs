@@ -3,10 +3,9 @@
 //! Validates: REQ-FUN.API.graphql-sparql
 //! Validates: REQ-NFR.SECURITY.bola-bfla-negative-tests
 //!
-//! These tests do NOT require Neo4j when the assertions focus on validation,
-//! error handling, and route resolution. Tests that exercise real query
-//! execution require `NEO4J_TEST_URI` and are gated via `common::skip_if_no_neo4j`.
-
+///! These tests do NOT require Neo4j when the assertions focus on validation,
+///! error handling, and route resolution. Tests that exercise real query
+///! execution require `NEO4J_TEST_URI` — the Makefile ensures Neo4j is available.
 mod common;
 
 use axum::{
@@ -140,12 +139,6 @@ async fn test_sparql_missing_query_field_returns_4xx() {
 
 #[tokio::test]
 async fn test_cypher_executes_against_real_neo4j() {
-    // Gated — requires NEO4J_TEST_URI. Skipped otherwise so `cargo test
-    // --workspace` stays green in DB-less developer environments.
-    if !common::is_integration_enabled() {
-        eprintln!("Skipping Neo4j-backed test: set NEO4J_TEST_URI to run");
-        return;
-    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("cypher_query");
     common::clean_ontology(&pool, &oid).await;
@@ -183,10 +176,6 @@ async fn test_cypher_executes_against_real_neo4j() {
 async fn test_cypher_db_error_sanitized() {
     // Regression test: database errors must not leak raw Neo4j error details
     // in the HTTP response. Requires NEO4J_TEST_URI.
-    if !common::is_integration_enabled() {
-        eprintln!("Skipping Neo4j-backed test: set NEO4J_TEST_URI to run");
-        return;
-    }
     let (app, _pool) = common::create_test_app().await;
 
     // Send a read-only query that passes validation but fails at Neo4j level

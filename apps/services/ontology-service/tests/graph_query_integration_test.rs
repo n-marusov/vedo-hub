@@ -2,7 +2,8 @@
 //!
 //! Validates: REQ-FUN.API.class-hierarchy-accuracy
 //!
-//! Requires running Neo4j. Set NEO4J_TEST_URI env var to enable.
+//! Requires running Neo4j. Run via `make test-integration-rust` (auto-starts Neo4j via Docker Compose).
+//! Set NEO4J_TEST_URI env var to run manually.
 
 mod common;
 
@@ -27,7 +28,8 @@ async fn seed_class(
     parent: Option<&str>,
 ) {
     if let Some(p) = parent {
-        let _ = pool.graph().execute(
+        common::execute_query(
+            pool,
             neo4rs::query("MATCH (parent:Class {ontology_id:$id,id:$parent}) CREATE (c:Class {ontology_id:$id,id:$cid,label:$label}) CREATE (c)-[:CHILD_OF]->(parent)")
                 .param("id", oid.to_string())
                 .param("parent", p.to_string())
@@ -35,23 +37,19 @@ async fn seed_class(
                 .param("label", cid.to_string()),
         ).await;
     } else {
-        let _ = pool
-            .graph()
-            .execute(
-                neo4rs::query("CREATE (c:Class {ontology_id:$id,id:$cid,label:$label})")
-                    .param("id", oid.to_string())
-                    .param("cid", cid.to_string())
-                    .param("label", cid.to_string()),
-            )
-            .await;
+        common::execute_query(
+            pool,
+            neo4rs::query("CREATE (c:Class {ontology_id:$id,id:$cid,label:$label})")
+                .param("id", oid.to_string())
+                .param("cid", cid.to_string())
+                .param("label", cid.to_string()),
+        )
+        .await;
     }
 }
 
 #[tokio::test]
 async fn test_hierarchy_tree_returns_ancestors() {
-    if !common::skip_if_no_neo4j() {
-        return;
-    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("hierarchy");
     seed_class(&pool, &oid, "owl:Thing", None).await;
@@ -71,9 +69,6 @@ async fn test_hierarchy_tree_returns_ancestors() {
 
 #[tokio::test]
 async fn test_neighborhood_query() {
-    if !common::skip_if_no_neo4j() {
-        return;
-    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("neighborhood");
     seed_class(&pool, &oid, "owl:Thing", None).await;
@@ -108,9 +103,6 @@ async fn test_neighborhood_query() {
 
 #[tokio::test]
 async fn test_root_classes_endpoint() {
-    if !common::skip_if_no_neo4j() {
-        return;
-    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("root");
     seed_class(&pool, &oid, "owl:Thing", None).await;
@@ -126,9 +118,6 @@ async fn test_root_classes_endpoint() {
 
 #[tokio::test]
 async fn test_breadcrumb_endpoint() {
-    if !common::skip_if_no_neo4j() {
-        return;
-    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("breadcrumb");
     seed_class(&pool, &oid, "owl:Thing", None).await;

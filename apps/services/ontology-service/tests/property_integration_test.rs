@@ -2,7 +2,8 @@
 //!
 //! Validates: REQ-FUN.API.property-crud
 //!
-//! Requires running Neo4j. Set NEO4J_TEST_URI env var to enable.
+//! Requires running Neo4j. Run via `make test-integration-rust` (auto-starts Neo4j via Docker Compose).
+//! Set NEO4J_TEST_URI env var to run manually.
 
 mod common;
 
@@ -43,9 +44,6 @@ fn oid_url(oid: &str, path: &str) -> String {
 
 #[tokio::test]
 async fn test_create_object_property_stores_in_neo4j() {
-    if !common::skip_if_no_neo4j() {
-        return;
-    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("create_obj_prop");
 
@@ -78,9 +76,6 @@ async fn test_create_object_property_stores_in_neo4j() {
 
 #[tokio::test]
 async fn test_create_datatype_property_stores_in_neo4j() {
-    if !common::skip_if_no_neo4j() {
-        return;
-    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("create_dt_prop");
 
@@ -112,21 +107,16 @@ async fn test_create_datatype_property_stores_in_neo4j() {
 
 #[tokio::test]
 async fn test_get_property_with_domain_range() {
-    if !common::skip_if_no_neo4j() {
-        return;
-    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("get_prop");
 
-    let _ = pool
-        .graph()
-        .execute(
-            neo4rs::query(
-                r#"CREATE (p:Property {ontology_id:$id,id:'worksFor',label:'works for',property_type:'object',domain:'Person',range:'Organization'})"#,
-            )
-            .param("id", oid.clone()),
+    common::execute_query(
+        &pool,
+        neo4rs::query(
+            r#"CREATE (p:Property {ontology_id:$id,id:'worksFor',label:'works for',property_type:'object',domain:'Person',range:'Organization'})"#,
         )
-        .await;
+        .param("id", oid.clone()),
+    ).await;
 
     let resp = app
         .clone()
@@ -149,14 +139,19 @@ async fn test_get_property_with_domain_range() {
 
 #[tokio::test]
 async fn test_list_properties_returns_data() {
-    if !common::skip_if_no_neo4j() {
-        return;
-    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("list_props");
 
-    let _ = pool.graph().execute(neo4rs::query(r#"CREATE (p:Property {ontology_id:$id,id:'rel1',label:'Rel1',property_type:'object'})"#).param("id", oid.clone())).await;
-    let _ = pool.graph().execute(neo4rs::query(r#"CREATE (p:Property {ontology_id:$id,id:'dt1',label:'Dt1',property_type:'datatype'})"#).param("id", oid.clone())).await;
+    common::execute_query(
+        &pool,
+        neo4rs::query(r#"CREATE (p:Property {ontology_id:$id,id:'rel1',label:'Rel1',property_type:'object'})"#)
+            .param("id", oid.clone()),
+    ).await;
+    common::execute_query(
+        &pool,
+        neo4rs::query(r#"CREATE (p:Property {ontology_id:$id,id:'dt1',label:'Dt1',property_type:'datatype'})"#)
+            .param("id", oid.clone()),
+    ).await;
 
     let resp = app
         .clone()
@@ -170,9 +165,6 @@ async fn test_list_properties_returns_data() {
 
 #[tokio::test]
 async fn test_delete_property_removes_from_neo4j() {
-    if !common::skip_if_no_neo4j() {
-        return;
-    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("delete_prop");
 
@@ -209,9 +201,6 @@ async fn test_delete_property_removes_from_neo4j() {
 
 #[tokio::test]
 async fn test_create_property_missing_required_field_returns_error() {
-    if !common::skip_if_no_neo4j() {
-        return;
-    }
     let (app, _pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("prop_missing");
 

@@ -2,7 +2,8 @@
 //!
 //! Validates: REQ-FUN.DATA.ontology-import-export
 //!
-//! Requires running Neo4j. Set NEO4J_TEST_URI env var to enable.
+//! Requires running Neo4j. Run via `make test-integration-rust` (auto-starts Neo4j via Docker Compose).
+//! Set NEO4J_TEST_URI env var to run manually.
 
 mod common;
 
@@ -31,20 +32,16 @@ fn post_body(uri: &str, content_type: &str, body: &str) -> Request<Body> {
 
 #[tokio::test]
 async fn test_export_turtle_returns_content() {
-    if !common::skip_if_no_neo4j() {
-        return;
-    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("export_ttl");
 
-    let _ = pool
-        .graph()
-        .execute(
-            neo4rs::query("CREATE (c:Class {ontology_id:$id,id:'Person',label:'Person',iri:$iri})")
-                .param("id", oid.clone())
-                .param("iri", format!("http://example.org/{oid}#Person")),
-        )
-        .await;
+    common::execute_query(
+        &pool,
+        neo4rs::query("CREATE (c:Class {ontology_id:$id,id:'Person',label:'Person',iri:$iri})")
+            .param("id", oid.clone())
+            .param("iri", format!("http://example.org/{oid}#Person")),
+    )
+    .await;
 
     let resp = app
         .clone()
@@ -66,19 +63,15 @@ async fn test_export_turtle_returns_content() {
 
 #[tokio::test]
 async fn test_export_rdfxml_returns_content() {
-    if !common::skip_if_no_neo4j() {
-        return;
-    }
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("export_rdf");
 
-    let _ = pool
-        .graph()
-        .execute(
-            neo4rs::query("CREATE (c:Class {ontology_id:$id,id:'Test',label:'Test Class'})")
-                .param("id", oid.clone()),
-        )
-        .await;
+    common::execute_query(
+        &pool,
+        neo4rs::query("CREATE (c:Class {ontology_id:$id,id:'Test',label:'Test Class'})")
+            .param("id", oid.clone()),
+    )
+    .await;
 
     let resp = app
         .clone()
@@ -100,9 +93,6 @@ async fn test_export_rdfxml_returns_content() {
 
 #[tokio::test]
 async fn test_import_invalid_format_returns_error() {
-    if !common::skip_if_no_neo4j() {
-        return;
-    }
     let (app, _pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("import_bad");
 

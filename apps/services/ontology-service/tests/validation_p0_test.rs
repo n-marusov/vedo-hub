@@ -1,15 +1,8 @@
-//go:build integration
-
-// Placeholder integration tests for ontology validation requirements.
-//!
-//! Validates: REQ-FUN.API.validation-import
-//! Validates: REQ-FUN.API.validation-pr
-//!
-//! Remove #[ignore] and implement real assertions when the corresponding
-//! validation features are wired in the ontology service.
-//!
-//! Milestone: M12 (Ontology Quality & Reasoning 1.0)
-
+/// Placeholder integration tests for not-yet-implemented endpoints (M12).
+/// Kept #[ignore] until endpoints are wired; remove #[ignore] when implemented.
+///
+///! Validates: REQ-FUN.API.validation-import
+///! Validates: REQ-FUN.API.validation-pr
 mod common;
 
 use axum::{
@@ -32,9 +25,6 @@ fn post_json(uri: &str, body: &str) -> Request<Body> {
 #[ignore = "REQ-FUN.API.validation-import: requires import validation endpoint with SHACL — implement in M12"]
 #[tokio::test]
 async fn test_import_validation_rejects_invalid_turtle() {
-    if !common::skip_if_no_neo4j() {
-        return;
-    }
     let (app, _pool) = common::create_test_app().await;
 
     let resp = app
@@ -51,9 +41,6 @@ async fn test_import_validation_rejects_invalid_turtle() {
 #[ignore = "REQ-FUN.API.validation-import: requires import validation endpoint"]
 #[tokio::test]
 async fn test_import_validation_accepts_valid_turtle() {
-    if !common::skip_if_no_neo4j() {
-        return;
-    }
     let (app, _pool) = common::create_test_app().await;
 
     let resp = app
@@ -72,9 +59,6 @@ async fn test_import_validation_accepts_valid_turtle() {
 #[ignore = "REQ-FUN.API.validation-pr: requires merge request validation endpoint — implement in M12"]
 #[tokio::test]
 async fn test_pr_validation_detects_cyclic_hierarchy() {
-    if !common::skip_if_no_neo4j() {
-        return;
-    }
     let (app, _pool) = common::create_test_app().await;
 
     let resp = app
@@ -92,9 +76,6 @@ async fn test_pr_validation_detects_cyclic_hierarchy() {
 #[ignore = "REQ-FUN.API.validation-pr: requires merge request validation endpoint"]
 #[tokio::test]
 async fn test_pr_validation_reports_broken_references() {
-    if !common::skip_if_no_neo4j() {
-        return;
-    }
     let (app, _pool) = common::create_test_app().await;
 
     let resp = app
