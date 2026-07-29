@@ -1010,6 +1010,7 @@ type CreateProjectRequest struct {
 	Description    string                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
 	GroupId        string                 `protobuf:"bytes,3,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
 	OrganizationId string                 `protobuf:"bytes,4,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	Visibility     string                 `protobuf:"bytes,5,opt,name=visibility,proto3" json:"visibility,omitempty"` // "Private", "Internal", "Public" — default "Private" server-side
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -1068,6 +1069,13 @@ func (x *CreateProjectRequest) GetGroupId() string {
 func (x *CreateProjectRequest) GetOrganizationId() string {
 	if x != nil {
 		return x.OrganizationId
+	}
+	return ""
+}
+
+func (x *CreateProjectRequest) GetVisibility() string {
+	if x != nil {
+		return x.Visibility
 	}
 	return ""
 }
@@ -3023,12 +3031,15 @@ const file_auth_v1_org_proto_rawDesc = "" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\"y\n" +
 	"\x17ListChildGroupsResponse\x12+\n" +
 	"\x06groups\x18\x01 \x03(\v2\x13.vedo.auth.v1.ScopeR\x06groups\x121\n" +
-	"\x05error\x18\x02 \x01(\v2\x1b.vedo.common.v1.ErrorDetailR\x05error\"\x90\x01\n" +
+	"\x05error\x18\x02 \x01(\v2\x1b.vedo.common.v1.ErrorDetailR\x05error\"\xb0\x01\n" +
 	"\x14CreateProjectRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x19\n" +
 	"\bgroup_id\x18\x03 \x01(\tR\agroupId\x12'\n" +
-	"\x0forganization_id\x18\x04 \x01(\tR\x0eorganizationId\"y\n" +
+	"\x0forganization_id\x18\x04 \x01(\tR\x0eorganizationId\x12\x1e\n" +
+	"\n" +
+	"visibility\x18\x05 \x01(\tR\n" +
+	"visibility\"y\n" +
 	"\x15CreateProjectResponse\x12-\n" +
 	"\aproject\x18\x01 \x01(\v2\x13.vedo.auth.v1.ScopeR\aproject\x121\n" +
 	"\x05error\x18\x02 \x01(\v2\x1b.vedo.common.v1.ErrorDetailR\x05error\"L\n" +

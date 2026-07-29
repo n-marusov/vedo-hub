@@ -133,6 +133,7 @@ message CreateProjectRequest {
   string description = 2;
   string group_id = 3;
   string organization_id = 4;
+  string visibility = 5;  // "Private", "Internal", "Public" — default "Private" server-side
 }
 
 message CreateProjectResponse {
