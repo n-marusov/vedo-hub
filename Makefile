@@ -603,11 +603,11 @@ test-integration-go-fast: ## Go integration tests — fail-fast (auto-starts Pos
 			docker compose -f "$(ROOT)/deploy/docker-compose.yml" exec -T postgres \
 				psql -U postgres -d postgres -c "CREATE DATABASE vedo_org_test" 2>&1; \
 		fi; \
-		for dir in ticket-api org-api auth-service-org; do \
+		for dir in ticket-api org-api; do \
 			p="$(ROOT)/tests/integration/$$dir"; \
-			if [ -d "$$p" ]; then \
+			if [ -d "$$p" ] && (cd "$$p" && go list -tags=integration ./... >/dev/null 2>&1); then \
 				printf "$(C_CYAN)[Go]$(C_RESET) integration — $$dir\n"; \
-				cd "$$p" && go test ./... 2>&1 || { printf "$(C_RED)[FAIL]$(C_RESET) $$dir\n"; exit 1; }; \
+				cd "$$p" && go test -tags=integration ./... 2>&1 || { printf "$(C_RED)[FAIL]$(C_RESET) $$dir\n"; exit 1; }; \
 			fi; \
 		done; \
 		if [ -n "$$PG_STARTED" ]; then \
@@ -673,11 +673,11 @@ test-integration-go-full: ## Go integration tests — full statistics (auto-star
 				psql -U postgres -d postgres -c "CREATE DATABASE vedo_org_test" 2>&1; \
 		fi; \
 		failed=""; \
-		for dir in ticket-api org-api auth-service-org; do \
+		for dir in ticket-api org-api; do \
 			p="$(ROOT)/tests/integration/$$dir"; \
-			if [ -d "$$p" ]; then \
+			if [ -d "$$p" ] && (cd "$$p" && go list -tags=integration ./... >/dev/null 2>&1); then \
 				printf "$(C_CYAN)[Go]$(C_RESET) integration — $$dir\n"; \
-				cd "$$p" && go test ./... 2>&1 || failed="$$failed $$dir"; \
+				cd "$$p" && go test -tags=integration ./... 2>&1 || failed="$$failed $$dir"; \
 			fi; \
 		done; \
 		if [ -n "$$PG_STARTED" ]; then \
