@@ -14,8 +14,11 @@
 //     `updateProperty`, `updateIndividual`, `deleteClass`, `deleteProperty`,
 //     `deleteIndividual`, `createOntology`, `updateOntology`,
 //     `deleteOntology` are NOT fields on the Mutation root.
-//   - Navigation queries (`ontology`, `classes`, `class`, `properties`,
-//     `individuals`, `commits`, `branches`) ARE present on the Query root.
+//   - Navigation queries (`class`, `classes`, `classTree`, `classAncestors`,
+//     `classDescendants`, `graphNeighborhood`, `autocompleteClasses`,
+//     `property`, `properties`, `individual`, `individuals` — 11 resolvers)
+//     are present on the Query root.
+//   - Non-graph queries (`ontology`, `commits`, `branches`) are NOT present.
 //
 // Per ADR-DES.API.rest-graphql-mutation-boundary, the long-term target is
 // `EmptyMutation` (no Mutation type at all). The current schema still
@@ -64,9 +67,9 @@ async function fetchGraphQL(
   query: string,
   variables: Record<string, unknown> = {},
 ): Promise<GraphQLResponse> {
-  const params = new URLSearchParams({ query, variables: JSON.stringify(variables) })
-  const res = await request.get(`${BASE}/graphql?${params}`, {
+  const res = await request.post(`${BASE}/graphql`, {
     headers: AUTH,
+    data: { query, variables },
   })
   expect(res.status()).toBeLessThan(500)
   return (await res.json()) as GraphQLResponse
@@ -89,18 +92,37 @@ test.describe('GraphQL schema boundary — ADR-DES.API.rest-graphql-mutation-bou
   test('Query root exposes navigation fields', () => {
     expect(schema).not.toBeNull()
     const queryFields = schema!.queryType.fields?.map((f) => f.name) ?? []
-    // Required navigation fields per ADR-DES.API.graphql-sparql-split-strategy.
+    // Required navigation fields per revised ADR-DES.API.graphql-sparql-split-strategy
+    // — 11 read-only graph navigation resolvers.
     const required = [
-      'ontology',
-      'classes',
       'class',
+      'classes',
+      'classTree',
+      'classAncestors',
+      'classDescendants',
+      'graphNeighborhood',
+      'autocompleteClasses',
+      'property',
       'properties',
+      'individual',
       'individuals',
-      'commits',
-      'branches',
     ]
     for (const field of required) {
       expect(queryFields, `Query root should expose ${field}`).toContain(field)
+    }
+  })
+
+  test('Query root does NOT expose non-graph fields (ontology, commits, branches)', () => {
+    expect(schema).not.toBeNull()
+    const queryFields = schema!.queryType.fields?.map((f) => f.name) ?? []
+    // Non-graph queries are forbidden per ADR-DES.API.graphql-sparql-split-strategy §5.
+    // Ontology metadata, versioning data, and org model go through REST only.
+    const forbidden = ['ontology', 'commits', 'branches', 'branch', 'groups', 'projects', 'members']
+    for (const field of forbidden) {
+      expect(
+        queryFields,
+        `${field} must NOT appear on Query root (REST-only per ADR)`,
+      ).not.toContain(field)
     }
   })
 
