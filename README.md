@@ -1,8 +1,24 @@
 # VEDO Hub
+*Virtual Environment for Developing Ontologies*
 
-> *GitHub for ontologies* — a social hub, semantic API layer, and LLM generation in one product. **Built with [AI Factory](https://github.com/ai-factory).**
+> *GitHub for ontologies* — create, share, and collaborate on knowledge graphs with AI. **Built with [AI Factory](https://github.com/ai-factory).**
 
-A SaaS platform where ontologies become living assets — forked, starred, reviewed via Pull Requests, cited through DOI, published and consumed through an API. Under the hood: a polyglot microservices architecture in Go, Rust, Python, and Vue 3, with Git-like ontology versioning, Neo4j for graph storage, and Keycloak for authentication.
+A free platform where knowledge graphs come to life. Describe your domain in plain words and AI builds the ontology. Edit it visually in the browser, collaborate with your team through Pull Requests, version it like Git, and share it with the world through a single link. No installs, no OWL expertise needed.
+
+## Why VEDO Hub?
+
+Ontologies today are **dead files on a desktop**. Engineers wait 45 seconds for a class to expand, teams email `.owl` files and merge them in Notepad++, 90% of newcomers quit Protégé in 10 minutes, and there is **no GitHub, no API, no community** for ontologies.
+
+| | Before | VEDO Hub |
+|---|--------|----------|
+| 💨 **Speed** | 45 sec for 500 subclasses | <1 sec for 1M axioms |
+| 👥 **Teamwork** | Email + manual merge | Git branches, Pull Requests, semantic diff |
+| 🚪 **Onboarding** | Months of learning OWL | Describe in words → ontology in 5 min; upload a PDF/DOCX/XLSX → done in 1 min |
+| 🔗 **Sharing** | Download `.owl`, open in desktop | Interactive graph in the browser, one link |
+| 🔌 **Integration** | 40–80 h of custom code | REST + SPARQL + OpenAPI — connect in minutes |
+| 🌍 **Community** | No stars, no forks, no profiles | Stars, forks, PRs, DOI, contributor graphs |
+
+**What sets us apart:** free forever for public ontologies, AI-powered generation from text and documents, visual drag-and-drop SPARQL, Git-like versioning with semantic diff, full API-as-infrastructure, and GitLab-style hierarchical organizations. No other platform — Protégé, BioPortal, TopBraid, PoolParty — covers more than 3 of the 9 core needs. **VEDO Hub covers all 9.**
 
 ## Quick Start
 
