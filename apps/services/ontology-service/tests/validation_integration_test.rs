@@ -73,9 +73,11 @@ async fn test_validate_ontology_returns_report() {
         json.get("conforms").is_some(),
         "validation response should contain 'conforms' field"
     );
+    // `results` is skipped when empty (no violations) via skip_serializing_if
+    // Use `entities_checked` to verify validation actually ran
     assert!(
-        json.get("results").is_some(),
-        "validation response should contain 'results' field"
+        json.get("entities_checked").is_some(),
+        "validation response should contain 'entities_checked' field"
     );
 
     common::clean_ontology(&pool, &oid).await;
