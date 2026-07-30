@@ -64,9 +64,9 @@ async function fetchGraphQL(
   query: string,
   variables: Record<string, unknown> = {},
 ): Promise<GraphQLResponse> {
-  const res = await request.post(`${BASE}/graphql`, {
+  const params = new URLSearchParams({ query, variables: JSON.stringify(variables) })
+  const res = await request.get(`${BASE}/graphql?${params}`, {
     headers: AUTH,
-    data: { query, variables },
   })
   expect(res.status()).toBeLessThan(500)
   return (await res.json()) as GraphQLResponse
