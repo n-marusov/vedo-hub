@@ -9,13 +9,14 @@ Every test target has two explicit modes: **fail-fast** (stops at first failure)
 | Test type | Fail-fast | Full statistics | Infrastructure
 | Unit (Rust, Go, Python, TS) | `make test-unit-fast` | `make test-unit-full` | Language toolchains only
 | Integration — Rust (Neo4j) | `make test-integration-rust-fast` | `make test-integration-rust-full` | Docker (Neo4j auto-started)
-| Integration — Go | `make test-integration-go-fast` | `make test-integration-go-full` | Running services
+| Integration — Go | `make test-integration-go-fast` | `make test-integration-go-full` | Docker (PostgreSQL auto-started) |
 | Versioning (PostgreSQL) | `make test-versioning-fast` | `make test-versioning-full` | Docker (Postgres auto-started)
 | Integration — all | `make test-integration-fast` | `make test-integration-full` | Docker stack
 | E2E — API | `make test-e2e-api-fast` | `make test-e2e-api-full` | Docker test stack
 | E2E — GUI | `make test-e2e-gui-fast` | `make test-e2e-gui-full` | Docker test stack + frontend
 | E2E — all | `make test-e2e-fast` | `make test-e2e-full` | Docker test stack
-| Gates (contract, security, quality) | `make test-gates-fast` | `make test-gates-full` | Go + Docker
+| Gates (contract, BOLA/BFLA unit, quality) | `make test-gates-fast` | `make test-gates-full` | Go (fully automated) |
+| Security integration (BOLA/BFLA/RBAC full-stack) | `make test-gates-security-fast` | `make test-gates-security-full` | Docker test stack (auto-started) |
 | All tests | `make test-fast` | `make test-full` | Varies
 | Coverage (Go only) | — | `make coverage` | Language toolchains
 |===
@@ -34,7 +35,9 @@ Integration tests that require databases automatically start them via Docker whe
 |===
 | Make target | Auto-starts | Condition | Cleanup
 | `make test-integration-rust-fast` | Neo4j via `docker compose up -d neo4j` | If not already running (Docker healthcheck) | Stops Neo4j if it was auto-started
+| `make test-integration-go-fast` | PostgreSQL via `docker compose up -d postgres` | If `pg_isready` returns non-zero or Docker healthcheck fails | Stops Postgres if it was auto-started; also creates `vedo_org_test` DB
 | `make test-versioning-fast` | PostgreSQL via `docker compose up -d postgres` | If `pg_isready` returns non-zero | Stops Postgres if it was auto-started
+| `make test-integration-fast` | Neo4j + PostgreSQL once before all sub-targets | If not already running (Docker healthcheck / `pg_isready`) | Stops both if they were auto-started (avoids cascade)
 |===
 
 When infrastructure is already running from `make infra-up` or `make docker-up`, the targets detect it and skip the auto-start step.
@@ -135,20 +138,44 @@ pnpm exec playwright test --config=config/playwright.gui.config.ts specs/gui/pag
 pnpm exec playwright test --config=config/playwright.gui.config.ts specs/gui/user-stories/ --max-failures=0
 ----
 
-=== Gate Tests (Contracts, Security, Quality)
+=== Gate Tests (Contracts, Static Quality)
 
 [source,bash]
 ----
-make test-gates-fast              # Gate tests — fail-fast
+make test-gates-fast              # Gate tests — fail-fast (no infra needed)
 make test-gates-full              # Gate tests — full statistics
 ----
 
 The gate pipeline runs:
-1. Contract tests (`test_contract_gate.sh`)
-2. BOLA/BFLA security authorization tests (`test_bola_bfla_gate.sh`)
+1. Contract tests — Go unit tests across all modules + build/CI checks (`test_contract_gate.sh`)
+2. BOLA/BFLA unit tests — auth middleware unit tests (`test_bola_bfla_gate.sh`)
 3. Python service manifest validation (`test_python_manifests.sh`)
 4. Static test quality gate — anti-patterns (B1–B7), TQS scoring (`test-quality-gate.sh --score`)
 5. Traceability cross-validation — TTL ↔ filesystem, RCS, P0 orphans (`traceability-validator.sh`)
+
+All gates require only language toolchains (Go, Python) — no Docker or running services.
+
+=== Security Integration Tests (BOLA/BFLA/RBAC Full-Stack)
+
+Full-stack authorization tests against a live API Gateway with Keycloak.
+Requires the Docker test stack — auto-started if not already running.
+
+[source,bash]
+----
+make test-gates-security-fast      # Security integration — fail-fast (auto-starts Docker stack)
+make test-gates-security-full      # Security integration — full statistics
+----
+
+The security integration suite tests:
+
+* *BOLA* (Broken Object-Level Authorization) — cross-tenant access, cross-object access
+* *BFLA* (Broken Function-Level Authorization) — role escalation, privilege abuse
+* *IDOR* (Insecure Direct Object Reference) — guessable IDs, pagination leaks
+* *RBAC* (Role-Based Access Control) — membership inheritance, max-role-wins, protected branches
+
+Unlike the fast gates, these tests dispatch real HTTP requests to the API Gateway
+and authenticate via Keycloak password grant. The test helper fails immediately if
+the API Gateway or Keycloak is unreachable — no silent skips.
 
 === Test Quality Gate
 
@@ -173,18 +200,6 @@ bash tools/scripts/traceability-validator.sh
 
 # JSON output
 bash tools/scripts/traceability-validator.sh --json
-----
-
-=== Security Tests (BOLA/BFLA)
-
-Security tests in `tests/security/` verify:
-
-* *BOLA* (Broken Object-Level Authorization) — users cannot access other users' ontologies, groups, or merge requests.
-* *BFLA* (Broken Function-Level Authorization) — users cannot invoke admin-level operations without proper roles.
-
-[source,bash]
-----
-bash tests/gates/test_bola_bfla_gate.sh
 ----
 
 == CI Pipeline

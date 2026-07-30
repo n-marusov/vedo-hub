@@ -79,7 +79,7 @@ var jwtCache = map[string]string{}
 
 // getJWT obtains a JWT for the given test user via Keycloak OIDC password grant.
 // The token is cached for the duration of the test suite.
-// Skips the test if the auth endpoint is unreachable.
+// Fails the test if the auth endpoint is unreachable or credentials are missing.
 func getJWT(t *testing.T, userAlias string) string {
 	t.Helper()
 
@@ -90,12 +90,11 @@ func getJWT(t *testing.T, userAlias string) string {
 	// Map aliases to Keycloak credentials.
 	username, password := resolveCredentials(userAlias)
 	if username == "" {
-		t.Skipf("no credentials configured for user alias %q", userAlias)
+		t.Fatalf("no credentials configured for user alias %q", userAlias)
 		return ""
 	}
 
 	// Keycloak token endpoint — uses the public client for password grant.
-	// Adjust realm and client ID to match the target environment.
 	keycloakURL := "http://localhost:8081/realms/vedo/protocol/openid-connect/token"
 	payload := fmt.Sprintf(
 		"client_id=vedo-public&username=%s&password=%s&grant_type=password",
@@ -104,14 +103,14 @@ func getJWT(t *testing.T, userAlias string) string {
 
 	resp, err := http.Post(keycloakURL, "application/x-www-form-urlencoded", bytes.NewBufferString(payload))
 	if err != nil {
-		t.Skipf("Keycloak not available at %s: %v", keycloakURL, err)
+		t.Fatalf("Keycloak not available at %s: %v", keycloakURL, err)
 		return ""
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
 		body, _ := io.ReadAll(resp.Body)
-		t.Skipf("Keycloak returned %d for user %q: %s", resp.StatusCode, userAlias, string(body))
+		t.Fatalf("Keycloak returned %d for user %q: %s", resp.StatusCode, userAlias, string(body))
 		return ""
 	}
 
@@ -119,12 +118,12 @@ func getJWT(t *testing.T, userAlias string) string {
 		AccessToken string `json:"access_token"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		t.Skipf("failed to decode Keycloak token response: %v", err)
+		t.Fatalf("failed to decode Keycloak token response: %v", err)
 		return ""
 	}
 
 	if result.AccessToken == "" {
-		t.Skipf("empty access_token in Keycloak response for user %q", userAlias)
+		t.Fatalf("empty access_token in Keycloak response for user %q", userAlias)
 		return ""
 	}
 
@@ -162,7 +161,7 @@ func resolveCredentials(alias string) (username, password string) {
 // ============================================================================
 
 // doRequest sends an HTTP request with optional JWT and idempotency key.
-// Returns the response. The caller must close resp.Body.
+// Returns the response or fails the test if the API is unreachable.
 func doRequest(t *testing.T, method, url string, body []byte, jwtToken string, idempotencyKey string) *http.Response {
 	t.Helper()
 
@@ -188,7 +187,7 @@ func doRequest(t *testing.T, method, url string, body []byte, jwtToken string, i
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		t.Skipf("API Gateway not available at %s: %v", apiBase, err)
+		t.Fatalf("API Gateway not available at %s: %v", apiBase, err)
 		return nil
 	}
 	return resp
@@ -257,13 +256,13 @@ func contains(s, substr string) bool {
 	return strings.Contains(s, substr)
 }
 
-// requireAPIAvail pings the API Gateway health endpoint and skips the test
+// requireAPIAvail pings the API Gateway health endpoint and fails the test
 // if it's unreachable.
 func requireAPIAvail(t *testing.T) {
 	t.Helper()
 	resp, err := http.Get(apiBase + "/health")
 	if err != nil {
-		t.Skipf("API Gateway not available: %v", err)
+		t.Fatalf("API Gateway not available at %s: %v", apiBase, err)
 	}
 	resp.Body.Close()
 }

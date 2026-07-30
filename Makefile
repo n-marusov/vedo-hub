@@ -246,23 +246,205 @@ test-full: ## Run ALL tests — full statistics (collect all failures)
 ##@ Test — Integration
 
 .PHONY: test-integration-fast test-integration-full
-test-integration-fast: ## Integration tests — fail-fast (rust + go + versioning)
-	@printf "$(C_CYAN)[Integration]$(C_RESET) fail-fast mode\n"
-	@$(MAKE) test-integration-rust-fast
-	@$(MAKE) test-integration-go-fast
-	@$(MAKE) test-versioning-fast
+test-integration-fast: ## Integration tests — fail-fast (auto-starts Neo4j + PostgreSQL once)
+		@printf "$(C_CYAN)[Integration]$(C_RESET) fail-fast mode\n"
+		@printf "$(C_CYAN)[Integration]$(C_RESET) checking Neo4j...\n"
+		@rm -f /tmp/vedo-test-neo4j /tmp/vedo-test-pg
+		@if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps neo4j 2>/dev/null | grep -q "healthy"; then \
+			printf "$(C_GREEN)[Integration]$(C_RESET) Neo4j is already running\n"; \
+		else \
+			printf "$(C_YELLOW)[Integration]$(C_RESET) Starting Neo4j...\n"; \
+			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d neo4j 2>&1; \
+			printf "$(C_YELLOW)[Integration]$(C_RESET) Waiting for Neo4j healthcheck...\n"; \
+			i=0; \
+			while [ $$i -lt 60 ]; do \
+				if docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps neo4j 2>/dev/null | grep -q "healthy"; then \
+					printf "$(C_GREEN)[Integration]$(C_RESET) Neo4j is ready!\n"; \
+					break; \
+				fi; \
+				sleep 2; \
+				i=$$((i + 1)); \
+			done; \
+			if [ $$i -ge 60 ]; then \
+				printf "$(C_RED)[Integration]$(C_RESET) ERROR: Neo4j did not become ready within 120 seconds\n"; \
+				docker compose -f "$(ROOT)/deploy/docker-compose.yml" logs neo4j 2>&1 | tail -20; \
+				exit 1; \
+			fi; \
+			touch /tmp/vedo-test-neo4j; \
+		fi
+		@printf "$(C_CYAN)[Integration]$(C_RESET) checking PostgreSQL...\n"
+		@if command -v pg_isready >/dev/null 2>&1; then \
+			if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
+				printf "$(C_GREEN)[Integration]$(C_RESET) PostgreSQL is already running\n"; \
+			else \
+				printf "$(C_YELLOW)[Integration]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
+				cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d postgres 2>&1; \
+				printf "$(C_YELLOW)[Integration]$(C_RESET) Waiting for PostgreSQL...\n"; \
+				i=0; \
+				while [ $$i -lt 30 ]; do \
+					if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
+						printf "$(C_GREEN)[Integration]$(C_RESET) PostgreSQL is ready!\n"; \
+						break; \
+					fi; \
+					sleep 1; \
+					i=$$((i + 1)); \
+				done; \
+				if [ $$i -ge 30 ]; then \
+					printf "$(C_RED)[Integration]$(C_RESET) ERROR: PostgreSQL did not become ready\n"; \
+					exit 1; \
+				fi; \
+				touch /tmp/vedo-test-pg; \
+			fi; \
+		else \
+			printf "$(C_YELLOW)[Integration]$(C_RESET) pg_isready not found, checking via Docker health...\n"; \
+			if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps postgres 2>/dev/null | grep -q "healthy"; then \
+				printf "$(C_GREEN)[Integration]$(C_RESET) PostgreSQL is already running (Docker healthy)\n"; \
+			else \
+				printf "$(C_YELLOW)[Integration]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
+				cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d postgres 2>&1; \
+				printf "$(C_YELLOW)[Integration]$(C_RESET) Waiting for PostgreSQL healthcheck...\n"; \
+				i=0; \
+				while [ $$i -lt 60 ]; do \
+					if docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps postgres 2>/dev/null | grep -q "healthy"; then \
+						printf "$(C_GREEN)[Integration]$(C_RESET) PostgreSQL is ready!\n"; \
+						break; \
+					fi; \
+					sleep 2; \
+					i=$$((i + 1)); \
+				done; \
+				if [ $$i -ge 60 ]; then \
+					printf "$(C_RED)[Integration]$(C_RESET) ERROR: PostgreSQL did not become ready within 120 seconds\n"; \
+					docker compose -f "$(ROOT)/deploy/docker-compose.yml" logs postgres 2>&1 | tail -20; \
+					exit 1; \
+				fi; \
+				touch /tmp/vedo-test-pg; \
+			fi; \
+		fi
+		@printf "$(C_CYAN)[Integration]$(C_RESET) ensuring vedo_org_test database exists...\n"
+		@if command -v docker >/dev/null 2>&1; then \
+			docker compose -f "$(ROOT)/deploy/docker-compose.yml" exec -T postgres \
+				psql -U postgres -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='vedo_org_test'" 2>/dev/null | grep -q 1 || \
+			docker compose -f "$(ROOT)/deploy/docker-compose.yml" exec -T postgres \
+				psql -U postgres -d postgres -c "CREATE DATABASE vedo_org_test" 2>&1; \
+		fi
+		@printf "$(C_CYAN)[Integration]$(C_RESET) running tests...\n"
+		@$(MAKE) test-integration-rust-fast
+		@$(MAKE) test-integration-go-fast
+		@$(MAKE) test-versioning-fast
+		@printf "$(C_CYAN)[Integration]$(C_RESET) cleaning up infrastructure...\n"
+		@if [ -f /tmp/vedo-test-neo4j ]; then \
+			printf "$(C_YELLOW)[Integration]$(C_RESET) Stopping auto-started Neo4j...\n"; \
+			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml stop neo4j 2>&1; \
+			rm -f /tmp/vedo-test-neo4j; \
+		fi
+		@if [ -f /tmp/vedo-test-pg ]; then \
+			printf "$(C_YELLOW)[Integration]$(C_RESET) Stopping auto-started PostgreSQL...\n"; \
+			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml stop postgres 2>&1; \
+			rm -f /tmp/vedo-test-pg; \
+		fi
 
-test-integration-full: ## Integration tests — full statistics (collect all failures)
-	@failed=0; \
-	printf "$(C_CYAN)[Integration]$(C_RESET) full statistics mode\n"; \
-	$(MAKE) test-integration-rust-full 2>&1 || failed=1; \
-	$(MAKE) test-integration-go-full 2>&1 || failed=1; \
-	$(MAKE) test-versioning-full 2>&1 || failed=1; \
-	if [ $$failed -ne 0 ]; then \
-		printf "$(C_RED)[FAIL]$(C_RESET) Some integration tests failed\n"; \
-		exit 1; \
-	fi; \
-	printf "$(C_GREEN)[PASS]$(C_RESET) All integration tests passed\n"
+test-integration-full: ## Integration tests — full statistics (auto-starts Neo4j + PostgreSQL once)
+		@printf "$(C_CYAN)[Integration]$(C_RESET) full statistics mode\n"
+		@printf "$(C_CYAN)[Integration]$(C_RESET) checking Neo4j...\n"
+		@rm -f /tmp/vedo-test-neo4j /tmp/vedo-test-pg
+		@if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps neo4j 2>/dev/null | grep -q "healthy"; then \
+			printf "$(C_GREEN)[Integration]$(C_RESET) Neo4j is already running\n"; \
+		else \
+			printf "$(C_YELLOW)[Integration]$(C_RESET) Starting Neo4j...\n"; \
+			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d neo4j 2>&1; \
+			printf "$(C_YELLOW)[Integration]$(C_RESET) Waiting for Neo4j healthcheck...\n"; \
+			i=0; \
+			while [ $$i -lt 60 ]; do \
+				if docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps neo4j 2>/dev/null | grep -q "healthy"; then \
+					printf "$(C_GREEN)[Integration]$(C_RESET) Neo4j is ready!\n"; \
+					break; \
+				fi; \
+				sleep 2; \
+				i=$$((i + 1)); \
+			done; \
+			if [ $$i -ge 60 ]; then \
+				printf "$(C_RED)[Integration]$(C_RESET) ERROR: Neo4j did not become ready within 120 seconds\n"; \
+				docker compose -f "$(ROOT)/deploy/docker-compose.yml" logs neo4j 2>&1 | tail -20; \
+				exit 1; \
+			fi; \
+			touch /tmp/vedo-test-neo4j; \
+		fi
+		@printf "$(C_CYAN)[Integration]$(C_RESET) checking PostgreSQL...\n"
+		@if command -v pg_isready >/dev/null 2>&1; then \
+			if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
+				printf "$(C_GREEN)[Integration]$(C_RESET) PostgreSQL is already running\n"; \
+			else \
+				printf "$(C_YELLOW)[Integration]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
+				cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d postgres 2>&1; \
+				printf "$(C_YELLOW)[Integration]$(C_RESET) Waiting for PostgreSQL...\n"; \
+				i=0; \
+				while [ $$i -lt 30 ]; do \
+					if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
+						printf "$(C_GREEN)[Integration]$(C_RESET) PostgreSQL is ready!\n"; \
+						break; \
+					fi; \
+					sleep 1; \
+					i=$$((i + 1)); \
+				done; \
+				if [ $$i -ge 30 ]; then \
+					printf "$(C_RED)[Integration]$(C_RESET) ERROR: PostgreSQL did not become ready\n"; \
+					exit 1; \
+				fi; \
+				touch /tmp/vedo-test-pg; \
+			fi; \
+		else \
+			printf "$(C_YELLOW)[Integration]$(C_RESET) pg_isready not found, checking via Docker health...\n"; \
+			if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps postgres 2>/dev/null | grep -q "healthy"; then \
+				printf "$(C_GREEN)[Integration]$(C_RESET) PostgreSQL is already running (Docker healthy)\n"; \
+			else \
+				printf "$(C_YELLOW)[Integration]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
+				cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d postgres 2>&1; \
+				printf "$(C_YELLOW)[Integration]$(C_RESET) Waiting for PostgreSQL healthcheck...\n"; \
+				i=0; \
+				while [ $$i -lt 60 ]; do \
+					if docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps postgres 2>/dev/null | grep -q "healthy"; then \
+						printf "$(C_GREEN)[Integration]$(C_RESET) PostgreSQL is ready!\n"; \
+						break; \
+					fi; \
+					sleep 2; \
+					i=$$((i + 1)); \
+				done; \
+				if [ $$i -ge 60 ]; then \
+					printf "$(C_RED)[Integration]$(C_RESET) ERROR: PostgreSQL did not become ready within 120 seconds\n"; \
+					docker compose -f "$(ROOT)/deploy/docker-compose.yml" logs postgres 2>&1 | tail -20; \
+					exit 1; \
+				fi; \
+				touch /tmp/vedo-test-pg; \
+			fi; \
+		fi
+		@printf "$(C_CYAN)[Integration]$(C_RESET) ensuring vedo_org_test database exists...\n"
+		@if command -v docker >/dev/null 2>&1; then \
+			docker compose -f "$(ROOT)/deploy/docker-compose.yml" exec -T postgres \
+				psql -U postgres -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='vedo_org_test'" 2>/dev/null | grep -q 1 || \
+			docker compose -f "$(ROOT)/deploy/docker-compose.yml" exec -T postgres \
+				psql -U postgres -d postgres -c "CREATE DATABASE vedo_org_test" 2>&1; \
+		fi
+		@printf "$(C_CYAN)[Integration]$(C_RESET) running tests...\n"
+		@failed=0; \
+		$(MAKE) test-integration-rust-full 2>&1 || failed=1; \
+		$(MAKE) test-integration-go-full 2>&1 || failed=1; \
+		$(MAKE) test-versioning-full 2>&1 || failed=1; \
+		printf "$(C_CYAN)[Integration]$(C_RESET) cleaning up infrastructure...\n"; \
+		if [ -f /tmp/vedo-test-neo4j ]; then \
+			printf "$(C_YELLOW)[Integration]$(C_RESET) Stopping auto-started Neo4j...\n"; \
+			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml stop neo4j 2>&1; \
+			rm -f /tmp/vedo-test-neo4j; \
+		fi; \
+		if [ -f /tmp/vedo-test-pg ]; then \
+			printf "$(C_YELLOW)[Integration]$(C_RESET) Stopping auto-started PostgreSQL...\n"; \
+			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml stop postgres 2>&1; \
+			rm -f /tmp/vedo-test-pg; \
+		fi; \
+		if [ $$failed -ne 0 ]; then \
+			printf "$(C_RED)[FAIL]$(C_RESET) Some integration tests failed\n"; \
+			exit 1; \
+		fi; \
+		printf "$(C_GREEN)[PASS]$(C_RESET) All integration tests passed\n"
 
 .PHONY: test-integration-rust-fast test-integration-rust-full
 test-integration-rust-fast: ## Rust integration tests — fail-fast (auto-starts Neo4j if not running)
@@ -364,28 +546,148 @@ test-integration-rust-full: ## Rust integration tests — full statistics (colle
 	fi
 
 .PHONY: test-integration-go-fast test-integration-go-full
-test-integration-go-fast: ## Go integration tests — fail-fast (ticket-api, org-api, auth-service-org)
-	@for dir in ticket-api org-api auth-service-org; do \
-		p="$(ROOT)/tests/integration/$$dir"; \
-		if [ -d "$$p" ]; then \
-			printf "$(C_CYAN)[Go]$(C_RESET) integration — $$dir\n"; \
-			cd "$$p" && go test ./... 2>&1; \
+test-integration-go-fast: ## Go integration tests — fail-fast (auto-starts PostgreSQL if not running)
+		@printf "$(C_CYAN)[Go]$(C_RESET) checking PostgreSQL availability...\n"
+		@PG_STARTED=""; \
+		if command -v pg_isready >/dev/null 2>&1; then \
+			if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
+				printf "$(C_GREEN)[Go]$(C_RESET) PostgreSQL is already running\n"; \
+			else \
+				printf "$(C_YELLOW)[Go]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
+				cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d postgres 2>&1; \
+				PG_STARTED="yes"; \
+				printf "$(C_YELLOW)[Go]$(C_RESET) Waiting for PostgreSQL...\n"; \
+				i=0; \
+				while [ $$i -lt 30 ]; do \
+					if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
+						printf "$(C_GREEN)[Go]$(C_RESET) PostgreSQL is ready!\n"; \
+						break; \
+					fi; \
+					sleep 1; \
+					i=$$((i + 1)); \
+				done; \
+				if [ $$i -ge 30 ]; then \
+					printf "$(C_RED)[Go]$(C_RESET) ERROR: PostgreSQL did not become ready\n"; \
+					exit 1; \
+				fi; \
+			fi; \
+		else \
+			printf "$(C_YELLOW)[Go]$(C_RESET) pg_isready not found, checking via Docker health...\n"; \
+			if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps postgres 2>/dev/null | grep -q "healthy"; then \
+				printf "$(C_GREEN)[Go]$(C_RESET) PostgreSQL is already running (Docker healthy)\n"; \
+			else \
+				printf "$(C_YELLOW)[Go]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
+				cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d postgres 2>&1; \
+				PG_STARTED="yes"; \
+				printf "$(C_YELLOW)[Go]$(C_RESET) Waiting for PostgreSQL healthcheck...\n"; \
+				i=0; \
+				while [ $$i -lt 60 ]; do \
+					if docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps postgres 2>/dev/null | grep -q "healthy"; then \
+						printf "$(C_GREEN)[Go]$(C_RESET) PostgreSQL is ready!\n"; \
+						break; \
+					fi; \
+					sleep 2; \
+					i=$$((i + 1)); \
+				done; \
+				if [ $$i -ge 60 ]; then \
+					printf "$(C_RED)[Go]$(C_RESET) ERROR: PostgreSQL did not become ready within 120 seconds\n"; \
+					docker compose -f "$(ROOT)/deploy/docker-compose.yml" logs postgres 2>&1 | tail -20; \
+					exit 1; \
+				fi; \
+			fi; \
 		fi; \
-	done
+		printf "$(C_CYAN)[Go]$(C_RESET) ensuring vedo_org_test database exists...\n"; \
+		if command -v docker >/dev/null 2>&1; then \
+			docker compose -f "$(ROOT)/deploy/docker-compose.yml" exec -T postgres \
+				psql -U postgres -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='vedo_org_test'" 2>/dev/null | grep -q 1 || \
+			docker compose -f "$(ROOT)/deploy/docker-compose.yml" exec -T postgres \
+				psql -U postgres -d postgres -c "CREATE DATABASE vedo_org_test" 2>&1; \
+		fi; \
+		for dir in ticket-api org-api auth-service-org; do \
+			p="$(ROOT)/tests/integration/$$dir"; \
+			if [ -d "$$p" ]; then \
+				printf "$(C_CYAN)[Go]$(C_RESET) integration — $$dir\n"; \
+				cd "$$p" && go test ./... 2>&1 || { printf "$(C_RED)[FAIL]$(C_RESET) $$dir\n"; exit 1; }; \
+			fi; \
+		done; \
+		if [ -n "$$PG_STARTED" ]; then \
+			printf "$(C_YELLOW)[Go]$(C_RESET) Stopping auto-started PostgreSQL...\n"; \
+			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml stop postgres 2>&1; \
+		fi
 
-test-integration-go-full: ## Go integration tests — full statistics (collect all failures)
-	@failed=""; \
-	for dir in ticket-api org-api auth-service-org; do \
-		p="$(ROOT)/tests/integration/$$dir"; \
-		if [ -d "$$p" ]; then \
-			printf "$(C_CYAN)[Go]$(C_RESET) integration — $$dir\n"; \
-			cd "$$p" && go test ./... 2>&1 || failed="$$failed $$dir"; \
+test-integration-go-full: ## Go integration tests — full statistics (auto-starts PostgreSQL if not running)
+		@printf "$(C_CYAN)[Go]$(C_RESET) checking PostgreSQL availability...\n"
+		@PG_STARTED=""; \
+		if command -v pg_isready >/dev/null 2>&1; then \
+			if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
+				printf "$(C_GREEN)[Go]$(C_RESET) PostgreSQL is already running\n"; \
+			else \
+				printf "$(C_YELLOW)[Go]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
+				cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d postgres 2>&1; \
+				PG_STARTED="yes"; \
+				printf "$(C_YELLOW)[Go]$(C_RESET) Waiting for PostgreSQL...\n"; \
+				i=0; \
+				while [ $$i -lt 30 ]; do \
+					if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
+						printf "$(C_GREEN)[Go]$(C_RESET) PostgreSQL is ready!\n"; \
+						break; \
+					fi; \
+					sleep 1; \
+					i=$$((i + 1)); \
+				done; \
+				if [ $$i -ge 30 ]; then \
+					printf "$(C_RED)[Go]$(C_RESET) ERROR: PostgreSQL did not become ready\n"; \
+					exit 1; \
+				fi; \
+			fi; \
+		else \
+			printf "$(C_YELLOW)[Go]$(C_RESET) pg_isready not found, checking via Docker health...\n"; \
+			if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps postgres 2>/dev/null | grep -q "healthy"; then \
+				printf "$(C_GREEN)[Go]$(C_RESET) PostgreSQL is already running (Docker healthy)\n"; \
+			else \
+				printf "$(C_YELLOW)[Go]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
+				cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d postgres 2>&1; \
+				PG_STARTED="yes"; \
+				printf "$(C_YELLOW)[Go]$(C_RESET) Waiting for PostgreSQL healthcheck...\n"; \
+				i=0; \
+				while [ $$i -lt 60 ]; do \
+					if docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps postgres 2>/dev/null | grep -q "healthy"; then \
+						printf "$(C_GREEN)[Go]$(C_RESET) PostgreSQL is ready!\n"; \
+						break; \
+					fi; \
+					sleep 2; \
+					i=$$((i + 1)); \
+				done; \
+				if [ $$i -ge 60 ]; then \
+					printf "$(C_RED)[Go]$(C_RESET) ERROR: PostgreSQL did not become ready within 120 seconds\n"; \
+					docker compose -f "$(ROOT)/deploy/docker-compose.yml" logs postgres 2>&1 | tail -20; \
+					exit 1; \
+				fi; \
+			fi; \
 		fi; \
-	done; \
-	if [ -n "$$failed" ]; then \
-		printf "$(C_RED)[FAIL]$(C_RESET) Go integration tests failed in:$$failed\n"; \
-		exit 1; \
-	fi
+		printf "$(C_CYAN)[Go]$(C_RESET) ensuring vedo_org_test database exists...\n"; \
+		if command -v docker >/dev/null 2>&1; then \
+			docker compose -f "$(ROOT)/deploy/docker-compose.yml" exec -T postgres \
+				psql -U postgres -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='vedo_org_test'" 2>/dev/null | grep -q 1 || \
+			docker compose -f "$(ROOT)/deploy/docker-compose.yml" exec -T postgres \
+				psql -U postgres -d postgres -c "CREATE DATABASE vedo_org_test" 2>&1; \
+		fi; \
+		failed=""; \
+		for dir in ticket-api org-api auth-service-org; do \
+			p="$(ROOT)/tests/integration/$$dir"; \
+			if [ -d "$$p" ]; then \
+				printf "$(C_CYAN)[Go]$(C_RESET) integration — $$dir\n"; \
+				cd "$$p" && go test ./... 2>&1 || failed="$$failed $$dir"; \
+			fi; \
+		done; \
+		if [ -n "$$PG_STARTED" ]; then \
+			printf "$(C_YELLOW)[Go]$(C_RESET) Stopping auto-started PostgreSQL...\n"; \
+			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml stop postgres 2>&1; \
+		fi; \
+		if [ -n "$$failed" ]; then \
+			printf "$(C_RED)[FAIL]$(C_RESET) Go integration tests failed in:$$failed\n"; \
+			exit 1; \
+		fi
 
 .PHONY: test-versioning-fast test-versioning-full
 test-versioning-fast: ## Versioning integration — fail-fast (auto-starts PostgreSQL if not running)
@@ -523,39 +825,105 @@ test-e2e-gui-full: ## E2E GUI tests — full run (no max-failures)
 	@printf "$(C_CYAN)[E2E]$(C_RESET) running GUI tests (full)...\n"
 	@cd "$(ROOT)/tests/e2e" && pnpm exec playwright test --config=config/playwright.gui.config.ts --max-failures=0
 
-.PHONY: test-gates-fast test-gates-full
-test-gates-fast: ## Gate tests — fail-fast (contract + security + manifests + quality)
-	@printf "$(C_CYAN)[Gates]$(C_RESET) fail-fast mode\n"
-	@printf "$(C_CYAN)[Gates]$(C_RESET) contract tests...\n"
-	@bash $(ROOT)/tests/gates/test_contract_gate.sh
-	@printf "$(C_CYAN)[Gates]$(C_RESET) BOLA/BFLA security tests...\n"
-	@bash $(ROOT)/tests/gates/test_bola_bfla_gate.sh
-	@printf "$(C_CYAN)[Gates]$(C_RESET) Python service manifest validation...\n"
-	@bash $(ROOT)/tests/gates/test_python_manifests.sh
-	@printf "$(C_CYAN)[Gates]$(C_RESET) static test quality (anti-patterns + TQS)...\n"
-	@bash $(ROOT)/tools/scripts/test-quality-gate.sh --score $(ROOT)/apps/services
-	@printf "$(C_CYAN)[Gates]$(C_RESET) traceability (TTL → RCS)...\n"
-	@bash $(ROOT)/tools/scripts/traceability-validator.sh
-	@printf "$(C_GREEN)[Gates]$(C_RESET) all gates + quality checks passed\n"
+.PHONY: test-gates-fast test-gates-full test-gates-security-fast test-gates-security-full
+test-gates-fast: ## Gate tests — fail-fast (unit + static, no infra needed)
+		@printf "$(C_CYAN)[Gates]$(C_RESET) fail-fast mode\n"
+		@printf "$(C_CYAN)[Gates]$(C_RESET) contract tests (Go unit + build checks)...\n"
+		@bash $(ROOT)/tests/gates/test_contract_gate.sh
+		@printf "$(C_CYAN)[Gates]$(C_RESET) BOLA/BFLA unit tests (auth middleware)...\n"
+		@bash $(ROOT)/tests/gates/test_bola_bfla_gate.sh
+		@printf "$(C_CYAN)[Gates]$(C_RESET) Python service manifest validation...\n"
+		@bash $(ROOT)/tests/gates/test_python_manifests.sh
+		@printf "$(C_CYAN)[Gates]$(C_RESET) static test quality (anti-patterns + TQS)...\n"
+		@bash $(ROOT)/tools/scripts/test-quality-gate.sh --score $(ROOT)/apps/services
+		@printf "$(C_CYAN)[Gates]$(C_RESET) traceability (TTL → RCS)...\n"
+		@bash $(ROOT)/tools/scripts/traceability-validator.sh
+		@printf "$(C_GREEN)[Gates]$(C_RESET) all gates + quality checks passed\n"
 
-test-gates-full: ## Gate tests — full statistics (collect all failures)
-	@gate_failures=""; \
-	printf "$(C_CYAN)[Gates]$(C_RESET) full statistics mode\n"; \
-	printf "$(C_CYAN)[Gates]$(C_RESET) contract tests...\n"; \
-	bash $(ROOT)/tests/gates/test_contract_gate.sh 2>&1 || gate_failures="$${gate_failures} contract"; \
-	printf "$(C_CYAN)[Gates]$(C_RESET) BOLA/BFLA security tests...\n"; \
-	bash $(ROOT)/tests/gates/test_bola_bfla_gate.sh 2>&1 || gate_failures="$${gate_failures} bola-bfla"; \
-	printf "$(C_CYAN)[Gates]$(C_RESET) Python service manifest validation...\n"; \
-	bash $(ROOT)/tests/gates/test_python_manifests.sh 2>&1 || gate_failures="$${gate_failures} python-manifests"; \
-	printf "$(C_CYAN)[Gates]$(C_RESET) static test quality...\n"; \
-	bash $(ROOT)/tools/scripts/test-quality-gate.sh --score $(ROOT)/apps/services 2>&1 || gate_failures="$${gate_failures} test-quality"; \
-	printf "$(C_CYAN)[Gates]$(C_RESET) traceability...\n"; \
-	bash $(ROOT)/tools/scripts/traceability-validator.sh 2>&1 || gate_failures="$${gate_failures} traceability"; \
-	if [ -n "$$gate_failures" ]; then \
-		printf "$(C_RED)[FAIL]$(C_RESET) Gates FAILED:$$gate_failures\n"; \
-		exit 1; \
-	fi; \
-	printf "$(C_GREEN)[Gates]$(C_RESET) all gates + quality checks passed\n"
+test-gates-full: ## Gate tests — full statistics (unit + static, collect all failures)
+		@gate_failures=""; \
+		printf "$(C_CYAN)[Gates]$(C_RESET) full statistics mode\n"; \
+		printf "$(C_CYAN)[Gates]$(C_RESET) contract tests...\n"; \
+		bash $(ROOT)/tests/gates/test_contract_gate.sh 2>&1 || gate_failures="$${gate_failures} contract"; \
+		printf "$(C_CYAN)[Gates]$(C_RESET) BOLA/BFLA unit tests...\n"; \
+		bash $(ROOT)/tests/gates/test_bola_bfla_gate.sh 2>&1 || gate_failures="$${gate_failures} bola-bfla"; \
+		printf "$(C_CYAN)[Gates]$(C_RESET) Python service manifest validation...\n"; \
+		bash $(ROOT)/tests/gates/test_python_manifests.sh 2>&1 || gate_failures="$${gate_failures} python-manifests"; \
+		printf "$(C_CYAN)[Gates]$(C_RESET) static test quality...\n"; \
+		bash $(ROOT)/tools/scripts/test-quality-gate.sh --score $(ROOT)/apps/services 2>&1 || gate_failures="$${gate_failures} test-quality"; \
+		printf "$(C_CYAN)[Gates]$(C_RESET) traceability...\n"; \
+		bash $(ROOT)/tools/scripts/traceability-validator.sh 2>&1 || gate_failures="$${gate_failures} traceability"; \
+		if [ -n "$$gate_failures" ]; then \
+			printf "$(C_RED)[FAIL]$(C_RESET) Gates FAILED:$$gate_failures\n"; \
+			exit 1; \
+		fi; \
+		printf "$(C_GREEN)[Gates]$(C_RESET) all gates + quality checks passed\n"
+
+test-gates-security-fast: ## Security integration tests — fail-fast (requires Docker test stack, auto-starts if missing)
+		@printf "$(C_CYAN)[Security]$(C_RESET) checking Docker test stack availability...\n"
+		@rm -f /tmp/vedo-test-stack
+		@if curl -sf http://localhost:8080/api/v1/health >/dev/null 2>&1; then \
+			printf "$(C_GREEN)[Security]$(C_RESET) API Gateway is available\n"; \
+		else \
+			printf "$(C_YELLOW)[Security]$(C_RESET) API Gateway not available — starting Docker test stack...\n"; \
+			cd "$(ROOT)" && $(MAKE) docker-up-test 2>&1; \
+			touch /tmp/vedo-test-stack; \
+			printf "$(C_YELLOW)[Security]$(C_RESET) Waiting for API Gateway readiness...\n"; \
+			i=0; \
+			while [ $$i -lt 120 ]; do \
+				if curl -sf http://localhost:8080/api/v1/health >/dev/null 2>&1; then \
+					printf "$(C_GREEN)[Security]$(C_RESET) API Gateway is ready!\n"; \
+					break; \
+				fi; \
+				sleep 5; \
+				i=$$((i + 1)); \
+			done; \
+			if [ $$i -ge 120 ]; then \
+				printf "$(C_RED)[Security]$(C_RESET) ERROR: API Gateway did not become ready within 10 minutes\n"; \
+				exit 1; \
+			fi; \
+		fi
+		@printf "$(C_CYAN)[Security]$(C_RESET) running BOLA/BFLA/RBAC full-stack integration tests...\n"
+		@bash $(ROOT)/tests/gates/test_security_integration.sh
+		@if [ -f /tmp/vedo-test-stack ]; then \
+			printf "$(C_YELLOW)[Security]$(C_RESET) Stopping auto-started Docker test stack...\n"; \
+			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.test down 2>&1; \
+			rm -f /tmp/vedo-test-stack; \
+		fi
+		@printf "$(C_GREEN)[Security]$(C_RESET) all security integration tests passed\n"
+
+test-gates-security-full: ## Security integration tests — full statistics (requires Docker test stack, auto-starts if missing)
+		@printf "$(C_CYAN)[Security]$(C_RESET) checking Docker test stack availability...\n"
+		@rm -f /tmp/vedo-test-stack
+		@if curl -sf http://localhost:8080/api/v1/health >/dev/null 2>&1; then \
+			printf "$(C_GREEN)[Security]$(C_RESET) API Gateway is available\n"; \
+		else \
+			printf "$(C_YELLOW)[Security]$(C_RESET) API Gateway not available — starting Docker test stack...\n"; \
+			cd "$(ROOT)" && $(MAKE) docker-up-test 2>&1; \
+			touch /tmp/vedo-test-stack; \
+			printf "$(C_YELLOW)[Security]$(C_RESET) Waiting for API Gateway readiness...\n"; \
+			i=0; \
+			while [ $$i -lt 120 ]; do \
+				if curl -sf http://localhost:8080/api/v1/health >/dev/null 2>&1; then \
+					printf "$(C_GREEN)[Security]$(C_RESET) API Gateway is ready!\n"; \
+					break; \
+				fi; \
+				sleep 5; \
+				i=$$((i + 1)); \
+			done; \
+			if [ $$i -ge 120 ]; then \
+				printf "$(C_RED)[Security]$(C_RESET) ERROR: API Gateway did not become ready within 10 minutes\n"; \
+				exit 1; \
+			fi; \
+		fi
+		@printf "$(C_CYAN)[Security]$(C_RESET) running BOLA/BFLA/RBAC full-stack integration tests...\n"
+		@bash $(ROOT)/tests/gates/test_security_integration.sh
+		@if [ -f /tmp/vedo-test-stack ]; then \
+			printf "$(C_YELLOW)[Security]$(C_RESET) Stopping auto-started Docker test stack...\n"; \
+			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.test down 2>&1; \
+			rm -f /tmp/vedo-test-stack; \
+		fi
+		@printf "$(C_GREEN)[Security]$(C_RESET) all security integration tests passed\n"
 
 .PHONY: coverage
 coverage: ## Run tests with coverage (Go only)
