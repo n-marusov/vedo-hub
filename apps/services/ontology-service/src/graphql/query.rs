@@ -132,6 +132,51 @@ pub struct QueryRoot;
 
 #[Object]
 impl QueryRoot {
+    // ── Ontology Queries ─────────────────────────────────────────────────────────
+
+    /// Retrieve ontology metadata by ID.
+    /// Returns basic info (id, label, description) for navigation context.
+    async fn ontology(
+        &self,
+        ctx: &Context<'_>,
+        #[graphql(desc = "Ontology ID")] ontology_id: String,
+    ) -> Result<Option<GqlOntology>> {
+        // Query Neo4j for ontology metadata if available
+        let pool = pool_from_ctx(ctx)?;
+        let q = neo4rs::query(
+            "MATCH (o:Ontology {id: $ontology_id}) RETURN o.name AS name, o.description AS desc",
+        )
+        .param("ontology_id", ontology_id.clone());
+
+        match pool.graph().execute(q).await {
+            Ok(mut result) => {
+                if let Ok(Some(row)) = result.next().await {
+                    let name: Option<String> =
+                        row.get("name").ok().filter(|s: &String| !s.is_empty());
+                    let desc: Option<String> =
+                        row.get("desc").ok().filter(|s: &String| !s.is_empty());
+                    Ok(Some(GqlOntology {
+                        id: ontology_id.clone(),
+                        label: name.unwrap_or_else(|| ontology_id.clone()),
+                        description: desc,
+                    }))
+                } else {
+                    // No Ontology node found — return minimal response with ID
+                    Ok(Some(GqlOntology {
+                        id: ontology_id.clone(),
+                        label: ontology_id,
+                        description: None,
+                    }))
+                }
+            }
+            Err(e) => {
+                // Database error — return None (ontology metadata is best-effort)
+                tracing::warn!(error = %e, "Failed to query ontology metadata");
+                Ok(None)
+            }
+        }
+    }
+
     // ── Class Queries ──────────────────────────────────────────────────────────
 
     /// Retrieve a single class by ID.

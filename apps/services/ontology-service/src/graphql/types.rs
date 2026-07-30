@@ -226,6 +226,18 @@ pub struct GqlGraphNeighborhood {
     pub edges: Vec<GqlGraphEdge>,
 }
 
+/// Ontology metadata (basic info for navigation context).
+/// Full metadata (description, visibility, members) is available via REST API.
+#[derive(SimpleObject)]
+#[graphql(name = "Ontology")]
+pub struct GqlOntology {
+    pub id: String,
+    /// Human-readable label. Falls back to ID if not available.
+    pub label: String,
+    /// Optional description.
+    pub description: Option<String>,
+}
+
 /// Result of a delete operation.
 #[derive(SimpleObject)]
 #[graphql(name = "DeleteResult")]
