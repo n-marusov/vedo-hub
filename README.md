@@ -15,6 +15,53 @@ cd vedo-hub && make docker-up
 
 **Prerequisites:** Docker 24+, Docker Compose v2+, Make.
 
+## Infrastructure
+
+`make docker-up` launches **22 services** in 5 startup phases, gated by healthcheck dependencies. Cold-start: **~5–6 min** (limited by Keycloak).
+
+### Startup Phases
+
+| Phase | ⏱ Est. | Services |
+|-------|--------|----------|
+| **0 — Infra** | ~210s | `neo4j`, `postgres`, `redis`, `rabbitmq`, `minio`, `keycloak` |
+| **1 — Core** | ~60s | `ontology-service`, `versioning-service`, `auth-service`, `metrics-service`, `publisher-service`, `commenting-service`, `ticket-api`, `ticket-notifier`, `ticket-classifier`, `ai-orchestration-service` |
+| **2 — Dependent** | ~30s | `document-extractor`, `ticket-telemetry-listener`, `public-browse-api` |
+| **3 — Gateway** | ~30s | `api-gateway` |
+| **4 — Frontends** | ~25s | `frontend`, `publish-browse-ui` |
+
+### Key Endpoints
+
+| Service | Port | URL |
+|---------|------|-----|
+| Frontend | `3000` | http://localhost:3000 |
+| API Gateway | `8080` | http://localhost:8080 |
+| Published Viewer | `3002` | http://localhost:3002 |
+| Keycloak | `8180` | http://localhost:8180 (`admin`/`admin`) |
+| Neo4j Browser | `7474` | http://localhost:7474 |
+| RabbitMQ Mgmt | `15672` | http://localhost:15672 |
+| MinIO Console | `9001` | http://localhost:9001 |
+
+### Infrastructure-Only Mode
+
+```bash
+make infra-up    # Start 6 infra services without the app stack
+make infra-down  # Stop them
+```
+
+### Profile Services
+
+Additional services behind `COMPOSE_PROFILE`:
+
+| Profile | Adds |
+|---------|------|
+| `documentation` | 4 doc servers (ports 5000–5003) |
+| `llm` | Ollama for local AI dev (port 11434) |
+| `local` / `ci` | `vedo-cli-build` (compile-only check) |
+
+```bash
+make docker-up COMPOSE_PROFILE=llm   # Start with local LLM
+```
+
 ---
 
 ## Common Tasks
