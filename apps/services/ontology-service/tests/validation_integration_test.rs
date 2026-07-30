@@ -41,13 +41,12 @@ async fn test_validate_ontology_returns_report() {
     let oid = common::test_ontology_id("validate_ok");
 
     // Seed a class to have some data to validate
-    let _ = pool
-        .graph()
-        .execute(
-            neo4rs::query("CREATE (c:Class {ontology_id:$id,id:'Person',label:'Person'})")
-                .param("id", oid.clone()),
-        )
-        .await;
+    common::execute_query(
+        &pool,
+        neo4rs::query("CREATE (c:Class {ontology_id:$id,id:'Person',label:'Person'})")
+            .param("id", oid.clone()),
+    )
+    .await;
 
     // Validate with default shapes
     let resp = app
@@ -92,13 +91,12 @@ async fn test_validate_with_custom_shacl_shapes() {
     let oid = common::test_ontology_id("validate_custom");
 
     // Seed a class
-    let _ = pool
-        .graph()
-        .execute(
-            neo4rs::query("CREATE (c:Class {ontology_id:$id,id:'Person',label:'Person'})")
-                .param("id", oid.clone()),
-        )
-        .await;
+    common::execute_query(
+        &pool,
+        neo4rs::query("CREATE (c:Class {ontology_id:$id,id:'Person',label:'Person'})")
+            .param("id", oid.clone()),
+    )
+    .await;
 
     // Custom SHACL shape in Turtle (simplified: requires Person to have a comment)
     let shapes = r#"
