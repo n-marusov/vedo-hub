@@ -798,30 +798,30 @@ test-e2e-full: ## E2E — full statistics (API + GUI)
 .PHONY: test-e2e-api-fast test-e2e-api-full
 test-e2e-api-fast: ## E2E API tests — fail-fast (max-failures=1)
 	@printf "$(C_CYAN)[E2E]$(C_RESET) installing dependencies...\n"
-	@cd "$(ROOT)/tests/e2e" && pnpm install --frozen-lockfile 2>&1 || pnpm install 2>&1
-	@cd "$(ROOT)/tests/e2e" && npx playwright install chromium 2>&1 || true
+	@cd "$(ROOT)/tests/e2e" && CI=true pnpm install --frozen-lockfile 2>&1 || CI=true pnpm install 2>&1
+	@cd "$(ROOT)/tests/e2e" && CI=true npx --yes playwright install chromium 2>&1 || true
 	@printf "$(C_CYAN)[E2E]$(C_RESET) running API tests (fail-fast)...\n"
 	@cd "$(ROOT)/tests/e2e" && pnpm exec playwright test --config=config/playwright.api.config.ts --max-failures=1
 
 test-e2e-api-full: ## E2E API tests — full run (with retries, no max-failures)
 	@printf "$(C_CYAN)[E2E]$(C_RESET) installing dependencies...\n"
-	@cd "$(ROOT)/tests/e2e" && pnpm install --frozen-lockfile 2>&1 || pnpm install 2>&1
-	@cd "$(ROOT)/tests/e2e" && npx playwright install chromium 2>&1 || true
+	@cd "$(ROOT)/tests/e2e" && CI=true pnpm install --frozen-lockfile 2>&1 || CI=true pnpm install 2>&1
+	@cd "$(ROOT)/tests/e2e" && CI=true npx --yes playwright install chromium 2>&1 || true
 	@printf "$(C_CYAN)[E2E]$(C_RESET) running API tests (full)...\n"
 	@cd "$(ROOT)/tests/e2e" && pnpm exec playwright test --config=config/playwright.api.config.ts
 
 .PHONY: test-e2e-gui-fast test-e2e-gui-full
 test-e2e-gui-fast: ## E2E GUI tests — fail-fast (maxFailures=1 in config)
 	@printf "$(C_CYAN)[E2E]$(C_RESET) installing dependencies...\n"
-	@cd "$(ROOT)/tests/e2e" && pnpm install --frozen-lockfile 2>&1 || pnpm install 2>&1
-	@cd "$(ROOT)/tests/e2e" && npx playwright install chromium 2>&1 || true
+	@cd "$(ROOT)/tests/e2e" && CI=true pnpm install --frozen-lockfile 2>&1 || CI=true pnpm install 2>&1
+	@cd "$(ROOT)/tests/e2e" && CI=true npx --yes playwright install chromium 2>&1 || true
 	@printf "$(C_CYAN)[E2E]$(C_RESET) running GUI tests (fail-fast)...\n"
 	@cd "$(ROOT)/tests/e2e" && pnpm exec playwright test --config=config/playwright.gui.config.ts
 
 test-e2e-gui-full: ## E2E GUI tests — full run (no max-failures)
 	@printf "$(C_CYAN)[E2E]$(C_RESET) installing dependencies...\n"
-	@cd "$(ROOT)/tests/e2e" && pnpm install --frozen-lockfile 2>&1 || pnpm install 2>&1
-	@cd "$(ROOT)/tests/e2e" && npx playwright install chromium 2>&1 || true
+	@cd "$(ROOT)/tests/e2e" && CI=true pnpm install --frozen-lockfile 2>&1 || CI=true pnpm install 2>&1
+	@cd "$(ROOT)/tests/e2e" && CI=true npx --yes playwright install chromium 2>&1 || true
 	@printf "$(C_CYAN)[E2E]$(C_RESET) running GUI tests (full)...\n"
 	@cd "$(ROOT)/tests/e2e" && pnpm exec playwright test --config=config/playwright.gui.config.ts --max-failures=0
 
