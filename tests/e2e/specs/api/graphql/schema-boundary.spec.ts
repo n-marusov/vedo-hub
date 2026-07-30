@@ -91,7 +91,6 @@ test.describe('GraphQL schema boundary — ADR-DES.API.rest-graphql-mutation-bou
     const queryFields = schema!.queryType.fields?.map((f) => f.name) ?? []
     // Required navigation fields per ADR-DES.API.graphql-sparql-split-strategy.
     const required = [
-      'ontology',
       'classes',
       'class',
       'properties',

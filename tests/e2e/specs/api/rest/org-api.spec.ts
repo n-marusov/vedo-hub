@@ -48,7 +48,10 @@ test.describe('Org REST API', () => {
       test.skip(!createdGroupId, 'no group created');
       const res = await page.request.put(`${API}/groups/${createdGroupId}`, {
         data: { label: 'UpdatedGroup', description: 'Updated description' },
-        headers: { Authorization: `Bearer ${OWNER_JWT}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${OWNER_JWT}`,
+        },
       });
       expect([200, 404]).toContain(res.status());
       if (res.ok()) {
