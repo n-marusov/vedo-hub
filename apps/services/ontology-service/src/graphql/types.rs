@@ -3,7 +3,19 @@
 //! Each type mirrors a domain struct from `classes.rs`, `properties.rs`,
 //! or `individuals.rs` and delegates to the existing `async_graphql` macros.
 
-use async_graphql::{Enum, SimpleObject};
+use async_graphql::{Enum, Interface, SimpleObject};
+
+/// The entity type discriminator for the `Entity` interface.
+#[derive(Enum, Copy, Clone, Eq, PartialEq, Debug)]
+#[graphql(name = "EntityType")]
+pub enum GqlEntityType {
+    /// A class in the TBox.
+    Class,
+    /// A property (object, datatype, or annotation).
+    Property,
+    /// An individual in the ABox.
+    Individual,
+}
 
 /// A class in the ontology hierarchy (`TBox`).
 #[derive(SimpleObject)]
@@ -12,8 +24,14 @@ pub struct GqlClass {
     pub id: String,
     pub label: String,
     pub comment: Option<String>,
+    #[graphql(name = "entityType")]
+    pub entity_type: GqlEntityType,
     pub parents: Vec<String>,
     pub children: Vec<String>,
+    #[graphql(name = "isAbstract")]
+    pub is_abstract: bool,
+    #[graphql(name = "isDeprecated")]
+    pub is_deprecated: bool,
 }
 
 /// Lightweight class summary used in list responses.
@@ -55,11 +73,12 @@ pub struct GqlClassConnection {
 }
 
 /// The property type discriminator.
-#[derive(Enum, Copy, Clone, Eq, PartialEq)]
+#[derive(Enum, Copy, Clone, Eq, PartialEq, Debug)]
 #[graphql(name = "PropertyType")]
 pub enum GqlPropertyType {
     Object,
     Datatype,
+    Annotation,
 }
 
 impl From<crate::properties::PropertyType> for GqlPropertyType {
@@ -67,6 +86,7 @@ impl From<crate::properties::PropertyType> for GqlPropertyType {
         match t {
             crate::properties::PropertyType::Object => GqlPropertyType::Object,
             crate::properties::PropertyType::Datatype => GqlPropertyType::Datatype,
+            crate::properties::PropertyType::Annotation => GqlPropertyType::Annotation,
         }
     }
 }
@@ -76,6 +96,7 @@ impl From<GqlPropertyType> for crate::properties::PropertyType {
         match t {
             GqlPropertyType::Object => crate::properties::PropertyType::Object,
             GqlPropertyType::Datatype => crate::properties::PropertyType::Datatype,
+            GqlPropertyType::Annotation => crate::properties::PropertyType::Annotation,
         }
     }
 }
@@ -126,6 +147,8 @@ pub struct GqlProperty {
     pub id: String,
     pub label: String,
     pub comment: Option<String>,
+    #[graphql(name = "entityType")]
+    pub entity_type: GqlEntityType,
     pub property_type: GqlPropertyType,
     pub domains: Vec<String>,
     pub ranges: Vec<String>,
@@ -184,6 +207,8 @@ pub struct GqlIndividual {
     pub id: String,
     pub label: String,
     pub comment: Option<String>,
+    #[graphql(name = "entityType")]
+    pub entity_type: GqlEntityType,
     pub class_id: String,
     pub class_label: String,
     pub literal_values: Vec<GqlLiteralValue>,
@@ -226,16 +251,24 @@ pub struct GqlGraphNeighborhood {
     pub edges: Vec<GqlGraphEdge>,
 }
 
-/// Ontology metadata (basic info for navigation context).
-/// Full metadata (description, visibility, members) is available via REST API.
-#[derive(SimpleObject)]
-#[graphql(name = "Ontology")]
-pub struct GqlOntology {
-    pub id: String,
-    /// Human-readable label. Falls back to ID if not available.
-    pub label: String,
-    /// Optional description.
-    pub description: Option<String>,
+/// The `Entity` interface — common fields exposed by all graph-navigation
+/// types (`Class`, `Property`, `Individual`).
+///
+/// Required by ADR-DES.API.graphql-sparql-split-strategy §"Разделение
+/// ответственности" (полиморфизм: интерфейс `Entity`).
+#[derive(Interface)]
+#[allow(clippy::duplicated_attributes)] // false positive: same `ty` on distinct interface fields
+#[graphql(
+    name = "Entity",
+    field(name = "id", ty = "&String"),
+    field(name = "label", ty = "&String"),
+    field(name = "comment", ty = "&Option<String>"),
+    field(name = "entityType", method = "entity_type", ty = "&GqlEntityType")
+)]
+pub enum GqlEntity {
+    Class(GqlClass),
+    Property(GqlProperty),
+    Individual(GqlIndividual),
 }
 
 /// Result of a delete operation.

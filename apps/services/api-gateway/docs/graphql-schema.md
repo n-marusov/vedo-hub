@@ -24,6 +24,25 @@ GraphQL in VEDO Core is a **read-only navigation layer** for the 2D/3D ontology 
 
 All field names below are camelCased at the wire level (async-graphql converts Rust snake_case to GraphQL camelCase by default).
 
+### 2.0 Entity interface
+
+Every graph-navigation entity (`Class`, `Property`, `Individual`) implements the `Entity` interface.
+
+```graphql
+interface Entity {
+  id: String!
+  label: String!
+  comment: String
+  entityType: EntityType!
+}
+
+enum EntityType {
+  CLASS
+  PROPERTY
+  INDIVIDUAL
+}
+```
+
 ### 2.1 Classes
 
 | Field | Args | Returns |
@@ -37,12 +56,15 @@ All field names below are camelCased at the wire level (async-graphql converts R
 | `autocompleteClasses` | `ontologyId: String!`, `q: String!`, `limit: Int = 20` | `[ClassSummary!]!` |
 
 ```graphql
-type Class {
+type Class implements Entity {
   id: String!
   label: String!
   comment: String
+  entityType: EntityType!
   parents: [String!]!
   children: [String!]!
+  isAbstract: Boolean!
+  isDeprecated: Boolean!
 }
 
 type ClassSummary {
@@ -99,12 +121,14 @@ type ClassConnection {
 enum PropertyType {
   OBJECT
   DATATYPE
+  ANNOTATION
 }
 
-type Property {
+type Property implements Entity {
   id: String!
   label: String!
   comment: String
+  entityType: EntityType!
   propertyType: PropertyType!
   domains: [String!]!
   ranges: [String!]!
@@ -137,10 +161,11 @@ type PropertyConnection {
 | `individuals` | `ontologyId: String!`, `classId: String!`, `q: String`, `page: Int = 0`, `perPage: Int = 20` | `IndividualConnection!` |
 
 ```graphql
-type Individual {
+type Individual implements Entity {
   id: String!
   label: String!
   comment: String
+  entityType: EntityType!
   classId: String!
   classLabel: String!
   literalValues: [LiteralValue!]!

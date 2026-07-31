@@ -57,22 +57,22 @@ interface IntrospectionSchema {
   mutationType: IntrospectionType | null
 }
 
-interface GraphQLResponse {
-  data?: { __schema: IntrospectionSchema }
+interface GraphQLResponse<TData = { __schema: IntrospectionSchema }> {
+  data?: TData
   errors?: Array<{ message: string }>
 }
 
-async function fetchGraphQL(
+async function fetchGraphQL<TData = { __schema: IntrospectionSchema }>(
   request: import('@playwright/test').APIRequestContext,
   query: string,
   variables: Record<string, unknown> = {},
-): Promise<GraphQLResponse> {
+): Promise<GraphQLResponse<TData>> {
   const res = await request.post(`${BASE}/graphql`, {
     headers: AUTH,
     data: { query, variables },
   })
   expect(res.status()).toBeLessThan(500)
-  return (await res.json()) as GraphQLResponse
+  return (await res.json()) as GraphQLResponse<TData>
 }
 
 test.describe('GraphQL schema boundary — ADR-DES.API.rest-graphql-mutation-boundary', () => {
@@ -131,6 +131,39 @@ test.describe('GraphQL schema boundary — ADR-DES.API.rest-graphql-mutation-bou
     const queryFields = schema!.queryType.fields?.map((f) => f.name) ?? []
     expect(queryFields, 'sparqlQuery must not appear on Query root').not.toContain('sparqlQuery')
     expect(queryFields, 'cypherQuery must not appear on Query root').not.toContain('cypherQuery')
+  })
+
+  test('Entity interface exists and Class implements it', async ({ request }) => {
+    // Per ADR-DES.API.graphql-sparql-split-strategy: polymorphism via the
+    // Entity interface implemented by Class, Property, Individual.
+    const resp = await fetchGraphQL(
+      request,
+      `query EntityContract {
+        entityType: __type(name: "Entity") { kind }
+        classType: __type(name: "Class") { interfaces { name } fields { name } }
+        propertyTypeEnum: __type(name: "PropertyType") { enumValues { name } }
+      }`,
+    )
+    expect(resp.errors ?? []).toEqual([])
+    const data = resp.data as unknown as {
+      entityType: { kind: string }
+      classType: {
+        interfaces: Array<{ name: string }>
+        fields: Array<{ name: string }>
+      }
+      propertyTypeEnum: { enumValues: Array<{ name: string }> }
+    }
+    expect(data.entityType.kind).toBe('INTERFACE')
+    const ifaces = data.classType.interfaces.map((i) => i.name)
+    expect(ifaces).toContain('Entity')
+    const classFields = data.classType.fields.map((f) => f.name)
+    expect(classFields).toContain('isAbstract')
+    expect(classFields).toContain('isDeprecated')
+    expect(classFields).toContain('entityType')
+    const enumValues = data.propertyTypeEnum.enumValues.map((v) => v.name)
+    expect(enumValues).toContain('ANNOTATION')
+    expect(enumValues).toContain('OBJECT')
+    expect(enumValues).toContain('DATATYPE')
   })
 
   test('Mutation root does NOT expose entity CRUD mutations', () => {
@@ -196,7 +229,7 @@ test.describe('GraphQL schema boundary — ADR-DES.API.rest-graphql-mutation-bou
 
   test('Navigation query execution works (classes)', async ({ request }) => {
     // Execute a real navigation query to confirm the read path still works.
-    const resp = await fetchGraphQL(
+    const resp = await fetchGraphQL<{ classes: { items: Array<{ id: string; label: string }>; total: number } }>(
       request,
       `query ClassesNav($ontologyId: String!) {
         classes(ontologyId: $ontologyId, page: 0, perPage: 5) {

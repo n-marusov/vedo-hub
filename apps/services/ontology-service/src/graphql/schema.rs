@@ -8,6 +8,7 @@
 use async_graphql::{EmptyMutation, EmptySubscription, Schema};
 
 use super::query::QueryRoot;
+use super::types::GqlEntity;
 
 /// The composed GraphQL schema type.
 pub type OntologySchema = Schema<QueryRoot, EmptyMutation, EmptySubscription>;
@@ -26,6 +27,9 @@ pub type OntologySchema = Schema<QueryRoot, EmptyMutation, EmptySubscription>;
 ///     `CircuitBreakerMiddleware` `DoS` protection.
 pub fn build_schema() -> OntologySchema {
     Schema::build(QueryRoot, EmptyMutation, EmptySubscription)
+        // Register the Entity interface explicitly — no resolver returns it
+        // directly, but its implementors (Class/Property/Individual) are used.
+        .register_output_type::<GqlEntity>()
         .enable_federation()
         .finish()
 }
