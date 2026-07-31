@@ -25,8 +25,9 @@ test-go-fast: ## Go tests — fail-fast (go test, stops at first failure)
 	@if [ -z "$(GO_DIRS)" ]; then echo "No Go services found"; exit 0; fi
 	@for dir in $(GO_DIRS); do \
 		printf "$(C_CYAN)[Go]$(C_RESET) testing $$(basename $$dir)\n"; \
-		cd $(ROOT)/$$dir && go test ./... 2>&1; \
-	done
+		cd $(ROOT)/$$dir && go test ./... 2>&1 || { printf "$(C_RED)[FAIL]$(C_RESET) go test failed in $$dir\n"; exit 1; }; \
+	done; \
+	printf "$(C_GREEN)[PASS]$(C_RESET) All Go tests passed\n"
 
 test-go-full: ## Go tests — full statistics (collect all failures)
 	@if [ -z "$(GO_DIRS)" ]; then echo "No Go services found"; exit 0; fi
@@ -36,9 +37,10 @@ test-go-full: ## Go tests — full statistics (collect all failures)
 		cd $(ROOT)/$$dir && go test ./... 2>&1 || failed="$$failed $$(basename $$dir)"; \
 	done; \
 	if [ -n "$$failed" ]; then \
-		printf "$(C_RED)TEST_FAILED:$(C_RESET) go test failed in:$$failed\n"; \
+		printf "$(C_RED)[FAIL]$(C_RESET) go test failed in:$$failed\n"; \
 		exit 1; \
-	fi
+	fi; \
+	printf "$(C_GREEN)[PASS]$(C_RESET) All Go tests passed\n"
 
 .PHONY: vendor-go
 vendor-go: ## Populate vendor directories for all Go services (enables offline Docker builds)

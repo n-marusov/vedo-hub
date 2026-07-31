@@ -25,15 +25,17 @@ test-rust-fast: ## Rust tests — fail-fast (cargo test, stops at first failure)
 	@if [ -z "$(RUST_DIRS)" ]; then echo "No Rust services found"; exit 0; fi
 	@for dir in $(RUST_DIRS); do \
 		printf "$(C_CYAN)[Rust]$(C_RESET) testing $$(basename $$dir)\n"; \
-		cd $$dir && cargo test 2>&1; \
-	done
+		cd $$dir && cargo test 2>&1 || { printf "$(C_RED)[FAIL]$(C_RESET) cargo test failed in $$dir\n"; exit 1; }; \
+	done; \
+	printf "$(C_GREEN)[PASS]$(C_RESET) All Rust tests passed\n"
 
 test-rust-fast-unit: ## Rust unit tests — fail-fast (cargo test --lib, stops at first failure)
 	@if [ -z "$(RUST_DIRS)" ]; then echo "No Rust services found"; exit 0; fi
 	@for dir in $(RUST_DIRS); do \
 		printf "$(C_CYAN)[Rust]$(C_RESET) unit testing $$(basename $$dir)\n"; \
-		cd $$dir && cargo test --lib 2>&1; \
-	done
+		cd $$dir && cargo test --lib 2>&1 || { printf "$(C_RED)[FAIL]$(C_RESET) cargo test --lib failed in $$dir\n"; exit 1; }; \
+	done; \
+	printf "$(C_GREEN)[PASS]$(C_RESET) All Rust unit tests passed\n"
 
 test-rust-full: ## Rust tests — full statistics (collect all failures)
 	@if [ -z "$(RUST_DIRS)" ]; then echo "No Rust services found"; exit 0; fi
@@ -43,9 +45,10 @@ test-rust-full: ## Rust tests — full statistics (collect all failures)
 		cd $$dir && cargo test 2>&1 || failed="$$failed $$(basename $$dir)"; \
 	done; \
 	if [ -n "$$failed" ]; then \
-		printf "$(C_RED)TEST_FAILED:$(C_RESET) cargo test failed in:$$failed\n"; \
+		printf "$(C_RED)[FAIL]$(C_RESET) cargo test failed in:$$failed\n"; \
 		exit 1; \
-	fi
+	fi; \
+	printf "$(C_GREEN)[PASS]$(C_RESET) All Rust tests passed\n"
 
 test-rust-full-unit: ## Rust unit tests — full statistics (collect all failures)
 	@if [ -z "$(RUST_DIRS)" ]; then echo "No Rust services found"; exit 0; fi
@@ -55,9 +58,10 @@ test-rust-full-unit: ## Rust unit tests — full statistics (collect all failure
 		cd $$dir && cargo test --lib 2>&1 || failed="$$failed $$(basename $$dir)"; \
 	done; \
 	if [ -n "$$failed" ]; then \
-		printf "$(C_RED)TEST_FAILED:$(C_RESET) rust unit tests failed in:$$failed\n"; \
+		printf "$(C_RED)[FAIL]$(C_RESET) rust unit tests failed in:$$failed\n"; \
 		exit 1; \
-	fi
+	fi; \
+	printf "$(C_GREEN)[PASS]$(C_RESET) All Rust unit tests passed\n"
 
 .PHONY: clean-rust
 clean-rust:

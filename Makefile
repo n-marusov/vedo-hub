@@ -342,6 +342,7 @@ test-integration-fast: ## Integration tests — fail-fast (auto-starts Neo4j + P
 			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml stop postgres 2>&1; \
 			rm -f /tmp/vedo-test-pg; \
 		fi
+		@printf "$(C_GREEN)[PASS]$(C_RESET) All integration tests passed\n"
 
 test-integration-full: ## Integration tests — full statistics (auto-starts Neo4j + PostgreSQL once)
 		@printf "$(C_CYAN)[Integration]$(C_RESET) full statistics mode\n"
@@ -491,7 +492,8 @@ test-integration-rust-fast: ## Rust integration tests — fail-fast (auto-starts
 	if [ -n "$$NEO4J_STARTED" ]; then \
 		printf "$(C_YELLOW)[Integration]$(C_RESET) Stopping auto-started Neo4j...\n"; \
 		cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev stop neo4j 2>&1; \
-	fi
+	fi; \
+	printf "$(C_GREEN)[PASS]$(C_RESET) All Rust integration tests passed\n"
 
 test-integration-rust-full: ## Rust integration tests — full statistics (collect all failures)
 	@NEO4J_STARTED=""; \
@@ -543,7 +545,8 @@ test-integration-rust-full: ## Rust integration tests — full statistics (colle
 	if [ $$RESULT -ne 0 ]; then \
 		printf "$(C_RED)[FAIL]$(C_RESET) Some Rust integration tests failed\n"; \
 		exit 1; \
-	fi
+	fi; \
+	printf "$(C_GREEN)[PASS]$(C_RESET) All Rust integration tests passed\n"
 
 .PHONY: test-integration-go-fast test-integration-go-full
 test-integration-go-fast: ## Go integration tests — fail-fast (auto-starts PostgreSQL if not running)
@@ -613,7 +616,8 @@ test-integration-go-fast: ## Go integration tests — fail-fast (auto-starts Pos
 		if [ -n "$$PG_STARTED" ]; then \
 			printf "$(C_YELLOW)[Go]$(C_RESET) Stopping auto-started PostgreSQL...\n"; \
 			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml stop postgres 2>&1; \
-		fi
+		fi; \
+		printf "$(C_GREEN)[PASS]$(C_RESET) All Go integration tests passed\n"
 
 test-integration-go-full: ## Go integration tests — full statistics (auto-starts PostgreSQL if not running)
 		@printf "$(C_CYAN)[Go]$(C_RESET) checking PostgreSQL availability...\n"
@@ -687,7 +691,8 @@ test-integration-go-full: ## Go integration tests — full statistics (auto-star
 		if [ -n "$$failed" ]; then \
 			printf "$(C_RED)[FAIL]$(C_RESET) Go integration tests failed in:$$failed\n"; \
 			exit 1; \
-		fi
+		fi; \
+		printf "$(C_GREEN)[PASS]$(C_RESET) All Go integration tests passed\n"
 
 .PHONY: test-versioning-fast test-versioning-full
 test-versioning-fast: ## Versioning integration — fail-fast (auto-starts PostgreSQL if not running)
@@ -721,11 +726,13 @@ test-versioning-fast: ## Versioning integration — fail-fast (auto-starts Postg
 	fi; \
 	export PG_TEST_DATABASE_URL="$$PG_URL"; \
 	export DATABASE_URL="$$PG_URL"; \
+	RESULT=0; \
 	printf "$(C_CYAN)[Versioning]$(C_RESET) Running unit tests (fail-fast)...\n"; \
-	cd "$(ROOT)/apps/services/versioning-service" && cargo test --lib 2>&1; \
-	printf "$(C_CYAN)[Versioning]$(C_RESET) Running integration tests (fail-fast)...\n"; \
-	cd "$(ROOT)/apps/services/versioning-service" && cargo test --test '*' -- --test-threads=1 --nocapture 2>&1; \
-	RESULT=$$?; \
+	cd "$(ROOT)/apps/services/versioning-service" && cargo test --lib 2>&1 || RESULT=1; \
+	if [ $$RESULT -eq 0 ]; then \
+		printf "$(C_CYAN)[Versioning]$(C_RESET) Running integration tests (fail-fast)...\n"; \
+		cd "$(ROOT)/apps/services/versioning-service" && cargo test --test '*' -- --test-threads=1 --nocapture 2>&1 || RESULT=1; \
+	fi; \
 	if [ -n "$$PG_STARTED" ]; then \
 		printf "$(C_YELLOW)[Versioning]$(C_RESET) Stopping auto-started PostgreSQL...\n"; \
 		cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml stop postgres 2>&1; \
@@ -733,7 +740,8 @@ test-versioning-fast: ## Versioning integration — fail-fast (auto-starts Postg
 	if [ $$RESULT -ne 0 ]; then \
 		printf "$(C_RED)[FAIL]$(C_RESET) Versioning tests failed\n"; \
 		exit 1; \
-	fi
+	fi; \
+	printf "$(C_GREEN)[PASS]$(C_RESET) All versioning tests passed\n"
 
 test-versioning-full: ## Versioning integration — full statistics (collect all failures)
 	@printf "$(C_CYAN)[Versioning]$(C_RESET) checking PostgreSQL availability...\n"
@@ -766,16 +774,20 @@ test-versioning-full: ## Versioning integration — full statistics (collect all
 	fi; \
 	export PG_TEST_DATABASE_URL="$$PG_URL"; \
 	export DATABASE_URL="$$PG_URL"; \
+	RESULT=0; \
 	printf "$(C_CYAN)[Versioning]$(C_RESET) Running unit tests...\n"; \
-	cd "$(ROOT)/apps/services/versioning-service" && cargo test --lib 2>&1; \
+	cd "$(ROOT)/apps/services/versioning-service" && cargo test --lib 2>&1 || RESULT=1; \
 	printf "$(C_CYAN)[Versioning]$(C_RESET) Running integration tests...\n"; \
-	cd "$(ROOT)/apps/services/versioning-service" && cargo test --test '*' -- --test-threads=1 --nocapture 2>&1; \
-	RESULT=$$?; \
+	cd "$(ROOT)/apps/services/versioning-service" && cargo test --test '*' -- --test-threads=1 --nocapture 2>&1 || RESULT=1; \
 	if [ -n "$$PG_STARTED" ]; then \
 		printf "$(C_YELLOW)[Versioning]$(C_RESET) Stopping auto-started PostgreSQL...\n"; \
 		cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml stop postgres 2>&1; \
 	fi; \
-	exit $$RESULT
+	if [ $$RESULT -ne 0 ]; then \
+		printf "$(C_RED)[FAIL]$(C_RESET) Versioning tests failed\n"; \
+		exit 1; \
+	fi; \
+	printf "$(C_GREEN)[PASS]$(C_RESET) All versioning tests passed\n"
 
 ##@ Test — E2E (requires Docker test stack)
 
@@ -784,6 +796,7 @@ test-e2e-fast: ## E2E — fail-fast (API + GUI)
 	@printf "$(C_CYAN)[E2E]$(C_RESET) fail-fast mode\n"
 	@$(MAKE) test-e2e-api-fast
 	@$(MAKE) test-e2e-gui-fast
+	@printf "$(C_GREEN)[PASS]$(C_RESET) All E2E tests passed\n"
 
 test-e2e-full: ## E2E — full statistics (API + GUI)
 	@failed=0; \
@@ -793,7 +806,8 @@ test-e2e-full: ## E2E — full statistics (API + GUI)
 	if [ $$failed -ne 0 ]; then \
 		printf "$(C_RED)[FAIL]$(C_RESET) Some E2E tests failed\n"; \
 		exit 1; \
-	fi
+	fi; \
+	printf "$(C_GREEN)[PASS]$(C_RESET) All E2E tests passed\n"
 
 .PHONY: test-e2e-api-fast test-e2e-api-full
 test-e2e-api-fast: ## E2E API tests — fail-fast (max-failures=1)
@@ -801,14 +815,18 @@ test-e2e-api-fast: ## E2E API tests — fail-fast (max-failures=1)
 	@cd "$(ROOT)/tests/e2e" && CI=true pnpm install --frozen-lockfile 2>&1 || CI=true pnpm install 2>&1
 	@cd "$(ROOT)/tests/e2e" && CI=true npx --yes playwright install chromium 2>&1 || true
 	@printf "$(C_CYAN)[E2E]$(C_RESET) running API tests (fail-fast)...\n"
-	@cd "$(ROOT)/tests/e2e" && pnpm exec playwright test --config=config/playwright.api.config.ts --max-failures=1
+	@cd "$(ROOT)/tests/e2e" && pnpm exec playwright test --config=config/playwright.api.config.ts --max-failures=1 && \
+		printf "$(C_GREEN)[PASS]$(C_RESET) E2E API tests passed\n" || \
+		{ printf "$(C_RED)[FAIL]$(C_RESET) E2E API tests failed\n"; exit 1; }
 
 test-e2e-api-full: ## E2E API tests — full run (with retries, no max-failures)
 	@printf "$(C_CYAN)[E2E]$(C_RESET) installing dependencies...\n"
 	@cd "$(ROOT)/tests/e2e" && CI=true pnpm install --frozen-lockfile 2>&1 || CI=true pnpm install 2>&1
 	@cd "$(ROOT)/tests/e2e" && CI=true npx --yes playwright install chromium 2>&1 || true
 	@printf "$(C_CYAN)[E2E]$(C_RESET) running API tests (full)...\n"
-	@cd "$(ROOT)/tests/e2e" && pnpm exec playwright test --config=config/playwright.api.config.ts
+	@cd "$(ROOT)/tests/e2e" && pnpm exec playwright test --config=config/playwright.api.config.ts && \
+		printf "$(C_GREEN)[PASS]$(C_RESET) E2E API tests passed\n" || \
+		{ printf "$(C_RED)[FAIL]$(C_RESET) E2E API tests failed\n"; exit 1; }
 
 .PHONY: test-e2e-gui-fast test-e2e-gui-full
 test-e2e-gui-fast: ## E2E GUI tests — fail-fast (maxFailures=1 in config)
@@ -816,29 +834,33 @@ test-e2e-gui-fast: ## E2E GUI tests — fail-fast (maxFailures=1 in config)
 	@cd "$(ROOT)/tests/e2e" && CI=true pnpm install --frozen-lockfile 2>&1 || CI=true pnpm install 2>&1
 	@cd "$(ROOT)/tests/e2e" && CI=true npx --yes playwright install chromium 2>&1 || true
 	@printf "$(C_CYAN)[E2E]$(C_RESET) running GUI tests (fail-fast)...\n"
-	@cd "$(ROOT)/tests/e2e" && pnpm exec playwright test --config=config/playwright.gui.config.ts
+	@cd "$(ROOT)/tests/e2e" && pnpm exec playwright test --config=config/playwright.gui.config.ts && \
+		printf "$(C_GREEN)[PASS]$(C_RESET) E2E GUI tests passed\n" || \
+		{ printf "$(C_RED)[FAIL]$(C_RESET) E2E GUI tests failed\n"; exit 1; }
 
 test-e2e-gui-full: ## E2E GUI tests — full run (no max-failures)
 	@printf "$(C_CYAN)[E2E]$(C_RESET) installing dependencies...\n"
 	@cd "$(ROOT)/tests/e2e" && CI=true pnpm install --frozen-lockfile 2>&1 || CI=true pnpm install 2>&1
 	@cd "$(ROOT)/tests/e2e" && CI=true npx --yes playwright install chromium 2>&1 || true
 	@printf "$(C_CYAN)[E2E]$(C_RESET) running GUI tests (full)...\n"
-	@cd "$(ROOT)/tests/e2e" && pnpm exec playwright test --config=config/playwright.gui.config.ts --max-failures=0
+	@cd "$(ROOT)/tests/e2e" && pnpm exec playwright test --config=config/playwright.gui.config.ts --max-failures=0 && \
+		printf "$(C_GREEN)[PASS]$(C_RESET) E2E GUI tests passed\n" || \
+		{ printf "$(C_RED)[FAIL]$(C_RESET) E2E GUI tests failed\n"; exit 1; }
 
 .PHONY: test-gates-fast test-gates-full test-gates-security-fast test-gates-security-full
 test-gates-fast: ## Gate tests — fail-fast (unit + static, no infra needed)
 		@printf "$(C_CYAN)[Gates]$(C_RESET) fail-fast mode\n"
 		@printf "$(C_CYAN)[Gates]$(C_RESET) contract tests (Go unit + build checks)...\n"
-		@bash $(ROOT)/tests/gates/test_contract_gate.sh
+		@bash $(ROOT)/tests/gates/test_contract_gate.sh || { printf "$(C_RED)[FAIL]$(C_RESET) contract gate failed\n"; exit 1; }
 		@printf "$(C_CYAN)[Gates]$(C_RESET) BOLA/BFLA unit tests (auth middleware)...\n"
-		@bash $(ROOT)/tests/gates/test_bola_bfla_gate.sh
+		@bash $(ROOT)/tests/gates/test_bola_bfla_gate.sh || { printf "$(C_RED)[FAIL]$(C_RESET) bola-bfla gate failed\n"; exit 1; }
 		@printf "$(C_CYAN)[Gates]$(C_RESET) Python service manifest validation...\n"
-		@bash $(ROOT)/tests/gates/test_python_manifests.sh
+		@bash $(ROOT)/tests/gates/test_python_manifests.sh || { printf "$(C_RED)[FAIL]$(C_RESET) python-manifests gate failed\n"; exit 1; }
 		@printf "$(C_CYAN)[Gates]$(C_RESET) static test quality (anti-patterns + TQS)...\n"
-		@bash $(ROOT)/tools/scripts/test-quality-gate.sh --score $(ROOT)/apps/services
+		@bash $(ROOT)/tools/scripts/test-quality-gate.sh --score $(ROOT)/apps/services || { printf "$(C_RED)[FAIL]$(C_RESET) test-quality gate failed\n"; exit 1; }
 		@printf "$(C_CYAN)[Gates]$(C_RESET) traceability (TTL → RCS)...\n"
-		@bash $(ROOT)/tools/scripts/traceability-validator.sh
-		@printf "$(C_GREEN)[Gates]$(C_RESET) all gates + quality checks passed\n"
+		@bash $(ROOT)/tools/scripts/traceability-validator.sh || { printf "$(C_RED)[FAIL]$(C_RESET) traceability gate failed\n"; exit 1; }
+		@printf "$(C_GREEN)[PASS]$(C_RESET) all gates + quality checks passed\n"
 
 test-gates-full: ## Gate tests — full statistics (unit + static, collect all failures)
 		@gate_failures=""; \
@@ -857,7 +879,7 @@ test-gates-full: ## Gate tests — full statistics (unit + static, collect all f
 			printf "$(C_RED)[FAIL]$(C_RESET) Gates FAILED:$$gate_failures\n"; \
 			exit 1; \
 		fi; \
-		printf "$(C_GREEN)[Gates]$(C_RESET) all gates + quality checks passed\n"
+		printf "$(C_GREEN)[PASS]$(C_RESET) all gates + quality checks passed\n"
 
 test-gates-security-fast: ## Security integration tests — fail-fast (requires Docker test stack, auto-starts if missing)
 		@printf "$(C_CYAN)[Security]$(C_RESET) checking Docker test stack availability...\n"
@@ -884,13 +906,18 @@ test-gates-security-fast: ## Security integration tests — fail-fast (requires 
 			fi; \
 		fi
 		@printf "$(C_CYAN)[Security]$(C_RESET) running BOLA/BFLA/RBAC full-stack integration tests...\n"
-		@bash $(ROOT)/tests/gates/test_security_integration.sh
-		@if [ -f /tmp/vedo-test-stack ]; then \
+		@RESULT=0; \
+		bash $(ROOT)/tests/gates/test_security_integration.sh 2>&1 || RESULT=1; \
+		if [ -f /tmp/vedo-test-stack ]; then \
 			printf "$(C_YELLOW)[Security]$(C_RESET) Stopping auto-started Docker test stack...\n"; \
 			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.test down 2>&1; \
 			rm -f /tmp/vedo-test-stack; \
-		fi
-		@printf "$(C_GREEN)[Security]$(C_RESET) all security integration tests passed\n"
+		fi; \
+		if [ $$RESULT -ne 0 ]; then \
+			printf "$(C_RED)[FAIL]$(C_RESET) Security integration tests failed\n"; \
+			exit 1; \
+		fi; \
+		printf "$(C_GREEN)[PASS]$(C_RESET) All security integration tests passed\n"
 
 test-gates-security-full: ## Security integration tests — full statistics (requires Docker test stack, auto-starts if missing)
 		@printf "$(C_CYAN)[Security]$(C_RESET) checking Docker test stack availability...\n"
@@ -917,13 +944,18 @@ test-gates-security-full: ## Security integration tests — full statistics (req
 			fi; \
 		fi
 		@printf "$(C_CYAN)[Security]$(C_RESET) running BOLA/BFLA/RBAC full-stack integration tests...\n"
-		@bash $(ROOT)/tests/gates/test_security_integration.sh
-		@if [ -f /tmp/vedo-test-stack ]; then \
+		@RESULT=0; \
+		bash $(ROOT)/tests/gates/test_security_integration.sh 2>&1 || RESULT=1; \
+		if [ -f /tmp/vedo-test-stack ]; then \
 			printf "$(C_YELLOW)[Security]$(C_RESET) Stopping auto-started Docker test stack...\n"; \
 			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.test down 2>&1; \
 			rm -f /tmp/vedo-test-stack; \
-		fi
-		@printf "$(C_GREEN)[Security]$(C_RESET) all security integration tests passed\n"
+		fi; \
+		if [ $$RESULT -ne 0 ]; then \
+			printf "$(C_RED)[FAIL]$(C_RESET) Security integration tests failed\n"; \
+			exit 1; \
+		fi; \
+		printf "$(C_GREEN)[PASS]$(C_RESET) All security integration tests passed\n"
 
 .PHONY: coverage
 coverage: ## Run tests with coverage (Go only)
@@ -1164,7 +1196,9 @@ dev-api: ## Start API gateway in development mode
 
 .PHONY: test-quality-gate
 test-quality-gate: ## Run static test quality gate (anti-patterns, tautologies, etc.)
-	@bash $(ROOT)/tools/scripts/test-quality-gate.sh $(ROOT)/apps/services
+	@bash $(ROOT)/tools/scripts/test-quality-gate.sh $(ROOT)/apps/services && \
+		printf "$(C_GREEN)[PASS]$(C_RESET) test quality gate passed\n" || \
+		{ printf "$(C_RED)[FAIL]$(C_RESET) test quality gate failed\n"; exit 1; }
 
 .PHONY: docs-lint
 docs-lint: ## Verify Antora documentation builds without errors

@@ -24,8 +24,9 @@ test-python-fast: ## Python tests — fail-fast (stops at first failure)
 	@if [ -z "$(PYTHON_DIRS)" ]; then echo "No Python services found"; exit 0; fi
 	@for dir in $(PYTHON_DIRS); do \
 		printf "$(C_CYAN)[Python]$(C_RESET) testing $$(basename $$dir)\n"; \
-		cd $$dir && (uv run pytest 2>&1 || [ $$? -eq 5 ]); \
-	done
+		cd $$dir && (uv run pytest 2>&1 || [ $$? -eq 5 ]) || { printf "$(C_RED)[FAIL]$(C_RESET) pytest failed in $$dir\n"; exit 1; }; \
+	done; \
+	printf "$(C_GREEN)[PASS]$(C_RESET) All Python tests passed\n"
 
 test-python-full: ## Python tests — full statistics (collect all failures)
 	@if [ -z "$(PYTHON_DIRS)" ]; then echo "No Python services found"; exit 0; fi
@@ -35,9 +36,10 @@ test-python-full: ## Python tests — full statistics (collect all failures)
 		cd $$dir && (uv run pytest 2>&1 || [ $$? -eq 5 ]) || failed="$$failed $$(basename $$dir)"; \
 	done; \
 	if [ -n "$$failed" ]; then \
-		printf "$(C_RED)TEST_FAILED:$(C_RESET) pytest failed in:$$failed\n"; \
+		printf "$(C_RED)[FAIL]$(C_RESET) pytest failed in:$$failed\n"; \
 		exit 1; \
-	fi
+	fi; \
+	printf "$(C_GREEN)[PASS]$(C_RESET) All Python tests passed\n"
 
 .PHONY: clean-python
 clean-python:

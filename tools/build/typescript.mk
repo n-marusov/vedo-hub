@@ -24,8 +24,9 @@ test-typescript-fast: ## TypeScript tests — fail-fast (stops at first failure)
 	@if [ -z "$(TS_DIRS)" ]; then echo "No TypeScript services found"; exit 0; fi
 	@for dir in $(TS_DIRS); do \
 		printf "$(C_CYAN)[TypeScript]$(C_RESET) testing $$(basename $$dir)\n"; \
-		cd $(ROOT)/$$dir && pnpm test 2>&1; \
-	done
+		cd $(ROOT)/$$dir && pnpm test 2>&1 || { printf "$(C_RED)[FAIL]$(C_RESET) pnpm test failed in $$dir\n"; exit 1; }; \
+	done; \
+	printf "$(C_GREEN)[PASS]$(C_RESET) All TypeScript tests passed\n"
 
 test-typescript-full: ## TypeScript tests — full statistics (collect all failures)
 	@if [ -z "$(TS_DIRS)" ]; then echo "No TypeScript services found"; exit 0; fi
@@ -35,9 +36,10 @@ test-typescript-full: ## TypeScript tests — full statistics (collect all failu
 		cd $(ROOT)/$$dir && pnpm test 2>&1 || failed="$$failed $$(basename $$dir)"; \
 	done; \
 	if [ -n "$$failed" ]; then \
-		printf "$(C_RED)TEST_FAILED:$(C_RESET) pnpm test failed in:$$failed\n"; \
+		printf "$(C_RED)[FAIL]$(C_RESET) pnpm test failed in:$$failed\n"; \
 		exit 1; \
-	fi
+	fi; \
+	printf "$(C_GREEN)[PASS]$(C_RESET) All TypeScript tests passed\n"
 
 .PHONY: typecheck-typescript
 typecheck-typescript:
