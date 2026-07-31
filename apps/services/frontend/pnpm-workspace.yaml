@@ -7,3 +7,9 @@ onlyBuiltDependencies:
   - esbuild
   - lefthook
   - vue-demi
+
+allowBuilds:
+  '@biomejs/biome': true
+  esbuild: true
+  lefthook: true
+  vue-demi: true
