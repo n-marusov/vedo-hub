@@ -44,7 +44,14 @@ Created: 2026-08-01
 ### Phase 8: Documentation
 - [x] Task 23: Antora developer guide — архитектурные секции
 
-> **Всего: 23/23 задач выполнено**
+### Phase 9: REST Migration (M10-first) — Versioning REST endpoints (TDD)
+- [x] Task 24: RED — versioning project-scoped route tests (commits/branches/diff)
+- [x] Task 25: GREEN — versioning-service: project-scoped paths `/projects/{pid}/repository/commits|branches`
+- [x] Task 26: GREEN — api-gateway: project-scoped versioning routes + legacy `/versioning/*` deprecation
+- [x] Task 27: GREEN — remove `checkout`/`switch` from REST surface; `merge` via MR stub (501)
+- [x] Task 28: Tests — E2E/security path tables + frontend `api/versioning.ts` update
+
+> **Всего: 28/28 задач выполнено**
 
 ## Settings
 - Testing: yes
@@ -226,20 +233,21 @@ Open questions:
 | Category | Count | Action |
 |----------|-------|--------|
 | ✅ Already project-scoped (unchanged) | 13 | None |
-| 🔄 Ontology CRUD → migration | 23 | Phase B (REST migration) |
+| 🔄 Ontology CRUD → migration | 23 | REST Migration (M11) |
 | 🚫 Ontology CRUD → REMOVE | 1 | draft (ветка = черновик) |
-| 🔄 AI/Document → migration | 8 | Phase B |
-| 🔄 Versioning → GitLab-aligned migration | 5 | Phase B (rename delta→diff, id→name) |
+| 🔄 AI/Document → migration | 8 | REST Migration (M11) |
+| 🔄 Versioning → GitLab-aligned migration | 5 | REST Migration (M10) — first, blocking |
 | 🚫 Versioning → REMOVE from REST | 3 | checkout, switch, direct merge |
 | ⚠️ Versioning → VEDO extension | 2 | POST commits, compare |
-| 🔄 Minor rename (metrics) | 2 | Phase B |
+| 🔄 Minor rename (metrics) | 2 | REST Migration (M10) |
 | 🕳️ Planned (501 stubs) | 11 | **This plan — Tasks 15 (test) + 19 (impl)** |
 | 🕳️ Post-1.0 (no stubs) | 6 | Deferred |
 | **Total surface** | **74** | |
 
 ## Code Changes by Service
 
-> This plan = Phase A (ADR formalization + guardrails). Phase B (REST migration) changes listed for reference but **deferred**.
+> This plan = Phase A (ADR formalization + guardrails) + Phase 9 (Versioning REST migration, M10-first).
+> The remaining migration work (ontology CRUD, AI/document, publishing, clients) is listed for reference under "Deferred: REST API GitLab Alignment Migration" below.
 
 ### api-gateway (Go) — `routes.go`, `main.go`, `auth/auth.go` (tasks 13–20)
 
@@ -300,22 +308,33 @@ Open questions:
 |------|--------|------|--------|
 | `docs/antora/developer-guide/modules/ROOT/pages/architecture.adoc` | UPDATE — 3 sections: Write-Path Invariant, REST API Structure, Publishing Model | 23 | 8 |
 
-### Deferred to Phase B (NOT in this plan — listed for reference)
+### REST API GitLab Alignment Migration (M10/M11 — Phase 9 implements the versioning track NOW)
+
+> The REST migration is part of THIS plan: **Phase 9 (Tasks 24-28) implements the versioning track
+> (M10-first) — code alignment with ADR-DES.API.rest-gitlab-alignment and REQ-FUN.API.rest-gitlab-alignment
+> happens now, covered by tests.** The remaining tracks (ontology CRUD, AI/document, publishing,
+> clients) are itemized below and tracked in ROADMAP M10/M11 for follow-up planning.
+>
+> **Deprecated-path removal phase (M10/M11 close):** after each track's consumers fully switch to
+> the project-scoped surface, the legacy routes are REMOVED (not just deprecated):
+>   - M10 close — delete `versioningDeprecated` route group + `/api/v1/versioning/*` OpenAPI definitions
+>   - M11 close — delete `ontologyDeprecated` route group (CRUD + AI/document + comments) + OpenAPI definitions
+>   - delete `deprecationSunset()` middleware wiring in `routes.go` once no legacy routes remain
 
 | Service | What changes | When |
 |---------|-------------|------|
-| **api-gateway** `routes.go` | 42 routes rewritten: `/api/v1/ontologies/*` → `/projects/{pid}/repository/*`; `/versioning/*` → project-scoped | Phase B |
-| **api-gateway** `openapi.json` (3121 lines) | Full rewrite: all paths, schemas, parameters → GitLab-aligned | Phase B |
-| **ontology-service** (Rust) | `lib.rs`, `classes.rs`, `properties.rs`, `individuals.rs`, handlers — project-scoped paths | Phase B |
-| **ontology-service** `graphql/query.rs` | `ontology_id` arg → `project_id` + optional `branch`; cursor pagination | Phase B |
-| **versioning-service** (Rust) | `routes.rs`, `handlers/*`, `sync_client.rs` — project-scoped paths; `/checkout`→internal; `/switch`→removed; `/merge`→via MR | Phase B |
-| **publisher-service** (Rust) | `storage.rs`, `handlers/*` — releases, visibility, API key (currently in-memory stubs) | Phase B (M11) |
-| **public-browse-api** (Rust) | `snapshot_reader.rs`, `handlers/*` — binary access model (currently stub) | Phase B (M11) |
-| **frontend** (Vue 3) | `api/ontology.ts`, `api/versioning.ts`, `api/merge-requests.ts`, 10+ pages, components | Phase B |
-| **vedo-cli** (Go) | Command paths updated | Phase B |
-| **shared/proto** | Publisher, public_browse stubs → real gRPC contracts | Phase B |
-| **Tests** (84+ files) | E2E mock intercepts (`**/api/v1/ontologies/*`), security BOLA/BFLA path tables, integration tests | Phase B |
-| **Antora** (5 pages) | API reference, user guide, integrator guide, admin guide | Phase B |
+| **api-gateway** `routes.go` | 42 routes rewritten: `/api/v1/ontologies/*` → `/projects/{pid}/repository/*`; `/versioning/*` → project-scoped | M10 (versioning) / M11 (CRUD) |
+| **api-gateway** `openapi.json` (3121 lines) | Full rewrite: all paths, schemas, parameters → GitLab-aligned | M10 |
+| **ontology-service** (Rust) | `lib.rs`, `classes.rs`, `properties.rs`, `individuals.rs`, handlers — project-scoped paths | M11 |
+| **ontology-service** `graphql/query.rs` | `ontology_id` arg → `project_id` + optional `branch`; cursor pagination | M11 |
+| **versioning-service** (Rust) | `routes.rs`, `handlers/*`, `sync_client.rs` — project-scoped paths; `/checkout`→internal; `/switch`→removed; `/merge`→via MR | **M10 — Phase 9 of this plan** |
+| **publisher-service** (Rust) | `storage.rs`, `handlers/*` — releases, visibility, API key (currently in-memory stubs) | M11 |
+| **public-browse-api** (Rust) | `snapshot_reader.rs`, `handlers/*` — binary access model (currently stub) | M11 |
+| **frontend** (Vue 3) | `api/ontology.ts`, `api/versioning.ts`, `api/merge-requests.ts`, 10+ pages, components | M10 (versioning) / M11 (CRUD) |
+| **vedo-cli** (Go) | Command paths updated | M10/M11 |
+| **shared/proto** | Publisher, public_browse stubs → real gRPC contracts | M11 |
+| **Tests** (84+ files) | E2E mock intercepts (`**/api/v1/ontologies/*`), security BOLA/BFLA path tables, integration tests | M10/M11 |
+| **Antora** (5 pages) | API reference, user guide, integrator guide, admin guide | M10/M11 |
 
 ## Commit Plan
 - **Commit 1** (after tasks 1-3): "feat(specs): add write-invariant, REST alignment, and publishing extension REQ constraints"
@@ -326,6 +345,9 @@ Open questions:
 - **Commit 6** (after tasks 17-20, TDD GREEN): "fix(api-gateway): implement guardrails, planned-endpoint stubs, and publish gate annotation"
 - **Commit 7** (after tasks 21-22): "test: add REQ traceability annotations; verify full test suite passes"
 - **Commit 8** (after task 23): "docs(antora): update developer guide for new architecture decisions"
+- **Commit 9** (after task 24, TDD RED): "test(versioning): add project-scoped route tests for commits, branches, diff"
+- **Commit 10** (after tasks 25-27, TDD GREEN): "feat(versioning): migrate versioning REST to project-scoped /projects/{pid}/repository paths"
+- **Commit 11** (after task 28): "test(api-gateway): update E2E/security path tables and frontend versioning client"
 
 ## Acceptance Criteria
 
@@ -821,7 +843,7 @@ Open questions:
     - `/ontologies/:id/versioning/*`
   - Implementation: add a Gin middleware that injects deprecation headers for matched path prefix
   - Log deprecation warning once per route registration: `[api-gateway] route deprecated {path, sunset, replacement}`
-  - **Do NOT remove or disable routes** — this task only adds headers; actual removal happens in Phase B (REST migration)
+  - **Do NOT remove or disable routes** — this task only adds headers; actual removal happens in the REST API GitLab Alignment Migration (M10/M11, Phase 9)
   - **Verification:** Task 14 test passes; `curl -I http://localhost:8080/api/v1/ontologies/test-id` returns `Deprecation: true` and `Sunset: ...` headers; existing E2E tests still pass (headers are additive, don't change response body)
 
   LOGGING REQUIREMENTS (standard):
@@ -958,3 +980,123 @@ Open questions:
   > BDD naming: N/A (document-only task)
 
 <!-- Commit checkpoint: task 23 -->
+
+### Phase 9: REST Migration (M10-first) — Versioning REST endpoints (TDD)
+<!-- Per user directive (2026-08-01): versioning REST methods are a development blocker and MUST be
+     the first migration work — covered by tests (RED) before the code rewrite (GREEN).
+     Milestone: M10 (Collaboration & Review 1.0) — versioning track of the REST API GitLab
+     Alignment Migration. Endpoint mapping source: "REST Endpoint Mapping" §4 above. -->
+
+- [ ] **Task 24: RED — project-scoped versioning route tests**
+  Files to create:
+  - `apps/services/versioning-service/tests/project_scoped_routes_test.rs`
+
+  Deliverable:
+  - Failing tests asserting the GitLab-aligned versioning surface exists and is project-scoped
+    (per ADR-DES.API.rest-gitlab-alignment §4 mapping):
+    - `GET/POST /api/v1/projects/{pid}/repository/commits` — list/create commits (create = VEDO extension)
+    - `GET /api/v1/projects/{pid}/repository/commits/{sha}` — get commit by sha (id → sha rename)
+    - `GET /api/v1/projects/{pid}/repository/commits/{sha}/diff` — semantic diff (delta → diff rename)
+    - `GET/POST /api/v1/projects/{pid}/repository/branches` — list/create branches
+    - `GET/DELETE /api/v1/projects/{pid}/repository/branches/{name}` — get/delete branch by name (id → name)
+  - Negative contract tests (must NOT be REST-accessible):
+    - `checkout` → 404/501 (internal-only operation per F3)
+    - `switch` → 404 (removed from REST)
+    - `merge` → 501 `x-vedo-status: planned` (via MR workflow in M10)
+  - Tests use `tower::ServiceExt` + in-memory/`None` AppState where possible; DB-backed assertions
+    marked with the project integration-test convention (run via `make test-integration-rust`).
+  - `// Validates: REQ-FUN.API.rest-gitlab-alignment` annotation.
+
+  > BDD naming: `[Condition]_[Action]_[ExpectedResult]`, e.g.
+  > `TestProjectCommits_List_ReturnsPaginatedCommits`, `TestProjectCommits_Checkout_NotRESTAccessible`
+
+  LOGGING REQUIREMENTS (standard):
+  - Log each route under test with expected status (INFO/WARN)
+  - Log summary: routes checked, mismatches (INFO)
+
+- [ ] **Task 25: GREEN — versioning-service project-scoped paths** (makes Task 24 pass)
+  Files to modify:
+  - `apps/services/versioning-service/src/routes.rs`
+  - `apps/services/versioning-service/src/handlers/commit_handler.rs`
+  - `apps/services/versioning-service/src/handlers/branch_handler.rs`
+
+  Deliverable:
+  - Register project-scoped routes under `/api/v1/projects/:pid/repository/commits|branches`
+    (axum `:param` syntax), scoping handlers by `project_id` (resolved from `:pid`; ontology_id
+    stays an internal identifier per ADR-DES.API.organization-rest-endpoints).
+  - Rename:
+    - commit `{id}` → `{sha}` in paths and lookup; expose `sha` in responses
+    - `delta` endpoint → `diff` (keep `semantic-diff` as alias or migrate; per §4 `delta`→`diff`)
+    - branch `{id}` → `{name}` in paths and lookup
+  - Move `checkout` and `switch` off the REST surface (internal-only; handlers may stay for
+    internal gRPC callers, routes removed).
+  - `merge` → keep as 501 planned stub (M10 MR workflow replaces it); add `x-vedo-status: planned`
+    header consistent with api-gateway stub contract.
+  - Keep legacy `/api/v1/versioning/*` routes temporarily with deprecation headers (removal in M10
+    after consumers migrate) — additive, do NOT break existing callers.
+  - Logging: route registration (INFO), project-scoped access (DEBUG), rename events (INFO).
+
+  LOGGING REQUIREMENTS (standard):
+  - Log each project-scoped route registered (INFO): `[versioning] project route registered {path}`
+  - Log each legacy route accessed (INFO, sampled): `[versioning] legacy route accessed {path, project_id}`
+  - Log rename/removal decisions (INFO): `[versioning] route migrated {old, new}`
+  > BDD naming: N/A (implementation; verified via Task 24)
+
+- [ ] **Task 26: GREEN — api-gateway project-scoped versioning routes + deprecation** (depends on Task 25)
+  Files to modify:
+  - `apps/services/api-gateway/routes.go`
+
+  Deliverable:
+  - Register project-scoped versioning routes in api-gateway proxying to versioning-service:
+    - `/api/v1/projects/:id/repository/commits` (GET/POST)
+    - `/api/v1/projects/:id/repository/commits/:sha` (GET)
+    - `/api/v1/projects/:id/repository/commits/:sha/diff` (GET)
+    - `/api/v1/projects/:id/repository/branches` (GET/POST)
+    - `/api/v1/projects/:id/repository/branches/:name` (GET/DELETE)
+  - Add deprecation middleware (reuse `deprecationSunset()`) on legacy `/api/v1/versioning/*` routes
+    (same pattern as `/api/v1/ontologies/*` in Tasks 18/20).
+  - Register `GET/PUT /api/v1/projects/:id/merge_requests` + `PUT .../:iid/merge` as 501 planned
+    stubs (currently only GET/POST merge_requests stubs exist from Task 19 — extend contract).
+  - Logging: route registration (INFO), deprecation warning (INFO).
+
+  LOGGING REQUIREMENTS (standard):
+  - Log each project-scoped route registered (INFO): `[api-gateway] project route registered {path}`
+  - Log each legacy versioning route deprecation (INFO): `[api-gateway] deprecated route registered {path, sunset, replacement}`
+  > BDD naming: N/A (implementation; verified via api-gateway integration tests)
+
+- [ ] **Task 27: GREEN — REST surface cleanup: checkout/switch removal + merge stub** (depends on Tasks 25, 26)
+  Files to modify:
+  - `apps/services/versioning-service/src/routes.rs`
+  - `apps/services/api-gateway/routes.go`
+
+  Deliverable:
+  - Verify `checkout`/`switch` are NOT reachable via REST (404) in versioning-service and api-gateway
+    (no routes registered; internal gRPC callers unaffected).
+  - `merge` → 501 `x-vedo-status: planned` on BOTH versioning-service direct route and api-gateway
+    (contract stub; M10 MR workflow provides the real implementation).
+  - Confirm legacy `/api/v1/versioning/commits|branches` still work (deprecation headers only) so
+    existing consumers (frontend VersioningPage) are not broken mid-migration.
+  - Logging: removal decisions (INFO): `[versioning] route removed from REST {path}`
+  > BDD naming: N/A (verified via Task 24 negative tests + api-gateway tests)
+
+- [ ] **Task 28: Consumer alignment — E2E/security tables + frontend client** (depends on Tasks 25-27)
+  Files to modify:
+  - `tests/e2e/specs/api/rest/api-gateway-full.spec.ts` (or versioning spec) — add project-scoped
+    versioning path coverage
+  - `tests/security/authorization/*` — BOLA/BFLA path tables for new `/projects/{pid}/repository/*`
+    endpoints (per ADR-DES.API.rest-gitlab-alignment endpoint-class table)
+  - `apps/services/frontend/src/api/versioning.ts` (or equivalent) — switch to project-scoped paths;
+    VersioningPage queries updated
+
+  Deliverable:
+  - E2E spec covers `GET /api/v1/projects/{pid}/repository/commits` + `branches` happy path
+  - Security path tables include repository content endpoints (BOLA/BFLA classes per ADR)
+  - Frontend versioning API client points at project-scoped paths; legacy paths removed from client
+  - `// Validates: REQ-FUN.API.rest-gitlab-alignment` annotations on new/updated specs
+
+  > BDD naming: existing conventions; new E2E specs follow `[feature]_[action]_[expected]`
+
+  LOGGING REQUIREMENTS (standard):
+  - No runtime logging changes (test/client task)
+
+<!-- Commit checkpoint: tasks 24-28 (Phase 9 — M10 versioning track) -->

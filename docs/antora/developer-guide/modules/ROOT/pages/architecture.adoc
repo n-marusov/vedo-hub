@@ -193,7 +193,7 @@ The REST API follows GitLab-aligned conventions per `ADR-DES.API.rest-gitlab-ali
 |Branch protection |— |`/projects/{pid}/protected_branches`
 |===
 
-* Legacy paths `/api/v1/ontologies/*` return `Deprecation: true` + `Sunset` headers and remain active until Phase B (REST migration).
+* Legacy paths `/api/v1/ontologies/*` return `Deprecation: true` + `Sunset` headers and remain active until the REST API GitLab Alignment Migration (M10/M11, see `feature-rest-api-realignment-adrs.md`).
 * Planned endpoints (`/releases`, `/merge_requests`, `/protected_branches`) return `501 Not Implemented` with the `x-vedo-status: planned` header — a contract stub for consumers and test authors.
 * Global endpoints are read-aggregations only.
 

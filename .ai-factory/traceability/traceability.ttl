@@ -935,6 +935,16 @@ base:ts/specs.traceability_integrity a vdo:TestSuite ;
     rdfs:comment "Integrity validation of .ai-factory/traceability/traceability.ttl"@en ;
     vdo:filePath "tests/specs/traceability_integrity_test.go" .
 
+base:ts/api-gateway.versioning_routes a vdo:TestSuite ;
+    rdfs:label "API-GATEWAY VERSIONING ROUTES"@en ;
+    rdfs:comment "Project-scoped versioning routes and legacy deprecation in api-gateway"@en ;
+    vdo:filePath "apps/services/api-gateway/versioning_routes_test.go" .
+
+base:ts/versioning-service.tests.project_scoped_routes a vdo:TestSuite ;
+    rdfs:label "VERSIONING-SERVICE PROJECT_SCOPED_ROUTES"@en ;
+    rdfs:comment "GitLab-aligned project-scoped versioning route contracts"@en ;
+    vdo:filePath "apps/services/versioning-service/tests/project_scoped_routes_test.rs" .
+
 # --- Specs validation links ---
 
 base:ts/specs.adr_structure vdo:validates base:req/REQ-CON.SECURITY.write-path-invariant .
@@ -3936,6 +3946,8 @@ base:ts/api-gateway.auth_integration vdo:validates base:req/REQ-FUN.API.rest-git
 base:ts/api-gateway.rest_entity_crud_integration vdo:validates base:req/REQ-FUN.API.rest-gitlab-alignment .
 base:ts/e2e.playwright.tests.api.rest.api-gateway-full vdo:validates base:req/REQ-FUN.API.rest-gitlab-alignment .
 base:ts/e2e.playwright.tests.api.rest.org-api vdo:validates base:req/REQ-FUN.API.rest-gitlab-alignment .
+base:ts/api-gateway.versioning_routes vdo:validates base:req/REQ-FUN.API.rest-gitlab-alignment .
+base:ts/versioning-service.tests.project_scoped_routes vdo:validates base:req/REQ-FUN.API.rest-gitlab-alignment .
 
 # --- Write-path invariant validation links (REQ-CON.SECURITY.write-path-invariant) ---
 base:ts/ontology-service.tests.class_integration vdo:validates base:req/REQ-CON.SECURITY.write-path-invariant .
