@@ -20,6 +20,9 @@ const SESSION_KEY = "vedo_session";
 
 // Mock session for test mode — provides a valid session so Apollo Client
 // and Axios interceptors can inject Authorization header without Keycloak.
+// When the dev overlay mints a real self-signed JWT (DEV_JWT_TOKEN in
+// window.__VEDO_CONFIG__), that token is used instead so the API Gateway
+// accepts the request (skip-auth-token alone is rejected with 401).
 const MOCK_SESSION: UserSession = {
 	accessToken: "skip-auth-token",
 	refreshToken: "skip-auth-token",
@@ -28,6 +31,25 @@ const MOCK_SESSION: UserSession = {
 	roles: ["Owner"],
 	expiresAt: 9999999999999,
 };
+
+// Decode the exp claim (seconds) from a JWT payload without verifying the
+// signature — used only to seed expiresAt for the dev-minted token.
+function decodeJwtExpiry(token: string): number {
+	try {
+		const payload = token.split(".")[1];
+		if (!payload) return Number.MAX_SAFE_INTEGER;
+		const padded = payload
+			.replace(/-/g, "+")
+			.replace(/_/g, "/")
+			.padEnd(payload.length + ((4 - (payload.length % 4)) % 4), "=");
+		const json = JSON.parse(decodeURIComponent(atob(padded)));
+		return typeof json.exp === "number"
+			? json.exp * 1000
+			: Number.MAX_SAFE_INTEGER;
+	} catch {
+		return Number.MAX_SAFE_INTEGER;
+	}
+}
 
 // @ctx: store access token also in localStorage.vedo-jwt-token so Apollo Client
 // and Axios interceptors can read it. The auth flow stores the full session in
@@ -40,15 +62,35 @@ export function saveSession(session: UserSession): void {
 export function getSession(): UserSession | null {
 	// In SKIP_AUTH (test) mode, honor an explicitly injected session first
 	// (e.g. tests that set sessionStorage.vedo_session to control roles),
-	// then fall back to the mock session.
+	// then the dev-minted JWT (DEV_JWT_TOKEN), then the mock session.
 	if (SKIP_AUTH) {
 		const raw = sessionStorage.getItem(SESSION_KEY);
 		if (raw) {
 			try {
-				return JSON.parse(raw) as UserSession;
+				const parsed = JSON.parse(raw) as UserSession;
+				// Keep localStorage in sync so API clients carry the token.
+				if (parsed.accessToken) {
+					localStorage.setItem("vedo-jwt-token", parsed.accessToken);
+				}
+				return parsed;
 			} catch {
-				// fall through to mock
+				// fall through to dev token / mock
 			}
+		}
+		const devToken = window.__VEDO_CONFIG__?.DEV_JWT_TOKEN;
+		if (devToken) {
+			// Save via saveSession to sync both storage backends — API clients
+			// (Apollo, Axios) read localStorage.vedo-jwt-token for the header.
+			const devSession: UserSession = {
+				accessToken: devToken,
+				refreshToken: devToken,
+				userId: "dev-user",
+				tenantId: "org-001",
+				roles: ["Owner"],
+				expiresAt: decodeJwtExpiry(devToken),
+			};
+			saveSession(devSession);
+			return devSession;
 		}
 		return MOCK_SESSION;
 	}
