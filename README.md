@@ -31,6 +31,76 @@ cd vedo-hub && make docker-up
 
 **Prerequisites:** Docker 24+, Docker Compose v2+, Make.
 
+---
+
+## Developer Environment Setup
+
+Preparation for native development (no Docker for the code itself):
+
+### Toolchain Prerequisites
+
+| Tool | Version | Notes |
+|------|---------|-------|
+| Go | 1.22+ | API Gateway, auth, ticket services |
+| Rust | 1.77+ | ontology, versioning, publisher, public-browse |
+| Node.js | 20+ | frontend toolchain (biome, lefthook, vite) |
+| pnpm | 11+ | package manager (`corepack enable` or `npm i -g pnpm@11`) |
+| Python | 3.12 | **via [uv](https://github.com/astral-sh/uv)** — see below |
+| Make | — | build orchestrator |
+| Lefthook | via pnpm | git hooks (`make install-hooks`) |
+
+### 1. Install dependencies
+
+```bash
+# Frontend (also provides biome + lefthook binaries)
+cd apps/services/frontend && pnpm install
+cd ../../..
+
+# Install git hooks (pre-commit + pre-push)
+make install-hooks
+```
+
+### 2. Python via uv (important on Windows)
+
+The project uses **uv** as the Python toolchain (`uv run python`, `uv sync`). Do **not** rely on a bare `python3` — on Windows it may resolve to the Microsoft Store stub and fail silently.
+
+```bash
+# uv manages the interpreter + venv automatically
+uv run python --version   # resolves a real Python (3.12+)
+```
+
+The pre-push hooks (`check-json`, `check-yaml`) run through `uv run python` — if `uv` is missing, install it first: `curl -LsSf https://astral.sh/uv/install.sh | sh` (or `winget install astral-sh.uv`).
+
+### 3. Environment configuration
+
+Copy the dev environment file and adjust domain-specific overrides:
+
+```bash
+cp config/.env.example config/.env.dev   # then edit config/.env.dev
+```
+
+Defaults used by the stack (overrides must resolve in your environment):
+
+- `KC_HOSTNAME=localhost` — Keycloak dev host; any override must resolve locally
+- `KEYCLOAK_JWKS_URL` — Keycloak JWKS endpoint used by the API Gateway auth middleware
+
+> For **E2E tests** use the test compose file, which sets `JWT_DEV_PUBLIC_KEY_PEM` on the API Gateway (self-signed tokens):
+
+| Scenario | Compose File | Auth |
+|----------|-------------|------|
+| Development | `deploy/docker-compose.yml` | Keycloak JWKS |
+| E2E Testing / CI | `deploy/docker-compose.test.yml` | self-signed JWT (`JWT_DEV_PUBLIC_KEY_PEM`) |
+
+### 4. Verify setup
+
+```bash
+make help                 # all targets available
+make lint-api-gateway     # Go toolchain works
+cd apps/services/frontend && pnpm run lint  # Node/pnpm works
+```
+
+---
+
 ## Infrastructure
 
 `make docker-up` launches **22 services** in 5 startup phases, gated by healthcheck dependencies. Cold-start: **~5–6 min** (limited by Keycloak).
