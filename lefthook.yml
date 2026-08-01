@@ -74,18 +74,11 @@ pre-push:
   jobs:
     # ── Check that committed files parse as valid JSON ──
     - name: check-json
-      run: echo json-check-ok
+      run: sh tools/scripts/pre-push-check-json.sh
 
     # ── Check that committed files parse as valid YAML ──
     - name: check-yaml
-      run: |
-        files=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(yml|yaml)$' | grep -v 'pnpm-lock\.yaml' || true)
-        if [ -n "$files" ] && command -v python3 > /dev/null 2>&1; then
-          if ! python3 -c "import yaml; [yaml.safe_load(open(f)) for f in '''$files'''.split()]" 2>/dev/null; then
-            echo "✖ Invalid YAML detected"
-            exit 1
-          fi
-        fi
+      run: sh tools/scripts/pre-push-check-yaml.sh
 
     # ── Go: golangci-lint — per-service iteration via script ──
     - name: golangci-lint
@@ -97,15 +90,7 @@ pre-push:
 
     # ── Go module hygiene ──
     - name: go-mod-tidy
-      run: |
-        failed=0
-        for dir in $(find apps/services apps/shared apps/vedo-cli -name go.mod -exec dirname {} \;); do
-          if ! (cd "$dir" && go mod tidy && git diff --exit-code go.mod go.sum > /dev/null 2>&1); then
-            echo "✖ go.mod/go.sum not tidy in $dir. Run 'go mod tidy' and commit the changes."
-            failed=1
-          fi
-        done
-        if [ "$failed" = "1" ]; then exit 1; fi
+      run: sh tools/scripts/pre-push-go-mod-tidy.sh
 
 # =============================================================================
 # Custom tasks — run on demand via `lefthook run <task-name>`
