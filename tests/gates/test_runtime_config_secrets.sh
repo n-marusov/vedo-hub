@@ -44,6 +44,9 @@ ALLOWED_VEDO_VARS=(
   "VEDO_USE_MOCK_API"
   "VEDO_APP_VERSION"
   "VEDO_APP_ENV"
+  # Dev overlay: self-signed dev JWT minted by Makefile (deploy/dev-jwt/gen-dev-jwt.js).
+  # Only accepted by the dev API Gateway via JWT_DEV_PUBLIC_KEY_PEM.
+  "VEDO_DEV_JWT_TOKEN"
 )
 
 # ── Whitelist: values exposed in entrypoint heredocs ────────────────────
@@ -58,6 +61,10 @@ EXPOSED_CONFIG_KEYS=(
   "USE_MOCK_API"
   "APP_VERSION"
   "APP_ENV"
+  # Dev overlay: self-signed dev JWT. Same security boundary as SKIP_AUTH —
+  # only present when VEDO_SKIP_AUTH=true (dev/test images), never in
+  # production builds (production gate refuses SKIP_AUTH).
+  "DEV_JWT_TOKEN"
 )
 
 log_pass() { printf "  [PASS] %s\n" "$1"; PASSED=$((PASSED + 1)); }
@@ -120,14 +127,19 @@ test_vedo_vars_no_secrets() {
 test_vedo_var_names_whitelisted() {
   log_info "Checking VEDO_* variable names against whitelist..."
 
-  for compose_file in "$ROOT_DIR/deploy/docker-compose.yml" "$ROOT_DIR/deploy/docker-compose.test.yml"; do
+  for compose_file in \
+    "$ROOT_DIR/deploy/docker-compose.yml" \
+    "$ROOT_DIR/deploy/docker-compose.test.yml" \
+    "$ROOT_DIR/deploy/docker-compose.dev.yml"; do
     [ ! -f "$compose_file" ] && continue
     local filename
     filename=$(basename "$compose_file")
 
     # Extract VEDO_* variable names from compose files
+    # (exclude VEDO_CONFIG__ — it is the JS identifier window.__VEDO_CONFIG__,
+    # not an environment variable)
     local vedo_names
-    vedo_names=$(grep -oP 'VEDO_[A-Z_]+' "$compose_file" | sort -u || true)
+    vedo_names=$(grep -oP 'VEDO_[A-Z_]+' "$compose_file" | grep -v 'VEDO_CONFIG__' | sort -u || true)
 
     for vname in $vedo_names; do
       local allowed=false
@@ -210,6 +222,47 @@ test_no_default_passwords_in_compose() {
 }
 
 # =========================================================================
+# Test 6: config.js is NOT pre-compressed (gzip_static regression)
+# =========================================================================
+# Regression: Dockerfile.typescript pre-compresses static assets with
+# `gzip -9 -k` for nginx gzip_static. If config.js (which holds a committed
+# placeholder in dist/ and is regenerated at runtime by docker-entrypoint.sh)
+# is pre-compressed, nginx serves the STALE config.js.gz to gzip-capable
+# clients (all browsers) instead of the fresh runtime config → dev auth
+# bypass breaks (redirect to /login, 401 on API). See FIX_PLAN 2026-08-01.
+test_config_js_not_precompressed() {
+  log_info "Checking config.js is not pre-compressed (gzip_static regression)..."
+
+  # 1. Dockerfile must exclude config.js from the gzip pre-compression step
+  local dockerfile="$ROOT_DIR/tools/dockerfiles/Dockerfile.typescript"
+  if [ ! -f "$dockerfile" ]; then
+    log_fail "Dockerfile.typescript not found — cannot verify gzip exclusion"
+    return
+  fi
+  if grep -q '! -name "config.js"' "$dockerfile"; then
+    log_pass "Dockerfile.typescript excludes config.js from pre-compression"
+  else
+    log_fail "Dockerfile.typescript does NOT exclude config.js from gzip pre-compression"
+  fi
+
+  # 2. Entrypoints must remove the stale config.js.gz after writing config.js
+  for entrypoint in \
+    "$ROOT_DIR/apps/services/frontend/docker-entrypoint.sh" \
+    "$ROOT_DIR/apps/services/publish-browse-ui/docker-entrypoint.sh"; do
+    [ ! -f "$entrypoint" ] && continue
+    local filename
+    filename=$(basename "$(dirname "$entrypoint")")/$(basename "$entrypoint")
+    # Matches both the literal form (rm -f /path/config.js.gz) and the
+    # variable form (rm -f "${CONFIG_FILE}.gz" with optional surrounding quotes).
+    if grep -qE 'rm -f[^;]*("?\$\{CONFIG_FILE\}"?|config\.js)\.gz' "$entrypoint"; then
+      log_pass "$filename removes stale config.js.gz"
+    else
+      log_fail "$filename does NOT remove config.js.gz after writing config.js"
+    fi
+  done
+}
+
+# =========================================================================
 # Run all tests
 # =========================================================================
 echo "=== Runtime Config Secrets Gate ==="
@@ -220,6 +273,7 @@ test_vedo_vars_no_secrets
 test_vedo_var_names_whitelisted
 test_entrypoint_keys_whitelisted
 test_no_default_passwords_in_compose
+test_config_js_not_precompressed
 
 echo ""
 echo "=== Results: $PASSED passed, $FAILED failed ==="
