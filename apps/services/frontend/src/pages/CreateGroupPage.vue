@@ -46,7 +46,7 @@
       </div>
 
       <!-- Visibility -->
-      <div class="cgp-field">
+      <div class="cgp-field--vis">
         <label class="cgp-label">{{ t('groups.visibility') }}</label>
         <p class="cgp-help-text">{{ t('groups.visibility_help') }}</p>
 
@@ -76,7 +76,7 @@
             <component :is="opt.icon" :size="16" class="cgp-vis-icon" />
           </label>
         </div>
-      </div>
+        </div>
 
       <!-- Actions -->
       <div class="cgp-actions">
@@ -245,7 +245,7 @@ onMounted(() => {
 
 <style scoped>
 .create-group-page {
-  padding: 24px 32px;
+  padding: 32px 40px;
   max-width: 720px;
 }
 
@@ -253,7 +253,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 }
 
 .cgp-breadcrumb-text,
@@ -288,13 +288,16 @@ onMounted(() => {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 24px;
   font-weight: 600;
+  color: var(--foreground);
 }
 
 .cgp-desc {
-  margin: 0 0 24px 0;
+  margin: 0 0 16px 0;
   font-family: 'IBM Plex Mono', monospace;
   font-size: 13px;
+  font-weight: 400;
   color: var(--muted-foreground);
+  line-height: 1.4;
 }
 
 .cgp-parent-info {
@@ -324,66 +327,83 @@ onMounted(() => {
 .cgp-field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+}
+
+.cgp-field--vis {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .cgp-label {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 500;
   color: var(--foreground);
 }
 
 .cgp-input {
   height: 36px;
-  padding: 0 12px;
+  padding: 4px 12px;
   border-radius: 6px;
   border: 1px solid var(--input, var(--border));
-  background: var(--card);
+  background: var(--background, var(--card));
   color: var(--foreground);
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 13px;
-  opacity: 0.8;
+  font-size: 14px;
+  font-weight: 400;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.cgp-input:focus {
+  border-color: var(--primary);
 }
 
 .cgp-input::placeholder {
   color: var(--muted-foreground);
 }
 
+.cgp-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .cgp-help-text {
   margin: 0;
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--muted-foreground);
 }
 
 .cgp-error-text {
   margin: 0;
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 12px;
-  color: var(--destructive, #ef4444);
+  font-size: 11px;
+  color: var(--destructive);
 }
 
 .cgp-slug-wrap {
   display: flex;
   align-items: center;
   height: 36px;
-  padding: 0 12px;
+  padding: 4px 12px;
   border-radius: 6px;
   border: 1px solid var(--input, var(--border));
-  background: var(--card);
+  background: var(--background, var(--card));
   gap: 0;
 }
 
 .cgp-slug-prefix {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--muted-foreground);
 }
 
 .cgp-slug-value {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--foreground);
   opacity: 0.5;
 }
@@ -409,29 +429,30 @@ onMounted(() => {
 .cgp-vis-options {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .cgp-vis-option {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 12px;
+  padding: 12px 16px;
   border-radius: 8px;
   border: 1px solid var(--border);
-  background: var(--card);
+  background: var(--background, var(--card));
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, border-color 0.15s;
 }
 
 .cgp-vis-option--selected {
-  background: var(--secondary, #1a1a1a);
-  border-color: var(--primary, #6366f1);
+  background: var(--secondary);
+  border-color: var(--primary);
 }
 
 .cgp-vis-radio {
-  margin-top: 2px;
-  accent-color: var(--primary, #6366f1);
+  margin-top: 3px;
+  accent-color: var(--primary);
+  flex-shrink: 0;
 }
 
 .cgp-vis-body {
@@ -443,14 +464,14 @@ onMounted(() => {
 
 .cgp-vis-name {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--foreground);
 }
 
 .cgp-vis-desc {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--muted-foreground);
 }
 
@@ -469,17 +490,19 @@ onMounted(() => {
 .cgp-btn-cancel {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   height: 36px;
-  padding: 0 16px;
+  padding: 8px 16px;
   border-radius: 6px;
   border: 1px solid var(--border);
-  background: var(--card);
+  background: transparent;
   color: var(--foreground);
   font-family: 'IBM Plex Mono', monospace;
   font-size: 14px;
   font-weight: 500;
   text-decoration: none;
   cursor: pointer;
+  transition: background 0.15s;
 }
 
 .cgp-btn-cancel:hover {
@@ -489,25 +512,27 @@ onMounted(() => {
 .cgp-btn-create {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   height: 36px;
-  padding: 0 16px;
+  padding: 8px 16px;
   border-radius: 6px;
   border: none;
-  background: var(--primary, #6366f1);
-  color: var(--primary-foreground, #fff);
+  background: var(--primary);
+  color: var(--primary-foreground, #fafafa);
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
+  transition: background 0.15s;
 }
 
 .cgp-btn-create:hover {
-  background: var(--primary-hover, #4f46e5);
+  filter: brightness(1.1);
 }
 
 .cgp-btn-create:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 </style>
