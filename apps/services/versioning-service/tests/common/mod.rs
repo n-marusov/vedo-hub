@@ -2,7 +2,7 @@
 
 #![allow(dead_code)]
 
-use versioning_service::postgres::{create_pool, PgConfig, PgPoolWrapper};
+use versioning_service::postgres::{create_pool, run_manual_migrations, PgConfig, PgPoolWrapper};
 
 /// Returns `true` if PostgreSQL integration tests are enabled.
 pub fn is_integration_enabled() -> bool {
@@ -34,9 +34,15 @@ pub async fn connect_test_pg() -> PgPoolWrapper {
         database_url: url,
         max_connections: 5,
     };
-    create_pool(&config)
+    let pool = create_pool(&config)
         .await
-        .expect("create PG pool for tests")
+        .expect("create PG pool for tests");
+    // Apply the service's own schema so integration tests work against a
+    // fresh test database (build_test_app does not run migrations).
+    run_manual_migrations(pool.pool())
+        .await
+        .expect("run versioning migrations for tests");
+    pool
 }
 
 /// Builds a test app with a real PG connection.

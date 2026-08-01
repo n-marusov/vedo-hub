@@ -246,117 +246,92 @@ test-full: ## Run ALL tests — full statistics (collect all failures)
 ##@ Test — Integration
 
 .PHONY: test-integration-fast test-integration-full
-test-integration-fast: ## Integration tests — fail-fast (auto-starts Neo4j + PostgreSQL once)
-		@printf "$(C_CYAN)[Integration]$(C_RESET) fail-fast mode\n"
-		@printf "$(C_CYAN)[Integration]$(C_RESET) checking Neo4j...\n"
-		@rm -f /tmp/vedo-test-neo4j /tmp/vedo-test-pg
-		@if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps neo4j 2>/dev/null | grep -q "healthy"; then \
-			printf "$(C_GREEN)[Integration]$(C_RESET) Neo4j is already running\n"; \
-		else \
-			printf "$(C_YELLOW)[Integration]$(C_RESET) Starting Neo4j...\n"; \
-			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d neo4j 2>&1; \
-			printf "$(C_YELLOW)[Integration]$(C_RESET) Waiting for Neo4j healthcheck...\n"; \
-			i=0; \
-			while [ $$i -lt 60 ]; do \
-				if docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps neo4j 2>/dev/null | grep -q "healthy"; then \
-					printf "$(C_GREEN)[Integration]$(C_RESET) Neo4j is ready!\n"; \
-					break; \
-				fi; \
-				sleep 2; \
-				i=$$((i + 1)); \
-			done; \
-			if [ $$i -ge 60 ]; then \
-				printf "$(C_RED)[Integration]$(C_RESET) ERROR: Neo4j did not become ready within 120 seconds\n"; \
-				docker compose -f "$(ROOT)/deploy/docker-compose.yml" logs neo4j 2>&1 | tail -20; \
-				exit 1; \
+test-integration-fast: ## Integration tests — fail-fast (auto-starts Neo4j + PostgreSQL via docker-compose.test.yml)
+	@printf "$(C_CYAN)[Integration]$(C_RESET) fail-fast mode\n"
+	@printf "$(C_CYAN)[Integration]$(C_RESET) checking Neo4j...\n"
+	@rm -f /tmp/vedo-test-neo4j /tmp/vedo-test-pg
+	@if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test ps neo4j 2>/dev/null | grep -q "healthy"; then \
+		printf "$(C_GREEN)[Integration]$(C_RESET) Neo4j is already running\n"; \
+	else \
+		printf "$(C_YELLOW)[Integration]$(C_RESET) Starting Neo4j...\n"; \
+		cd "$(ROOT)" && docker compose -f deploy/docker-compose.test.yml --env-file config/.env.test up -d neo4j 2>&1; \
+		printf "$(C_YELLOW)[Integration]$(C_RESET) Waiting for Neo4j healthcheck...\n"; \
+		i=0; \
+		while [ $$i -lt 60 ]; do \
+			if docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test ps neo4j 2>/dev/null | grep -q "healthy"; then \
+				printf "$(C_GREEN)[Integration]$(C_RESET) Neo4j is ready!\n"; \
+				break; \
 			fi; \
-			touch /tmp/vedo-test-neo4j; \
-		fi
-		@printf "$(C_CYAN)[Integration]$(C_RESET) checking PostgreSQL...\n"
-		@if command -v pg_isready >/dev/null 2>&1; then \
-			if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
-				printf "$(C_GREEN)[Integration]$(C_RESET) PostgreSQL is already running\n"; \
-			else \
-				printf "$(C_YELLOW)[Integration]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
-				cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d postgres 2>&1; \
-				printf "$(C_YELLOW)[Integration]$(C_RESET) Waiting for PostgreSQL...\n"; \
-				i=0; \
-				while [ $$i -lt 30 ]; do \
-					if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
-						printf "$(C_GREEN)[Integration]$(C_RESET) PostgreSQL is ready!\n"; \
-						break; \
-					fi; \
-					sleep 1; \
-					i=$$((i + 1)); \
-				done; \
-				if [ $$i -ge 30 ]; then \
-					printf "$(C_RED)[Integration]$(C_RESET) ERROR: PostgreSQL did not become ready\n"; \
-					exit 1; \
-				fi; \
-				touch /tmp/vedo-test-pg; \
+			sleep 2; \
+			i=$$((i + 1)); \
+		done; \
+		if [ $$i -ge 60 ]; then \
+			printf "$(C_RED)[Integration]$(C_RESET) ERROR: Neo4j did not become ready within 120 seconds\n"; \
+			docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test logs neo4j 2>&1 | tail -20; \
+			exit 1; \
+		fi; \
+		touch /tmp/vedo-test-neo4j; \
+	fi
+	@printf "$(C_CYAN)[Integration]$(C_RESET) checking PostgreSQL...\n"
+	@if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test ps postgres 2>/dev/null | grep -q "healthy"; then \
+		printf "$(C_GREEN)[Integration]$(C_RESET) PostgreSQL is already running (Docker healthy)\n"; \
+	else \
+		printf "$(C_YELLOW)[Integration]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
+		cd "$(ROOT)" && docker compose -f deploy/docker-compose.test.yml --env-file config/.env.test up -d postgres 2>&1; \
+		printf "$(C_YELLOW)[Integration]$(C_RESET) Waiting for PostgreSQL healthcheck...\n"; \
+		i=0; \
+		while [ $$i -lt 60 ]; do \
+			if docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test ps postgres 2>/dev/null | grep -q "healthy"; then \
+				printf "$(C_GREEN)[Integration]$(C_RESET) PostgreSQL is ready!\n"; \
+				break; \
 			fi; \
-		else \
-			printf "$(C_YELLOW)[Integration]$(C_RESET) pg_isready not found, checking via Docker health...\n"; \
-			if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps postgres 2>/dev/null | grep -q "healthy"; then \
-				printf "$(C_GREEN)[Integration]$(C_RESET) PostgreSQL is already running (Docker healthy)\n"; \
-			else \
-				printf "$(C_YELLOW)[Integration]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
-				cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d postgres 2>&1; \
-				printf "$(C_YELLOW)[Integration]$(C_RESET) Waiting for PostgreSQL healthcheck...\n"; \
-				i=0; \
-				while [ $$i -lt 60 ]; do \
-					if docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps postgres 2>/dev/null | grep -q "healthy"; then \
-						printf "$(C_GREEN)[Integration]$(C_RESET) PostgreSQL is ready!\n"; \
-						break; \
-					fi; \
-					sleep 2; \
-					i=$$((i + 1)); \
-				done; \
-				if [ $$i -ge 60 ]; then \
-					printf "$(C_RED)[Integration]$(C_RESET) ERROR: PostgreSQL did not become ready within 120 seconds\n"; \
-					docker compose -f "$(ROOT)/deploy/docker-compose.yml" logs postgres 2>&1 | tail -20; \
-					exit 1; \
-				fi; \
-				touch /tmp/vedo-test-pg; \
-			fi; \
-		fi
-		@printf "$(C_CYAN)[Integration]$(C_RESET) ensuring vedo_org_test database exists...\n"
-		@if command -v docker >/dev/null 2>&1; then \
-			docker compose -f "$(ROOT)/deploy/docker-compose.yml" exec -T postgres \
-				psql -U postgres -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='vedo_org_test'" 2>/dev/null | grep -q 1 || \
-			docker compose -f "$(ROOT)/deploy/docker-compose.yml" exec -T postgres \
-				psql -U postgres -d postgres -c "CREATE DATABASE vedo_org_test" 2>&1; \
-		fi
-		@printf "$(C_CYAN)[Integration]$(C_RESET) running tests...\n"
-		@$(MAKE) test-integration-rust-fast
-		@$(MAKE) test-integration-go-fast
-		@$(MAKE) test-versioning-fast
-		@printf "$(C_CYAN)[Integration]$(C_RESET) cleaning up infrastructure...\n"
-		@if [ -f /tmp/vedo-test-neo4j ]; then \
-			printf "$(C_YELLOW)[Integration]$(C_RESET) Stopping auto-started Neo4j...\n"; \
-			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml stop neo4j 2>&1; \
-			rm -f /tmp/vedo-test-neo4j; \
-		fi
-		@if [ -f /tmp/vedo-test-pg ]; then \
-			printf "$(C_YELLOW)[Integration]$(C_RESET) Stopping auto-started PostgreSQL...\n"; \
-			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml stop postgres 2>&1; \
-			rm -f /tmp/vedo-test-pg; \
-		fi
-		@printf "$(C_GREEN)[PASS]$(C_RESET) All integration tests passed\n"
+			sleep 2; \
+			i=$$((i + 1)); \
+		done; \
+		if [ $$i -ge 60 ]; then \
+			printf "$(C_RED)[Integration]$(C_RESET) ERROR: PostgreSQL did not become ready within 120 seconds\n"; \
+			docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test logs postgres 2>&1 | tail -20; \
+			exit 1; \
+		fi; \
+		touch /tmp/vedo-test-pg; \
+	fi
+	@printf "$(C_CYAN)[Integration]$(C_RESET) ensuring vedo_org_test database exists...\n"
+	@if command -v docker >/dev/null 2>&1; then \
+		docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test exec -T postgres \
+			psql -U vedo -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='vedo_org_test'" 2>/dev/null | grep -q 1 || \
+		docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test exec -T postgres \
+			psql -U vedo -d postgres -c "CREATE DATABASE vedo_org_test" 2>&1; \
+	fi
+	@printf "$(C_CYAN)[Integration]$(C_RESET) running tests...\n"
+	@$(MAKE) test-integration-rust-fast
+	@$(MAKE) test-integration-go-fast
+	@$(MAKE) test-versioning-fast
+	@printf "$(C_CYAN)[Integration]$(C_RESET) cleaning up infrastructure...\n"
+	@if [ -f /tmp/vedo-test-neo4j ]; then \
+		printf "$(C_YELLOW)[Integration]$(C_RESET) Stopping auto-started Neo4j...\n"; \
+		cd "$(ROOT)" && docker compose -f deploy/docker-compose.test.yml --env-file config/.env.test stop neo4j 2>&1; \
+		rm -f /tmp/vedo-test-neo4j; \
+	fi
+	@if [ -f /tmp/vedo-test-pg ]; then \
+		printf "$(C_YELLOW)[Integration]$(C_RESET) Stopping auto-started PostgreSQL...\n"; \
+		cd "$(ROOT)" && docker compose -f deploy/docker-compose.test.yml --env-file config/.env.test stop postgres 2>&1; \
+		rm -f /tmp/vedo-test-pg; \
+	fi
+	@printf "$(C_GREEN)[PASS]$(C_RESET) All integration tests passed\n"
 
-test-integration-full: ## Integration tests — full statistics (auto-starts Neo4j + PostgreSQL once)
+test-integration-full: ## Integration tests — full statistics (auto-starts Neo4j + PostgreSQL via docker-compose.test.yml)
 		@printf "$(C_CYAN)[Integration]$(C_RESET) full statistics mode\n"
 		@printf "$(C_CYAN)[Integration]$(C_RESET) checking Neo4j...\n"
 		@rm -f /tmp/vedo-test-neo4j /tmp/vedo-test-pg
-		@if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps neo4j 2>/dev/null | grep -q "healthy"; then \
+		@if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test ps neo4j 2>/dev/null | grep -q "healthy"; then \
 			printf "$(C_GREEN)[Integration]$(C_RESET) Neo4j is already running\n"; \
 		else \
 			printf "$(C_YELLOW)[Integration]$(C_RESET) Starting Neo4j...\n"; \
-			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d neo4j 2>&1; \
+			cd "$(ROOT)" && docker compose -f deploy/docker-compose.test.yml --env-file config/.env.test up -d neo4j 2>&1; \
 			printf "$(C_YELLOW)[Integration]$(C_RESET) Waiting for Neo4j healthcheck...\n"; \
 			i=0; \
 			while [ $$i -lt 60 ]; do \
-				if docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps neo4j 2>/dev/null | grep -q "healthy"; then \
+				if docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test ps neo4j 2>/dev/null | grep -q "healthy"; then \
 					printf "$(C_GREEN)[Integration]$(C_RESET) Neo4j is ready!\n"; \
 					break; \
 				fi; \
@@ -365,65 +340,40 @@ test-integration-full: ## Integration tests — full statistics (auto-starts Neo
 			done; \
 			if [ $$i -ge 60 ]; then \
 				printf "$(C_RED)[Integration]$(C_RESET) ERROR: Neo4j did not become ready within 120 seconds\n"; \
-				docker compose -f "$(ROOT)/deploy/docker-compose.yml" logs neo4j 2>&1 | tail -20; \
+				docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test logs neo4j 2>&1 | tail -20; \
 				exit 1; \
 			fi; \
 			touch /tmp/vedo-test-neo4j; \
 		fi
 		@printf "$(C_CYAN)[Integration]$(C_RESET) checking PostgreSQL...\n"
-		@if command -v pg_isready >/dev/null 2>&1; then \
-			if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
-				printf "$(C_GREEN)[Integration]$(C_RESET) PostgreSQL is already running\n"; \
-			else \
-				printf "$(C_YELLOW)[Integration]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
-				cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d postgres 2>&1; \
-				printf "$(C_YELLOW)[Integration]$(C_RESET) Waiting for PostgreSQL...\n"; \
-				i=0; \
-				while [ $$i -lt 30 ]; do \
-					if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
-						printf "$(C_GREEN)[Integration]$(C_RESET) PostgreSQL is ready!\n"; \
-						break; \
-					fi; \
-					sleep 1; \
-					i=$$((i + 1)); \
-				done; \
-				if [ $$i -ge 30 ]; then \
-					printf "$(C_RED)[Integration]$(C_RESET) ERROR: PostgreSQL did not become ready\n"; \
-					exit 1; \
-				fi; \
-				touch /tmp/vedo-test-pg; \
-			fi; \
+		@if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test ps postgres 2>/dev/null | grep -q "healthy"; then \
+			printf "$(C_GREEN)[Integration]$(C_RESET) PostgreSQL is already running (Docker healthy)\n"; \
 		else \
-			printf "$(C_YELLOW)[Integration]$(C_RESET) pg_isready not found, checking via Docker health...\n"; \
-			if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps postgres 2>/dev/null | grep -q "healthy"; then \
-				printf "$(C_GREEN)[Integration]$(C_RESET) PostgreSQL is already running (Docker healthy)\n"; \
-			else \
-				printf "$(C_YELLOW)[Integration]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
-				cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d postgres 2>&1; \
-				printf "$(C_YELLOW)[Integration]$(C_RESET) Waiting for PostgreSQL healthcheck...\n"; \
-				i=0; \
-				while [ $$i -lt 60 ]; do \
-					if docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps postgres 2>/dev/null | grep -q "healthy"; then \
-						printf "$(C_GREEN)[Integration]$(C_RESET) PostgreSQL is ready!\n"; \
-						break; \
-					fi; \
-					sleep 2; \
-					i=$$((i + 1)); \
-				done; \
-				if [ $$i -ge 60 ]; then \
-					printf "$(C_RED)[Integration]$(C_RESET) ERROR: PostgreSQL did not become ready within 120 seconds\n"; \
-					docker compose -f "$(ROOT)/deploy/docker-compose.yml" logs postgres 2>&1 | tail -20; \
-					exit 1; \
+			printf "$(C_YELLOW)[Integration]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
+			cd "$(ROOT)" && docker compose -f deploy/docker-compose.test.yml --env-file config/.env.test up -d postgres 2>&1; \
+			printf "$(C_YELLOW)[Integration]$(C_RESET) Waiting for PostgreSQL healthcheck...\n"; \
+			i=0; \
+			while [ $$i -lt 60 ]; do \
+				if docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test ps postgres 2>/dev/null | grep -q "healthy"; then \
+					printf "$(C_GREEN)[Integration]$(C_RESET) PostgreSQL is ready!\n"; \
+					break; \
 				fi; \
-				touch /tmp/vedo-test-pg; \
+				sleep 2; \
+				i=$$((i + 1)); \
+			done; \
+			if [ $$i -ge 60 ]; then \
+				printf "$(C_RED)[Integration]$(C_RESET) ERROR: PostgreSQL did not become ready within 120 seconds\n"; \
+				docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test logs postgres 2>&1 | tail -20; \
+				exit 1; \
 			fi; \
+			touch /tmp/vedo-test-pg; \
 		fi
 		@printf "$(C_CYAN)[Integration]$(C_RESET) ensuring vedo_org_test database exists...\n"
 		@if command -v docker >/dev/null 2>&1; then \
-			docker compose -f "$(ROOT)/deploy/docker-compose.yml" exec -T postgres \
-				psql -U postgres -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='vedo_org_test'" 2>/dev/null | grep -q 1 || \
-			docker compose -f "$(ROOT)/deploy/docker-compose.yml" exec -T postgres \
-				psql -U postgres -d postgres -c "CREATE DATABASE vedo_org_test" 2>&1; \
+			docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test exec -T postgres \
+				psql -U vedo -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='vedo_org_test'" 2>/dev/null | grep -q 1 || \
+			docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test exec -T postgres \
+				psql -U vedo -d postgres -c "CREATE DATABASE vedo_org_test" 2>&1; \
 		fi
 		@printf "$(C_CYAN)[Integration]$(C_RESET) running tests...\n"
 		@failed=0; \
@@ -433,12 +383,12 @@ test-integration-full: ## Integration tests — full statistics (auto-starts Neo
 		printf "$(C_CYAN)[Integration]$(C_RESET) cleaning up infrastructure...\n"; \
 		if [ -f /tmp/vedo-test-neo4j ]; then \
 			printf "$(C_YELLOW)[Integration]$(C_RESET) Stopping auto-started Neo4j...\n"; \
-			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml stop neo4j 2>&1; \
+			cd "$(ROOT)" && docker compose -f deploy/docker-compose.test.yml --env-file config/.env.test stop neo4j 2>&1; \
 			rm -f /tmp/vedo-test-neo4j; \
 		fi; \
 		if [ -f /tmp/vedo-test-pg ]; then \
 			printf "$(C_YELLOW)[Integration]$(C_RESET) Stopping auto-started PostgreSQL...\n"; \
-			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml stop postgres 2>&1; \
+			cd "$(ROOT)" && docker compose -f deploy/docker-compose.test.yml --env-file config/.env.test stop postgres 2>&1; \
 			rm -f /tmp/vedo-test-pg; \
 		fi; \
 		if [ $$failed -ne 0 ]; then \
@@ -448,24 +398,27 @@ test-integration-full: ## Integration tests — full statistics (auto-starts Neo
 		printf "$(C_GREEN)[PASS]$(C_RESET) All integration tests passed\n"
 
 .PHONY: test-integration-rust-fast test-integration-rust-full
-test-integration-rust-fast: ## Rust integration tests — fail-fast (auto-starts Neo4j if not running)
+test-integration-rust-fast: ## Rust integration tests — fail-fast (auto-starts Neo4j via docker-compose.test.yml)
 	@NEO4J_STARTED=""; \
 	NEO4J_HOST="localhost"; \
-	NEO4J_PORT="$${NEO4J_BOLT_PORT:-7687}"; \
+	NEO4J_PORT="$${NEO4J_BOLT_PORT:-$$(grep -E '^NEO4J_BOLT_PORT=' "$(ROOT)/config/.env.test" 2>/dev/null | tail -1 | cut -d= -f2 | tr -d '\r[:space:]')}"; \
+	NEO4J_PORT="$${NEO4J_PORT:-7687}"; \
 	NEO4J_USER="$${NEO4J_USER:-neo4j}"; \
 	NEO4J_PASSWORD="$${NEO4J_PASSWORD:-password}"; \
 	NEO4J_TEST_URI="bolt://$${NEO4J_HOST}:$${NEO4J_PORT}"; \
+	NEO4J_COMPOSE="$(ROOT)/deploy/docker-compose.test.yml"; \
+	NEO4J_ENV_FILE="$(ROOT)/config/.env.test"; \
 	printf "$(C_CYAN)[Integration]$(C_RESET) checking Neo4j at $${NEO4J_HOST}:$${NEO4J_PORT}...\n"; \
-	if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps neo4j 2>/dev/null | grep -q "healthy"; then \
+	if command -v docker >/dev/null 2>&1 && docker compose -f "$$NEO4J_COMPOSE" --env-file "$$NEO4J_ENV_FILE" ps neo4j 2>/dev/null | grep -q "healthy"; then \
 		printf "$(C_GREEN)[Integration]$(C_RESET) Neo4j is already running (Docker healthy)\n"; \
 	else \
 		printf "$(C_YELLOW)[Integration]$(C_RESET) Starting Neo4j via Docker Compose...\n"; \
-		cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d neo4j 2>&1; \
+		cd "$(ROOT)" && docker compose -f "$$NEO4J_COMPOSE" --env-file "$$NEO4J_ENV_FILE" up -d --force-recreate neo4j 2>&1; \
 		NEO4J_STARTED="yes"; \
 		printf "$(C_YELLOW)[Integration]$(C_RESET) Waiting for Neo4j healthcheck...\n"; \
 		i=0; \
 		while [ $$i -lt 60 ]; do \
-			if docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps neo4j 2>/dev/null | grep -q "healthy"; then \
+			if docker compose -f "$$NEO4J_COMPOSE" --env-file "$$NEO4J_ENV_FILE" ps neo4j 2>/dev/null | grep -q "healthy"; then \
 				printf "$(C_GREEN)[Integration]$(C_RESET) Neo4j is ready!\n"; \
 				break; \
 			fi; \
@@ -474,7 +427,9 @@ test-integration-rust-fast: ## Rust integration tests — fail-fast (auto-starts
 		done; \
 		if [ $$i -ge 60 ]; then \
 			printf "$(C_RED)[Integration]$(C_RESET) ERROR: Neo4j did not become ready within 120 seconds\n"; \
-			docker compose -f "$(ROOT)/deploy/docker-compose.yml" logs neo4j 2>&1 | tail -20; \
+			printf "$(C_RED)[Integration]$(C_RESET) Stale Neo4j locks (\"Neo4j is already running\") are cleared with:\n"; \
+			printf "  docker compose -f deploy/docker-compose.test.yml --env-file config/.env.test down -v\n"; \
+			docker compose -f "$$NEO4J_COMPOSE" --env-file "$$NEO4J_ENV_FILE" logs neo4j 2>&1 | tail -20; \
 			exit 1; \
 		fi; \
 	fi; \
@@ -491,28 +446,31 @@ test-integration-rust-fast: ## Rust integration tests — fail-fast (auto-starts
 	done; \
 	if [ -n "$$NEO4J_STARTED" ]; then \
 		printf "$(C_YELLOW)[Integration]$(C_RESET) Stopping auto-started Neo4j...\n"; \
-		cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev stop neo4j 2>&1; \
+		cd "$(ROOT)" && docker compose -f "$$NEO4J_COMPOSE" --env-file "$$NEO4J_ENV_FILE" stop neo4j 2>&1; \
 	fi; \
 	printf "$(C_GREEN)[PASS]$(C_RESET) All Rust integration tests passed\n"
 
 test-integration-rust-full: ## Rust integration tests — full statistics (collect all failures)
 	@NEO4J_STARTED=""; \
 	NEO4J_HOST="localhost"; \
-	NEO4J_PORT="$${NEO4J_BOLT_PORT:-7687}"; \
+	NEO4J_PORT="$${NEO4J_BOLT_PORT:-$$(grep -E '^NEO4J_BOLT_PORT=' "$(ROOT)/config/.env.test" 2>/dev/null | tail -1 | cut -d= -f2 | tr -d '\r[:space:]')}"; \
+	NEO4J_PORT="$${NEO4J_PORT:-7687}"; \
 	NEO4J_USER="$${NEO4J_USER:-neo4j}"; \
 	NEO4J_PASSWORD="$${NEO4J_PASSWORD:-password}"; \
 	NEO4J_TEST_URI="bolt://$${NEO4J_HOST}:$${NEO4J_PORT}"; \
+	NEO4J_COMPOSE="$(ROOT)/deploy/docker-compose.test.yml"; \
+	NEO4J_ENV_FILE="$(ROOT)/config/.env.test"; \
 	printf "$(C_CYAN)[Integration]$(C_RESET) checking Neo4j at $${NEO4J_HOST}:$${NEO4J_PORT}...\n"; \
-	if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps neo4j 2>/dev/null | grep -q "healthy"; then \
+	if command -v docker >/dev/null 2>&1 && docker compose -f "$$NEO4J_COMPOSE" --env-file "$$NEO4J_ENV_FILE" ps neo4j 2>/dev/null | grep -q "healthy"; then \
 		printf "$(C_GREEN)[Integration]$(C_RESET) Neo4j is already running (Docker healthy)\n"; \
 	else \
 		printf "$(C_YELLOW)[Integration]$(C_RESET) Starting Neo4j via Docker Compose...\n"; \
-		cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d neo4j 2>&1; \
+		cd "$(ROOT)" && docker compose -f "$$NEO4J_COMPOSE" --env-file "$$NEO4J_ENV_FILE" up -d --force-recreate neo4j 2>&1; \
 		NEO4J_STARTED="yes"; \
 		printf "$(C_YELLOW)[Integration]$(C_RESET) Waiting for Neo4j healthcheck...\n"; \
 		i=0; \
 		while [ $$i -lt 60 ]; do \
-			if docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps neo4j 2>/dev/null | grep -q "healthy"; then \
+			if docker compose -f "$$NEO4J_COMPOSE" --env-file "$$NEO4J_ENV_FILE" ps neo4j 2>/dev/null | grep -q "healthy"; then \
 				printf "$(C_GREEN)[Integration]$(C_RESET) Neo4j is ready!\n"; \
 				break; \
 			fi; \
@@ -521,7 +479,9 @@ test-integration-rust-full: ## Rust integration tests — full statistics (colle
 		done; \
 		if [ $$i -ge 60 ]; then \
 			printf "$(C_RED)[Integration]$(C_RESET) ERROR: Neo4j did not become ready within 120 seconds\n"; \
-			docker compose -f "$(ROOT)/deploy/docker-compose.yml" logs neo4j 2>&1 | tail -20; \
+			printf "$(C_RED)[Integration]$(C_RESET) Stale Neo4j locks (\"Neo4j is already running\") are cleared with:\n"; \
+			printf "  docker compose -f deploy/docker-compose.test.yml --env-file config/.env.test down -v\n"; \
+			docker compose -f "$$NEO4J_COMPOSE" --env-file "$$NEO4J_ENV_FILE" logs neo4j 2>&1 | tail -20; \
 			exit 1; \
 		fi; \
 	fi; \
@@ -539,7 +499,7 @@ test-integration-rust-full: ## Rust integration tests — full statistics (colle
 	done; \
 	if [ -n "$$NEO4J_STARTED" ]; then \
 		printf "$(C_YELLOW)[Integration]$(C_RESET) Stopping auto-started Neo4j...\n"; \
-		cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev stop neo4j 2>&1; \
+		cd "$(ROOT)" && docker compose -f "$$NEO4J_COMPOSE" --env-file "$$NEO4J_ENV_FILE" stop neo4j 2>&1; \
 		cd "$(ROOT)/apps/services/ontology-service"; \
 	fi; \
 	if [ $$RESULT -ne 0 ]; then \
@@ -549,133 +509,97 @@ test-integration-rust-full: ## Rust integration tests — full statistics (colle
 	printf "$(C_GREEN)[PASS]$(C_RESET) All Rust integration tests passed\n"
 
 .PHONY: test-integration-go-fast test-integration-go-full
-test-integration-go-fast: ## Go integration tests — fail-fast (auto-starts PostgreSQL if not running)
-		@printf "$(C_CYAN)[Go]$(C_RESET) checking PostgreSQL availability...\n"
-		@PG_STARTED=""; \
-		if command -v pg_isready >/dev/null 2>&1; then \
-			if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
-				printf "$(C_GREEN)[Go]$(C_RESET) PostgreSQL is already running\n"; \
-			else \
-				printf "$(C_YELLOW)[Go]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
-				cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d postgres 2>&1; \
-				PG_STARTED="yes"; \
-				printf "$(C_YELLOW)[Go]$(C_RESET) Waiting for PostgreSQL...\n"; \
-				i=0; \
-				while [ $$i -lt 30 ]; do \
-					if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
-						printf "$(C_GREEN)[Go]$(C_RESET) PostgreSQL is ready!\n"; \
-						break; \
-					fi; \
-					sleep 1; \
-					i=$$((i + 1)); \
-				done; \
-				if [ $$i -ge 30 ]; then \
-					printf "$(C_RED)[Go]$(C_RESET) ERROR: PostgreSQL did not become ready\n"; \
-					exit 1; \
-				fi; \
+test-integration-go-fast: ## Go integration tests — fail-fast (auto-starts PostgreSQL via docker-compose.test.yml)
+	@PG_STARTED=""; \
+	PG_HOST="localhost"; \
+	PG_PORT="$${PG_TEST_PORT:-$$(grep -E '^POSTGRES_PORT=' "$(ROOT)/config/.env.test" 2>/dev/null | tail -1 | cut -d= -f2 | tr -d '\r[:space:]')}"; \
+	PG_PORT="$${PG_PORT:-15432}"; \
+	PG_USER="$${PG_USER:-vedo}"; \
+	PG_PASSWORD="$${PG_PASSWORD:-vedo}"; \
+	PG_COMPOSE="$(ROOT)/deploy/docker-compose.test.yml"; \
+	PG_ENV_FILE="$(ROOT)/config/.env.test"; \
+	PG_URL="postgres://$${PG_USER}:$${PG_PASSWORD}@$${PG_HOST}:$${PG_PORT}/vedo_org_test?sslmode=disable"; \
+	printf "$(C_CYAN)[Go]$(C_RESET) checking PostgreSQL at $${PG_HOST}:$${PG_PORT}...\n"; \
+	if command -v docker >/dev/null 2>&1 && docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" ps postgres 2>/dev/null | grep -q "healthy"; then \
+		printf "$(C_GREEN)[Go]$(C_RESET) PostgreSQL is already running (Docker healthy)\n"; \
+	else \
+		printf "$(C_YELLOW)[Go]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
+		cd "$(ROOT)" && docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" up -d postgres 2>&1; \
+		PG_STARTED="yes"; \
+		printf "$(C_YELLOW)[Go]$(C_RESET) Waiting for PostgreSQL healthcheck...\n"; \
+		i=0; \
+		while [ $$i -lt 60 ]; do \
+			if docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" ps postgres 2>/dev/null | grep -q "healthy"; then \
+				printf "$(C_GREEN)[Go]$(C_RESET) PostgreSQL is ready!\n"; \
+				break; \
 			fi; \
-		else \
-			printf "$(C_YELLOW)[Go]$(C_RESET) pg_isready not found, checking via Docker health...\n"; \
-			if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps postgres 2>/dev/null | grep -q "healthy"; then \
-				printf "$(C_GREEN)[Go]$(C_RESET) PostgreSQL is already running (Docker healthy)\n"; \
-			else \
-				printf "$(C_YELLOW)[Go]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
-				cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d postgres 2>&1; \
-				PG_STARTED="yes"; \
-				printf "$(C_YELLOW)[Go]$(C_RESET) Waiting for PostgreSQL healthcheck...\n"; \
-				i=0; \
-				while [ $$i -lt 60 ]; do \
-					if docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps postgres 2>/dev/null | grep -q "healthy"; then \
-						printf "$(C_GREEN)[Go]$(C_RESET) PostgreSQL is ready!\n"; \
-						break; \
-					fi; \
-					sleep 2; \
-					i=$$((i + 1)); \
-				done; \
-				if [ $$i -ge 60 ]; then \
-					printf "$(C_RED)[Go]$(C_RESET) ERROR: PostgreSQL did not become ready within 120 seconds\n"; \
-					docker compose -f "$(ROOT)/deploy/docker-compose.yml" logs postgres 2>&1 | tail -20; \
-					exit 1; \
-				fi; \
-			fi; \
-		fi; \
-		printf "$(C_CYAN)[Go]$(C_RESET) ensuring vedo_org_test database exists...\n"; \
-		if command -v docker >/dev/null 2>&1; then \
-			docker compose -f "$(ROOT)/deploy/docker-compose.yml" exec -T postgres \
-				psql -U postgres -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='vedo_org_test'" 2>/dev/null | grep -q 1 || \
-			docker compose -f "$(ROOT)/deploy/docker-compose.yml" exec -T postgres \
-				psql -U postgres -d postgres -c "CREATE DATABASE vedo_org_test" 2>&1; \
-		fi; \
-		for dir in ticket-api org-api; do \
-			p="$(ROOT)/tests/integration/$$dir"; \
-			if [ -d "$$p" ] && (cd "$$p" && go list -tags=integration ./... >/dev/null 2>&1); then \
-				printf "$(C_CYAN)[Go]$(C_RESET) integration — $$dir\n"; \
-				cd "$$p" && go test -tags=integration ./... 2>&1 || { printf "$(C_RED)[FAIL]$(C_RESET) $$dir\n"; exit 1; }; \
-			fi; \
+			sleep 2; \
+			i=$$((i + 1)); \
 		done; \
-		if [ -n "$$PG_STARTED" ]; then \
-			printf "$(C_YELLOW)[Go]$(C_RESET) Stopping auto-started PostgreSQL...\n"; \
-			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml stop postgres 2>&1; \
+		if [ $$i -ge 60 ]; then \
+			printf "$(C_RED)[Go]$(C_RESET) ERROR: PostgreSQL did not become ready within 120 seconds\n"; \
+			docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" logs postgres 2>&1 | tail -20; \
+			exit 1; \
 		fi; \
-		printf "$(C_GREEN)[PASS]$(C_RESET) All Go integration tests passed\n"
+	fi; \
+	printf "$(C_CYAN)[Go]$(C_RESET) ensuring vedo_org_test database exists...\n"; \
+	docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" exec -T postgres \
+		psql -U "$$PG_USER" -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='vedo_org_test'" 2>/dev/null | grep -q 1 || \
+	docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" exec -T postgres \
+		psql -U "$$PG_USER" -d postgres -c "CREATE DATABASE vedo_org_test" 2>&1; \
+	export DATABASE_URL="$$PG_URL"; \
+	for dir in ticket-api org-api; do \
+		p="$(ROOT)/tests/integration/$$dir"; \
+		if [ -d "$$p" ] && (cd "$$p" && go list -tags=integration ./... >/dev/null 2>&1); then \
+			printf "$(C_CYAN)[Go]$(C_RESET) integration — $$dir\n"; \
+			cd "$$p" && go test -tags=integration ./... 2>&1 || { printf "$(C_RED)[FAIL]$(C_RESET) $$dir\n"; exit 1; }; \
+		fi; \
+	done; \
+	if [ -n "$$PG_STARTED" ]; then \
+		printf "$(C_YELLOW)[Go]$(C_RESET) Stopping auto-started PostgreSQL...\n"; \
+		cd "$(ROOT)" && docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" stop postgres 2>&1; \
+	fi; \
+	printf "$(C_GREEN)[PASS]$(C_RESET) All Go integration tests passed\n"
 
-test-integration-go-full: ## Go integration tests — full statistics (auto-starts PostgreSQL if not running)
-		@printf "$(C_CYAN)[Go]$(C_RESET) checking PostgreSQL availability...\n"
+test-integration-go-full: ## Go integration tests — full statistics (auto-starts PostgreSQL via docker-compose.test.yml)
 		@PG_STARTED=""; \
-		if command -v pg_isready >/dev/null 2>&1; then \
-			if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
-				printf "$(C_GREEN)[Go]$(C_RESET) PostgreSQL is already running\n"; \
-			else \
-				printf "$(C_YELLOW)[Go]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
-				cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d postgres 2>&1; \
-				PG_STARTED="yes"; \
-				printf "$(C_YELLOW)[Go]$(C_RESET) Waiting for PostgreSQL...\n"; \
-				i=0; \
-				while [ $$i -lt 30 ]; do \
-					if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
-						printf "$(C_GREEN)[Go]$(C_RESET) PostgreSQL is ready!\n"; \
-						break; \
-					fi; \
-					sleep 1; \
-					i=$$((i + 1)); \
-				done; \
-				if [ $$i -ge 30 ]; then \
-					printf "$(C_RED)[Go]$(C_RESET) ERROR: PostgreSQL did not become ready\n"; \
-					exit 1; \
-				fi; \
-			fi; \
+		PG_HOST="localhost"; \
+		PG_PORT="$${PG_TEST_PORT:-$$(grep -E '^POSTGRES_PORT=' "$(ROOT)/config/.env.test" 2>/dev/null | tail -1 | cut -d= -f2 | tr -d '\r[:space:]')}"; \
+		PG_PORT="$${PG_PORT:-15432}"; \
+		PG_USER="$${PG_USER:-vedo}"; \
+		PG_PASSWORD="$${PG_PASSWORD:-vedo}"; \
+		PG_COMPOSE="$(ROOT)/deploy/docker-compose.test.yml"; \
+		PG_ENV_FILE="$(ROOT)/config/.env.test"; \
+		PG_URL="postgres://$${PG_USER}:$${PG_PASSWORD}@$${PG_HOST}:$${PG_PORT}/vedo_org_test?sslmode=disable"; \
+		printf "$(C_CYAN)[Go]$(C_RESET) checking PostgreSQL at $${PG_HOST}:$${PG_PORT}...\n"; \
+		if command -v docker >/dev/null 2>&1 && docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" ps postgres 2>/dev/null | grep -q "healthy"; then \
+			printf "$(C_GREEN)[Go]$(C_RESET) PostgreSQL is already running (Docker healthy)\n"; \
 		else \
-			printf "$(C_YELLOW)[Go]$(C_RESET) pg_isready not found, checking via Docker health...\n"; \
-			if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps postgres 2>/dev/null | grep -q "healthy"; then \
-				printf "$(C_GREEN)[Go]$(C_RESET) PostgreSQL is already running (Docker healthy)\n"; \
-			else \
-				printf "$(C_YELLOW)[Go]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
-				cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d postgres 2>&1; \
-				PG_STARTED="yes"; \
-				printf "$(C_YELLOW)[Go]$(C_RESET) Waiting for PostgreSQL healthcheck...\n"; \
-				i=0; \
-				while [ $$i -lt 60 ]; do \
-					if docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps postgres 2>/dev/null | grep -q "healthy"; then \
-						printf "$(C_GREEN)[Go]$(C_RESET) PostgreSQL is ready!\n"; \
-						break; \
-					fi; \
-					sleep 2; \
-					i=$$((i + 1)); \
-				done; \
-				if [ $$i -ge 60 ]; then \
-					printf "$(C_RED)[Go]$(C_RESET) ERROR: PostgreSQL did not become ready within 120 seconds\n"; \
-					docker compose -f "$(ROOT)/deploy/docker-compose.yml" logs postgres 2>&1 | tail -20; \
-					exit 1; \
+			printf "$(C_YELLOW)[Go]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
+			cd "$(ROOT)" && docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" up -d postgres 2>&1; \
+			PG_STARTED="yes"; \
+			printf "$(C_YELLOW)[Go]$(C_RESET) Waiting for PostgreSQL healthcheck...\n"; \
+			i=0; \
+			while [ $$i -lt 60 ]; do \
+				if docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" ps postgres 2>/dev/null | grep -q "healthy"; then \
+					printf "$(C_GREEN)[Go]$(C_RESET) PostgreSQL is ready!\n"; \
+					break; \
 				fi; \
+				sleep 2; \
+				i=$$((i + 1)); \
+			done; \
+			if [ $$i -ge 60 ]; then \
+				printf "$(C_RED)[Go]$(C_RESET) ERROR: PostgreSQL did not become ready within 120 seconds\n"; \
+				docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" logs postgres 2>&1 | tail -20; \
+				exit 1; \
 			fi; \
 		fi; \
 		printf "$(C_CYAN)[Go]$(C_RESET) ensuring vedo_org_test database exists...\n"; \
-		if command -v docker >/dev/null 2>&1; then \
-			docker compose -f "$(ROOT)/deploy/docker-compose.yml" exec -T postgres \
-				psql -U postgres -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='vedo_org_test'" 2>/dev/null | grep -q 1 || \
-			docker compose -f "$(ROOT)/deploy/docker-compose.yml" exec -T postgres \
-				psql -U postgres -d postgres -c "CREATE DATABASE vedo_org_test" 2>&1; \
-		fi; \
+		docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" exec -T postgres \
+			psql -U "$$PG_USER" -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='vedo_org_test'" 2>/dev/null | grep -q 1 || \
+		docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" exec -T postgres \
+			psql -U "$$PG_USER" -d postgres -c "CREATE DATABASE vedo_org_test" 2>&1; \
+		export DATABASE_URL="$$PG_URL"; \
 		failed=""; \
 		for dir in ticket-api org-api; do \
 			p="$(ROOT)/tests/integration/$$dir"; \
@@ -686,7 +610,7 @@ test-integration-go-full: ## Go integration tests — full statistics (auto-star
 		done; \
 		if [ -n "$$PG_STARTED" ]; then \
 			printf "$(C_YELLOW)[Go]$(C_RESET) Stopping auto-started PostgreSQL...\n"; \
-			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml stop postgres 2>&1; \
+			cd "$(ROOT)" && docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" stop postgres 2>&1; \
 		fi; \
 		if [ -n "$$failed" ]; then \
 			printf "$(C_RED)[FAIL]$(C_RESET) Go integration tests failed in:$$failed\n"; \
@@ -696,34 +620,43 @@ test-integration-go-full: ## Go integration tests — full statistics (auto-star
 
 .PHONY: test-versioning-fast test-versioning-full
 test-versioning-fast: ## Versioning integration — fail-fast (auto-starts PostgreSQL if not running)
-	@printf "$(C_CYAN)[Versioning]$(C_RESET) checking PostgreSQL availability...\n"
-	@PG_URL="postgres://postgres:password@localhost:5432/vedo_versioning"; \
-	PG_STARTED=""; \
-	if command -v pg_isready >/dev/null 2>&1; then \
-		if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
-			printf "$(C_GREEN)[Versioning]$(C_RESET) PostgreSQL is already running\n"; \
-		else \
-			printf "$(C_YELLOW)[Versioning]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
-			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d postgres 2>&1; \
-			PG_STARTED="yes"; \
-			printf "$(C_YELLOW)[Versioning]$(C_RESET) Waiting for PostgreSQL...\n"; \
-			i=0; \
-			while [ $$i -lt 30 ]; do \
-				if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
-					printf "$(C_GREEN)[Versioning]$(C_RESET) PostgreSQL is ready!\n"; \
-					break; \
-				fi; \
-				sleep 1; \
-				i=$$((i + 1)); \
-			done; \
-			if [ $$i -ge 30 ]; then \
-				printf "$(C_RED)[Versioning]$(C_RESET) ERROR: PostgreSQL did not become ready\n"; \
-				exit 1; \
-			fi; \
-		fi; \
+	@PG_STARTED=""; \
+	PG_HOST="localhost"; \
+	PG_PORT="$${PG_TEST_PORT:-$$(grep -E '^POSTGRES_PORT=' "$(ROOT)/config/.env.test" 2>/dev/null | tail -1 | cut -d= -f2 | tr -d '\r[:space:]')}"; \
+	PG_PORT="$${PG_PORT:-15432}"; \
+	PG_USER="$${PG_USER:-vedo}"; \
+	PG_PASSWORD="$${PG_PASSWORD:-vedo}"; \
+	PG_COMPOSE="$(ROOT)/deploy/docker-compose.test.yml"; \
+	PG_ENV_FILE="$(ROOT)/config/.env.test"; \
+	PG_URL="postgres://$${PG_USER}:$${PG_PASSWORD}@$${PG_HOST}:$${PG_PORT}/vedo_versioning"; \
+	printf "$(C_CYAN)[Versioning]$(C_RESET) checking PostgreSQL at $${PG_HOST}:$${PG_PORT}...\n"; \
+	if command -v docker >/dev/null 2>&1 && docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" ps postgres 2>/dev/null | grep -q "healthy"; then \
+		printf "$(C_GREEN)[Versioning]$(C_RESET) PostgreSQL is already running (Docker healthy)\n"; \
 	else \
-		printf "$(C_YELLOW)[Versioning]$(C_RESET) pg_isready not found, assuming PG available\n"; \
+		printf "$(C_YELLOW)[Versioning]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
+		cd "$(ROOT)" && docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" up -d postgres 2>&1; \
+		PG_STARTED="yes"; \
+		printf "$(C_YELLOW)[Versioning]$(C_RESET) Waiting for PostgreSQL healthcheck...\n"; \
+		i=0; \
+		while [ $$i -lt 60 ]; do \
+			if docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" ps postgres 2>/dev/null | grep -q "healthy"; then \
+				printf "$(C_GREEN)[Versioning]$(C_RESET) PostgreSQL is ready!\n"; \
+				break; \
+			fi; \
+			sleep 2; \
+			i=$$((i + 1)); \
+		done; \
+		if [ $$i -ge 60 ]; then \
+			printf "$(C_RED)[Versioning]$(C_RESET) ERROR: PostgreSQL did not become ready within 120 seconds\n"; \
+			docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" logs postgres 2>&1 | tail -20; \
+			exit 1; \
+		fi; \
 	fi; \
+	printf "$(C_CYAN)[Versioning]$(C_RESET) ensuring vedo_versioning database exists...\n"; \
+	docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" exec -T postgres \
+		psql -U "$$PG_USER" -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='vedo_versioning'" 2>/dev/null | grep -q 1 || \
+	docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" exec -T postgres \
+		psql -U "$$PG_USER" -d postgres -c "CREATE DATABASE vedo_versioning" 2>&1; \
 	export PG_TEST_DATABASE_URL="$$PG_URL"; \
 	export DATABASE_URL="$$PG_URL"; \
 	RESULT=0; \
@@ -735,7 +668,7 @@ test-versioning-fast: ## Versioning integration — fail-fast (auto-starts Postg
 	fi; \
 	if [ -n "$$PG_STARTED" ]; then \
 		printf "$(C_YELLOW)[Versioning]$(C_RESET) Stopping auto-started PostgreSQL...\n"; \
-		cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml stop postgres 2>&1; \
+		cd "$(ROOT)" && docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" stop postgres 2>&1; \
 	fi; \
 	if [ $$RESULT -ne 0 ]; then \
 		printf "$(C_RED)[FAIL]$(C_RESET) Versioning tests failed\n"; \
@@ -744,34 +677,43 @@ test-versioning-fast: ## Versioning integration — fail-fast (auto-starts Postg
 	printf "$(C_GREEN)[PASS]$(C_RESET) All versioning tests passed\n"
 
 test-versioning-full: ## Versioning integration — full statistics (collect all failures)
-	@printf "$(C_CYAN)[Versioning]$(C_RESET) checking PostgreSQL availability...\n"
-	@PG_URL="postgres://postgres:password@localhost:5432/vedo_versioning"; \
-	PG_STARTED=""; \
-	if command -v pg_isready >/dev/null 2>&1; then \
-		if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
-			printf "$(C_GREEN)[Versioning]$(C_RESET) PostgreSQL is already running\n"; \
-		else \
-			printf "$(C_YELLOW)[Versioning]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
-			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d postgres 2>&1; \
-			PG_STARTED="yes"; \
-			printf "$(C_YELLOW)[Versioning]$(C_RESET) Waiting for PostgreSQL...\n"; \
-			i=0; \
-			while [ $$i -lt 30 ]; do \
-				if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
-					printf "$(C_GREEN)[Versioning]$(C_RESET) PostgreSQL is ready!\n"; \
-					break; \
-				fi; \
-				sleep 1; \
-				i=$$((i + 1)); \
-			done; \
-			if [ $$i -ge 30 ]; then \
-				printf "$(C_RED)[Versioning]$(C_RESET) ERROR: PostgreSQL did not become ready\n"; \
-				exit 1; \
-			fi; \
-		fi; \
+	@PG_STARTED=""; \
+	PG_HOST="localhost"; \
+	PG_PORT="$${PG_TEST_PORT:-$$(grep -E '^POSTGRES_PORT=' "$(ROOT)/config/.env.test" 2>/dev/null | tail -1 | cut -d= -f2 | tr -d '\r[:space:]')}"; \
+	PG_PORT="$${PG_PORT:-15432}"; \
+	PG_USER="$${PG_USER:-vedo}"; \
+	PG_PASSWORD="$${PG_PASSWORD:-vedo}"; \
+	PG_COMPOSE="$(ROOT)/deploy/docker-compose.test.yml"; \
+	PG_ENV_FILE="$(ROOT)/config/.env.test"; \
+	PG_URL="postgres://$${PG_USER}:$${PG_PASSWORD}@$${PG_HOST}:$${PG_PORT}/vedo_versioning"; \
+	printf "$(C_CYAN)[Versioning]$(C_RESET) checking PostgreSQL at $${PG_HOST}:$${PG_PORT}...\n"; \
+	if command -v docker >/dev/null 2>&1 && docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" ps postgres 2>/dev/null | grep -q "healthy"; then \
+		printf "$(C_GREEN)[Versioning]$(C_RESET) PostgreSQL is already running (Docker healthy)\n"; \
 	else \
-		printf "$(C_YELLOW)[Versioning]$(C_RESET) pg_isready not found, assuming PG available\n"; \
+		printf "$(C_YELLOW)[Versioning]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
+		cd "$(ROOT)" && docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" up -d postgres 2>&1; \
+		PG_STARTED="yes"; \
+		printf "$(C_YELLOW)[Versioning]$(C_RESET) Waiting for PostgreSQL healthcheck...\n"; \
+		i=0; \
+		while [ $$i -lt 60 ]; do \
+			if docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" ps postgres 2>/dev/null | grep -q "healthy"; then \
+				printf "$(C_GREEN)[Versioning]$(C_RESET) PostgreSQL is ready!\n"; \
+				break; \
+			fi; \
+			sleep 2; \
+			i=$$((i + 1)); \
+		done; \
+		if [ $$i -ge 60 ]; then \
+			printf "$(C_RED)[Versioning]$(C_RESET) ERROR: PostgreSQL did not become ready within 120 seconds\n"; \
+			docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" logs postgres 2>&1 | tail -20; \
+			exit 1; \
+		fi; \
 	fi; \
+	printf "$(C_CYAN)[Versioning]$(C_RESET) ensuring vedo_versioning database exists...\n"; \
+	docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" exec -T postgres \
+		psql -U "$$PG_USER" -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='vedo_versioning'" 2>/dev/null | grep -q 1 || \
+	docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" exec -T postgres \
+		psql -U "$$PG_USER" -d postgres -c "CREATE DATABASE vedo_versioning" 2>&1; \
 	export PG_TEST_DATABASE_URL="$$PG_URL"; \
 	export DATABASE_URL="$$PG_URL"; \
 	RESULT=0; \
@@ -781,7 +723,7 @@ test-versioning-full: ## Versioning integration — full statistics (collect all
 	cd "$(ROOT)/apps/services/versioning-service" && cargo test --test '*' -- --test-threads=1 --nocapture 2>&1 || RESULT=1; \
 	if [ -n "$$PG_STARTED" ]; then \
 		printf "$(C_YELLOW)[Versioning]$(C_RESET) Stopping auto-started PostgreSQL...\n"; \
-		cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml stop postgres 2>&1; \
+		cd "$(ROOT)" && docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" stop postgres 2>&1; \
 	fi; \
 	if [ $$RESULT -ne 0 ]; then \
 		printf "$(C_RED)[FAIL]$(C_RESET) Versioning tests failed\n"; \
@@ -910,7 +852,7 @@ test-gates-security-fast: ## Security integration tests — fail-fast (requires 
 		bash $(ROOT)/tests/gates/test_security_integration.sh 2>&1 || RESULT=1; \
 		if [ -f /tmp/vedo-test-stack ]; then \
 			printf "$(C_YELLOW)[Security]$(C_RESET) Stopping auto-started Docker test stack...\n"; \
-			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.test down 2>&1; \
+			cd "$(ROOT)" && docker compose -f deploy/docker-compose.test.yml --env-file config/.env.test down 2>&1; \
 			rm -f /tmp/vedo-test-stack; \
 		fi; \
 		if [ $$RESULT -ne 0 ]; then \
@@ -948,7 +890,7 @@ test-gates-security-full: ## Security integration tests — full statistics (req
 		bash $(ROOT)/tests/gates/test_security_integration.sh 2>&1 || RESULT=1; \
 		if [ -f /tmp/vedo-test-stack ]; then \
 			printf "$(C_YELLOW)[Security]$(C_RESET) Stopping auto-started Docker test stack...\n"; \
-			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.test down 2>&1; \
+			cd "$(ROOT)" && docker compose -f deploy/docker-compose.test.yml --env-file config/.env.test down 2>&1; \
 			rm -f /tmp/vedo-test-stack; \
 		fi; \
 		if [ $$RESULT -ne 0 ]; then \
@@ -1067,6 +1009,11 @@ ENV                 ?= dev
 COMPOSE_FILE        ?= deploy/docker-compose.yml
 COMPOSE_PROFILE     ?=
 
+# ENV=test uses docker-compose.test.yml (isolated project + JWT dev keys for Playwright)
+ifeq ($(ENV),test)
+COMPOSE_FILE := deploy/docker-compose.test.yml
+endif
+
 .PHONY: docker-up docker-down docker-logs docker-ps docker-shell docker-config
 .PHONY: docker-up-dev docker-up-test docker-up-staging
 .PHONY: docker-down-dev docker-down-test docker-down-staging
@@ -1081,8 +1028,8 @@ docker-up: ## Start all services via Docker Compose (usage: make docker-up [ENV=
 docker-up-dev: ## Start dev environment (alias for make docker-up ENV=dev)
 	$(MAKE) docker-up ENV=dev
 
-docker-up-test: ## Start test environment (includes JWT dev keys for Playwright)
-	$(MAKE) docker-up ENV=test
+docker-up-test: ## Start test environment (docker-compose.test.yml — isolated project + JWT dev keys for Playwright)
+	$(MAKE) docker-up ENV=test COMPOSE_FILE=deploy/docker-compose.test.yml
 
 docker-up-staging: ## Start staging environment
 	$(MAKE) docker-up ENV=staging
@@ -1097,7 +1044,7 @@ docker-down-dev: ## Stop dev environment
 	$(MAKE) docker-down ENV=dev
 
 docker-down-test: ## Stop test environment
-	$(MAKE) docker-down ENV=test
+	$(MAKE) docker-down ENV=test COMPOSE_FILE=deploy/docker-compose.test.yml
 
 docker-down-staging: ## Stop staging environment
 	$(MAKE) docker-down ENV=staging

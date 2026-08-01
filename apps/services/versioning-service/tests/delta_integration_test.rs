@@ -13,7 +13,7 @@ mod common;
 
 use axum::{
     body::Body,
-    http::{Method, Request, StatusCode},
+    http::{Method, Request},
 };
 use tower::ServiceExt;
 use uuid::Uuid;
@@ -76,6 +76,13 @@ async fn test_commit_delta_endpoint() {
         "message": "Delta test commit",
         "author_id": "test-delta-author",
         "author_name": "Test Author",
+        // Non-empty delta is required — the repository rejects empty deltas
+        // with VER-COMMIT-EMPTY-DELTA (400).
+        "delta": {
+            "added_triples": [
+                {"s": "ClassA", "p": "rdfs:label", "o": "Class A"}
+            ]
+        },
     });
     let resp = app
         .clone()
@@ -124,16 +131,14 @@ async fn test_commit_delta_endpoint() {
         .unwrap();
     let delta_json: serde_json::Value = serde_json::from_slice(&body_bytes).unwrap();
 
-    // The delta response should contain delta sections
-    assert!(
-        delta_json.get("added").is_some()
-            || delta_json.get("removed").is_some()
-            || delta_json.get("modified").is_some()
-            || delta_json.get("classes").is_some()
-            || delta_json.get("properties").is_some()
-            || delta_json.get("individuals").is_some()
-            || delta_json.get("triples").is_some()
-            || delta_json.get("changes").is_some(),
-        "delta response should contain at least one known section key, got: {delta_json}"
+    // The delta response is a `CommitDeltaPreview` with *_total / *_preview
+    // sections per added/removed/modified triples.
+    assert_eq!(
+        delta_json["added_total"], 1,
+        "added_total mismatch: {delta_json}"
+    );
+    assert_eq!(
+        delta_json["added_preview"][0]["s"], "ClassA",
+        "added_preview[0].s mismatch: {delta_json}"
     );
 }
