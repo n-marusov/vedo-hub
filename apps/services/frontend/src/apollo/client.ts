@@ -144,6 +144,5 @@ apolloClient.cache.evict({ fieldName: "ontology" });
 apolloClient.cache.gc();
 
 log.info("apollo.client.initialized", {
-	endpoint:
-		window.__VEDO_CONFIG__?.GRAPHQL_ENDPOINT || "/api/v1/graphql",
+	endpoint: window.__VEDO_CONFIG__?.GRAPHQL_ENDPOINT || "/api/v1/graphql",
 });
