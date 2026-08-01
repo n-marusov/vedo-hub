@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -18,6 +19,17 @@ import (
 
 //go:embed docs/openapi.json
 var openAPISpec []byte
+
+// deprecationSunset returns the SunsetConfig applied to the legacy
+// /api/v1/ontologies/* surface (ADR-DES.API.rest-gitlab-alignment). Routes
+// stay active — headers only; removal happens in Phase B (REST migration).
+func deprecationSunset() middleware.SunsetConfig {
+	return middleware.SunsetConfig{
+		SunsetDate:   time.Date(2026, 8, 1, 0, 0, 0, 0, time.UTC),
+		Deprecated:   true,
+		MigrationURL: "https://docs.vedo.io/api/migration-guide",
+	}
+}
 
 //go:embed swagger/*
 var swaggerEmbedFS embed.FS
@@ -115,34 +127,88 @@ func RegisterRoutes(r *gin.Engine, grpcPool *proxy.GrpcClientPool) {
 	// MoveProjectRequest/Response, uncomment the gRPC path in HandleMoveProject
 	// and wire the auth-service implementation.
 
+	// Planned contract stubs (501 + x-vedo-status: planned) per
+	// ADR-DES.API.rest-gitlab-alignment. These endpoints are part of the
+	// target GitLab-aligned surface but are not implemented until M10 (MR
+	// workflow) and M11 (publishing pipeline). Stubs stabilise the API
+	// contract for consumers and test authors without shipping fake logic.
+	plannedStub := func(milestone string) gin.HandlerFunc {
+		return func(c *gin.Context) {
+			slog.Debug("api-gateway planned stub accessed",
+				"path", c.Request.URL.Path,
+				"milestone", milestone,
+			)
+			c.Header("x-vedo-status", "planned")
+			c.JSON(http.StatusNotImplemented, gin.H{
+				"message":       "Not implemented — planned for " + milestone,
+				"x_vedo_status": "planned",
+			})
+		}
+	}
+	registerPlannedStub := func(method, path, milestone string) {
+		switch method {
+		case http.MethodGet:
+			api.GET(path, plannedStub(milestone))
+		case http.MethodPost:
+			api.POST(path, plannedStub(milestone))
+		}
+		slog.Info("api-gateway planned stub registered",
+			"path", path,
+			"milestone", milestone,
+			"status_code", http.StatusNotImplemented,
+		)
+	}
+	registerPlannedStub(http.MethodGet, "/projects/:id/releases", "M11")
+	registerPlannedStub(http.MethodGet, "/projects/:id/merge_requests", "M10")
+	registerPlannedStub(http.MethodPost, "/projects/:id/merge_requests", "M10")
+	registerPlannedStub(http.MethodGet, "/projects/:id/protected_branches", "M10")
+	registerPlannedStub(http.MethodPost, "/projects/:id/protected_branches", "M10")
+
 	// Ontology REST read handlers — use gRPC.
+	// Deprecated per ADR-DES.API.rest-gitlab-alignment: the flat
+	// /api/v1/ontologies/* paths are legacy; target structure nests content
+	// under /projects/{pid}/repository/*. Routes stay active (headers only),
+	// removal happens in Phase B (REST migration).
 	ontologyHandler := handlers.NewOntologyHandler(ontologyProxy, ontologyGrpc)
-	api.GET("/ontologies", ontologyHandler.HandleListOntologies)
-	api.GET("/ontologies/:id", ontologyHandler.HandleGetOntology)
-	api.GET("/ontologies/:id/classes", ontologyHandler.HandleListClasses)
-	api.GET("/ontologies/:id/classes/:classId", ontologyHandler.HandleGetClass)
-	api.GET("/ontologies/:id/properties", ontologyHandler.HandleListProperties)
-	api.GET("/ontologies/:id/individuals", ontologyHandler.HandleListIndividuals)
+
+	// Deprecation middleware for all /api/v1/ontologies/* routes
+	// (REQ-FUN.API.rest-gitlab-alignment; sunset value per plan).
+	ontologyDeprecated := api.Group("")
+	ontologyDeprecated.Use(middleware.SunsetHeader(deprecationSunset()))
+	slog.Info("api-gateway deprecated route registered",
+		"path", "/api/v1/ontologies/*",
+		"sunset", "Sat, 01 Aug 2026 00:00:00 GMT",
+		"replacement", "/projects/{pid}/repository/*",
+	)
+
+	ontologyDeprecated.GET("/ontologies", ontologyHandler.HandleListOntologies)
+	ontologyDeprecated.GET("/ontologies/:id", ontologyHandler.HandleGetOntology)
+	ontologyDeprecated.GET("/ontologies/:id/classes", ontologyHandler.HandleListClasses)
+	ontologyDeprecated.GET("/ontologies/:id/classes/:classId", ontologyHandler.HandleGetClass)
+	ontologyDeprecated.GET("/ontologies/:id/properties", ontologyHandler.HandleListProperties)
+	ontologyDeprecated.GET("/ontologies/:id/individuals", ontologyHandler.HandleListIndividuals)
 
 	// Ontology write endpoints (POST/PUT/DELETE) — HTTP proxy (legacy, migrating to gRPC).
-	api.POST("/ontologies", gin.WrapH(ontologyProxy))
-	api.PUT("/ontologies/:id", gin.WrapH(ontologyProxy))
-	api.DELETE("/ontologies/:id", gin.WrapH(ontologyProxy))
-	api.POST("/ontologies/:id/classes", gin.WrapH(ontologyProxy))
-	api.PUT("/ontologies/:id/classes/:classId", gin.WrapH(ontologyProxy))
-	api.DELETE("/ontologies/:id/classes/:classId", gin.WrapH(ontologyProxy))
-	api.POST("/ontologies/:id/properties", gin.WrapH(ontologyProxy))
-	api.PUT("/ontologies/:id/properties/:propertyId", gin.WrapH(ontologyProxy))
-	api.DELETE("/ontologies/:id/properties/:propertyId", gin.WrapH(ontologyProxy))
-	api.POST("/ontologies/:id/individuals", gin.WrapH(ontologyProxy))
-	api.PUT("/ontologies/:id/individuals/:individualId", gin.WrapH(ontologyProxy))
-	api.DELETE("/ontologies/:id/individuals/:individualId", gin.WrapH(ontologyProxy))
-	api.GET("/ontologies/:id/export", gin.WrapH(ontologyProxy))
-	api.POST("/ontologies/:id/import", gin.WrapH(ontologyProxy))
-	api.POST("/ontologies/:id/validate", gin.WrapH(ontologyProxy))
+	ontologyDeprecated.POST("/ontologies", gin.WrapH(ontologyProxy))
+	ontologyDeprecated.PUT("/ontologies/:id", gin.WrapH(ontologyProxy))
+	ontologyDeprecated.DELETE("/ontologies/:id", gin.WrapH(ontologyProxy))
+	ontologyDeprecated.POST("/ontologies/:id/classes", gin.WrapH(ontologyProxy))
+	ontologyDeprecated.PUT("/ontologies/:id/classes/:classId", gin.WrapH(ontologyProxy))
+	ontologyDeprecated.DELETE("/ontologies/:id/classes/:classId", gin.WrapH(ontologyProxy))
+	ontologyDeprecated.POST("/ontologies/:id/properties", gin.WrapH(ontologyProxy))
+	ontologyDeprecated.PUT("/ontologies/:id/properties/:propertyId", gin.WrapH(ontologyProxy))
+	ontologyDeprecated.DELETE("/ontologies/:id/properties/:propertyId", gin.WrapH(ontologyProxy))
+	ontologyDeprecated.POST("/ontologies/:id/individuals", gin.WrapH(ontologyProxy))
+	ontologyDeprecated.PUT("/ontologies/:id/individuals/:individualId", gin.WrapH(ontologyProxy))
+	ontologyDeprecated.DELETE("/ontologies/:id/individuals/:individualId", gin.WrapH(ontologyProxy))
+	ontologyDeprecated.GET("/ontologies/:id/export", gin.WrapH(ontologyProxy))
+	ontologyDeprecated.POST("/ontologies/:id/import", gin.WrapH(ontologyProxy))
+	ontologyDeprecated.POST("/ontologies/:id/validate", gin.WrapH(ontologyProxy))
 
 	// Draft-state coordination — requires Idempotency-Key (under orgWrite).
-	orgWrite.PUT("/ontologies/:id/draft", gin.WrapH(ontologyProxy))
+	// Deprecated with the rest of the ontology surface; still requires the
+	// Idempotency-Key header.
+	orgWrite.PUT("/ontologies/:id/draft", middleware.SunsetHeader(deprecationSunset()), gin.WrapH(ontologyProxy))
 
 	// Versioning service proxy.
 	api.POST("/versioning/commits", gin.WrapH(versioningProxy))
@@ -186,8 +252,11 @@ func RegisterRoutes(r *gin.Engine, grpcPool *proxy.GrpcClientPool) {
 		getEnv("COMMENTING_SERVICE_URL", "http://localhost:8087"),
 		"commenting-service",
 	)
-	api.GET("/ontologies/:id/comments", gin.WrapH(commentingProxy))
-	api.POST("/ontologies/:id/comments", gin.WrapH(commentingProxy))
+	// Deprecated surface: registered on ontologyDeprecated so the group
+	// SunsetHeader middleware applies (same deprecation contract as the
+	// rest of the /api/v1/ontologies/* surface).
+	ontologyDeprecated.GET("/ontologies/:id/comments", gin.WrapH(commentingProxy))
+	ontologyDeprecated.POST("/ontologies/:id/comments", gin.WrapH(commentingProxy))
 
 	// Create AI orchestration proxy — thin HTTP to gRPC bridge. All AI business
 	// logic now lives in the ai-orchestration-service.
@@ -195,12 +264,12 @@ func RegisterRoutes(r *gin.Engine, grpcPool *proxy.GrpcClientPool) {
 
 	// AI-related routes — proxied to ai-orchestration-service via gRPC.
 	// Policy routing and prompt injection defense are handled server-side.
-	api.POST("/ontologies/:id/generate-from-text", aiOrchProxy.HandleGenerateFromText)
-	api.POST("/ontologies/:id/ai/suggest-classes", aiOrchProxy.HandleSuggestClasses)
-	api.POST("/ontologies/:id/ai/suggest-properties", aiOrchProxy.HandleSuggestProperties)
-	api.POST("/ontologies/:id/ai/suggest-relationships", aiOrchProxy.HandleSuggestRelationships)
-	api.POST("/ontologies/:id/ai/complete", aiOrchProxy.HandleSuggestClasses) // legacy alias
-	api.POST("/ontologies/:id/ai/refine", aiOrchProxy.HandleRefine)
+	ontologyDeprecated.POST("/ontologies/:id/generate-from-text", aiOrchProxy.HandleGenerateFromText)
+	ontologyDeprecated.POST("/ontologies/:id/ai/suggest-classes", aiOrchProxy.HandleSuggestClasses)
+	ontologyDeprecated.POST("/ontologies/:id/ai/suggest-properties", aiOrchProxy.HandleSuggestProperties)
+	ontologyDeprecated.POST("/ontologies/:id/ai/suggest-relationships", aiOrchProxy.HandleSuggestRelationships)
+	ontologyDeprecated.POST("/ontologies/:id/ai/complete", aiOrchProxy.HandleSuggestClasses) // legacy alias
+	ontologyDeprecated.POST("/ontologies/:id/ai/refine", aiOrchProxy.HandleRefine)
 
 	// Document extractor proxy (HTTP — will later migrate to gRPC)
 	// Adds X-Ontology-Id header from the path parameter so the downstream
@@ -209,8 +278,8 @@ func RegisterRoutes(r *gin.Engine, grpcPool *proxy.GrpcClientPool) {
 		getEnv("DOCUMENT_EXTRACTOR_URL", "http://localhost:8092"),
 		"document-extractor",
 	)
-	api.POST("/ontologies/:id/documents/extract", withOntologyHeader(documentExtractorProxy))
-	api.POST("/ontologies/:id/documents/extract/batch", withOntologyHeader(documentExtractorProxy))
+	ontologyDeprecated.POST("/ontologies/:id/documents/extract", withOntologyHeader(documentExtractorProxy))
+	ontologyDeprecated.POST("/ontologies/:id/documents/extract/batch", withOntologyHeader(documentExtractorProxy))
 
 	// OpenAPI spec — served locally from embedded spec
 	api.GET("/openapi.json", func(c *gin.Context) {

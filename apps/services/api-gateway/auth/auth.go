@@ -56,6 +56,15 @@ var roleWeight = map[AuthRole]int{
 	"productowner":    2,
 }
 
+// RoleWeightPublish is the minimum role weight required to perform the
+// publish action (release creation) per ADR-DES.INFRA.publishing-extension:
+//   - weight >= 2 (Maintainer+); no separate publisher role;
+//   - Owner (weight = 3) can also publish.
+//
+// Enforcement of the gate is deferred to M11 (publishing pipeline); this
+// constant documents the gate for consumers and future enforcement code.
+const RoleWeightPublish = 2
+
 // @hlv:sec [AUTH_BOUNDARY] — JWT claims parsed from auth header
 // Keycloak OIDC places roles inside realm_access.roles (standard OIDC shape)
 // rather than a top-level `roles` claim. The UserID field falls back to the

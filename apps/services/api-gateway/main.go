@@ -132,6 +132,11 @@ func main() {
 
 	// Initialize gRPC client pool for internal service communication.
 	grpcPool := proxy.NewGrpcClientPool(getUpstreamTimeout())
+	slog.Info("grpc.pool.initialized",
+		"service", serviceName,
+		"size", 0,
+		"targets", []string{proxy.GrpcAddrOntology, proxy.GrpcAddrVersioning, proxy.GrpcAddrAuth, proxy.GrpcAddrAIOrch},
+	)
 
 	// Register API route groups with proxy handlers
 	RegisterRoutes(r, grpcPool)
@@ -178,7 +183,11 @@ func main() {
 
 	// Close gRPC connections before HTTP server shutdown
 	grpcPool.Close()
-	slog.Info("grpc.pool.closed", "service", serviceName)
+	slog.Info("grpc.pool.closed",
+		"service", serviceName,
+		"reason", "graceful_shutdown",
+	)
+	slog.Info("server.shutdown_initiated", "service", serviceName)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
