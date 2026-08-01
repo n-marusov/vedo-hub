@@ -77,9 +77,13 @@ pre-push:
       run: |
         files=$(git diff --cached --name-only --diff-filter=ACM | grep '\.json$' | grep -v 'pnpm-lock\.yaml' || true)
         failed=0
-        for f in $files; do
-          python3 -m json.tool "$f" > /dev/null 2>&1 || { echo "✖ Invalid JSON: $f"; failed=1; }
-        done
+        if [ -n "$files" ] && command -v python3 > /dev/null 2>&1; then
+          for f in $files; do
+            python3 -m json.tool "$f" > /dev/null 2>&1 || { echo "✖ Invalid JSON: $f"; failed=1; }
+          done
+        elif [ -n "$files" ]; then
+          echo "⚠ python3 not found — skipping JSON validation"
+        fi
         if [ "$failed" = "1" ]; then exit 1; fi
 
     # ── Check that committed files parse as valid YAML ──
