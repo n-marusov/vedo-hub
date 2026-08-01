@@ -32,7 +32,20 @@ export function saveSession(session: UserSession): void {
 }
 
 export function getSession(): UserSession | null {
-	if (SKIP_AUTH) return MOCK_SESSION;
+	// In SKIP_AUTH (test) mode, honor an explicitly injected session first
+	// (e.g. tests that set sessionStorage.vedo_session to control roles),
+	// then fall back to the mock session.
+	if (SKIP_AUTH) {
+		const raw = sessionStorage.getItem(SESSION_KEY);
+		if (raw) {
+			try {
+				return JSON.parse(raw) as UserSession;
+			} catch {
+				// fall through to mock
+			}
+		}
+		return MOCK_SESSION;
+	}
 	const raw = sessionStorage.getItem(SESSION_KEY);
 	if (!raw) return null;
 	try {

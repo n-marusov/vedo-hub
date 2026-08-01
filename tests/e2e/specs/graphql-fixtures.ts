@@ -96,6 +96,29 @@ const MOCK_BRANCHES = {
   total: 2,
 };
 
+const MOCK_VERSIONING_COMMITS = {
+  items: [
+    { id: 'commit-001', branchId: 'branch-main', parentCommitId: null, message: 'Initial ontology setup', authorId: 'user-456', authorName: 'owner_seed', totalChanges: 15, createdAt: '2026-03-01T10:00:00Z' },
+    { id: 'commit-002', branchId: 'branch-main', parentCommitId: 'commit-001', message: 'Add Person class', authorId: 'user-789', authorName: 'editor_seed', totalChanges: 3, createdAt: '2026-03-05T14:00:00Z' },
+  ],
+  total: 2,
+  page: 0,
+  perPage: 50,
+};
+
+const MOCK_VERSIONING_BRANCHES = {
+  items: [
+    { id: 'branch-main', name: 'main', ontologyId: 'ont-123', headCommitId: 'commit-002', createdAt: '2026-01-15T10:00:00Z', isProtected: true, lastCommitMessage: 'Add Person class', lastCommitAuthor: 'editor_seed', aheadCount: 0, behindCount: 0 },
+    { id: 'branch-dev', name: 'develop', ontologyId: 'ont-123', headCommitId: 'commit-001', createdAt: '2026-02-01T10:00:00Z', isProtected: false, lastCommitMessage: 'Initial ontology setup', lastCommitAuthor: 'owner_seed', aheadCount: 1, behindCount: 0 },
+  ],
+  total: 2,
+};
+
+const MOCK_VERSIONING_TAGS = [
+  { id: 'tag-001', name: 'v1.0.0', commitId: 'commit-002', message: 'Initial release', authorName: 'owner_seed', createdAt: '2026-03-15T10:00:00Z' },
+  { id: 'tag-002', name: 'v0.9.0', commitId: 'commit-001', message: 'Beta', authorName: 'editor_seed', createdAt: '2026-03-10T10:00:00Z' },
+];
+
 const MOCK_TAGS = [
   { id: 'tag-001', name: 'v1.0.0', commitId: 'commit-003', message: 'Initial release', authorName: 'owner_seed', createdAt: '2026-03-15T10:00:00Z' },
   { id: 'tag-002', name: 'v0.9.0', commitId: 'commit-002', message: 'Beta', authorName: 'editor_seed', createdAt: '2026-03-10T10:00:00Z' },
@@ -318,6 +341,8 @@ export const test = base.extend({
     await page.route('**/graphql', handleGuiGraphql);
     await page.route('**/api/v1/sparql', handleSparqlRest);
     await page.route('**/api/v1/groups*', handleRestGroups);
+    await page.route('**/api/v1/versioning/*', handleRestVersioning);
+    await page.route('**/api/v1/ontologies/*/validate', handleValidationRest);
 
     await use(page);
   },
@@ -391,4 +416,50 @@ async function handleRestGroups(route: Route) {
   }
 
   return route.fallback();
+}
+
+async function handleRestVersioning(route: Route) {
+  const request = route.request();
+  const url = new URL(request.url());
+  const path = url.pathname;
+
+  if (request.method() !== 'GET') return route.fallback();
+
+  if (path.endsWith('/commits')) {
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(MOCK_VERSIONING_COMMITS),
+    });
+  }
+
+  if (path.endsWith('/branches')) {
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(MOCK_VERSIONING_BRANCHES),
+    });
+  }
+
+  if (path.endsWith('/tags')) {
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(MOCK_VERSIONING_TAGS),
+    });
+  }
+
+  return route.fallback();
+}
+
+async function handleValidationRest(route: Route) {
+  const request = route.request();
+  if (request.method() !== 'POST') return route.fallback();
+
+  await new Promise((resolve) => setTimeout(resolve, 700));
+  return route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify(MOCK_VALIDATION),
+  });
 }

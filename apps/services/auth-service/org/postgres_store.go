@@ -148,6 +148,12 @@ func (p *PostgresOrgStore) GetScope(id string) (*ScopeNode, error) {
 	if parentID.Valid {
 		s.ParentID = parentID.String
 	}
+	if name.Valid {
+		s.Name = name.String
+	}
+	if desc.Valid {
+		s.Description = desc.String
+	}
 	return &s, nil
 }
 
@@ -184,6 +190,12 @@ func (p *PostgresOrgStore) ListChildScopes(parentID string) ([]ScopeNode, error)
 		if pid.Valid {
 			s.ParentID = pid.String
 		}
+		if name.Valid {
+			s.Name = name.String
+		}
+		if desc.Valid {
+			s.Description = desc.String
+		}
 		scopes = append(scopes, s)
 	}
 	return scopes, nil
@@ -208,6 +220,12 @@ func (p *PostgresOrgStore) ListAllScopes() ([]ScopeNode, error) {
 		}
 		if pid.Valid {
 			s.ParentID = pid.String
+		}
+		if name.Valid {
+			s.Name = name.String
+		}
+		if desc.Valid {
+			s.Description = desc.String
 		}
 		scopes = append(scopes, s)
 	}
@@ -325,7 +343,7 @@ func (p *PostgresOrgStore) GetEffectiveMemberships(userID, scope string) ([]OrgM
 
 func (p *PostgresOrgStore) UpsertPolicy(pol AttributePolicy) error {
 	_, err := p.db.Exec(`
-		INSERT INTO attribute_policies (scope, pattern, right, created_at)
+		INSERT INTO attribute_policies (scope, pattern, "right", created_at)
 		VALUES ($1, $2, $3, now())
 	`, pol.Scope, pol.Pattern, pol.Right)
 	if err != nil {
@@ -351,7 +369,7 @@ func (p *PostgresOrgStore) DeletePolicy(scope string, policyID string) error {
 
 func (p *PostgresOrgStore) GetPolicies(scope string) ([]AttributePolicy, error) {
 	rows, err := p.db.Query(`
-		SELECT scope, pattern, right FROM attribute_policies WHERE scope = $1
+		SELECT scope, pattern, "right" FROM attribute_policies WHERE scope = $1
 	`, scope)
 	if err != nil {
 		return nil, err
@@ -370,7 +388,7 @@ func (p *PostgresOrgStore) GetPolicies(scope string) ([]AttributePolicy, error) 
 }
 
 func (p *PostgresOrgStore) GetAllPolicies() ([]AttributePolicy, error) {
-	rows, err := p.db.Query(`SELECT scope, pattern, right FROM attribute_policies`)
+	rows, err := p.db.Query(`SELECT scope, pattern, "right" FROM attribute_policies`)
 	if err != nil {
 		return nil, err
 	}

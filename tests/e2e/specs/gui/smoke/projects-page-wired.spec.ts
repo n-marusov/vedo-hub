@@ -1,6 +1,6 @@
 // Validates: REQ-NFR.SECURITY.organization-access-model
 // Projects page wired test — runs against real API (no Apollo fixtures)
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../../fixtures/auth.fixture';
 import { ProjectsPage } from '../../../pages/projects.page';
 
 test.describe('Projects Page — Real API', () => {

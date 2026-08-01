@@ -597,13 +597,17 @@ func scopeNodeToProto(s *org.ScopeNode) *authv1.Scope {
 	if s == nil {
 		return nil
 	}
-	// Extract the display name from the scope ID.
-	// With UUID identifiers (ADR-DES.DATA.uuid-identifiers-for-groups-projects-mandate),
-	// the ID is the UUID directly. For backward compatibility with legacy
-	// "group/name" format, extract the part after the slash if present.
-	name := s.ID
-	if idx := strings.Index(s.ID, "/"); idx >= 0 && idx+1 < len(s.ID) {
-		name = s.ID[idx+1:]
+	// Display name: prefer the real scope Name. With UUID identifiers
+	// (ADR-DES.DATA.uuid-identifiers-for-groups-projects-mandate) the ID is the
+	// UUID, so falling back to the ID would hide the group/project name. For
+	// backward compatibility with legacy "group/name" ID format, extract the
+	// part after the slash when the scope has no explicit Name.
+	name := s.Name
+	if name == "" {
+		name = s.ID
+		if idx := strings.Index(s.ID, "/"); idx >= 0 && idx+1 < len(s.ID) {
+			name = s.ID[idx+1:]
+		}
 	}
 	return &authv1.Scope{
 		Id:                s.ID,
