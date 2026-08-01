@@ -148,6 +148,10 @@ func main() {
 		)
 	}
 
+	// Validate embedded OpenAPI spec at startup — catches JSON syntax or
+	// structural issues before they reach users and E2E tests.
+	validateOpenAPISpec()
+
 	// Start server with timeouts
 	port := getPort()
 	srv := &http.Server{

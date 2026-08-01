@@ -33,12 +33,17 @@ RUN echo "minimumReleaseAge=0" >> .npmrc
 ARG VITE_KEYCLOAK_REALM=
 ARG VITE_KEYCLOAK_CLIENT_ID=
 ARG VITE_KEYCLOAK_URL=
+ARG VITE_SKIP_AUTH=
 ENV VITE_KEYCLOAK_REALM=${VITE_KEYCLOAK_REALM}
 ENV VITE_KEYCLOAK_CLIENT_ID=${VITE_KEYCLOAK_CLIENT_ID}
 ENV VITE_KEYCLOAK_URL=${VITE_KEYCLOAK_URL}
+ENV VITE_SKIP_AUTH=${VITE_SKIP_AUTH}
 
 # Copy dependency manifests first for layer caching
-COPY ${SERVICE_DIR}/package.json ${SERVICE_DIR}/pnpm-lock.yaml* ./
+# pnpm-workspace.yaml must be copied too — the lockfile records overrides/
+# onlyBuiltDependencies from it; without it, --frozen-lockfile fails with
+# ERR_PNPM_LOCKFILE_CONFIG_MISMATCH.
+COPY ${SERVICE_DIR}/package.json ${SERVICE_DIR}/pnpm-lock.yaml* ${SERVICE_DIR}/pnpm-workspace.yaml* ./
 
 # Install dependencies with frozen lockfile for reproducibility
 # minimumReleaseAge=0 bypasses recent-package supply-chain check for CI builds

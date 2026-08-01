@@ -1,6 +1,6 @@
 // Validates: REQ-NFR.SECURITY.organization-access-model
 // Projects page wired test — runs against real API (no Apollo fixtures)
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../../fixtures/auth.fixture';
 import { ProjectsPage } from '../../../pages/projects.page';
 
 test.describe('Projects Page — Real API', () => {
@@ -35,6 +35,6 @@ test.describe('Projects Page — Real API', () => {
     const firstRow = projects.getProjects().first();
     const name = await firstRow.locator('.project-name').textContent();
     await projects.clickProject(name || '');
-    await expect(page).toHaveURL(/\/ontology\//);
+    await expect(page).toHaveURL(/\/project\//);
   });
 });

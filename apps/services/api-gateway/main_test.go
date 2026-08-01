@@ -200,6 +200,28 @@ func TestOverrideSummary_Empty_ReturnsNone(t *testing.T) {
 	}
 }
 
+func TestEmbeddedOpenAPISpec_ValidJSON(t *testing.T) {
+	var doc map[string]any
+	if err := json.Unmarshal(openAPISpec, &doc); err != nil {
+		t.Fatalf("embedded docs/openapi.json is not valid JSON: %v", err)
+	}
+
+	required := []string{"openapi", "paths", "components"}
+	for _, key := range required {
+		if _, ok := doc[key]; !ok {
+			t.Errorf("embedded openapi.json missing required key: %q", key)
+		}
+	}
+
+	paths, ok := doc["paths"].(map[string]any)
+	if !ok {
+		t.Fatal("embedded openapi.json 'paths' is not an object")
+	}
+	if len(paths) == 0 {
+		t.Error("embedded openapi.json 'paths' is empty — expected at least one API path entry")
+	}
+}
+
 func TestOverrideSummary_DeterministicOrder(t *testing.T) {
 	overrides := map[string]int{
 		"POST:/api/v1/sparql":  0,

@@ -44,12 +44,19 @@ test.describe('Create Group', () => {
     const groups = new GroupsPage(page)
     await groups.goto()
 
-    await groups.createGroup('Research Team', 'private')
+    // "New group" navigates to the create page (not a dialog)
+    await groups.clickNewGroup()
+    await expect(page).toHaveURL(/\/dashboard\/groups\/new/)
 
-    // Dialog should close after successful creation
-    await expect(groups.getDialogOverlay()).not.toBeVisible({ timeout: 5000 })
+    // Fill the create-group form
+    await page.locator('.cgp-input').fill('Research Team')
 
-    // New group should appear in the list
+    // Submit
+    await page.locator('.cgp-btn-create').click()
+
+    // Should redirect to the new group detail page, then back to list shows the group
+    await expect(page).toHaveURL(/\/dashboard\/groups\/[^/]+/, { timeout: 5000 })
+    await page.goto('/dashboard/groups')
     await expect(groups.getGroupByName('Research Team')).toBeVisible()
   })
 
@@ -57,42 +64,45 @@ test.describe('Create Group', () => {
     const groups = new GroupsPage(page)
     await groups.goto()
 
-    // Open dialog without entering a name
+    // Navigate to create page
     await groups.clickNewGroup()
-    await expect(groups.getDialogOverlay()).toBeVisible({ timeout: 5000 })
+    await expect(page).toHaveURL(/\/dashboard\/groups\/new/)
 
     // Submit empty form
-    await groups.submitFormViaBrowser()
+    await page.locator('.cgp-btn-create').click()
 
-    // Validation error should appear
-    await expect(groups.getValidationError()).toBeVisible()
-    await expect(groups.getValidationError()).toContainText('Group name is required')
-
-    // Dialog should remain open
-    await expect(groups.getDialogOverlay()).toBeVisible()
+    // Validation error should appear (Russian locale)
+    await expect(page.locator('.cgp-error-text')).toBeVisible()
   })
 
   test('should create a group with public visibility', async ({ page }) => {
     const groups = new GroupsPage(page)
     await groups.goto()
 
-    await groups.createGroup('Open Research', 'public')
+    await groups.clickNewGroup()
+    await expect(page).toHaveURL(/\/dashboard\/groups\/new/)
 
-    // Dialog should close
-    await expect(groups.getDialogOverlay()).not.toBeVisible({ timeout: 5000 })
+    // Fill name and pick public visibility
+    await page.locator('.cgp-input').fill('Open Research')
+    await page.locator('input.cgp-vis-radio[value="public"]').check()
 
-    // New group should appear
+    await page.locator('.cgp-btn-create').click()
+
+    // Should redirect to the new group detail page
+    await expect(page).toHaveURL(/\/dashboard\/groups\/[^/]+/, { timeout: 5000 })
+    await page.goto('/dashboard/groups')
     await expect(groups.getGroupByName('Open Research')).toBeVisible()
   })
 
-  test('should close dialog on cancel', async ({ page }) => {
+  test('should close create page on cancel', async ({ page }) => {
     const groups = new GroupsPage(page)
     await groups.goto()
 
     await groups.clickNewGroup()
-    await expect(groups.getDialogOverlay()).toBeVisible({ timeout: 5000 })
+    await expect(page).toHaveURL(/\/dashboard\/groups\/new/)
 
-    await groups.clickCancel()
-    await expect(groups.getDialogOverlay()).not.toBeVisible()
+    // Cancel returns to the groups list
+    await page.locator('.cgp-btn-cancel').click()
+    await expect(page).toHaveURL(/\/dashboard\/groups$/)
   })
 })

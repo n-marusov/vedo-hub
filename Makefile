@@ -25,6 +25,25 @@ COMMIT     ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 BUILD_TIME := $(shell date -u '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || echo "unknown")
 ROOT       := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 
+# --- ANSI Color Codes (CI-safe) ----------------------------------------------
+# Disabled in dumb terminals (CI pipelines, non-TTY).
+# Usage: printf "$(C_GREEN)[PASS]$(C_RESET) message\n"
+ifeq ($(TERM),dumb)
+  C_RED   :=
+  C_GREEN :=
+  C_YELLOW:=
+  C_CYAN  :=
+  C_BOLD  :=
+  C_RESET :=
+else
+  C_RED   := \033[31m
+  C_GREEN := \033[32m
+  C_YELLOW:= \033[33m
+  C_CYAN  := \033[36m
+  C_BOLD  := \033[1m
+  C_RESET := \033[0m
+endif
+
 # --- Service Paths -----------------------------------------------------------
 SERVICE_DIR     := apps/services
 SRC_SERVICE_DIR := src/services
@@ -176,74 +195,241 @@ build-%:
 
 ##@ Test — Unit
 
-.PHONY: test test-all
-test: ## Run all unit tests (T0) natively
-	@failed=""; \
-	echo "[Test] Running all unit tests..."; \
-	$(MAKE) test-rust-unit 2>&1 || failed="$$failed rust"; \
-	$(MAKE) test-go 2>&1 || failed="$$failed go"; \
-	$(MAKE) test-python 2>&1 || failed="$$failed python"; \
-	$(MAKE) test-typescript 2>&1 || failed="$$failed typescript"; \
-	echo ""; \
-	echo "========================================"; \
-	if [ -z "$$failed" ]; then \
-		echo "  [PASS]  ALL UNIT TESTS PASSED"; \
-	else \
-		echo "  [FAIL]  UNIT TESTS FAILED:$$failed"; \
-	fi; \
-	echo "========================================"; \
-	if [ -n "$$failed" ]; then exit 1; fi
+##@ Test — Unit
 
-test-all: ## Run all tests including integration (T0+T1)
-	@failed=""; \
-	echo "[Test] Running all tests (unit + integration)..."; \
-	$(MAKE) test-rust 2>&1 || failed="$$failed rust"; \
-	$(MAKE) test-go 2>&1 || failed="$$failed go"; \
-	$(MAKE) test-python 2>&1 || failed="$$failed python"; \
-	$(MAKE) test-typescript 2>&1 || failed="$$failed typescript"; \
-	echo ""; \
-	echo "========================================"; \
-	if [ -z "$$failed" ]; then \
-		echo "  [PASS]  ALL TESTS PASSED"; \
-	else \
-		echo "  [FAIL]  TESTS FAILED:$$failed"; \
+.PHONY: test-unit-fast test-unit-full test-fast test-full
+
+test-unit-fast: ## Unit tests — fail-fast (unit only, stops at first failure)
+	@printf "$(C_CYAN)[Unit]$(C_RESET) fail-fast mode\n"
+	@$(MAKE) test-rust-fast-unit
+	@$(MAKE) test-go-fast
+	@$(MAKE) test-python-fast
+	@$(MAKE) test-typescript-fast
+	@printf "$(C_GREEN)[PASS]$(C_RESET) ALL UNIT TESTS PASSED\n"
+
+test-unit-full: ## Unit tests — full statistics (collect all failures)
+	@failed=0; \
+	printf "$(C_CYAN)[Unit]$(C_RESET) full statistics mode\n"; \
+	$(MAKE) test-rust-full-unit 2>&1 || failed=1; \
+	$(MAKE) test-go-full 2>&1 || failed=1; \
+	$(MAKE) test-python-full 2>&1 || failed=1; \
+	$(MAKE) test-typescript-full 2>&1 || failed=1; \
+	if [ $$failed -ne 0 ]; then \
+		printf "$(C_RED)[FAIL]$(C_RESET) SOME UNIT TESTS FAILED\n"; \
+		exit 1; \
 	fi; \
-	echo "========================================"; \
-	if [ -n "$$failed" ]; then exit 1; fi
+	printf "$(C_GREEN)[PASS]$(C_RESET) ALL UNIT TESTS PASSED\n"
+
+test-fast: ## Run ALL tests — fail-fast (unit + integration + e2e + gates)
+	@printf "$(C_CYAN)=== test-fast ===$(C_RESET)\n"
+	@$(MAKE) test-unit-fast
+	@$(MAKE) test-integration-fast
+	@$(MAKE) test-e2e-fast
+	@$(MAKE) test-gates-fast
+	@printf "$(C_GREEN)[PASS]$(C_RESET) test-fast complete\n"
+
+test-full: ## Run ALL tests — full statistics (collect all failures)
+	@failed=0; \
+	printf "$(C_CYAN)=== test-full ===$(C_RESET)\n"; \
+	$(MAKE) test-unit-full 2>&1 || failed=1; \
+	$(MAKE) test-integration-full 2>&1 || failed=1; \
+	$(MAKE) test-e2e-full 2>&1 || failed=1; \
+	$(MAKE) test-gates-full 2>&1 || failed=1; \
+	if [ $$failed -ne 0 ]; then \
+		printf "$(C_RED)[FAIL]$(C_RESET) SOME TESTS FAILED\n"; \
+		exit 1; \
+	fi; \
+	printf "$(C_GREEN)[PASS]$(C_RESET) ALL TESTS PASSED\n"
 
 ##@ Test — Integration
 
-test-integration: test-integration-rust test-integration-go ## Run integration tests (requires live infra — Neo4j auto-started, PG, Go services)
+##@ Test — Integration
 
-.PHONY: test-integration-rust
-test-integration-rust: ## Run Rust integration tests (auto-starts Neo4j if not running)
-	@NEO4J_STARTED=""; \
-	NEO4J_HOST="localhost"; \
-	NEO4J_PORT="$${NEO4J_BOLT_PORT:-7687}"; \
-	NEO4J_USER="$${NEO4J_USER:-neo4j}"; \
-	NEO4J_PASSWORD="$${NEO4J_PASSWORD:-password}"; \
-	NEO4J_TEST_URI="bolt://$${NEO4J_HOST}:$${NEO4J_PORT}"; \
-	echo "[Integration] checking Neo4j at $${NEO4J_HOST}:$${NEO4J_PORT}..."; \
-	if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps neo4j 2>/dev/null | grep -q "healthy"; then \
-		echo "[Integration] Neo4j is already running (Docker healthy)"; \
+.PHONY: test-integration-fast test-integration-full
+test-integration-fast: ## Integration tests — fail-fast (auto-starts Neo4j + PostgreSQL via docker-compose.test.yml)
+	@printf "$(C_CYAN)[Integration]$(C_RESET) fail-fast mode\n"
+	@printf "$(C_CYAN)[Integration]$(C_RESET) checking Neo4j...\n"
+	@rm -f /tmp/vedo-test-neo4j /tmp/vedo-test-pg
+	@if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test ps neo4j 2>/dev/null | grep -q "healthy"; then \
+		printf "$(C_GREEN)[Integration]$(C_RESET) Neo4j is already running\n"; \
 	else \
-		echo "[Integration] Starting Neo4j via Docker Compose..."; \
-		cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d neo4j 2>&1; \
-		NEO4J_STARTED="yes"; \
-		echo "[Integration] Waiting for Neo4j healthcheck..."; \
+		printf "$(C_YELLOW)[Integration]$(C_RESET) Starting Neo4j...\n"; \
+		cd "$(ROOT)" && docker compose -f deploy/docker-compose.test.yml --env-file config/.env.test up -d neo4j 2>&1; \
+		printf "$(C_YELLOW)[Integration]$(C_RESET) Waiting for Neo4j healthcheck...\n"; \
 		i=0; \
 		while [ $$i -lt 60 ]; do \
-			if docker compose -f "$(ROOT)/deploy/docker-compose.yml" ps neo4j 2>/dev/null | grep -q "healthy"; then \
-				echo "[Integration] Neo4j is ready!"; \
+			if docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test ps neo4j 2>/dev/null | grep -q "healthy"; then \
+				printf "$(C_GREEN)[Integration]$(C_RESET) Neo4j is ready!\n"; \
 				break; \
 			fi; \
 			sleep 2; \
 			i=$$((i + 1)); \
-			echo "[Integration]   ...waiting for Neo4j ($${i}s)"; \
 		done; \
 		if [ $$i -ge 60 ]; then \
-			echo "[Integration] ERROR: Neo4j did not become ready within 120 seconds"; \
-			docker compose -f "$(ROOT)/deploy/docker-compose.yml" logs neo4j 2>&1 | tail -20; \
+			printf "$(C_RED)[Integration]$(C_RESET) ERROR: Neo4j did not become ready within 120 seconds\n"; \
+			docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test logs neo4j 2>&1 | tail -20; \
+			exit 1; \
+		fi; \
+		touch /tmp/vedo-test-neo4j; \
+	fi
+	@printf "$(C_CYAN)[Integration]$(C_RESET) checking PostgreSQL...\n"
+	@if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test ps postgres 2>/dev/null | grep -q "healthy"; then \
+		printf "$(C_GREEN)[Integration]$(C_RESET) PostgreSQL is already running (Docker healthy)\n"; \
+	else \
+		printf "$(C_YELLOW)[Integration]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
+		cd "$(ROOT)" && docker compose -f deploy/docker-compose.test.yml --env-file config/.env.test up -d postgres 2>&1; \
+		printf "$(C_YELLOW)[Integration]$(C_RESET) Waiting for PostgreSQL healthcheck...\n"; \
+		i=0; \
+		while [ $$i -lt 60 ]; do \
+			if docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test ps postgres 2>/dev/null | grep -q "healthy"; then \
+				printf "$(C_GREEN)[Integration]$(C_RESET) PostgreSQL is ready!\n"; \
+				break; \
+			fi; \
+			sleep 2; \
+			i=$$((i + 1)); \
+		done; \
+		if [ $$i -ge 60 ]; then \
+			printf "$(C_RED)[Integration]$(C_RESET) ERROR: PostgreSQL did not become ready within 120 seconds\n"; \
+			docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test logs postgres 2>&1 | tail -20; \
+			exit 1; \
+		fi; \
+		touch /tmp/vedo-test-pg; \
+	fi
+	@printf "$(C_CYAN)[Integration]$(C_RESET) ensuring vedo_org_test database exists...\n"
+	@if command -v docker >/dev/null 2>&1; then \
+		docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test exec -T postgres \
+			psql -U vedo -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='vedo_org_test'" 2>/dev/null | grep -q 1 || \
+		docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test exec -T postgres \
+			psql -U vedo -d postgres -c "CREATE DATABASE vedo_org_test" 2>&1; \
+	fi
+	@printf "$(C_CYAN)[Integration]$(C_RESET) running tests...\n"
+	@$(MAKE) test-integration-rust-fast
+	@$(MAKE) test-integration-go-fast
+	@$(MAKE) test-versioning-fast
+	@printf "$(C_CYAN)[Integration]$(C_RESET) cleaning up infrastructure...\n"
+	@if [ -f /tmp/vedo-test-neo4j ]; then \
+		printf "$(C_YELLOW)[Integration]$(C_RESET) Stopping auto-started Neo4j...\n"; \
+		cd "$(ROOT)" && docker compose -f deploy/docker-compose.test.yml --env-file config/.env.test stop neo4j 2>&1; \
+		rm -f /tmp/vedo-test-neo4j; \
+	fi
+	@if [ -f /tmp/vedo-test-pg ]; then \
+		printf "$(C_YELLOW)[Integration]$(C_RESET) Stopping auto-started PostgreSQL...\n"; \
+		cd "$(ROOT)" && docker compose -f deploy/docker-compose.test.yml --env-file config/.env.test stop postgres 2>&1; \
+		rm -f /tmp/vedo-test-pg; \
+	fi
+	@printf "$(C_GREEN)[PASS]$(C_RESET) All integration tests passed\n"
+
+test-integration-full: ## Integration tests — full statistics (auto-starts Neo4j + PostgreSQL via docker-compose.test.yml)
+		@printf "$(C_CYAN)[Integration]$(C_RESET) full statistics mode\n"
+		@printf "$(C_CYAN)[Integration]$(C_RESET) checking Neo4j...\n"
+		@rm -f /tmp/vedo-test-neo4j /tmp/vedo-test-pg
+		@if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test ps neo4j 2>/dev/null | grep -q "healthy"; then \
+			printf "$(C_GREEN)[Integration]$(C_RESET) Neo4j is already running\n"; \
+		else \
+			printf "$(C_YELLOW)[Integration]$(C_RESET) Starting Neo4j...\n"; \
+			cd "$(ROOT)" && docker compose -f deploy/docker-compose.test.yml --env-file config/.env.test up -d neo4j 2>&1; \
+			printf "$(C_YELLOW)[Integration]$(C_RESET) Waiting for Neo4j healthcheck...\n"; \
+			i=0; \
+			while [ $$i -lt 60 ]; do \
+				if docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test ps neo4j 2>/dev/null | grep -q "healthy"; then \
+					printf "$(C_GREEN)[Integration]$(C_RESET) Neo4j is ready!\n"; \
+					break; \
+				fi; \
+				sleep 2; \
+				i=$$((i + 1)); \
+			done; \
+			if [ $$i -ge 60 ]; then \
+				printf "$(C_RED)[Integration]$(C_RESET) ERROR: Neo4j did not become ready within 120 seconds\n"; \
+				docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test logs neo4j 2>&1 | tail -20; \
+				exit 1; \
+			fi; \
+			touch /tmp/vedo-test-neo4j; \
+		fi
+		@printf "$(C_CYAN)[Integration]$(C_RESET) checking PostgreSQL...\n"
+		@if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test ps postgres 2>/dev/null | grep -q "healthy"; then \
+			printf "$(C_GREEN)[Integration]$(C_RESET) PostgreSQL is already running (Docker healthy)\n"; \
+		else \
+			printf "$(C_YELLOW)[Integration]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
+			cd "$(ROOT)" && docker compose -f deploy/docker-compose.test.yml --env-file config/.env.test up -d postgres 2>&1; \
+			printf "$(C_YELLOW)[Integration]$(C_RESET) Waiting for PostgreSQL healthcheck...\n"; \
+			i=0; \
+			while [ $$i -lt 60 ]; do \
+				if docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test ps postgres 2>/dev/null | grep -q "healthy"; then \
+					printf "$(C_GREEN)[Integration]$(C_RESET) PostgreSQL is ready!\n"; \
+					break; \
+				fi; \
+				sleep 2; \
+				i=$$((i + 1)); \
+			done; \
+			if [ $$i -ge 60 ]; then \
+				printf "$(C_RED)[Integration]$(C_RESET) ERROR: PostgreSQL did not become ready within 120 seconds\n"; \
+				docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test logs postgres 2>&1 | tail -20; \
+				exit 1; \
+			fi; \
+			touch /tmp/vedo-test-pg; \
+		fi
+		@printf "$(C_CYAN)[Integration]$(C_RESET) ensuring vedo_org_test database exists...\n"
+		@if command -v docker >/dev/null 2>&1; then \
+			docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test exec -T postgres \
+				psql -U vedo -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='vedo_org_test'" 2>/dev/null | grep -q 1 || \
+			docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file config/.env.test exec -T postgres \
+				psql -U vedo -d postgres -c "CREATE DATABASE vedo_org_test" 2>&1; \
+		fi
+		@printf "$(C_CYAN)[Integration]$(C_RESET) running tests...\n"
+		@failed=0; \
+		$(MAKE) test-integration-rust-full 2>&1 || failed=1; \
+		$(MAKE) test-integration-go-full 2>&1 || failed=1; \
+		$(MAKE) test-versioning-full 2>&1 || failed=1; \
+		printf "$(C_CYAN)[Integration]$(C_RESET) cleaning up infrastructure...\n"; \
+		if [ -f /tmp/vedo-test-neo4j ]; then \
+			printf "$(C_YELLOW)[Integration]$(C_RESET) Stopping auto-started Neo4j...\n"; \
+			cd "$(ROOT)" && docker compose -f deploy/docker-compose.test.yml --env-file config/.env.test stop neo4j 2>&1; \
+			rm -f /tmp/vedo-test-neo4j; \
+		fi; \
+		if [ -f /tmp/vedo-test-pg ]; then \
+			printf "$(C_YELLOW)[Integration]$(C_RESET) Stopping auto-started PostgreSQL...\n"; \
+			cd "$(ROOT)" && docker compose -f deploy/docker-compose.test.yml --env-file config/.env.test stop postgres 2>&1; \
+			rm -f /tmp/vedo-test-pg; \
+		fi; \
+		if [ $$failed -ne 0 ]; then \
+			printf "$(C_RED)[FAIL]$(C_RESET) Some integration tests failed\n"; \
+			exit 1; \
+		fi; \
+		printf "$(C_GREEN)[PASS]$(C_RESET) All integration tests passed\n"
+
+.PHONY: test-integration-rust-fast test-integration-rust-full
+test-integration-rust-fast: ## Rust integration tests — fail-fast (auto-starts Neo4j via docker-compose.test.yml)
+	@NEO4J_STARTED=""; \
+	NEO4J_HOST="localhost"; \
+	NEO4J_PORT="$${NEO4J_BOLT_PORT:-$$(grep -E '^NEO4J_BOLT_PORT=' "$(ROOT)/config/.env.test" 2>/dev/null | tail -1 | cut -d= -f2 | tr -d '\r[:space:]')}"; \
+	NEO4J_PORT="$${NEO4J_PORT:-7687}"; \
+	NEO4J_USER="$${NEO4J_USER:-neo4j}"; \
+	NEO4J_PASSWORD="$${NEO4J_PASSWORD:-password}"; \
+	NEO4J_TEST_URI="bolt://$${NEO4J_HOST}:$${NEO4J_PORT}"; \
+	NEO4J_COMPOSE="$(ROOT)/deploy/docker-compose.test.yml"; \
+	NEO4J_ENV_FILE="$(ROOT)/config/.env.test"; \
+	printf "$(C_CYAN)[Integration]$(C_RESET) checking Neo4j at $${NEO4J_HOST}:$${NEO4J_PORT}...\n"; \
+	if command -v docker >/dev/null 2>&1 && docker compose -f "$$NEO4J_COMPOSE" --env-file "$$NEO4J_ENV_FILE" ps neo4j 2>/dev/null | grep -q "healthy"; then \
+		printf "$(C_GREEN)[Integration]$(C_RESET) Neo4j is already running (Docker healthy)\n"; \
+	else \
+		printf "$(C_YELLOW)[Integration]$(C_RESET) Starting Neo4j via Docker Compose...\n"; \
+		cd "$(ROOT)" && docker compose -f "$$NEO4J_COMPOSE" --env-file "$$NEO4J_ENV_FILE" up -d --force-recreate neo4j 2>&1; \
+		NEO4J_STARTED="yes"; \
+		printf "$(C_YELLOW)[Integration]$(C_RESET) Waiting for Neo4j healthcheck...\n"; \
+		i=0; \
+		while [ $$i -lt 60 ]; do \
+			if docker compose -f "$$NEO4J_COMPOSE" --env-file "$$NEO4J_ENV_FILE" ps neo4j 2>/dev/null | grep -q "healthy"; then \
+				printf "$(C_GREEN)[Integration]$(C_RESET) Neo4j is ready!\n"; \
+				break; \
+			fi; \
+			sleep 2; \
+			i=$$((i + 1)); \
+		done; \
+		if [ $$i -ge 60 ]; then \
+			printf "$(C_RED)[Integration]$(C_RESET) ERROR: Neo4j did not become ready within 120 seconds\n"; \
+			printf "$(C_RED)[Integration]$(C_RESET) Stale Neo4j locks (\"Neo4j is already running\") are cleared with:\n"; \
+			printf "  docker compose -f deploy/docker-compose.test.yml --env-file config/.env.test down -v\n"; \
+			docker compose -f "$$NEO4J_COMPOSE" --env-file "$$NEO4J_ENV_FILE" logs neo4j 2>&1 | tail -20; \
 			exit 1; \
 		fi; \
 	fi; \
@@ -251,119 +437,474 @@ test-integration-rust: ## Run Rust integration tests (auto-starts Neo4j if not r
 	export NEO4J_USER="$$NEO4J_USER"; \
 	export NEO4J_PASSWORD="$$NEO4J_PASSWORD"; \
 	export NEO4J_URI="$${NEO4J_TEST_URI}"; \
-	echo "[Integration] Running ontology-service Neo4j integration tests..."; \
+	printf "$(C_CYAN)[Integration]$(C_RESET) Running ontology-service Neo4j integration tests (fail-fast)...\n"; \
+	cd "$(ROOT)/apps/services/ontology-service"; \
+	for test_file in tests/*integration_test.rs tests/*p0_test.rs; do \
+		test_name="$$(basename "$$test_file" .rs)"; \
+		printf "  [$${test_name}]\n"; \
+		cargo test --test "$${test_name}" -- --test-threads=1 --nocapture 2>&1 || { printf "$(C_RED)[FAIL]$(C_RESET) $${test_name}\n"; exit 1; }; \
+	done; \
+	if [ -n "$$NEO4J_STARTED" ]; then \
+		printf "$(C_YELLOW)[Integration]$(C_RESET) Stopping auto-started Neo4j...\n"; \
+		cd "$(ROOT)" && docker compose -f "$$NEO4J_COMPOSE" --env-file "$$NEO4J_ENV_FILE" stop neo4j 2>&1; \
+	fi; \
+	printf "$(C_GREEN)[PASS]$(C_RESET) All Rust integration tests passed\n"
+
+test-integration-rust-full: ## Rust integration tests — full statistics (collect all failures)
+	@NEO4J_STARTED=""; \
+	NEO4J_HOST="localhost"; \
+	NEO4J_PORT="$${NEO4J_BOLT_PORT:-$$(grep -E '^NEO4J_BOLT_PORT=' "$(ROOT)/config/.env.test" 2>/dev/null | tail -1 | cut -d= -f2 | tr -d '\r[:space:]')}"; \
+	NEO4J_PORT="$${NEO4J_PORT:-7687}"; \
+	NEO4J_USER="$${NEO4J_USER:-neo4j}"; \
+	NEO4J_PASSWORD="$${NEO4J_PASSWORD:-password}"; \
+	NEO4J_TEST_URI="bolt://$${NEO4J_HOST}:$${NEO4J_PORT}"; \
+	NEO4J_COMPOSE="$(ROOT)/deploy/docker-compose.test.yml"; \
+	NEO4J_ENV_FILE="$(ROOT)/config/.env.test"; \
+	printf "$(C_CYAN)[Integration]$(C_RESET) checking Neo4j at $${NEO4J_HOST}:$${NEO4J_PORT}...\n"; \
+	if command -v docker >/dev/null 2>&1 && docker compose -f "$$NEO4J_COMPOSE" --env-file "$$NEO4J_ENV_FILE" ps neo4j 2>/dev/null | grep -q "healthy"; then \
+		printf "$(C_GREEN)[Integration]$(C_RESET) Neo4j is already running (Docker healthy)\n"; \
+	else \
+		printf "$(C_YELLOW)[Integration]$(C_RESET) Starting Neo4j via Docker Compose...\n"; \
+		cd "$(ROOT)" && docker compose -f "$$NEO4J_COMPOSE" --env-file "$$NEO4J_ENV_FILE" up -d --force-recreate neo4j 2>&1; \
+		NEO4J_STARTED="yes"; \
+		printf "$(C_YELLOW)[Integration]$(C_RESET) Waiting for Neo4j healthcheck...\n"; \
+		i=0; \
+		while [ $$i -lt 60 ]; do \
+			if docker compose -f "$$NEO4J_COMPOSE" --env-file "$$NEO4J_ENV_FILE" ps neo4j 2>/dev/null | grep -q "healthy"; then \
+				printf "$(C_GREEN)[Integration]$(C_RESET) Neo4j is ready!\n"; \
+				break; \
+			fi; \
+			sleep 2; \
+			i=$$((i + 1)); \
+		done; \
+		if [ $$i -ge 60 ]; then \
+			printf "$(C_RED)[Integration]$(C_RESET) ERROR: Neo4j did not become ready within 120 seconds\n"; \
+			printf "$(C_RED)[Integration]$(C_RESET) Stale Neo4j locks (\"Neo4j is already running\") are cleared with:\n"; \
+			printf "  docker compose -f deploy/docker-compose.test.yml --env-file config/.env.test down -v\n"; \
+			docker compose -f "$$NEO4J_COMPOSE" --env-file "$$NEO4J_ENV_FILE" logs neo4j 2>&1 | tail -20; \
+			exit 1; \
+		fi; \
+	fi; \
+	export NEO4J_TEST_URI="$${NEO4J_TEST_URI}"; \
+	export NEO4J_USER="$$NEO4J_USER"; \
+	export NEO4J_PASSWORD="$$NEO4J_PASSWORD"; \
+	export NEO4J_URI="$${NEO4J_TEST_URI}"; \
+	printf "$(C_CYAN)[Integration]$(C_RESET) Running ontology-service Neo4j integration tests (full)...\n"; \
 	cd "$(ROOT)/apps/services/ontology-service"; \
 	RESULT=0; \
 	for test_file in tests/*integration_test.rs tests/*p0_test.rs; do \
 		test_name="$$(basename "$$test_file" .rs)"; \
-		echo "[Integration]   [$${test_name}]"; \
-		cargo test --test "$${test_name}" -- --test-threads=1 --nocapture 2>&1 || { RESULT=1; break; }; \
+		printf "  [$${test_name}]\n"; \
+		cargo test --test "$${test_name}" -- --test-threads=1 --nocapture 2>&1 || { RESULT=1; printf "$(C_RED)[FAIL]$(C_RESET) $${test_name}\n"; }; \
 	done; \
 	if [ -n "$$NEO4J_STARTED" ]; then \
-		echo "[Integration] Stopping auto-started Neo4j..."; \
-		cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev stop neo4j 2>&1; \
+		printf "$(C_YELLOW)[Integration]$(C_RESET) Stopping auto-started Neo4j...\n"; \
+		cd "$(ROOT)" && docker compose -f "$$NEO4J_COMPOSE" --env-file "$$NEO4J_ENV_FILE" stop neo4j 2>&1; \
 		cd "$(ROOT)/apps/services/ontology-service"; \
 	fi; \
 	if [ $$RESULT -ne 0 ]; then \
+		printf "$(C_RED)[FAIL]$(C_RESET) Some Rust integration tests failed\n"; \
 		exit 1; \
-	fi
+	fi; \
+	printf "$(C_GREEN)[PASS]$(C_RESET) All Rust integration tests passed\n"
 
-.PHONY: test-integration-go
-test-integration-go: ## Run Go integration tests in tests/integration/
-	@if [ -d "$(ROOT)/tests/integration/ticket-api" ]; then \
-		echo "[Go] integration tests — ticket-api"
-		cd "$(ROOT)/tests/integration/ticket-api" && go test ./... 2>&1 || true; \
-	fi
-	@if [ -d "$(ROOT)/tests/integration/org-api" ]; then \
-		echo "[Go] integration tests — org-api"
-		cd "$(ROOT)/tests/integration/org-api" && go test ./... 2>&1 || true; \
-	fi
+.PHONY: test-integration-go-fast test-integration-go-full
+test-integration-go-fast: ## Go integration tests — fail-fast (auto-starts PostgreSQL via docker-compose.test.yml)
+	@PG_STARTED=""; \
+	PG_HOST="localhost"; \
+	PG_PORT="$${PG_TEST_PORT:-$$(grep -E '^POSTGRES_PORT=' "$(ROOT)/config/.env.test" 2>/dev/null | tail -1 | cut -d= -f2 | tr -d '\r[:space:]')}"; \
+	PG_PORT="$${PG_PORT:-15432}"; \
+	PG_USER="$${PG_USER:-vedo}"; \
+	PG_PASSWORD="$${PG_PASSWORD:-vedo}"; \
+	PG_COMPOSE="$(ROOT)/deploy/docker-compose.test.yml"; \
+	PG_ENV_FILE="$(ROOT)/config/.env.test"; \
+	PG_URL="postgres://$${PG_USER}:$${PG_PASSWORD}@$${PG_HOST}:$${PG_PORT}/vedo_org_test?sslmode=disable"; \
+	printf "$(C_CYAN)[Go]$(C_RESET) checking PostgreSQL at $${PG_HOST}:$${PG_PORT}...\n"; \
+	if command -v docker >/dev/null 2>&1 && docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" ps postgres 2>/dev/null | grep -q "healthy"; then \
+		printf "$(C_GREEN)[Go]$(C_RESET) PostgreSQL is already running (Docker healthy)\n"; \
+	else \
+		printf "$(C_YELLOW)[Go]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
+		cd "$(ROOT)" && docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" up -d postgres 2>&1; \
+		PG_STARTED="yes"; \
+		printf "$(C_YELLOW)[Go]$(C_RESET) Waiting for PostgreSQL healthcheck...\n"; \
+		i=0; \
+		while [ $$i -lt 60 ]; do \
+			if docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" ps postgres 2>/dev/null | grep -q "healthy"; then \
+				printf "$(C_GREEN)[Go]$(C_RESET) PostgreSQL is ready!\n"; \
+				break; \
+			fi; \
+			sleep 2; \
+			i=$$((i + 1)); \
+		done; \
+		if [ $$i -ge 60 ]; then \
+			printf "$(C_RED)[Go]$(C_RESET) ERROR: PostgreSQL did not become ready within 120 seconds\n"; \
+			docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" logs postgres 2>&1 | tail -20; \
+			exit 1; \
+		fi; \
+	fi; \
+	printf "$(C_CYAN)[Go]$(C_RESET) ensuring vedo_org_test database exists...\n"; \
+	docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" exec -T postgres \
+		psql -U "$$PG_USER" -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='vedo_org_test'" 2>/dev/null | grep -q 1 || \
+	docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" exec -T postgres \
+		psql -U "$$PG_USER" -d postgres -c "CREATE DATABASE vedo_org_test" 2>&1; \
+	export DATABASE_URL="$$PG_URL"; \
+	for dir in ticket-api org-api; do \
+		p="$(ROOT)/tests/integration/$$dir"; \
+		if [ -d "$$p" ] && (cd "$$p" && go list -tags=integration ./... >/dev/null 2>&1); then \
+			printf "$(C_CYAN)[Go]$(C_RESET) integration — $$dir\n"; \
+			cd "$$p" && go test -tags=integration ./... 2>&1 || { printf "$(C_RED)[FAIL]$(C_RESET) $$dir\n"; exit 1; }; \
+		fi; \
+	done; \
+	if [ -n "$$PG_STARTED" ]; then \
+		printf "$(C_YELLOW)[Go]$(C_RESET) Stopping auto-started PostgreSQL...\n"; \
+		cd "$(ROOT)" && docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" stop postgres 2>&1; \
+	fi; \
+	printf "$(C_GREEN)[PASS]$(C_RESET) All Go integration tests passed\n"
 
-.PHONY: test-versioning
-test-versioning: ## Run versioning-service integration tests (auto-starts PostgreSQL if not running)
-	@echo "[Versioning] checking PostgreSQL availability..."
-	@PG_URL="postgres://postgres:password@localhost:5432/vedo_versioning"; \
-	PG_STARTED=""; \
-	if command -v pg_isready >/dev/null 2>&1; then \
-		if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
-			echo "[Versioning] PostgreSQL is already running"; \
+test-integration-go-full: ## Go integration tests — full statistics (auto-starts PostgreSQL via docker-compose.test.yml)
+		@PG_STARTED=""; \
+		PG_HOST="localhost"; \
+		PG_PORT="$${PG_TEST_PORT:-$$(grep -E '^POSTGRES_PORT=' "$(ROOT)/config/.env.test" 2>/dev/null | tail -1 | cut -d= -f2 | tr -d '\r[:space:]')}"; \
+		PG_PORT="$${PG_PORT:-15432}"; \
+		PG_USER="$${PG_USER:-vedo}"; \
+		PG_PASSWORD="$${PG_PASSWORD:-vedo}"; \
+		PG_COMPOSE="$(ROOT)/deploy/docker-compose.test.yml"; \
+		PG_ENV_FILE="$(ROOT)/config/.env.test"; \
+		PG_URL="postgres://$${PG_USER}:$${PG_PASSWORD}@$${PG_HOST}:$${PG_PORT}/vedo_org_test?sslmode=disable"; \
+		printf "$(C_CYAN)[Go]$(C_RESET) checking PostgreSQL at $${PG_HOST}:$${PG_PORT}...\n"; \
+		if command -v docker >/dev/null 2>&1 && docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" ps postgres 2>/dev/null | grep -q "healthy"; then \
+			printf "$(C_GREEN)[Go]$(C_RESET) PostgreSQL is already running (Docker healthy)\n"; \
 		else \
-			echo "[Versioning] Starting PostgreSQL via Docker Compose..."; \
-			cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml --env-file config/.env.dev up -d postgres 2>&1; \
+			printf "$(C_YELLOW)[Go]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
+			cd "$(ROOT)" && docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" up -d postgres 2>&1; \
 			PG_STARTED="yes"; \
-			echo "[Versioning] Waiting for PostgreSQL to become healthy..."; \
+			printf "$(C_YELLOW)[Go]$(C_RESET) Waiting for PostgreSQL healthcheck...\n"; \
 			i=0; \
-			while [ $$i -lt 30 ]; do \
-				if pg_isready -q -h localhost -p 5432 2>/dev/null; then \
-					echo "[Versioning] PostgreSQL is ready!"; \
+			while [ $$i -lt 60 ]; do \
+				if docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" ps postgres 2>/dev/null | grep -q "healthy"; then \
+					printf "$(C_GREEN)[Go]$(C_RESET) PostgreSQL is ready!\n"; \
 					break; \
 				fi; \
-				sleep 1; \
+				sleep 2; \
 				i=$$((i + 1)); \
 			done; \
-			if [ $$i -ge 30 ]; then \
-				echo "[Versioning] ERROR: PostgreSQL did not become ready within 30 seconds"; \
+			if [ $$i -ge 60 ]; then \
+				printf "$(C_RED)[Go]$(C_RESET) ERROR: PostgreSQL did not become ready within 120 seconds\n"; \
+				docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" logs postgres 2>&1 | tail -20; \
 				exit 1; \
 			fi; \
 		fi; \
+		printf "$(C_CYAN)[Go]$(C_RESET) ensuring vedo_org_test database exists...\n"; \
+		docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" exec -T postgres \
+			psql -U "$$PG_USER" -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='vedo_org_test'" 2>/dev/null | grep -q 1 || \
+		docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" exec -T postgres \
+			psql -U "$$PG_USER" -d postgres -c "CREATE DATABASE vedo_org_test" 2>&1; \
+		export DATABASE_URL="$$PG_URL"; \
+		failed=""; \
+		for dir in ticket-api org-api; do \
+			p="$(ROOT)/tests/integration/$$dir"; \
+			if [ -d "$$p" ] && (cd "$$p" && go list -tags=integration ./... >/dev/null 2>&1); then \
+				printf "$(C_CYAN)[Go]$(C_RESET) integration — $$dir\n"; \
+				cd "$$p" && go test -tags=integration ./... 2>&1 || failed="$$failed $$dir"; \
+			fi; \
+		done; \
+		if [ -n "$$PG_STARTED" ]; then \
+			printf "$(C_YELLOW)[Go]$(C_RESET) Stopping auto-started PostgreSQL...\n"; \
+			cd "$(ROOT)" && docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" stop postgres 2>&1; \
+		fi; \
+		if [ -n "$$failed" ]; then \
+			printf "$(C_RED)[FAIL]$(C_RESET) Go integration tests failed in:$$failed\n"; \
+			exit 1; \
+		fi; \
+		printf "$(C_GREEN)[PASS]$(C_RESET) All Go integration tests passed\n"
+
+.PHONY: test-versioning-fast test-versioning-full
+test-versioning-fast: ## Versioning integration — fail-fast (auto-starts PostgreSQL if not running)
+	@PG_STARTED=""; \
+	PG_HOST="localhost"; \
+	PG_PORT="$${PG_TEST_PORT:-$$(grep -E '^POSTGRES_PORT=' "$(ROOT)/config/.env.test" 2>/dev/null | tail -1 | cut -d= -f2 | tr -d '\r[:space:]')}"; \
+	PG_PORT="$${PG_PORT:-15432}"; \
+	PG_USER="$${PG_USER:-vedo}"; \
+	PG_PASSWORD="$${PG_PASSWORD:-vedo}"; \
+	PG_COMPOSE="$(ROOT)/deploy/docker-compose.test.yml"; \
+	PG_ENV_FILE="$(ROOT)/config/.env.test"; \
+	PG_URL="postgres://$${PG_USER}:$${PG_PASSWORD}@$${PG_HOST}:$${PG_PORT}/vedo_versioning"; \
+	printf "$(C_CYAN)[Versioning]$(C_RESET) checking PostgreSQL at $${PG_HOST}:$${PG_PORT}...\n"; \
+	if command -v docker >/dev/null 2>&1 && docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" ps postgres 2>/dev/null | grep -q "healthy"; then \
+		printf "$(C_GREEN)[Versioning]$(C_RESET) PostgreSQL is already running (Docker healthy)\n"; \
 	else \
-		echo "[Versioning] pg_isready not found, assuming PostgreSQL is available at localhost:5432"; \
+		printf "$(C_YELLOW)[Versioning]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
+		cd "$(ROOT)" && docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" up -d postgres 2>&1; \
+		PG_STARTED="yes"; \
+		printf "$(C_YELLOW)[Versioning]$(C_RESET) Waiting for PostgreSQL healthcheck...\n"; \
+		i=0; \
+		while [ $$i -lt 60 ]; do \
+			if docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" ps postgres 2>/dev/null | grep -q "healthy"; then \
+				printf "$(C_GREEN)[Versioning]$(C_RESET) PostgreSQL is ready!\n"; \
+				break; \
+			fi; \
+			sleep 2; \
+			i=$$((i + 1)); \
+		done; \
+		if [ $$i -ge 60 ]; then \
+			printf "$(C_RED)[Versioning]$(C_RESET) ERROR: PostgreSQL did not become ready within 120 seconds\n"; \
+			docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" logs postgres 2>&1 | tail -20; \
+			exit 1; \
+		fi; \
 	fi; \
+	printf "$(C_CYAN)[Versioning]$(C_RESET) ensuring vedo_versioning database exists...\n"; \
+	docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" exec -T postgres \
+		psql -U "$$PG_USER" -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='vedo_versioning'" 2>/dev/null | grep -q 1 || \
+	docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" exec -T postgres \
+		psql -U "$$PG_USER" -d postgres -c "CREATE DATABASE vedo_versioning" 2>&1; \
 	export PG_TEST_DATABASE_URL="$$PG_URL"; \
 	export DATABASE_URL="$$PG_URL"; \
-	echo "[Versioning] Running versioning-service unit tests..."; \
-	cd "$(ROOT)/apps/services/versioning-service" && cargo test --lib 2>&1 || exit 1; \
-	echo "[Versioning] Running versioning-service integration tests..."; \
-	cd "$(ROOT)/apps/services/versioning-service" && cargo test --test '*' -- --test-threads=1 --nocapture 2>&1; \
-	RESULT=$$?; \
-	if [ -n "$$PG_STARTED" ]; then \
-		echo "[Versioning] Stopping auto-started PostgreSQL..."; \
-		cd "$(ROOT)" && docker compose -f deploy/docker-compose.yml stop postgres 2>&1; \
+	RESULT=0; \
+	printf "$(C_CYAN)[Versioning]$(C_RESET) Running unit tests (fail-fast)...\n"; \
+	cd "$(ROOT)/apps/services/versioning-service" && cargo test --lib 2>&1 || RESULT=1; \
+	if [ $$RESULT -eq 0 ]; then \
+		printf "$(C_CYAN)[Versioning]$(C_RESET) Running integration tests (fail-fast)...\n"; \
+		cd "$(ROOT)/apps/services/versioning-service" && cargo test --test '*' -- --test-threads=1 --nocapture 2>&1 || RESULT=1; \
 	fi; \
-	exit $$RESULT
+	if [ -n "$$PG_STARTED" ]; then \
+		printf "$(C_YELLOW)[Versioning]$(C_RESET) Stopping auto-started PostgreSQL...\n"; \
+		cd "$(ROOT)" && docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" stop postgres 2>&1; \
+	fi; \
+	if [ $$RESULT -ne 0 ]; then \
+		printf "$(C_RED)[FAIL]$(C_RESET) Versioning tests failed\n"; \
+		exit 1; \
+	fi; \
+	printf "$(C_GREEN)[PASS]$(C_RESET) All versioning tests passed\n"
+
+test-versioning-full: ## Versioning integration — full statistics (collect all failures)
+	@PG_STARTED=""; \
+	PG_HOST="localhost"; \
+	PG_PORT="$${PG_TEST_PORT:-$$(grep -E '^POSTGRES_PORT=' "$(ROOT)/config/.env.test" 2>/dev/null | tail -1 | cut -d= -f2 | tr -d '\r[:space:]')}"; \
+	PG_PORT="$${PG_PORT:-15432}"; \
+	PG_USER="$${PG_USER:-vedo}"; \
+	PG_PASSWORD="$${PG_PASSWORD:-vedo}"; \
+	PG_COMPOSE="$(ROOT)/deploy/docker-compose.test.yml"; \
+	PG_ENV_FILE="$(ROOT)/config/.env.test"; \
+	PG_URL="postgres://$${PG_USER}:$${PG_PASSWORD}@$${PG_HOST}:$${PG_PORT}/vedo_versioning"; \
+	printf "$(C_CYAN)[Versioning]$(C_RESET) checking PostgreSQL at $${PG_HOST}:$${PG_PORT}...\n"; \
+	if command -v docker >/dev/null 2>&1 && docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" ps postgres 2>/dev/null | grep -q "healthy"; then \
+		printf "$(C_GREEN)[Versioning]$(C_RESET) PostgreSQL is already running (Docker healthy)\n"; \
+	else \
+		printf "$(C_YELLOW)[Versioning]$(C_RESET) Starting PostgreSQL via Docker Compose...\n"; \
+		cd "$(ROOT)" && docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" up -d postgres 2>&1; \
+		PG_STARTED="yes"; \
+		printf "$(C_YELLOW)[Versioning]$(C_RESET) Waiting for PostgreSQL healthcheck...\n"; \
+		i=0; \
+		while [ $$i -lt 60 ]; do \
+			if docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" ps postgres 2>/dev/null | grep -q "healthy"; then \
+				printf "$(C_GREEN)[Versioning]$(C_RESET) PostgreSQL is ready!\n"; \
+				break; \
+			fi; \
+			sleep 2; \
+			i=$$((i + 1)); \
+		done; \
+		if [ $$i -ge 60 ]; then \
+			printf "$(C_RED)[Versioning]$(C_RESET) ERROR: PostgreSQL did not become ready within 120 seconds\n"; \
+			docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" logs postgres 2>&1 | tail -20; \
+			exit 1; \
+		fi; \
+	fi; \
+	printf "$(C_CYAN)[Versioning]$(C_RESET) ensuring vedo_versioning database exists...\n"; \
+	docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" exec -T postgres \
+		psql -U "$$PG_USER" -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='vedo_versioning'" 2>/dev/null | grep -q 1 || \
+	docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" exec -T postgres \
+		psql -U "$$PG_USER" -d postgres -c "CREATE DATABASE vedo_versioning" 2>&1; \
+	export PG_TEST_DATABASE_URL="$$PG_URL"; \
+	export DATABASE_URL="$$PG_URL"; \
+	RESULT=0; \
+	printf "$(C_CYAN)[Versioning]$(C_RESET) Running unit tests...\n"; \
+	cd "$(ROOT)/apps/services/versioning-service" && cargo test --lib 2>&1 || RESULT=1; \
+	printf "$(C_CYAN)[Versioning]$(C_RESET) Running integration tests...\n"; \
+	cd "$(ROOT)/apps/services/versioning-service" && cargo test --test '*' -- --test-threads=1 --nocapture 2>&1 || RESULT=1; \
+	if [ -n "$$PG_STARTED" ]; then \
+		printf "$(C_YELLOW)[Versioning]$(C_RESET) Stopping auto-started PostgreSQL...\n"; \
+		cd "$(ROOT)" && docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" stop postgres 2>&1; \
+	fi; \
+	if [ $$RESULT -ne 0 ]; then \
+		printf "$(C_RED)[FAIL]$(C_RESET) Versioning tests failed\n"; \
+		exit 1; \
+	fi; \
+	printf "$(C_GREEN)[PASS]$(C_RESET) All versioning tests passed\n"
 
 ##@ Test — E2E (requires Docker test stack)
 
-test-e2e: test-e2e-api test-e2e-gui ## Run all E2E tests (API + GUI)
+.PHONY: test-e2e-fast test-e2e-full
+test-e2e-fast: ## E2E — fail-fast (API + GUI)
+	@printf "$(C_CYAN)[E2E]$(C_RESET) fail-fast mode\n"
+	@$(MAKE) test-e2e-api-fast
+	@$(MAKE) test-e2e-gui-fast
+	@printf "$(C_GREEN)[PASS]$(C_RESET) All E2E tests passed\n"
 
-.PHONY: test-e2e-api
-test-e2e-api: ## Run E2E API tests via Playwright (requires Docker test stack)
-	@echo "[E2E] installing dependencies..."
-	@cd "$(ROOT)/tests/e2e" && pnpm install --frozen-lockfile 2>&1 || pnpm install 2>&1
-	@cd "$(ROOT)/tests/e2e" && npx playwright install chromium 2>&1 || true
-	@echo "[E2E] running API tests..."
-	@cd "$(ROOT)/tests/e2e" && pnpm exec playwright test --config=config/playwright.api.config.ts
-
-.PHONY: test-e2e-gui
-test-e2e-gui: ## Run E2E GUI tests via Playwright (requires Docker test stack)
-	@echo "[E2E] installing dependencies..."
-	@cd "$(ROOT)/tests/e2e" && pnpm install --frozen-lockfile 2>&1 || pnpm install 2>&1
-	@cd "$(ROOT)/tests/e2e" && npx playwright install chromium 2>&1 || true
-	@echo "[E2E] running GUI tests..."
-	@cd "$(ROOT)/tests/e2e" && pnpm exec playwright test --config=config/playwright.gui.config.ts
-
-.PHONY: test-gates
-test-gates: ## Run all gate-level test scripts (contracts, BOLA/BFLA, etc.)
-	@gate_failures=""
-	@echo "[Gates] running contract tests..."
-	@bash $(ROOT)/tests/gates/test_contract_gate.sh 2>&1 || gate_failures="$${gate_failures} contract"
-	@echo "[Gates] running BOLA/BFLA security tests..."
-	@bash $(ROOT)/tests/gates/test_bola_bfla_gate.sh 2>&1 || gate_failures="$${gate_failures} bola-bfla"
-	@echo "[Gates] running Python service manifest validation..."
-	@bash $(ROOT)/tests/gates/test_python_manifests.sh 2>&1 || gate_failures="$${gate_failures} python-manifests"
-	@if [ -n "$$gate_failures" ]; then \
-		echo ""; \
-		echo "!!! Gates FAILED:$$gate_failures !!!"; \
+test-e2e-full: ## E2E — full statistics (API + GUI)
+	@failed=0; \
+	printf "$(C_CYAN)[E2E]$(C_RESET) full statistics mode\n"; \
+	$(MAKE) test-e2e-api-full 2>&1 || failed=1; \
+	$(MAKE) test-e2e-gui-full 2>&1 || failed=1; \
+	if [ $$failed -ne 0 ]; then \
+		printf "$(C_RED)[FAIL]$(C_RESET) Some E2E tests failed\n"; \
 		exit 1; \
-	fi
-	@echo "[Gates] all gates passed"
+	fi; \
+	printf "$(C_GREEN)[PASS]$(C_RESET) All E2E tests passed\n"
+
+.PHONY: test-e2e-api-fast test-e2e-api-full
+test-e2e-api-fast: ## E2E API tests — fail-fast (max-failures=1)
+	@printf "$(C_CYAN)[E2E]$(C_RESET) installing dependencies...\n"
+	@cd "$(ROOT)/tests/e2e" && CI=true pnpm install --frozen-lockfile 2>&1 || CI=true pnpm install 2>&1
+	@cd "$(ROOT)/tests/e2e" && CI=true npx --yes playwright install chromium 2>&1 || true
+	@printf "$(C_CYAN)[E2E]$(C_RESET) running API tests (fail-fast)...\n"
+	@cd "$(ROOT)/tests/e2e" && pnpm exec playwright test --config=config/playwright.api.config.ts --max-failures=1 && \
+		printf "$(C_GREEN)[PASS]$(C_RESET) E2E API tests passed\n" || \
+		{ printf "$(C_RED)[FAIL]$(C_RESET) E2E API tests failed\n"; exit 1; }
+
+test-e2e-api-full: ## E2E API tests — full run (with retries, no max-failures)
+	@printf "$(C_CYAN)[E2E]$(C_RESET) installing dependencies...\n"
+	@cd "$(ROOT)/tests/e2e" && CI=true pnpm install --frozen-lockfile 2>&1 || CI=true pnpm install 2>&1
+	@cd "$(ROOT)/tests/e2e" && CI=true npx --yes playwright install chromium 2>&1 || true
+	@printf "$(C_CYAN)[E2E]$(C_RESET) running API tests (full)...\n"
+	@cd "$(ROOT)/tests/e2e" && pnpm exec playwright test --config=config/playwright.api.config.ts && \
+		printf "$(C_GREEN)[PASS]$(C_RESET) E2E API tests passed\n" || \
+		{ printf "$(C_RED)[FAIL]$(C_RESET) E2E API tests failed\n"; exit 1; }
+
+.PHONY: test-e2e-gui-fast test-e2e-gui-full
+test-e2e-gui-fast: ## E2E GUI tests — fail-fast (maxFailures=1 in config)
+	@printf "$(C_CYAN)[E2E]$(C_RESET) installing dependencies...\n"
+	@cd "$(ROOT)/tests/e2e" && CI=true pnpm install --frozen-lockfile 2>&1 || CI=true pnpm install 2>&1
+	@cd "$(ROOT)/tests/e2e" && CI=true npx --yes playwright install chromium 2>&1 || true
+	@printf "$(C_CYAN)[E2E]$(C_RESET) running GUI tests (fail-fast)...\n"
+	@cd "$(ROOT)/tests/e2e" && pnpm exec playwright test --config=config/playwright.gui.config.ts && \
+		printf "$(C_GREEN)[PASS]$(C_RESET) E2E GUI tests passed\n" || \
+		{ printf "$(C_RED)[FAIL]$(C_RESET) E2E GUI tests failed\n"; exit 1; }
+
+test-e2e-gui-full: ## E2E GUI tests — full run (no max-failures)
+	@printf "$(C_CYAN)[E2E]$(C_RESET) installing dependencies...\n"
+	@cd "$(ROOT)/tests/e2e" && CI=true pnpm install --frozen-lockfile 2>&1 || CI=true pnpm install 2>&1
+	@cd "$(ROOT)/tests/e2e" && CI=true npx --yes playwright install chromium 2>&1 || true
+	@printf "$(C_CYAN)[E2E]$(C_RESET) running GUI tests (full)...\n"
+	@cd "$(ROOT)/tests/e2e" && pnpm exec playwright test --config=config/playwright.gui.config.ts --max-failures=0 && \
+		printf "$(C_GREEN)[PASS]$(C_RESET) E2E GUI tests passed\n" || \
+		{ printf "$(C_RED)[FAIL]$(C_RESET) E2E GUI tests failed\n"; exit 1; }
+
+.PHONY: test-gates-fast test-gates-full test-gates-security-fast test-gates-security-full
+test-gates-fast: ## Gate tests — fail-fast (unit + static, no infra needed)
+		@printf "$(C_CYAN)[Gates]$(C_RESET) fail-fast mode\n"
+		@printf "$(C_CYAN)[Gates]$(C_RESET) contract tests (Go unit + build checks)...\n"
+		@bash $(ROOT)/tests/gates/test_contract_gate.sh || { printf "$(C_RED)[FAIL]$(C_RESET) contract gate failed\n"; exit 1; }
+		@printf "$(C_CYAN)[Gates]$(C_RESET) BOLA/BFLA unit tests (auth middleware)...\n"
+		@bash $(ROOT)/tests/gates/test_bola_bfla_gate.sh || { printf "$(C_RED)[FAIL]$(C_RESET) bola-bfla gate failed\n"; exit 1; }
+		@printf "$(C_CYAN)[Gates]$(C_RESET) Python service manifest validation...\n"
+		@bash $(ROOT)/tests/gates/test_python_manifests.sh || { printf "$(C_RED)[FAIL]$(C_RESET) python-manifests gate failed\n"; exit 1; }
+		@printf "$(C_CYAN)[Gates]$(C_RESET) static test quality (anti-patterns + TQS)...\n"
+		@bash $(ROOT)/tools/scripts/test-quality-gate.sh --score $(ROOT)/apps/services || { printf "$(C_RED)[FAIL]$(C_RESET) test-quality gate failed\n"; exit 1; }
+		@printf "$(C_CYAN)[Gates]$(C_RESET) traceability (TTL → RCS)...\n"
+		@bash $(ROOT)/tools/scripts/traceability-validator.sh || { printf "$(C_RED)[FAIL]$(C_RESET) traceability gate failed\n"; exit 1; }
+		@printf "$(C_GREEN)[PASS]$(C_RESET) all gates + quality checks passed\n"
+
+test-gates-full: ## Gate tests — full statistics (unit + static, collect all failures)
+		@gate_failures=""; \
+		printf "$(C_CYAN)[Gates]$(C_RESET) full statistics mode\n"; \
+		printf "$(C_CYAN)[Gates]$(C_RESET) contract tests...\n"; \
+		bash $(ROOT)/tests/gates/test_contract_gate.sh 2>&1 || gate_failures="$${gate_failures} contract"; \
+		printf "$(C_CYAN)[Gates]$(C_RESET) BOLA/BFLA unit tests...\n"; \
+		bash $(ROOT)/tests/gates/test_bola_bfla_gate.sh 2>&1 || gate_failures="$${gate_failures} bola-bfla"; \
+		printf "$(C_CYAN)[Gates]$(C_RESET) Python service manifest validation...\n"; \
+		bash $(ROOT)/tests/gates/test_python_manifests.sh 2>&1 || gate_failures="$${gate_failures} python-manifests"; \
+		printf "$(C_CYAN)[Gates]$(C_RESET) static test quality...\n"; \
+		bash $(ROOT)/tools/scripts/test-quality-gate.sh --score $(ROOT)/apps/services 2>&1 || gate_failures="$${gate_failures} test-quality"; \
+		printf "$(C_CYAN)[Gates]$(C_RESET) traceability...\n"; \
+		bash $(ROOT)/tools/scripts/traceability-validator.sh 2>&1 || gate_failures="$${gate_failures} traceability"; \
+		if [ -n "$$gate_failures" ]; then \
+			printf "$(C_RED)[FAIL]$(C_RESET) Gates FAILED:$$gate_failures\n"; \
+			exit 1; \
+		fi; \
+		printf "$(C_GREEN)[PASS]$(C_RESET) all gates + quality checks passed\n"
+
+test-gates-security-fast: ## Security integration tests — fail-fast (requires Docker test stack, auto-starts if missing)
+		@printf "$(C_CYAN)[Security]$(C_RESET) checking Docker test stack availability...\n"
+		@rm -f /tmp/vedo-test-stack
+		@if curl -sf http://localhost:8080/api/v1/health >/dev/null 2>&1; then \
+			printf "$(C_GREEN)[Security]$(C_RESET) API Gateway is available\n"; \
+		else \
+			printf "$(C_YELLOW)[Security]$(C_RESET) API Gateway not available — starting Docker test stack...\n"; \
+			cd "$(ROOT)" && $(MAKE) docker-up-test 2>&1; \
+			touch /tmp/vedo-test-stack; \
+			printf "$(C_YELLOW)[Security]$(C_RESET) Waiting for API Gateway readiness...\n"; \
+			i=0; \
+			while [ $$i -lt 120 ]; do \
+				if curl -sf http://localhost:8080/api/v1/health >/dev/null 2>&1; then \
+					printf "$(C_GREEN)[Security]$(C_RESET) API Gateway is ready!\n"; \
+					break; \
+				fi; \
+				sleep 5; \
+				i=$$((i + 1)); \
+			done; \
+			if [ $$i -ge 120 ]; then \
+				printf "$(C_RED)[Security]$(C_RESET) ERROR: API Gateway did not become ready within 10 minutes\n"; \
+				exit 1; \
+			fi; \
+		fi
+		@printf "$(C_CYAN)[Security]$(C_RESET) running BOLA/BFLA/RBAC full-stack integration tests...\n"
+		@RESULT=0; \
+		bash $(ROOT)/tests/gates/test_security_integration.sh 2>&1 || RESULT=1; \
+		if [ -f /tmp/vedo-test-stack ]; then \
+			printf "$(C_YELLOW)[Security]$(C_RESET) Stopping auto-started Docker test stack...\n"; \
+			cd "$(ROOT)" && docker compose -f deploy/docker-compose.test.yml --env-file config/.env.test down 2>&1; \
+			rm -f /tmp/vedo-test-stack; \
+		fi; \
+		if [ $$RESULT -ne 0 ]; then \
+			printf "$(C_RED)[FAIL]$(C_RESET) Security integration tests failed\n"; \
+			exit 1; \
+		fi; \
+		printf "$(C_GREEN)[PASS]$(C_RESET) All security integration tests passed\n"
+
+test-gates-security-full: ## Security integration tests — full statistics (requires Docker test stack, auto-starts if missing)
+		@printf "$(C_CYAN)[Security]$(C_RESET) checking Docker test stack availability...\n"
+		@rm -f /tmp/vedo-test-stack
+		@if curl -sf http://localhost:8080/api/v1/health >/dev/null 2>&1; then \
+			printf "$(C_GREEN)[Security]$(C_RESET) API Gateway is available\n"; \
+		else \
+			printf "$(C_YELLOW)[Security]$(C_RESET) API Gateway not available — starting Docker test stack...\n"; \
+			cd "$(ROOT)" && $(MAKE) docker-up-test 2>&1; \
+			touch /tmp/vedo-test-stack; \
+			printf "$(C_YELLOW)[Security]$(C_RESET) Waiting for API Gateway readiness...\n"; \
+			i=0; \
+			while [ $$i -lt 120 ]; do \
+				if curl -sf http://localhost:8080/api/v1/health >/dev/null 2>&1; then \
+					printf "$(C_GREEN)[Security]$(C_RESET) API Gateway is ready!\n"; \
+					break; \
+				fi; \
+				sleep 5; \
+				i=$$((i + 1)); \
+			done; \
+			if [ $$i -ge 120 ]; then \
+				printf "$(C_RED)[Security]$(C_RESET) ERROR: API Gateway did not become ready within 10 minutes\n"; \
+				exit 1; \
+			fi; \
+		fi
+		@printf "$(C_CYAN)[Security]$(C_RESET) running BOLA/BFLA/RBAC full-stack integration tests...\n"
+		@RESULT=0; \
+		bash $(ROOT)/tests/gates/test_security_integration.sh 2>&1 || RESULT=1; \
+		if [ -f /tmp/vedo-test-stack ]; then \
+			printf "$(C_YELLOW)[Security]$(C_RESET) Stopping auto-started Docker test stack...\n"; \
+			cd "$(ROOT)" && docker compose -f deploy/docker-compose.test.yml --env-file config/.env.test down 2>&1; \
+			rm -f /tmp/vedo-test-stack; \
+		fi; \
+		if [ $$RESULT -ne 0 ]; then \
+			printf "$(C_RED)[FAIL]$(C_RESET) Security integration tests failed\n"; \
+			exit 1; \
+		fi; \
+		printf "$(C_GREEN)[PASS]$(C_RESET) All security integration tests passed\n"
 
 .PHONY: coverage
 coverage: ## Run tests with coverage (Go only)
-	@echo "[Coverage] running tests with coverage..."
+	@printf "$(C_CYAN)[Coverage]$(C_RESET) running tests with coverage...\n"
 	@if [ -n "$(GO_DIRS)" ]; then \
 		for dir in $(GO_DIRS); do \
-			echo "[Go] coverage for $$(basename $$dir)"; \
+			printf "$(C_CYAN)[Go]$(C_RESET) coverage for $$(basename $$dir)\n"; \
 			cd $(ROOT)/$$dir && go test -coverprofile=cover.out ./... 2>&1 || true; \
 		done; \
 	fi
@@ -468,6 +1009,11 @@ ENV                 ?= dev
 COMPOSE_FILE        ?= deploy/docker-compose.yml
 COMPOSE_PROFILE     ?=
 
+# ENV=test uses docker-compose.test.yml (isolated project + JWT dev keys for Playwright)
+ifeq ($(ENV),test)
+COMPOSE_FILE := deploy/docker-compose.test.yml
+endif
+
 .PHONY: docker-up docker-down docker-logs docker-ps docker-shell docker-config
 .PHONY: docker-up-dev docker-up-test docker-up-staging
 .PHONY: docker-down-dev docker-down-test docker-down-staging
@@ -482,8 +1028,8 @@ docker-up: ## Start all services via Docker Compose (usage: make docker-up [ENV=
 docker-up-dev: ## Start dev environment (alias for make docker-up ENV=dev)
 	$(MAKE) docker-up ENV=dev
 
-docker-up-test: ## Start test environment (includes JWT dev keys for Playwright)
-	$(MAKE) docker-up ENV=test
+docker-up-test: ## Start test environment (docker-compose.test.yml — isolated project + JWT dev keys for Playwright)
+	$(MAKE) docker-up ENV=test COMPOSE_FILE=deploy/docker-compose.test.yml
 
 docker-up-staging: ## Start staging environment
 	$(MAKE) docker-up ENV=staging
@@ -498,7 +1044,7 @@ docker-down-dev: ## Stop dev environment
 	$(MAKE) docker-down ENV=dev
 
 docker-down-test: ## Stop test environment
-	$(MAKE) docker-down ENV=test
+	$(MAKE) docker-down ENV=test COMPOSE_FILE=deploy/docker-compose.test.yml
 
 docker-down-staging: ## Stop staging environment
 	$(MAKE) docker-down ENV=staging
@@ -597,29 +1143,31 @@ dev-api: ## Start API gateway in development mode
 
 .PHONY: test-quality-gate
 test-quality-gate: ## Run static test quality gate (anti-patterns, tautologies, etc.)
-	@bash $(ROOT)/tools/scripts/test-quality-gate.sh $(ROOT)/apps/services
+	@bash $(ROOT)/tools/scripts/test-quality-gate.sh $(ROOT)/apps/services && \
+		printf "$(C_GREEN)[PASS]$(C_RESET) test quality gate passed\n" || \
+		{ printf "$(C_RED)[FAIL]$(C_RESET) test quality gate failed\n"; exit 1; }
 
 .PHONY: docs-lint
 docs-lint: ## Verify Antora documentation builds without errors
-	@echo "[Docs] verifying Antora documentation build..."
+	@printf "$(C_CYAN)[Docs]$(C_RESET) verifying Antora documentation build...\n"
 	@if command -v npx &>/dev/null; then \
 		cd $(ROOT)/docs/antora && npx antora --fetch antora-playbook.yml 2>&1 | tail -5 || \
-		echo "[Docs] WARN: antora build failed — check docs/antora/antora-playbook.yml"; \
+		printf "$(C_YELLOW)[Docs]$(C_RESET) WARN: antora build failed — check antora-playbook.yml\n"; \
 	else \
-		echo "[Docs] SKIP: npx not available"; \
+		printf "$(C_YELLOW)[Docs]$(C_RESET) SKIP: npx not available\n"; \
 	fi
 
 .PHONY: npm-audit
 npm-audit: ## Run npm/pnpm audit on frontend dependencies
-	@echo "[Security] auditing frontend dependencies..."
+	@printf "$(C_CYAN)[Security]$(C_RESET) auditing frontend dependencies...\n"
 	@if [ -f "$(ROOT)/$(SERVICE_DIR)/frontend/package.json" ]; then \
 		cd $(ROOT)/$(SERVICE_DIR)/frontend && \
 		if command -v pnpm &>/dev/null; then \
-			pnpm audit --audit-level=high 2>&1 || echo "[Security] WARN: audit found vulnerabilities"; \
+			pnpm audit --audit-level=high 2>&1 || printf "$(C_YELLOW)[Security]$(C_RESET) WARN: audit found vulnerabilities\n"; \
 		elif command -v npm &>/dev/null; then \
-			npm audit --audit-level=high 2>&1 || echo "[Security] WARN: audit found vulnerabilities"; \
+			npm audit --audit-level=high 2>&1 || printf "$(C_YELLOW)[Security]$(C_RESET) WARN: audit found vulnerabilities\n"; \
 		else \
-			echo "[Security] SKIP: neither pnpm nor npm available"; \
+			printf "$(C_YELLOW)[Security]$(C_RESET) SKIP: neither pnpm nor npm available\n"; \
 		fi; \
 	else \
 		echo "[Security] SKIP: frontend/package.json not found"; \
@@ -631,47 +1179,34 @@ npm-audit: ## Run npm/pnpm audit on frontend dependencies
 
 ##@ CI
 
-.PHONY: ci
+.PHONY: ci-fast
 
-ci: ## Run full CI pipeline (proto + build + lint + unit tests + typecheck)
-	@failed=0
-	@echo "=== CI Pipeline Started ==="
-	@$(MAKE) proto-all || failed=1
-	@$(MAKE) build || failed=1
-	@$(MAKE) lint || failed=1
-	@$(MAKE) test || failed=1
-	@$(MAKE) typecheck || failed=1
-	@if [ $$failed -ne 0 ]; then \
-		echo ""; \
-		echo "!!! CI Pipeline FAILED !!!"; \
-		exit 1; \
-	fi
-	@echo ""
-	@echo "=== CI pipeline passed (proto + build + lint + unit tests + typecheck) ==="
-	@echo "To run integration tests:  make test-integration"
-	@echo "To run E2E tests:          make test-e2e (requires Docker test stack)"
-	@echo "To run gate tests:         make test-gates"
+ci-fast: ## CI pipeline — fail-fast (proto + build + lint + test-fast + typecheck)
+	@printf "$(C_BOLD)$(C_CYAN)=== CI Pipeline Started ===$(C_RESET)\n"
+	@$(MAKE) proto-all
+	@$(MAKE) build
+	@$(MAKE) lint
+	@$(MAKE) test-fast
+	@$(MAKE) typecheck-typescript
+	@printf "$(C_GREEN)=== CI pipeline passed (proto + build + lint + test-fast + typecheck) ===$(C_RESET)\n"
 
-ci-full: ## Run full CI pipeline including quality gates, Docker build, integration, E2E, and security (auto-starts Docker test stack)
-	@failed=0
-	@echo "=== Full CI Pipeline Started ==="
-	@$(MAKE) vendor-go || failed=1
-	@$(MAKE) ci || failed=1
-	@$(MAKE) test-quality-gate || failed=1
-	@$(MAKE) docs-lint || failed=1
-	@echo "[ci-full] Ensuring Docker test stack is up..."
+ci-full: ## Full CI pipeline — fail-fast (vendor-go + ci-fast + quality + integration + e2e + gates + security)
+	@printf "$(C_BOLD)$(C_CYAN)=== Full CI Pipeline Started ===$(C_RESET)\n"
+	@$(MAKE) vendor-go
+	@$(MAKE) ci-fast
+	@printf "$(C_CYAN)[ci-full]$(C_RESET) static test quality gate...\n"
+	@bash $(ROOT)/tools/scripts/test-quality-gate.sh $(ROOT)/apps/services
+	@$(MAKE) docs-lint
+	@printf "$(C_CYAN)[ci-full]$(C_RESET) Ensuring Docker test stack is up...\n"
 	@$(MAKE) docker-up-test 2>/dev/null || true
-	@$(MAKE) test-integration || failed=1
-	@$(MAKE) test-e2e || failed=1
-	@$(MAKE) test-gates || failed=1
-	@$(MAKE) npm-audit || failed=1
-	@if [ $$failed -ne 0 ]; then \
-		echo ""; \
-		echo "!!! Full CI Pipeline FAILED !!!"; \
-		exit 1; \
-	fi
-	@echo ""
-	@echo "=== Full CI pipeline passed (vendor-go + ci + quality-gate + docs-lint + integration + E2E + gates + npm-audit) ==="
+	@$(MAKE) test-integration-fast
+	@$(MAKE) test-e2e-fast
+	@$(MAKE) test-gates-fast
+	@$(MAKE) npm-audit
+	@printf "$(C_CYAN)[ci-full]$(C_RESET) saving quality trend snapshot...\n"
+	@mkdir -p $(ROOT)/.quality-trends
+	@bash $(ROOT)/tools/scripts/test-quality-gate.sh --json $(ROOT)/apps/services 2>/dev/null > $(ROOT)/.quality-trends/$$(date +%Y-%m-%d).json || true
+	@printf "$(C_GREEN)=== Full CI pipeline passed (vendor-go + ci-fast + quality + integration + E2E + gates + security) ===$(C_RESET)\n"
 
 # ==============================================================================
 # HOOKS — Git hooks management via Lefthook

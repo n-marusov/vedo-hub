@@ -251,7 +251,7 @@ func (h *OntologyHandler) HandleListProperties(c *gin.Context) {
 	}
 
 	propType := c.Query("type")
-	if propType != "" && propType != "object" && propType != "datatype" {
+	if propType != "" && propType != "object" && propType != "datatype" && propType != "annotation" {
 		slog.Warn("ontology.properties.invalid_type",
 			"trace_id", traceID,
 			"type", propType,
@@ -259,7 +259,7 @@ func (h *OntologyHandler) HandleListProperties(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, models.ErrorResponse{
 			Error: models.ErrorDetail{
 				Code:    "GATEWAY-INVALID-PROPERTY-TYPE",
-				Message: "Invalid property type filter. Must be 'object' or 'datatype'.",
+				Message: "Invalid property type filter. Must be 'object', 'datatype' or 'annotation'.",
 			},
 		})
 		return

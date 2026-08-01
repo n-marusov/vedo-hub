@@ -31,6 +31,7 @@ message Scope {
   int32 member_count = 9;
   string ontology_id = 10;  // 1:1 paired Ontology ID (set for projects, empty for groups)
   string upstream_project_id = 11;  // Set for forks — references the source Project
+  string slug = 12;              // GitLab-style human-readable identifier for GUI navigation
 }
 
 // Member represents a user's role assignment within a scope.
@@ -63,6 +64,7 @@ message CreateGroupRequest {
   string parent_id = 3;
   string organization_id = 4;
   string visibility = 5;  // "Private", "Internal", "Public" — default "Private" server-side
+  string slug = 6;        // GitLab-style identifier; derived from name when empty
 }
 
 message CreateGroupResponse {
@@ -134,6 +136,7 @@ message CreateProjectRequest {
   string group_id = 3;
   string organization_id = 4;
   string visibility = 5;  // "Private", "Internal", "Public" — default "Private" server-side
+  string slug = 6;        // GitLab-style identifier; derived from name when empty
 }
 
 message CreateProjectResponse {

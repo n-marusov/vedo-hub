@@ -87,6 +87,7 @@ const lastValidatedAt = computed(() => {
 });
 
 async function runValidation(): Promise<void> {
+	loading.value = true;
 	console.debug(
 		JSON.stringify({
 			level: "debug",
@@ -111,6 +112,8 @@ async function runValidation(): Promise<void> {
 				ts: new Date().toISOString(),
 			}),
 		);
+	} finally {
+		loading.value = false;
 	}
 }
 </script>

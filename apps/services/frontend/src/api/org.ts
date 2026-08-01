@@ -41,6 +41,7 @@ function extractErrorMessage(err: unknown, fallback: string): string {
 
 export interface GroupInfo {
 	id: string;
+	slug: string;
 	name: string;
 	description: string | null;
 	parentGroupId: string | null;
@@ -52,6 +53,7 @@ export interface GroupInfo {
 
 export interface ProjectInfo {
 	id: string;
+	slug: string;
 	name: string;
 	description: string | null;
 	visibility: string;
@@ -91,7 +93,18 @@ export async function listGroups(q?: string): Promise<GroupInfo[]> {
 				ts: new Date().toISOString(),
 			}),
 		);
-		return data.data ?? [];
+		// Map API snake_case fields to the camelCase GroupInfo interface.
+		// The REST groups endpoint returns parent_id / childGroups not nested.
+		return (data.data ?? []).map((g: Record<string, unknown>) => ({
+			id: String(g.id ?? ""),
+			slug: String(g.slug ?? ""),
+			name: String(g.name ?? ""),
+			description: (g.description as string | null) ?? null,
+			parentGroupId: (g.parent_id as string | null) ?? null,
+			visibility: String(g.visibility ?? "Private").toLowerCase(),
+			memberCount: Number(g.member_count ?? 0),
+			projectCount: Number(g.project_count ?? 0),
+		}));
 	} catch (err: unknown) {
 		const msg = extractErrorMessage(err, "Failed to list groups");
 		console.error(
@@ -225,7 +238,18 @@ export async function listProjects(params?: {
 				ts: new Date().toISOString(),
 			}),
 		);
-		return { items: data.data ?? [], total: data.total ?? 0 };
+		// Map API snake_case fields to the camelCase ProjectInfo interface.
+		const items = (data.data ?? []).map((p: Record<string, unknown>) => ({
+			id: String(p.id ?? ""),
+			slug: String(p.slug ?? ""),
+			name: String(p.name ?? ""),
+			description: (p.description as string | null) ?? null,
+			visibility: String(p.visibility ?? "Private").toLowerCase(),
+			ontologyId: String(p.ontology_id ?? ""),
+			memberCount: Number(p.member_count ?? 0),
+			updatedAt: (p.updated_at as string | null) ?? null,
+		}));
+		return { items, total: data.total ?? 0 };
 	} catch (err: unknown) {
 		const msg = extractErrorMessage(err, "Failed to list projects");
 		console.error(
@@ -347,7 +371,15 @@ export async function listMembers(projectId: string): Promise<MemberInfo[]> {
 				ts: new Date().toISOString(),
 			}),
 		);
-		return data.data ?? [];
+		// Map API snake_case fields to the camelCase MemberInfo interface.
+		// The members endpoint returns user_id; username/avatarUrl are absent.
+		return (data.data ?? []).map((m: Record<string, unknown>) => ({
+			userId: String(m.user_id ?? ""),
+			username: (m.username as string | null) ?? null,
+			avatarUrl: (m.avatar_url as string | null) ?? null,
+			role: String(m.role ?? "Viewer"),
+			addedAt: (m.added_at as string | null) ?? null,
+		}));
 	} catch (err: unknown) {
 		const msg = extractErrorMessage(err, "Failed to list members");
 		console.error(

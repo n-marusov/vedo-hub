@@ -177,7 +177,7 @@ func TestOntologyHandler_InvalidPropertyType(t *testing.T) {
 	api.GET("/ontologies/:id/properties", handler.HandleListProperties)
 
 	w := newTestRecorder()
-	req, _ := http.NewRequest("GET", "/api/v1/ontologies/test/properties?type=annotation", nil)
+	req, _ := http.NewRequest("GET", "/api/v1/ontologies/test/properties?type=foo", nil)
 	r.ServeHTTP(w, req)
 
 	if w.Code != http.StatusBadRequest {
@@ -301,7 +301,7 @@ func TestOntologyHandler_ValidPropertyTypeFilters(t *testing.T) {
 	})
 	defer cleanup()
 
-	tests := []string{"", "object", "datatype"}
+	tests := []string{"", "object", "datatype", "annotation"}
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("type=%q", tt), func(t *testing.T) {
 			url := "/api/v1/ontologies/test/properties"

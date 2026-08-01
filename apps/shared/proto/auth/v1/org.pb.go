@@ -43,6 +43,7 @@ type Scope struct {
 	MemberCount       int32                  `protobuf:"varint,9,opt,name=member_count,json=memberCount,proto3" json:"member_count,omitempty"`
 	OntologyId        string                 `protobuf:"bytes,10,opt,name=ontology_id,json=ontologyId,proto3" json:"ontology_id,omitempty"`                        // 1:1 paired Ontology ID (set for projects, empty for groups)
 	UpstreamProjectId string                 `protobuf:"bytes,11,opt,name=upstream_project_id,json=upstreamProjectId,proto3" json:"upstream_project_id,omitempty"` // Set for forks — references the source Project
+	Slug              string                 `protobuf:"bytes,12,opt,name=slug,proto3" json:"slug,omitempty"`                                                      // GitLab-style human-readable identifier for GUI navigation
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -150,6 +151,13 @@ func (x *Scope) GetOntologyId() string {
 func (x *Scope) GetUpstreamProjectId() string {
 	if x != nil {
 		return x.UpstreamProjectId
+	}
+	return ""
+}
+
+func (x *Scope) GetSlug() string {
+	if x != nil {
+		return x.Slug
 	}
 	return ""
 }
@@ -331,6 +339,7 @@ type CreateGroupRequest struct {
 	ParentId       string                 `protobuf:"bytes,3,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
 	OrganizationId string                 `protobuf:"bytes,4,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
 	Visibility     string                 `protobuf:"bytes,5,opt,name=visibility,proto3" json:"visibility,omitempty"` // "Private", "Internal", "Public" — default "Private" server-side
+	Slug           string                 `protobuf:"bytes,6,opt,name=slug,proto3" json:"slug,omitempty"`             // GitLab-style identifier; derived from name when empty
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -396,6 +405,13 @@ func (x *CreateGroupRequest) GetOrganizationId() string {
 func (x *CreateGroupRequest) GetVisibility() string {
 	if x != nil {
 		return x.Visibility
+	}
+	return ""
+}
+
+func (x *CreateGroupRequest) GetSlug() string {
+	if x != nil {
+		return x.Slug
 	}
 	return ""
 }
@@ -1011,6 +1027,7 @@ type CreateProjectRequest struct {
 	GroupId        string                 `protobuf:"bytes,3,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
 	OrganizationId string                 `protobuf:"bytes,4,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
 	Visibility     string                 `protobuf:"bytes,5,opt,name=visibility,proto3" json:"visibility,omitempty"` // "Private", "Internal", "Public" — default "Private" server-side
+	Slug           string                 `protobuf:"bytes,6,opt,name=slug,proto3" json:"slug,omitempty"`             // GitLab-style identifier; derived from name when empty
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -1076,6 +1093,13 @@ func (x *CreateProjectRequest) GetOrganizationId() string {
 func (x *CreateProjectRequest) GetVisibility() string {
 	if x != nil {
 		return x.Visibility
+	}
+	return ""
+}
+
+func (x *CreateProjectRequest) GetSlug() string {
+	if x != nil {
+		return x.Slug
 	}
 	return ""
 }
@@ -2944,7 +2968,7 @@ var File_auth_v1_org_proto protoreflect.FileDescriptor
 
 const file_auth_v1_org_proto_rawDesc = "" +
 	"\n" +
-	"\x11auth/v1/org.proto\x12\fvedo.auth.v1\x1a\x16common/v1/common.proto\"\xd0\x02\n" +
+	"\x11auth/v1/org.proto\x12\fvedo.auth.v1\x1a\x16common/v1/common.proto\"\xe4\x02\n" +
 	"\x05Scope\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12\x1b\n" +
@@ -2961,7 +2985,8 @@ const file_auth_v1_org_proto_rawDesc = "" +
 	"\vontology_id\x18\n" +
 	" \x01(\tR\n" +
 	"ontologyId\x12.\n" +
-	"\x13upstream_project_id\x18\v \x01(\tR\x11upstreamProjectId\"\xbf\x01\n" +
+	"\x13upstream_project_id\x18\v \x01(\tR\x11upstreamProjectId\x12\x12\n" +
+	"\x04slug\x18\f \x01(\tR\x04slug\"\xbf\x01\n" +
 	"\x06Member\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x14\n" +
 	"\x05scope\x18\x02 \x01(\tR\x05scope\x12\x12\n" +
@@ -2980,7 +3005,7 @@ const file_auth_v1_org_proto_rawDesc = "" +
 	"created_at\x18\x05 \x01(\tR\tcreatedAt\x1a:\n" +
 	"\fPatternEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xb0\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xc4\x01\n" +
 	"\x12CreateGroupRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x1b\n" +
@@ -2988,7 +3013,8 @@ const file_auth_v1_org_proto_rawDesc = "" +
 	"\x0forganization_id\x18\x04 \x01(\tR\x0eorganizationId\x12\x1e\n" +
 	"\n" +
 	"visibility\x18\x05 \x01(\tR\n" +
-	"visibility\"s\n" +
+	"visibility\x12\x12\n" +
+	"\x04slug\x18\x06 \x01(\tR\x04slug\"s\n" +
 	"\x13CreateGroupResponse\x12)\n" +
 	"\x05group\x18\x01 \x01(\v2\x13.vedo.auth.v1.ScopeR\x05group\x121\n" +
 	"\x05error\x18\x02 \x01(\v2\x1b.vedo.common.v1.ErrorDetailR\x05error\"J\n" +
@@ -3031,7 +3057,7 @@ const file_auth_v1_org_proto_rawDesc = "" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\"y\n" +
 	"\x17ListChildGroupsResponse\x12+\n" +
 	"\x06groups\x18\x01 \x03(\v2\x13.vedo.auth.v1.ScopeR\x06groups\x121\n" +
-	"\x05error\x18\x02 \x01(\v2\x1b.vedo.common.v1.ErrorDetailR\x05error\"\xb0\x01\n" +
+	"\x05error\x18\x02 \x01(\v2\x1b.vedo.common.v1.ErrorDetailR\x05error\"\xc4\x01\n" +
 	"\x14CreateProjectRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x19\n" +
@@ -3039,7 +3065,8 @@ const file_auth_v1_org_proto_rawDesc = "" +
 	"\x0forganization_id\x18\x04 \x01(\tR\x0eorganizationId\x12\x1e\n" +
 	"\n" +
 	"visibility\x18\x05 \x01(\tR\n" +
-	"visibility\"y\n" +
+	"visibility\x12\x12\n" +
+	"\x04slug\x18\x06 \x01(\tR\x04slug\"y\n" +
 	"\x15CreateProjectResponse\x12-\n" +
 	"\aproject\x18\x01 \x01(\v2\x13.vedo.auth.v1.ScopeR\aproject\x121\n" +
 	"\x05error\x18\x02 \x01(\v2\x1b.vedo.common.v1.ErrorDetailR\x05error\"L\n" +

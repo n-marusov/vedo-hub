@@ -33,13 +33,19 @@ fn map_error<E: std::fmt::Display>(e: E) -> async_graphql::Error {
 }
 
 /// Converts an `OwlClass` into a `GqlClass`.
+/// Converts an `OwlClass` into a `GqlClass`.
 fn gql_class_from(cls: classes::OwlClass) -> GqlClass {
     GqlClass {
         id: cls.id,
         label: cls.label,
         comment: cls.comment,
+        entity_type: GqlEntityType::Class,
         parents: cls.parents,
         children: cls.children,
+        // Flags are not persisted in the domain model yet (follow-up: store
+        // in Neo4j + expose via REST). Default to false per schema contract.
+        is_abstract: false,
+        is_deprecated: false,
     }
 }
 
@@ -70,6 +76,7 @@ fn gql_individual_from_summary(ind: IndividualSummary) -> GqlIndividual {
         id: ind.id,
         label: ind.label,
         comment: ind.comment,
+        entity_type: GqlEntityType::Individual,
         class_id: ind.class_id,
         class_label: ind.class_label,
         literal_values: vec![],
@@ -83,6 +90,7 @@ fn gql_individual_from_full(ind: crate::individuals::Individual) -> GqlIndividua
         id: ind.id,
         label: ind.label,
         comment: ind.comment,
+        entity_type: GqlEntityType::Individual,
         class_id: ind.class_id,
         class_label: ind.class_label,
         literal_values: ind
@@ -116,6 +124,7 @@ fn gql_property_from_full(prop: crate::properties::Property) -> GqlProperty {
         id: prop.id,
         label: prop.label,
         comment: prop.comment,
+        entity_type: GqlEntityType::Property,
         property_type: prop.property_type.into(),
         domains: prop.domains,
         ranges: prop.ranges,
@@ -341,6 +350,7 @@ impl QueryRoot {
         let type_str = property_type.map(|t| match t {
             GqlPropertyType::Object => "object".to_string(),
             GqlPropertyType::Datatype => "datatype".to_string(),
+            GqlPropertyType::Annotation => "annotation".to_string(),
         });
         let params = ListPropertiesParams {
             q: q.unwrap_or_default(),
@@ -409,5 +419,120 @@ impl QueryRoot {
             page: result.page,
             per_page: result.per_page,
         })
+    }
+}
+
+// ── Converter Tests ────────────────────────────────────────────────────────────
+//
+// The converters populate the `Entity` interface discriminator and the
+// Class boolean flags per REQ-USR.UI.graph-navigation.md. These tests pin
+// the values so the contract stays stable.
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::classes::OwlClass;
+    use crate::individuals::{IndividualSummary, LiteralValue, ReferenceValue};
+    use crate::properties::{
+        Annotation as DomainAnnotation, Property, PropertyCharacteristics, PropertyType,
+    };
+
+    #[test]
+    fn gql_class_sets_entity_discriminator_and_flags() {
+        let cls = OwlClass {
+            id: "Person".to_string(),
+            label: "Person".to_string(),
+            comment: Some("A person".to_string()),
+            parents: vec!["Thing".to_string()],
+            children: vec![],
+        };
+
+        let gql = gql_class_from(cls);
+
+        assert_eq!(gql.entity_type, GqlEntityType::Class);
+        assert!(!gql.is_abstract, "isAbstract must default to false");
+        assert!(!gql.is_deprecated, "isDeprecated must default to false");
+        assert_eq!(gql.id, "Person");
+        assert_eq!(gql.parents, vec!["Thing".to_string()]);
+    }
+
+    #[test]
+    fn gql_property_sets_entity_discriminator() {
+        let prop = Property {
+            id: "hasName".to_string(),
+            label: "has name".to_string(),
+            comment: None,
+            property_type: PropertyType::Annotation,
+            domains: vec!["Person".to_string()],
+            ranges: vec![],
+            xsd_type: None,
+            characteristics: PropertyCharacteristics::default(),
+            annotations: vec![DomainAnnotation {
+                property_iri: "skos:definition".to_string(),
+                value: "Full name".to_string(),
+            }],
+        };
+
+        let gql = gql_property_from_full(prop);
+
+        assert_eq!(gql.entity_type, GqlEntityType::Property);
+        assert_eq!(gql.property_type, GqlPropertyType::Annotation);
+        assert_eq!(gql.id, "hasName");
+    }
+
+    #[test]
+    fn gql_individual_from_summary_sets_entity_discriminator() {
+        let ind = IndividualSummary {
+            id: "alice".to_string(),
+            label: "Alice".to_string(),
+            comment: None,
+            class_id: "Person".to_string(),
+            class_label: "Person".to_string(),
+        };
+
+        let gql = gql_individual_from_summary(ind);
+
+        assert_eq!(gql.entity_type, GqlEntityType::Individual);
+        assert_eq!(gql.class_id, "Person");
+    }
+
+    #[test]
+    fn gql_individual_from_full_sets_entity_discriminator() {
+        let ind = crate::individuals::Individual {
+            id: "alice".to_string(),
+            label: "Alice".to_string(),
+            comment: None,
+            class_id: "Person".to_string(),
+            class_label: "Person".to_string(),
+            literal_values: vec![LiteralValue {
+                property_id: "age".to_string(),
+                property_label: "age".to_string(),
+                value: "30".to_string(),
+                xsd_type: Some("integer".to_string()),
+                value_id: None,
+            }],
+            reference_values: vec![ReferenceValue {
+                property_id: "worksFor".to_string(),
+                property_label: "works for".to_string(),
+                target_id: "acme".to_string(),
+                target_label: "Acme".to_string(),
+                edge_id: None,
+            }],
+        };
+
+        let gql = gql_individual_from_full(ind);
+
+        assert_eq!(gql.entity_type, GqlEntityType::Individual);
+        assert_eq!(gql.literal_values.len(), 1);
+        assert_eq!(gql.reference_values.len(), 1);
+    }
+
+    #[test]
+    fn gql_property_type_annotation_round_trips() {
+        let domain: crate::properties::PropertyType = GqlPropertyType::Annotation.into();
+        assert_eq!(domain, PropertyType::Annotation);
+
+        let gql: GqlPropertyType = PropertyType::Annotation.into();
+        assert_eq!(gql, GqlPropertyType::Annotation);
     }
 }

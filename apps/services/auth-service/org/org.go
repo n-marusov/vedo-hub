@@ -525,8 +525,30 @@ func (s *OrgService) CreateScope(requesterID string, node ScopeNode) error {
 		node.Visibility = VisibilityPrivate
 	}
 
+	// GitLab-style slug for GUI navigation. Derive from the name when the
+	// caller did not provide one: lowercase, spaces to hyphens, strip
+	// non-alphanumeric, trim leading/trailing hyphens.
+	if node.Slug == "" {
+		node.Slug = deriveSlug(node.Name)
+	}
+
 	if err := s.store.UpsertScope(node); err != nil {
 		return err
+	}
+
+	// @hlv:sec [AUTH_BOUNDARY] — Group creator becomes Owner of the new group.
+	// GitLab-aligned: without auto-membership, the creator would have no role in
+	// their own group and would be FORBIDDEN_INSUFFICIENT_ROLE when creating a
+	// project under it. Projects do not auto-add membership (access is inherited
+	// via the parent group).
+	if node.Type == ScopeGroup {
+		if err := s.store.UpsertMembership(OrgMembership{
+			UserID: requesterID,
+			Scope:  node.ID,
+			Role:   "Owner",
+		}); err != nil {
+			return err
+		}
 	}
 
 	// @hlv audit_log
@@ -548,6 +570,30 @@ func visibilityLevel(v Visibility) int {
 	default:
 		return 0 // unknown → treated as Private for safety
 	}
+}
+
+// deriveSlug converts a display name into a GitLab-style slug:
+// lowercase, spaces to hyphens, strip non-alphanumeric characters.
+func deriveSlug(name string) string {
+	sb := make([]rune, 0, len(name))
+	prevDash := false
+	for _, r := range strings.ToLower(name) {
+		switch {
+		case (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9'):
+			sb = append(sb, r)
+			prevDash = false
+		default:
+			if !prevDash && len(sb) > 0 {
+				sb = append(sb, '-')
+				prevDash = true
+			}
+		}
+	}
+	// Trim trailing dash
+	for len(sb) > 0 && sb[len(sb)-1] == '-' {
+		sb = sb[:len(sb)-1]
+	}
+	return string(sb)
 }
 
 // @hlv hierarchy_depth

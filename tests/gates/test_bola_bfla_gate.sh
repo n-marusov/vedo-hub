@@ -1,5 +1,6 @@
 #!/bin/bash
-# BOLA/BFLA gate — runs auth middleware BOLA/BFLA negative tests
+# BOLA/BFLA unit gate — runs auth middleware unit tests only
+# Integration tests moved to test_security_integration.sh
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -31,11 +32,11 @@ detect_go() {
 
 GO_CMD=$(detect_go) || true
 if [ -z "$GO_CMD" ]; then
-  echo "=== Go not available — skipping BOLA/BFLA tests ==="
+  echo "=== Go not available — skipping BOLA/BFLA unit tests ==="
   exit 0
 fi
 
-echo "=== Running BOLA/BFLA/RBAC negative test suite with $GO_CMD ==="
+echo "=== Running BOLA/BFLA/RBAC unit test suite with $GO_CMD ==="
 
 # run auth middleware tests with BOLA/BFLA focus (all CT-SEC-* tests)
 cd "$ROOT/apps/services/api-gateway" && "$GO_CMD" test ./auth/... -v -count=1 -run "TestCT_SEC|TestProperty|TestInvariant" 2>&1
@@ -43,7 +44,4 @@ cd "$ROOT/apps/services/api-gateway" && "$GO_CMD" test ./auth/... -v -count=1 -r
 # run org-level access control tests (membership, policies, visibility enforcement)
 cd "$ROOT/apps/services/auth-service/org" && "$GO_CMD" test ./... -count=1 2>&1
 
-# run existing BOLA/BFLA fixture tests and comprehensive RBAC suite (integration tag required)
-cd "$ROOT/tests/security/authorization" && "$GO_CMD" test -tags=integration ./... -count=1 2>&1
-
-echo "=== BOLA/BFLA/RBAC suite complete ==="
+echo "=== BOLA/BFLA/RBAC unit suite complete ===""

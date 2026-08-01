@@ -1,8 +1,24 @@
 # VEDO Hub
+*Virtual Environment for Developing Ontologies*
 
-> *GitHub for ontologies* — a social hub, semantic API layer, and LLM generation in one product. **Built with [AI Factory](https://github.com/ai-factory).**
+> *GitHub for ontologies* — create, share, and collaborate on knowledge graphs with AI. **Built with [AI Factory](https://github.com/ai-factory).**
 
-A SaaS platform where ontologies become living assets — forked, starred, reviewed via Pull Requests, cited through DOI, published and consumed through an API. Under the hood: a polyglot microservices architecture in Go, Rust, Python, and Vue 3, with Git-like ontology versioning, Neo4j for graph storage, and Keycloak for authentication.
+A free platform where knowledge graphs come to life. Describe your domain in plain words and AI builds the ontology. Edit it visually in the browser, collaborate with your team through Pull Requests, version it like Git, and share it with the world through a single link. No installs, no OWL expertise needed.
+
+## Why VEDO Hub?
+
+Ontologies today are **dead files on a desktop**. Engineers wait 45 seconds for a class to expand, teams email `.owl` files and merge them in Notepad++, 90% of newcomers quit Protégé in 10 minutes, and there is **no GitHub, no API, no community** for ontologies.
+
+| | Before | VEDO Hub |
+|---|--------|----------|
+| 💨 **Speed** | 45 sec for 500 subclasses | <1 sec for 1M axioms |
+| 👥 **Teamwork** | Email + manual merge | Git branches, Pull Requests, semantic diff |
+| 🚪 **Onboarding** | Months of learning OWL | Describe in words → ontology in 5 min; upload a PDF/DOCX/XLSX → done in 1 min |
+| 🔗 **Sharing** | Download `.owl`, open in desktop | Interactive graph in the browser, one link |
+| 🔌 **Integration** | 40–80 h of custom code | REST + SPARQL + OpenAPI — connect in minutes |
+| 🌍 **Community** | No stars, no forks, no profiles | Stars, forks, PRs, DOI, contributor graphs |
+
+**What sets us apart:** free forever for public ontologies, AI-powered generation from text and documents, visual drag-and-drop SPARQL, Git-like versioning with semantic diff, full API-as-infrastructure, and GitLab-style hierarchical organizations. No other platform — Protégé, BioPortal, TopBraid, PoolParty — covers more than 3 of the 9 core needs. **VEDO Hub covers all 9.**
 
 ## Quick Start
 
@@ -14,6 +30,53 @@ cd vedo-hub && make docker-up
 `make docker-up` builds all images and starts containers in one command. Open `http://localhost:3000` — the frontend is ready. The API Gateway is at `http://localhost:8080`.
 
 **Prerequisites:** Docker 24+, Docker Compose v2+, Make.
+
+## Infrastructure
+
+`make docker-up` launches **22 services** in 5 startup phases, gated by healthcheck dependencies. Cold-start: **~5–6 min** (limited by Keycloak).
+
+### Startup Phases
+
+| Phase | ⏱ Est. | Services |
+|-------|--------|----------|
+| **0 — Infra** | ~210s | `neo4j`, `postgres`, `redis`, `rabbitmq`, `minio`, `keycloak` |
+| **1 — Core** | ~60s | `ontology-service`, `versioning-service`, `auth-service`, `metrics-service`, `publisher-service`, `commenting-service`, `ticket-api`, `ticket-notifier`, `ticket-classifier`, `ai-orchestration-service` |
+| **2 — Dependent** | ~30s | `document-extractor`, `ticket-telemetry-listener`, `public-browse-api` |
+| **3 — Gateway** | ~30s | `api-gateway` |
+| **4 — Frontends** | ~25s | `frontend`, `publish-browse-ui` |
+
+### Key Endpoints
+
+| Service | Port | URL |
+|---------|------|-----|
+| Frontend | `3000` | http://localhost:3000 |
+| API Gateway | `8080` | http://localhost:8080 |
+| Published Viewer | `3002` | http://localhost:3002 |
+| Keycloak | `8180` | http://localhost:8180 (`admin`/`admin`) |
+| Neo4j Browser | `7474` | http://localhost:7474 |
+| RabbitMQ Mgmt | `15672` | http://localhost:15672 |
+| MinIO Console | `9001` | http://localhost:9001 |
+
+### Infrastructure-Only Mode
+
+```bash
+make infra-up    # Start 6 infra services without the app stack
+make infra-down  # Stop them
+```
+
+### Profile Services
+
+Additional services behind `COMPOSE_PROFILE`:
+
+| Profile | Adds |
+|---------|------|
+| `documentation` | 4 doc servers (ports 5000–5003) |
+| `llm` | Ollama for local AI dev (port 11434) |
+| `local` / `ci` | `vedo-cli-build` (compile-only check) |
+
+```bash
+make docker-up COMPOSE_PROFILE=llm   # Start with local LLM
+```
 
 ---
 
@@ -58,22 +121,47 @@ make typecheck               # TypeScript type checking (vue-tsc)
 
 ### Test
 
-```bash
-make test                    # Unit tests (no infra required)
-make test-integration        # Integration tests (requires Neo4j, Postgres)
-make test-e2e-api            # API tests via Playwright
-make test-e2e-gui            # GUI tests via Playwright
-make test-e2e                # All E2E tests
-make test-gates              # Contract + BOLA/BFLA security tests
-make coverage                # Test coverage (Go)
-```
+Every test target has two explicit modes:
+
+| Mode | Unit | Integration | E2E API | E2E GUI | Gates | All |
+|------|------|-------------|---------|---------|-------|-----|
+| ⚡ Fail-fast | `make test-unit-fast` | `make test-integration-fast` | `make test-e2e-api-fast` | `make test-e2e-gui-fast` | `make test-gates-fast` | `make test-fast` |
+| 📊 Full statistics | `make test-unit-full` | `make test-integration-full` | `make test-e2e-api-full` | `make test-e2e-gui-full` | `make test-gates-full` | `make test-full` |
+
+Additional targets:
+
+| Target | Description |
+|--------|-------------|
+| `make test-versioning-fast` / `-full` | Versioning-service tests (auto-starts PostgreSQL) |
+| `make coverage` | Test coverage (Go only) |
+
+> ⚡ **Fail-fast** stops at the first failure — ideal for development iteration.
+> 📊 **Full statistics** runs everything and collects all failures — use for CI nightly or release.
+
+**Infrastructure requirements:**
+
+| Test type | Requires | Auto-started | Command |
+|-----------|----------|-------------|---------|
+| Unit (Rust/Go/Python/TS) | Nothing | — | `make test-unit-fast` |
+| Rust integration (Neo4j) | Docker | ✅ `make test-integration-rust-fast` starts Neo4j | `make test-integration-rust-fast` |
+| Versioning integration (PostgreSQL) | Docker + `pg_isready` | ✅ `make test-versioning-fast` starts Postgres | `make test-versioning-fast` |
+| Go integration (ticket-api, org-api, auth) | Docker | ✅ `make test-integration-go-fast` starts PostgreSQL | `make test-integration-go-fast` |
+| E2E API | Docker test stack | ✅ Playwright auto-starts compose | `make test-e2e-api-fast` |
+| E2E GUI | Docker test stack + frontend | ✅ Playwright auto-starts compose | `make test-e2e-gui-fast` |
+| Gates (contract, BOLA/BFLA unit, quality) | Go | ✅ Fully automated (static + unit) | `make test-gates-fast` |
+| Security integration (BOLA/BFLA/RBAC full-stack) | Docker test stack | ✅ `make test-gates-security-fast` auto-starts stack | `make test-gates-security-fast` |
+
+> Use `make infra-up` to start all infrastructure services (Neo4j, Postgres, Redis, RabbitMQ, Keycloak, MinIO) without the app stack.
+> Use `ENV=test` for E2E: `make docker-up-test` starts the test stack with self-signed JWT tokens.
 
 ### CI
 
-```bash
-make ci                      # Build + lint + unit tests + typecheck (no Docker)
-make ci-full                 # Full pipeline + integration + E2E + gates
-```
+| Pipeline | Command | Description |
+|----------|---------|-------------|
+| ⚡ Fast CI | `make ci-fast` | proto + build + lint + test-fast + typecheck |
+| 📦 Full CI | `make ci-full` | Full pipeline + integration + E2E + gates + quality |
+
+> Both CI targets are fail-fast — they stop at the first failure to save pipeline minutes.
 
 ### Utility
 

@@ -73,6 +73,7 @@ func (s *OrgGrpcServer) CreateGroup(ctx context.Context, req *authv1.CreateGroup
 		Type:        org.ScopeGroup,
 		TenantID:    req.OrganizationId,
 		Name:        req.Name,
+		Slug:        req.Slug,
 		Description: req.Description,
 		Visibility:  org.Visibility(visibility),
 	}
@@ -224,6 +225,7 @@ func (s *OrgGrpcServer) CreateProject(ctx context.Context, req *authv1.CreatePro
 		Type:        org.ScopeProject,
 		TenantID:    req.OrganizationId,
 		Name:        req.Name,
+		Slug:        req.Slug,
 		Description: req.Description,
 		ParentID:    req.GroupId,
 		Visibility:  org.Visibility(projectVisibility),
@@ -597,18 +599,23 @@ func scopeNodeToProto(s *org.ScopeNode) *authv1.Scope {
 	if s == nil {
 		return nil
 	}
-	// Extract the display name from the scope ID.
-	// With UUID identifiers (ADR-DES.DATA.uuid-identifiers-for-groups-projects-mandate),
-	// the ID is the UUID directly. For backward compatibility with legacy
-	// "group/name" format, extract the part after the slash if present.
-	name := s.ID
-	if idx := strings.Index(s.ID, "/"); idx >= 0 && idx+1 < len(s.ID) {
-		name = s.ID[idx+1:]
+	// Display name: prefer the real scope Name. With UUID identifiers
+	// (ADR-DES.DATA.uuid-identifiers-for-groups-projects-mandate) the ID is the
+	// UUID, so falling back to the ID would hide the group/project name. For
+	// backward compatibility with legacy "group/name" ID format, extract the
+	// part after the slash when the scope has no explicit Name.
+	name := s.Name
+	if name == "" {
+		name = s.ID
+		if idx := strings.Index(s.ID, "/"); idx >= 0 && idx+1 < len(s.ID) {
+			name = s.ID[idx+1:]
+		}
 	}
 	return &authv1.Scope{
 		Id:                s.ID,
 		Type:              string(s.Type),
 		Name:              name,
+		Slug:              s.Slug,
 		ParentId:          s.ParentID,
 		Visibility:        string(s.Visibility),
 		TenantId:          s.TenantID,

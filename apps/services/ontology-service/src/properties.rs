@@ -62,6 +62,8 @@ pub enum PropertyType {
     Object,
     /// `DatatypeProperty` — relates individuals to literal values (range = XSD type).
     Datatype,
+    /// `AnnotationProperty` — attaches metadata (annotations) to entities.
+    Annotation,
 }
 
 impl PropertyType {
@@ -69,6 +71,7 @@ impl PropertyType {
         match self {
             PropertyType::Object => "object",
             PropertyType::Datatype => "datatype",
+            PropertyType::Annotation => "annotation",
         }
     }
 }
@@ -417,6 +420,7 @@ impl PropertyRepository {
                     .ok_or_else(|| PropertyError::InvalidXsdType(raw.to_string()))?;
                 (Some(normalized.to_string()), Vec::new())
             }
+            PropertyType::Annotation => (None, Vec::new()),
         };
 
         // Check existence
@@ -447,28 +451,28 @@ impl PropertyRepository {
         // Create property node
         let query = "\
             CREATE (p:Property {\
-                id: $id, ontology_id: $ontology_id,\
-                label: $label, comment: $comment,\
-                property_type: $property_type,\
-                is_datatype: $is_datatype,\
-                xsd_type: $xsd_type,\
-                functional: $functional,\
-                inverse_functional: $inverse_functional,\
-                transitive: $transitive,\
-                symmetric: $symmetric,\
-                min_cardinality: $min_cardinality,\
-                max_cardinality: $max_cardinality,\
-                annotations: $annotations\
-            })\
-            WITH p\
-            UNWIND $domain_ids AS domain_id\
-            MATCH (c:Class {id: domain_id, ontology_id: $ontology_id})\
-            CREATE (p)-[:DOMAIN]->(c)\
-            WITH p\
-            UNWIND $range_ids AS range_id\
-            MATCH (c:Class {id: range_id, ontology_id: $ontology_id})\
-            CREATE (p)-[:RANGE]->(c)\
-            RETURN p\
+                id: $id, ontology_id: $ontology_id, \
+                label: $label, comment: $comment, \
+                property_type: $property_type, \
+                is_datatype: $is_datatype, \
+                xsd_type: $xsd_type, \
+                functional: $functional, \
+                inverse_functional: $inverse_functional, \
+                transitive: $transitive, \
+                symmetric: $symmetric, \
+                min_cardinality: $min_cardinality, \
+                max_cardinality: $max_cardinality, \
+                annotations: $annotations \
+            }) \
+            WITH p \
+            UNWIND $domain_ids AS domain_id \
+            MATCH (c:Class {id: domain_id, ontology_id: $ontology_id}) \
+            CREATE (p)-[:DOMAIN]->(c) \
+            WITH p \
+            UNWIND $range_ids AS range_id \
+            MATCH (c:Class {id: range_id, ontology_id: $ontology_id}) \
+            CREATE (p)-[:RANGE]->(c) \
+            RETURN p \
         ";
 
         let q = neo4rs::Query::new(query.to_string())
@@ -581,6 +585,7 @@ impl PropertyRepository {
                     .unwrap_or_else(|_| "object".to_string());
                 let property_type = match property_type_str.as_str() {
                     "datatype" => PropertyType::Datatype,
+                    "annotation" => PropertyType::Annotation,
                     _ => PropertyType::Object,
                 };
                 let xsd_type: Option<String> =
@@ -684,7 +689,9 @@ impl PropertyRepository {
         let annotations_json = serde_json::to_string(&req.annotations).unwrap_or_default();
 
         // For DatatypeProperty, characteristics are always cleared
-        let characteristics = if property_type == PropertyType::Datatype {
+        let characteristics = if property_type == PropertyType::Datatype
+            || property_type == PropertyType::Annotation
+        {
             PropertyCharacteristics::default()
         } else {
             req.characteristics.clone()
@@ -873,6 +880,7 @@ impl PropertyRepository {
             match ptype.as_deref() {
                 Some("datatype") => "AND p.property_type = 'datatype'".to_string(),
                 Some("object") => "AND p.property_type = 'object'".to_string(),
+                Some("annotation") => "AND p.property_type = 'annotation'".to_string(),
                 _ => String::new(),
             }
         };
@@ -911,6 +919,7 @@ impl PropertyRepository {
                     .unwrap_or_else(|_| "object".to_string());
                 let ptype = match ptype_str.as_str() {
                     "datatype" => PropertyType::Datatype,
+                    "annotation" => PropertyType::Annotation,
                     _ => PropertyType::Object,
                 };
                 let xsd: Option<String> =
@@ -1210,12 +1219,17 @@ mod tests {
         let json = serde_json::json!("datatype");
         let pt: PropertyType = serde_json::from_value(json).unwrap();
         assert_eq!(pt, PropertyType::Datatype);
+
+        let json = serde_json::json!("annotation");
+        let pt: PropertyType = serde_json::from_value(json).unwrap();
+        assert_eq!(pt, PropertyType::Annotation);
     }
 
     #[test]
     fn test_property_type_as_str() {
         assert_eq!(PropertyType::Object.as_str(), "object");
         assert_eq!(PropertyType::Datatype.as_str(), "datatype");
+        assert_eq!(PropertyType::Annotation.as_str(), "annotation");
     }
 
     #[test]
@@ -1339,6 +1353,27 @@ mod tests {
         assert_eq!(req.id, "age");
         assert_eq!(req.property_type as PropertyType, PropertyType::Datatype);
         assert_eq!(req.xsd_type, Some("integer".to_string()));
+    }
+
+    #[test]
+    fn test_create_property_request_annotation() {
+        // Annotation properties have no ranges and no xsd_type (OWL
+        // AnnotationProperty). Per REQ-USR.UI.graph-navigation.md the
+        // PropertyType enum includes ANNOTATION.
+        let json = serde_json::json!({
+            "id": "skos:definition",
+            "label": "definition",
+            "property_type": "annotation",
+            "domains": ["Person"]
+        });
+        let req: CreatePropertyRequest = serde_json::from_value(json).unwrap();
+        assert_eq!(req.id, "skos:definition");
+        assert_eq!(req.property_type as PropertyType, PropertyType::Annotation);
+        assert!(req.ranges.is_empty(), "annotation must not require ranges");
+        assert!(
+            req.xsd_type.is_none(),
+            "annotation must not require xsd_type"
+        );
     }
 
     #[test]

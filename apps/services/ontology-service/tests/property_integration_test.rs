@@ -47,15 +47,25 @@ async fn test_create_object_property_stores_in_neo4j() {
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("create_obj_prop");
 
+    // Create class first: handler validates domain/range classes exist
+    common::execute_query(
+        &pool,
+        neo4rs::query("CREATE (c:Class {ontology_id:$id, id:$cid, label:$label})")
+            .param("id", oid.clone())
+            .param("cid", "Person".to_string())
+            .param("label", "Person".to_string()),
+    )
+    .await;
+
     let resp = app
         .clone()
         .oneshot(post_json(
             &oid_url(&oid, "/properties"),
-            r#"{"id":"hasParent","label":"has parent","property_type":"object","domain":"Person","range":"Person"}"#,
+            r#"{"id":"hasParent","label":"has parent","property_type":"object","domains":["Person"],"ranges":["Person"]}"#,
         ))
         .await
         .unwrap();
-    assert_eq!(resp.status(), StatusCode::OK);
+    assert_eq!(resp.status(), StatusCode::CREATED);
 
     let mut result = pool
         .graph()
@@ -79,15 +89,25 @@ async fn test_create_datatype_property_stores_in_neo4j() {
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("create_dt_prop");
 
+    // Create class first: handler validates domain class exists
+    common::execute_query(
+        &pool,
+        neo4rs::query("CREATE (c:Class {ontology_id:$id, id:$cid, label:$label})")
+            .param("id", oid.clone())
+            .param("cid", "Person".to_string())
+            .param("label", "Person".to_string()),
+    )
+    .await;
+
     let resp = app
         .clone()
         .oneshot(post_json(
             &oid_url(&oid, "/properties"),
-            r#"{"id":"age","label":"age","property_type":"datatype","domain":"Person","range":"xsd:integer"}"#,
+            r#"{"id":"age","label":"age","property_type":"datatype","domains":["Person"],"xsd_type":"integer"}"#,
         ))
         .await
         .unwrap();
-    assert_eq!(resp.status(), StatusCode::OK);
+    assert_eq!(resp.status(), StatusCode::CREATED);
 
     let mut result = pool
         .graph()
@@ -113,10 +133,36 @@ async fn test_get_property_with_domain_range() {
     common::execute_query(
         &pool,
         neo4rs::query(
-            r#"CREATE (p:Property {ontology_id:$id,id:'worksFor',label:'works for',property_type:'object',domain:'Person',range:'Organization'})"#,
+            r#"CREATE (p:Property {ontology_id:$id,id:'worksFor',label:'works for',property_type:'object'})"#,
         )
         .param("id", oid.clone()),
     ).await;
+    common::execute_query(
+        &pool,
+        neo4rs::query(r#"CREATE (:Class {ontology_id:$id,id:'Person',label:'Person'})"#)
+            .param("id", oid.clone()),
+    )
+    .await;
+    common::execute_query(
+        &pool,
+        neo4rs::query(
+            r#"CREATE (:Class {ontology_id:$id,id:'Organization',label:'Organization'})"#,
+        )
+        .param("id", oid.clone()),
+    )
+    .await;
+    common::execute_query(
+        &pool,
+        neo4rs::query(
+            r#"MATCH (p:Property {ontology_id:$id,id:'worksFor'})
+               MATCH (d:Class {ontology_id:$id,id:'Person'})
+               MATCH (r:Class {ontology_id:$id,id:'Organization'})
+               CREATE (p)-[:DOMAIN]->(d)
+               CREATE (p)-[:RANGE]->(r)"#,
+        )
+        .param("id", oid.clone()),
+    )
+    .await;
 
     let resp = app
         .clone()
@@ -168,13 +214,12 @@ async fn test_delete_property_removes_from_neo4j() {
     let (app, pool) = common::create_test_app().await;
     let oid = common::test_ontology_id("delete_prop");
 
-    let _ = pool
-        .graph()
-        .execute(
-            neo4rs::query(r#"CREATE (p:Property {ontology_id:$id,id:'tempProp',label:'Temp'})"#)
-                .param("id", oid.clone()),
-        )
-        .await;
+    common::execute_query(
+        &pool,
+        neo4rs::query(r#"CREATE (p:Property {ontology_id:$id,id:'tempProp',label:'Temp'})"#)
+            .param("id", oid.clone()),
+    )
+    .await;
 
     let resp = app
         .clone()

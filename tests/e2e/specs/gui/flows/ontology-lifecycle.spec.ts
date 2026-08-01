@@ -19,6 +19,30 @@ test.describe('Ontology Lifecycle E2E', () => {
     // Navigate into the project workspace before interacting with editor controls.
     // goto() only loads the dashboard shell ('/'); the "Create class" / "Create property"
     // / "Create individual" buttons live on the /project/:name/workspace route.
+    // Mock the workspace ontology metadata REST endpoint (fetchOntologyMeta).
+    // Without it the workspace shows an error state and the class tree never renders.
+    // Registered BEFORE navigation so the mount-time request is intercepted.
+    await page.route('**/api/v1/ontologies/*', async (route) => {
+      if (route.request().method() !== 'GET') return route.continue();
+      const url = route.request().url();
+      // Let the entity sub-paths (classes/properties/individuals) fall through
+      if (/\/classes|\/properties|\/individuals|\/validate/.test(url)) return route.continue();
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: 'University',
+          name: 'University',
+          label: 'University',
+          branch: 'main',
+          description: 'Academic ontology',
+          class_count: 4,
+          property_count: 2,
+          individual_count: 2,
+        }),
+      });
+    });
+
     await workspace.openOntology(UNIVERSITY_ONTOLOGY.name);
 
     // Track created entities for stateful mock responses (combobox, tree, graph)

@@ -2,7 +2,7 @@
 <!-- @hlv:artifact create-class-dialog implements GUI-OW-001 -->
 <template>
   <Teleport to="body">
-    <div v-if="open" class="dialog-overlay" role="dialog" aria-modal="true" @click.self="onOverlayClick">
+    <div v-if="open" class="dialog-overlay" role="dialog" aria-modal="true" aria-labelledby="create-class-dialog-title" @click.self="onOverlayClick">
       <div class="dialog-card">
         <!-- Close button — absolute top-right -->
         <button class="dialog-close" aria-label="Close" @click="$emit('close')">
@@ -12,7 +12,7 @@
         </button>
 
         <!-- Header -->
-        <h2 class="dialog-header">Create Class</h2>
+        <h2 id="create-class-dialog-title" class="dialog-header">Create Class</h2>
 
         <!-- Form body -->
         <div class="dialog-form">
@@ -103,101 +103,101 @@
 <script setup lang="ts">
 // @aif — Migrated from Apollo GraphQL `CREATE_CLASS_MUTATION` to REST
 // `POST /api/v1/ontologies/:id/classes` per ADR-DES.API.rest-graphql-mutation-boundary.md.
-import { createClass } from '@/api/ontology'
-import { useErrorPresentation } from '@/composables/useErrorPresentation'
-import { computed, ref } from 'vue'
+import { createClass } from "@/api/ontology";
+import { useErrorPresentation } from "@/composables/useErrorPresentation";
+import { computed, ref } from "vue";
 
-const props = defineProps<{ open: boolean; ontologyId: string }>()
-const emit = defineEmits<{ close: []; created: [className: string] }>()
+const props = defineProps<{ open: boolean; ontologyId: string }>();
+const emit = defineEmits<{ close: []; created: [className: string] }>();
 
-const { addError } = useErrorPresentation()
+const { addError } = useErrorPresentation();
 
-const className = ref('')
-const parentClass = ref('owl:Thing')
-const description = ref('')
-const isAbstract = ref(false)
-const isDeprecated = ref(false)
-const submitting = ref(false)
-const validationError = ref<{ field: string; message: string } | null>(null)
+const className = ref("");
+const parentClass = ref("owl:Thing");
+const description = ref("");
+const isAbstract = ref(false);
+const isDeprecated = ref(false);
+const submitting = ref(false);
+const validationError = ref<{ field: string; message: string } | null>(null);
 
 /** Preview of the auto-generated IRI based on the class name. */
 const classIriPreview = computed(() => {
-  const trimmed = className.value.trim()
-  return trimmed
-    ? `https://vedo-hub.ru/ontologies/${props.ontologyId}/${trimmed.replace(/\s+/g, '_')}`
-    : ''
-})
+	const trimmed = className.value.trim();
+	return trimmed
+		? `https://vedo-hub.ru/ontologies/${props.ontologyId}/${trimmed.replace(/\s+/g, "_")}`
+		: "";
+});
 
 function onOverlayClick() {
-  // modal — do not close on overlay click
+	// modal — do not close on overlay click
 }
 
 async function submit(): Promise<void> {
-  console.debug(
-    JSON.stringify({
-      level: 'debug',
-      msg: 'CreateClass.submitted',
-      className: className.value,
-      ontologyId: props.ontologyId,
-      isAbstract: isAbstract.value,
-      isDeprecated: isDeprecated.value,
-      ts: new Date().toISOString()
-    })
-  )
+	console.debug(
+		JSON.stringify({
+			level: "debug",
+			msg: "CreateClass.submitted",
+			className: className.value,
+			ontologyId: props.ontologyId,
+			isAbstract: isAbstract.value,
+			isDeprecated: isDeprecated.value,
+			ts: new Date().toISOString(),
+		}),
+	);
 
-  validationError.value = null
+	validationError.value = null;
 
-  if (!className.value.trim()) {
-    validationError.value = {
-      field: 'name',
-      message: 'Class name is required'
-    }
-    return
-  }
+	if (!className.value.trim()) {
+		validationError.value = {
+			field: "name",
+			message: "Class name is required",
+		};
+		return;
+	}
 
-  submitting.value = true
-  try {
-    const result = await createClass({
-      ontologyId: props.ontologyId,
-      label: className.value.trim(),
-      parentId: parentClass.value || undefined,
-      description: description.value.trim() || undefined
-    })
+	submitting.value = true;
+	try {
+		const result = await createClass({
+			ontologyId: props.ontologyId,
+			label: className.value.trim(),
+			parentId: parentClass.value || undefined,
+			description: description.value.trim() || undefined,
+		});
 
-    console.debug(
-      JSON.stringify({
-        level: 'debug',
-        msg: 'CreateClass.success',
-        className: className.value,
-        classId: result.id,
-        ts: new Date().toISOString()
-      })
-    )
-    emit('created', className.value)
-    reset()
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e)
-    addError('CREATE-CLASS-FAILED', msg)
-    console.error(
-      JSON.stringify({
-        level: 'error',
-        msg: 'CreateClass.failed',
-        error: msg,
-        ts: new Date().toISOString()
-      })
-    )
-  } finally {
-    submitting.value = false
-  }
+		console.debug(
+			JSON.stringify({
+				level: "debug",
+				msg: "CreateClass.success",
+				className: className.value,
+				classId: result.id,
+				ts: new Date().toISOString(),
+			}),
+		);
+		emit("created", className.value);
+		reset();
+	} catch (e) {
+		const msg = e instanceof Error ? e.message : String(e);
+		addError("CREATE-CLASS-FAILED", msg);
+		console.error(
+			JSON.stringify({
+				level: "error",
+				msg: "CreateClass.failed",
+				error: msg,
+				ts: new Date().toISOString(),
+			}),
+		);
+	} finally {
+		submitting.value = false;
+	}
 }
 
 function reset(): void {
-  className.value = ''
-  parentClass.value = 'owl:Thing'
-  description.value = ''
-  isAbstract.value = false
-  isDeprecated.value = false
-  validationError.value = null
+	className.value = "";
+	parentClass.value = "owl:Thing";
+	description.value = "";
+	isAbstract.value = false;
+	isDeprecated.value = false;
+	validationError.value = null;
 }
 </script>
 

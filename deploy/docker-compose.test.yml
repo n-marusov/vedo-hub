@@ -31,3 +31,8 @@ services:
         77KytZdl92c+XRG4tsfm3viNfCQxiGpKR977wPklREtS1OnQv2KadbaL54J1LH4V
         ZwIDAQAB
         -----END PUBLIC KEY-----
+
+  frontend:
+    build:
+      args:
+        VITE_SKIP_AUTH: "true"

@@ -1334,7 +1334,6 @@
           "429": { "$ref": "#/components/responses/429RateLimit" }
         }
       }
-      }
     },
     "/projects/{id}/fork": {
       "post": {

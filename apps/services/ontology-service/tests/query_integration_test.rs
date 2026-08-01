@@ -145,15 +145,14 @@ async fn test_cypher_executes_against_real_neo4j() {
 
     // Seed a Class node with the production property names so the query
     // surface matches what real handlers write.
-    let _ = pool
-        .graph()
-        .execute(
-            neo4rs::query("CREATE (c:Class {id: $id, label: $label, ontology_id: $oid})")
-                .param("id", "CypherTest".to_string())
-                .param("label", "Cypher Test".to_string())
-                .param("oid", oid.clone()),
-        )
-        .await;
+    common::execute_query(
+        &pool,
+        neo4rs::query("CREATE (c:Class {id: $id, label: $label, ontology_id: $oid})")
+            .param("id", "CypherTest".to_string())
+            .param("label", "Cypher Test".to_string())
+            .param("oid", oid.clone()),
+    )
+    .await;
 
     let resp = app
         .oneshot(post_json(

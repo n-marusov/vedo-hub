@@ -225,3 +225,55 @@ func TestCreateProject_DefaultVisibilityPrivate(t *testing.T) {
 		t.Fatalf("expected default Private, got %s", stored.Visibility)
 	}
 }
+
+// TestCreateGroup_AutoAddsCreatorAsOwner checks that when a user creates a
+// group via CreateScope, they automatically become an Owner member.
+func TestCreateGroup_AutoAddsCreatorAsOwner(t *testing.T) {
+	store := NewMemStore()
+	svc := NewOrgService(store)
+
+	group := ScopeNode{
+		ID:         "new-group",
+		Type:       ScopeGroup,
+		Name:       "Creator Group",
+		Visibility: VisibilityPrivate,
+	}
+	if err := svc.CreateScope("creator-uuid", group); err != nil {
+		t.Fatalf("expected success, got %v", err)
+	}
+
+	memberships, _ := store.GetMemberships("new-group")
+	role := ResolveMaxRole(memberships)
+	if role != "Owner" {
+		t.Fatalf("expected creator to be Owner, got %q", role)
+	}
+}
+
+// TestCreateGroup_CreatorCanCreateProjectInOwnGroup is the regression test for
+// the GUI E2E flow: a group creator must be able to create a project inside
+// their own group without an explicit membership assignment.
+func TestCreateGroup_CreatorCanCreateProjectInOwnGroup(t *testing.T) {
+	store := NewMemStore()
+	svc := NewOrgService(store)
+
+	group := ScopeNode{
+		ID:         "own-group",
+		Type:       ScopeGroup,
+		Name:       "Own Group",
+		Visibility: VisibilityPrivate,
+	}
+	if err := svc.CreateScope("creator-uuid", group); err != nil {
+		t.Fatalf("expected group creation to succeed, got %v", err)
+	}
+
+	project := ScopeNode{
+		ID:         "own-project",
+		Type:       ScopeProject,
+		ParentID:   "own-group",
+		Name:       "Own Project",
+		Visibility: VisibilityPrivate,
+	}
+	if err := svc.CreateScope("creator-uuid", project); err != nil {
+		t.Fatalf("expected creator to create project in own group, got %v", err)
+	}
+}

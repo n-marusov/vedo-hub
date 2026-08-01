@@ -1,62 +1,99 @@
 = Testing
-:description: Test suites, how to run them, and what they cover.
+:description: Test suites, how to run them, infrastructure requirements, and CI pipeline.
 
 == Quick Reference
 
-|===
-|Test suite |Make target |Requirements
+Every test target has two explicit modes: **fail-fast** (stops at first failure) and **full statistics** (collects all failures).
 
-|Unit tests |`make test` |Language toolchains only
-|Integration tests |`make test-integration` |Live infra (Neo4j, Postgres)
-|E2E — API |`make test-e2e-api` |Docker test stack
-|E2E — GUI |`make test-e2e-gui` |Docker test stack + frontend
-|E2E — all |`make test-e2e` |Docker test stack
-|Contract / gate tests |`make test-gates` |Go toolchain + Docker stack
-|Full CI |`make ci` |Language toolchains only
-|Full CI + e2e |`make ci-full` |Docker test stack + infra
 |===
+| Test type | Fail-fast | Full statistics | Infrastructure
+| Unit (Rust, Go, Python, TS) | `make test-unit-fast` | `make test-unit-full` | Language toolchains only
+| Integration — Rust (Neo4j) | `make test-integration-rust-fast` | `make test-integration-rust-full` | Docker (Neo4j auto-started)
+| Integration — Go | `make test-integration-go-fast` | `make test-integration-go-full` | Docker (PostgreSQL auto-started) |
+| Versioning (PostgreSQL) | `make test-versioning-fast` | `make test-versioning-full` | Docker (Postgres auto-started)
+| Integration — all | `make test-integration-fast` | `make test-integration-full` | Docker stack
+| E2E — API | `make test-e2e-api-fast` | `make test-e2e-api-full` | Docker test stack
+| E2E — GUI | `make test-e2e-gui-fast` | `make test-e2e-gui-full` | Docker test stack + frontend
+| E2E — all | `make test-e2e-fast` | `make test-e2e-full` | Docker test stack
+| Gates (contract, BOLA/BFLA unit, quality) | `make test-gates-fast` | `make test-gates-full` | Go (fully automated) |
+| Security integration (BOLA/BFLA/RBAC full-stack) | `make test-gates-security-fast` | `make test-gates-security-full` | Docker test stack (auto-started) |
+| All tests | `make test-fast` | `make test-full` | Varies
+| Coverage (Go only) | — | `make coverage` | Language toolchains
+|===
+
+.Additional infrastructure commands
+[source,bash]
+----
+make infra-up              # Start all infra services (Neo4j, Postgres, Redis, RabbitMQ, Keycloak, MinIO)
+make docker-up-test        # Start full test stack with self-signed JWT tokens
+----
+
+== Infrastructure Automation
+
+Integration tests that require databases automatically start them via Docker when needed:
+
+|===
+| Make target | Auto-starts | Condition | Cleanup
+| `make test-integration-rust-fast` | Neo4j via `docker compose up -d neo4j` | If not already running (Docker healthcheck) | Stops Neo4j if it was auto-started
+| `make test-integration-go-fast` | PostgreSQL via `docker compose up -d postgres` | If `pg_isready` returns non-zero or Docker healthcheck fails | Stops Postgres if it was auto-started; also creates `vedo_org_test` DB
+| `make test-versioning-fast` | PostgreSQL via `docker compose up -d postgres` | If `pg_isready` returns non-zero | Stops Postgres if it was auto-started
+| `make test-integration-fast` | Neo4j + PostgreSQL once before all sub-targets | If not already running (Docker healthcheck / `pg_isready`) | Stops both if they were auto-started (avoids cascade)
+|===
+
+When infrastructure is already running from `make infra-up` or `make docker-up`, the targets detect it and skip the auto-start step.
 
 == Test Suites
 
 Cross-service test suites are in `tests/`:
 
 |===
-|Suite |Path |Description
-
-|E2E — API |`tests/e2e/specs/api/` |REST, GraphQL, SPARQL integration tests
-|E2E — GUI |`tests/e2e/specs/gui/` |Pages, user stories, a11y tests
-|Security |`tests/security/` |BOLA/BFLA authorization tests
-|CLI |`tests/cli/` |vedo-cli integration tests
-|Integration |`tests/integration/` |Go integration tests (ticket-api, org-api)
-|Gates |`tests/gates/` |Gate-level test scripts
+| Suite | Path | Description
+| E2E — API | `tests/e2e/specs/api/` | REST, GraphQL, SPARQL integration tests
+| E2E — GUI | `tests/e2e/specs/gui/` | Pages, user stories, a11y tests
+| Security | `tests/security/` | BOLA/BFLA authorization tests
+| CLI | `tests/cli/` | vedo-cli integration tests
+| Integration | `tests/integration/` | Go integration tests (ticket-api, org-api, auth-service-org)
+| Gates | `tests/gates/` | Gate-level test scripts
 |===
 
 == Running Tests
 
 === Unit Tests (Fast)
 
-No test environment required — tests run natively with language toolchains.
+No infrastructure required — tests run natively with language toolchains.
 
 [source,bash]
 ----
-make test              # All unit tests
-make test-rust         # cargo test --lib
-make test-go           # go test ./...
-make test-python       # pytest
-make test-typescript   # pnpm test
+make test-unit-fast         # All unit tests — fail-fast
+make test-unit-full         # All unit tests — full statistics (collect all failures)
+
+# Per-language
+make test-rust-fast         # cargo test (fail-fast)
+make test-rust-full         # cargo test (full statistics)
+make test-go-fast           # go test ./... (fail-fast)
+make test-go-full           # go test ./... (full statistics)
+make test-python-fast       # pytest (fail-fast, exit 5 = no tests = OK)
+make test-python-full       # pytest (full statistics)
+make test-typescript-fast   # pnpm test (fail-fast)
+make test-typescript-full   # pnpm test (full statistics)
 ----
 
 === Integration Tests
 
-Requires live database infrastructure (Neo4j, Postgres).
+Requires live database infrastructure (Neo4j, PostgreSQL). Both are auto-started via Docker if not running.
 
 [source,bash]
 ----
-make test-integration        # All integration tests
-make test-integration-rust   # Rust only (NEO4J_URI, DATABASE_URL required)
+make test-integration-fast         # All integration — fail-fast
+make test-integration-full         # All integration — full statistics
+
+# Per-type
+make test-integration-rust-fast    # Rust (ontology-service, auto-starts Neo4j)
+make test-integration-go-fast      # Go (ticket-api, org-api, auth-service-org)
+make test-versioning-fast          # Versioning-service (auto-starts PostgreSQL)
 ----
 
-Integration tests gracefully skip with a clear message to stderr when the relevant environment variable is unset.
+When a database is auto-started, it is stopped again after tests complete. If it was already running, it is left untouched.
 
 === Coverage
 
@@ -76,17 +113,18 @@ Playwright configs automatically start the backend using `deploy/docker-compose.
 # Start the test stack first (or let Playwright auto-start it)
 make docker-up-test
 
-# Phase 1: API tests (REST, GraphQL, SPARQL)
-make test-e2e-api
+# Fail-fast mode (--max-failures=1)
+make test-e2e-api-fast
+make test-e2e-gui-fast
+make test-e2e-fast              # Both phases
 
-# Phase 2: GUI tests (pages, user stories, a11y)
-make test-e2e-gui
-
-# Or run both phases together
-make test-e2e
+# Full statistics mode (no max-failures)
+make test-e2e-api-full
+make test-e2e-gui-full
+make test-e2e-full              # Both phases
 ----
 
-GUI tests use `maxFailures: 1` — stops on first failure for fast feedback. API tests use `retries: 2`.
+GUI tests use `maxFailures: 1` — stops on first failure for fast feedback. API tests use `retries: 1` with `maxFailures: 3`.
 
 ==== Running a Single GUI Test
 
@@ -100,27 +138,83 @@ pnpm exec playwright test --config=config/playwright.gui.config.ts specs/gui/pag
 pnpm exec playwright test --config=config/playwright.gui.config.ts specs/gui/user-stories/ --max-failures=0
 ----
 
-=== Security Tests (BOLA/BFLA)
-
-Security tests in `tests/security/` verify:
-
-* *BOLA* (Broken Object-Level Authorization) — users cannot access other users' ontologies, groups, or merge requests.
-* *BFLA* (Broken Function-Level Authorization) — users cannot invoke admin-level operations without proper roles.
+=== Gate Tests (Contracts, Static Quality)
 
 [source,bash]
 ----
-bash tests/gates/test_bola_bfla_gate.sh
+make test-gates-fast              # Gate tests — fail-fast (no infra needed)
+make test-gates-full              # Gate tests — full statistics
+----
+
+The gate pipeline runs:
+1. Contract tests — Go unit tests across all modules + build/CI checks (`test_contract_gate.sh`)
+2. BOLA/BFLA unit tests — auth middleware unit tests (`test_bola_bfla_gate.sh`)
+3. Python service manifest validation (`test_python_manifests.sh`)
+4. Static test quality gate — anti-patterns (B1–B7), TQS scoring (`test-quality-gate.sh --score`)
+5. Traceability cross-validation — TTL ↔ filesystem, RCS, P0 orphans (`traceability-validator.sh`)
+
+All gates require only language toolchains (Go, Python) — no Docker or running services.
+
+=== Security Integration Tests (BOLA/BFLA/RBAC Full-Stack)
+
+Full-stack authorization tests against a live API Gateway with Keycloak.
+Requires the Docker test stack — auto-started if not already running.
+
+[source,bash]
+----
+make test-gates-security-fast      # Security integration — fail-fast (auto-starts Docker stack)
+make test-gates-security-full      # Security integration — full statistics
+----
+
+The security integration suite tests:
+
+* *BOLA* (Broken Object-Level Authorization) — cross-tenant access, cross-object access
+* *BFLA* (Broken Function-Level Authorization) — role escalation, privilege abuse
+* *IDOR* (Insecure Direct Object Reference) — guessable IDs, pagination leaks
+* *RBAC* (Role-Based Access Control) — membership inheritance, max-role-wins, protected branches
+
+Unlike the fast gates, these tests dispatch real HTTP requests to the API Gateway
+and authenticate via Keycloak password grant. The test helper fails immediately if
+the API Gateway or Keycloak is unreachable — no silent skips.
+
+=== Test Quality Gate
+
+[source,bash]
+----
+# Default mode: B1-B7 anti-pattern detection
+bash tools/scripts/test-quality-gate.sh apps/services/api-gateway
+
+# With TQS scoring
+bash tools/scripts/test-quality-gate.sh --score apps/services/api-gateway
+
+# JSON output (for CI integration)
+bash tools/scripts/test-quality-gate.sh --json --score apps/services/api-gateway
+----
+
+=== Traceability Validator
+
+[source,bash]
+----
+# Default mode: human-readable TTL cross-validation
+bash tools/scripts/traceability-validator.sh
+
+# JSON output
+bash tools/scripts/traceability-validator.sh --json
 ----
 
 == CI Pipeline
 
-[source,bash]
-----
-make ci        # proto-all → build → lint → test → typecheck
-make ci-full   # ci + test-integration + test-e2e + test-gates
-----
+|===
+| Pipeline | Command | Description
+| ⚡ Fast CI | `make ci-fast` | proto → build → lint → test-fast → typecheck (no Docker)
+| 📦 Full CI | `make ci-full` | vendor-go → ci-fast → quality gate → docs-lint → integration-fast → e2e-fast → gates-fast → npm-audit
+|===
 
-`ci` runs everything that doesn't require Docker. `ci-full` adds integration, E2E, and gate tests.
+Both CI targets are fail-fast — they stop at the first failure to save pipeline minutes.
+
+`ci-fast` runs everything that doesn't require Docker. `ci-full` adds integration, E2E, gate tests, quality checks, and dependency auditing.
+
+See xref:deployment.adoc[Docker Environments] for compose file selection and JWT token setup required by E2E tests.
 
 == Test Structure
 
@@ -135,9 +229,30 @@ tests/
 │   └── package.json
 ├── integration/                          # Go integration tests
 │   ├── ticket-api/
-│   └── org-api/
+│   ├── org-api/
+│   └── auth-service-org/
 ├── gates/                                # Gate-level test scripts
-└── security/                             # BOLA/BFLA authorization tests
+├── security/                             # BOLA/BFLA authorization tests
+│   └── authorization/
+└── cli/                                  # vedo-cli integration tests
+----
+
+=== Service-Level Test Files
+
+Each Go/Rust/Python/TypeScript service has its own test files alongside the source:
+
+[source]
+----
+apps/services/
+├── api-gateway/          # Go — *_test.go alongside source
+│   ├── auth/
+│   ├── handlers/
+│   └── middleware/
+├── ontology-service/     # Rust — tests/ directory + #[cfg(test)] in source
+│   └── tests/
+├── frontend/             # TypeScript — *.spec.ts alongside components
+│   └── src/
+└── ...
 ----
 
 == See Also

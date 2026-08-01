@@ -6,27 +6,40 @@ TS_DIRS := $(shell cd $(ROOT) && find . -maxdepth 5 -name package.json -not -pat
 build-typescript:
 	@if [ -z "$(TS_DIRS)" ]; then echo "No TypeScript services found"; exit 0; fi
 	@for dir in $(TS_DIRS); do \
-		echo "[TypeScript] building $$(basename $$dir)"; \
-		cd $(ROOT)/$$dir && CI=true pnpm install 2>&1 && CI=true pnpm build 2>&1 || { echo "BUILD_FAILED: pnpm build failed in $$dir"; exit 1; }; \
+		printf "$(C_CYAN)[TypeScript]$(C_RESET) building $$(basename $$dir)\n"; \
+		cd $(ROOT)/$$dir && CI=true pnpm install 2>&1 && CI=true pnpm build 2>&1 || { printf "$(C_RED)BUILD_FAILED:$(C_RESET) pnpm build failed in $$dir\n"; exit 1; }; \
 	done
 
 .PHONY: lint-typescript
 lint-typescript:
 	@if [ -z "$(TS_DIRS)" ]; then echo "No TypeScript services found"; exit 0; fi
 	@for dir in $(TS_DIRS); do \
-		echo "[TypeScript] linting $$(basename $$dir)"; \
-		cd $(ROOT)/$$dir && npx biome check . 2>&1 || { echo "LINT_FAILED: lint failed in $$dir"; exit 1; }; \
+		printf "$(C_CYAN)[TypeScript]$(C_RESET) linting $$(basename $$dir)\n"; \
+		cd $(ROOT)/$$dir && npx biome check . 2>&1 || { printf "$(C_RED)LINT_FAILED:$(C_RESET) lint failed in $$dir\n"; exit 1; }; \
 	done
 
-.PHONY: test-typescript
-test-typescript:
+.PHONY: test-typescript-fast test-typescript-full
+
+test-typescript-fast: ## TypeScript tests — fail-fast (stops at first failure)
+	@if [ -z "$(TS_DIRS)" ]; then echo "No TypeScript services found"; exit 0; fi
+	@for dir in $(TS_DIRS); do \
+		printf "$(C_CYAN)[TypeScript]$(C_RESET) testing $$(basename $$dir)\n"; \
+		cd $(ROOT)/$$dir && pnpm test 2>&1 || { printf "$(C_RED)[FAIL]$(C_RESET) pnpm test failed in $$dir\n"; exit 1; }; \
+	done; \
+	printf "$(C_GREEN)[PASS]$(C_RESET) All TypeScript tests passed\n"
+
+test-typescript-full: ## TypeScript tests — full statistics (collect all failures)
 	@if [ -z "$(TS_DIRS)" ]; then echo "No TypeScript services found"; exit 0; fi
 	@failed=""; \
 	for dir in $(TS_DIRS); do \
-		echo "[TypeScript] testing $$(basename $$dir)"; \
+		printf "$(C_CYAN)[TypeScript]$(C_RESET) testing $$(basename $$dir)\n"; \
 		cd $(ROOT)/$$dir && pnpm test 2>&1 || failed="$$failed $$(basename $$dir)"; \
 	done; \
-	if [ -n "$$failed" ]; then echo "TEST_FAILED: pnpm test failed in:$$failed"; exit 1; fi
+	if [ -n "$$failed" ]; then \
+		printf "$(C_RED)[FAIL]$(C_RESET) pnpm test failed in:$$failed\n"; \
+		exit 1; \
+	fi; \
+	printf "$(C_GREEN)[PASS]$(C_RESET) All TypeScript tests passed\n"
 
 .PHONY: typecheck-typescript
 typecheck-typescript:
