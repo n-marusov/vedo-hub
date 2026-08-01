@@ -1,4 +1,5 @@
 //! Integration tests for import/export operations.
+//! NOTE: violates ADR-DES.API.write-path-invariant; to be migrated in M10 — import/export must become commit-producing operations.
 //!
 //! Validates: REQ-FUN.DATA.ontology-import-export
 //!

@@ -2,6 +2,7 @@ package main
 
 // Validates: REQ-FUN.API.graphql-sparql (REST write boundary)
 // Validates: ADR-DES.API.rest-graphql-mutation-boundary
+// Validates: REQ-FUN.API.rest-gitlab-alignment
 //
 // These tests assert that the entity write endpoints (POST/PUT/DELETE on
 // /api/v1/ontologies/{id}/classes, /properties, /individuals) are routed

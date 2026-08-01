@@ -1,4 +1,5 @@
 // Validates: REQ-NFR.SECURITY.organization-access-model
+// Validates: REQ-FUN.API.rest-gitlab-alignment
 // Organizational model REST API tests — runs against real API gateway
 import { test, expect } from '@playwright/test';
 import { OWNER_JWT, VIEWER_JWT, EDITOR_JWT } from '../../jwt-tokens';

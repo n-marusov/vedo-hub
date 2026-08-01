@@ -1,6 +1,7 @@
 package main
 
 // Validates: REQ-NFR.SECURITY.bola-bfla-negative-tests
+// Validates: REQ-FUN.API.rest-gitlab-alignment
 
 import (
 	"bytes"

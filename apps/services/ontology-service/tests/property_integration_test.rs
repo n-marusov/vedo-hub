@@ -1,4 +1,6 @@
 //! Integration tests for property CRUD operations.
+//! Validates: REQ-CON.SECURITY.write-path-invariant
+//! NOTE: these tests exercise direct ontology writes; per ADR-DES.API.write-path-invariant the write path must go through the versioning pipeline (to be migrated in M10).
 //!
 //! Validates: REQ-FUN.API.property-crud
 //!

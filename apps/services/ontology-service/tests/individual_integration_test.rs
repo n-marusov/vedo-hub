@@ -1,4 +1,6 @@
 //! Integration tests for individual (ABox) CRUD operations.
+//! Validates: REQ-CON.SECURITY.write-path-invariant
+//! NOTE: these tests exercise direct ontology writes; per ADR-DES.API.write-path-invariant the write path must go through the versioning pipeline (to be migrated in M10).
 //!
 //! Requires running Neo4j. Run via `make test-integration-rust` (auto-starts Neo4j via Docker Compose).
 //! Set NEO4J_TEST_URI env var to run manually.
