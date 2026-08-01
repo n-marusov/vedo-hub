@@ -1013,6 +1013,11 @@ ENV                 ?= dev
 COMPOSE_FILE        ?= deploy/docker-compose.yml
 COMPOSE_PROFILE     ?=
 
+# ENV=dev uses docker-compose.dev.yml (self-signed dev JWT minted by Makefile)
+ifeq ($(ENV),dev)
+COMPOSE_FILE := deploy/docker-compose.dev.yml
+endif
+
 # ENV=test uses docker-compose.test.yml (isolated project + JWT dev keys for Playwright)
 ifeq ($(ENV),test)
 COMPOSE_FILE := deploy/docker-compose.test.yml
@@ -1023,7 +1028,11 @@ endif
 .PHONY: docker-down-dev docker-down-test docker-down-staging
 
 docker-up: ## Start all services via Docker Compose (usage: make docker-up [ENV=dev|test|staging])
-	SERVICE_VERSION=$(VERSION) docker compose \
+	@DEV_JWT_TOKEN=""; \
+	if [ "$(ENV)" = "dev" ]; then \
+		DEV_JWT_TOKEN="$$(node $(ROOT)/deploy/dev-jwt/gen-dev-jwt.js 2>/dev/null || true)"; \
+	fi; \
+	SERVICE_VERSION=$(VERSION) VEDO_DEV_JWT_TOKEN="$$DEV_JWT_TOKEN" docker compose \
 		--env-file $(ROOT)/config/.env.$(ENV) \
 		-f $(ROOT)/$(COMPOSE_FILE) \
 		$(if $(COMPOSE_PROFILE),--profile $(COMPOSE_PROFILE)) \

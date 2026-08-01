@@ -84,11 +84,15 @@ Defaults used by the stack (overrides must resolve in your environment):
 - `KC_HOSTNAME=localhost` — Keycloak dev host; any override must resolve locally
 - `KEYCLOAK_JWKS_URL` — Keycloak JWKS endpoint used by the API Gateway auth middleware
 
-> For **E2E tests** use the test compose file, which sets `JWT_DEV_PUBLIC_KEY_PEM` on the API Gateway (self-signed tokens):
+> **Dev** uses `deploy/docker-compose.dev.yml` (auto-selected by `make docker-up` with `ENV=dev`),
+> which sets `JWT_DEV_PUBLIC_KEY_PEM` on the API Gateway (self-signed tokens).
+> The dev Makefile mints a fresh JWT at startup (`deploy/dev-jwt/gen-dev-jwt.js`, signed with
+> `tests/e2e/scripts/test-jwt-key.pem`) and injects it into the frontend session — no Keycloak
+> login needed for local API calls (e.g. group creation).
 
 | Scenario | Compose File | Auth |
 |----------|-------------|------|
-| Development | `deploy/docker-compose.yml` | Keycloak JWKS |
+| Development | `deploy/docker-compose.dev.yml` | self-signed JWT minted by Makefile (`JWT_DEV_PUBLIC_KEY_PEM`) |
 | E2E Testing / CI | `deploy/docker-compose.test.yml` | self-signed JWT (`JWT_DEV_PUBLIC_KEY_PEM`) |
 
 ### 4. Verify setup

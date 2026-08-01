@@ -6,6 +6,8 @@ This directory contains Docker Compose setup split into multiple layers:
 - `docker-compose.observability.yml` — monitoring stack (`obs` profile)
 - `docker-compose.llm.yaml` — local LLM (Ollama, `llm` profile)
 - `docker-compose.docs.yaml` — documentation servers (`documentation` profile)
+- `docker-compose.dev.yml` — dev overrides: self-signed JWT for API Gateway
+  (`JWT_DEV_PUBLIC_KEY_PEM`) + dev frontend build (SKIP_AUTH, dev token)
 - `docker-compose.test.yml` — E2E test overrides (dev JWT public key)
 
 > **Vault (HashiCorp Vault) НЕ включён** в compose-файлы milestone 001. Для локальной разработки токены и секреты хранятся в `~/.vedo/config.yaml` или передаются через переменные окружения. Vault используется только в CI/CD и production.

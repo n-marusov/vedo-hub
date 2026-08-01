@@ -1,0 +1,57 @@
+name: vedo-core-dev
+
+# =============================================================================
+# Dev environment overlay — self-signed JWT tokens (analogous to the E2E setup).
+# =============================================================================
+# Why this file exists:
+#   In the base docker-compose.yml the API Gateway validates JWTs against the
+#   Keycloak JWKS endpoint, which forces a full Keycloak OIDC login in dev.
+#   When auth was "skipped" (VEDO_SKIP_AUTH=true) the frontend sent a fake
+#   "skip-auth-token" that the Gateway rejects with 401 — e.g. group creation
+#   failed with "401 Unauthorized".
+#
+# This overlay mirrors the proven E2E mechanism (docker-compose.test.yml):
+#   1. The API Gateway accepts RS256 tokens signed with the dev private key
+#      via JWT_DEV_PUBLIC_KEY_PEM (highest priority in keyfunc.go).
+#   2. The dev Makefile (`make docker-up` with ENV=dev) mints a fresh JWT on
+#      the HOST at startup (deploy/dev-jwt/gen-dev-jwt.js) and passes it to
+#      the frontend as VEDO_DEV_JWT_TOKEN. The entrypoint injects it into the
+#      browser session (config.js → localStorage.vedo-jwt-token).
+#
+# The keypair lives in tests/e2e/scripts/test-jwt-key.pem — shared with the
+# E2E suite (same public key as docker-compose.test.yml). The private key
+# NEVER enters any container: it is used only by the host-side Makefile step.
+# The gateway logs a warning while JWT_DEV_PUBLIC_KEY_PEM is active.
+# NEVER use this overlay in staging/production.
+# =============================================================================
+
+include:
+  - docker-compose.yml
+
+services:
+  api-gateway:
+    environment:
+      JWT_DEV_PUBLIC_KEY_PEM: |
+        -----BEGIN PUBLIC KEY-----
+        MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmmscOz8ovHi1a7WzwJdZ
+        Y55rwiv4yTTfqwWlI5m7ecwJBexyPc8lHXIxlYCZfnyvUAVzjzlxRVbwRvsiyKUr
+        PhXxeKA+NbsRoab8wH7K7OXjmBcDknZlcibmrQe6rwt6P8KmOKQZdnEFjusw504L
+        jH2cEoLUfNQixfH7jBQ9+raoPlH1IlDENr1E0IDdtem+5Po4W2dWIo59ytJgF4Vy
+        6ctnyHw1lOLvXuG3boUwLPUffAITTZIMoMeTCftxBa0R2UAOjVNJWqKyDY4dw3PF
+        77KytZdl92c+XRG4tsfm3viNfCQxiGpKR977wPklREtS1OnQv2KadbaL54J1LH4V
+        ZwIDAQAB
+        -----END PUBLIC KEY-----
+
+  frontend:
+    build:
+      args:
+        SERVICE_DIR: apps/services/frontend
+        BUILD_PROFILE: dev
+    environment:
+      # Router bypass (same as E2E) — window.__VEDO_CONFIG__.SKIP_AUTH honored
+      # because BUILD_PROFILE=dev keeps SKIP_AUTH branches in the bundle.
+      VEDO_SKIP_AUTH: "true"
+      # Fresh self-signed JWT minted on the host by `make docker-up`
+      # (deploy/dev-jwt/gen-dev-jwt.js). Injected into config.js →
+      # localStorage.vedo-jwt-token by the entrypoint + session.ts.
+      VEDO_DEV_JWT_TOKEN: ${VEDO_DEV_JWT_TOKEN:-}

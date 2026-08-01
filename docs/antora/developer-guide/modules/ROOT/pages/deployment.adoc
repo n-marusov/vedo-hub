@@ -59,22 +59,28 @@ make docker-down-staging  # Stop staging
 |===
 |Scenario |Compose File |Key Difference
 
-|Development |`deploy/docker-compose.yml` |Uses Keycloak JWKS for auth validation
+|Development |`deploy/docker-compose.dev.yml` |Self-signed JWT minted by Makefile (`JWT_DEV_PUBLIC_KEY_PEM`); no Keycloak login needed
 |E2E Testing |`deploy/docker-compose.test.yml` |Uses `JWT_DEV_PUBLIC_KEY_PEM` for self-signed test tokens
 |CI Pipeline |`deploy/docker-compose.test.yml` |Same as E2E — self-signed tokens match CI test JWTs
 |===
 
-The test compose file extends the main compose via `include` and sets `JWT_DEV_PUBLIC_KEY_PEM` on the API Gateway, which takes highest priority in the auth resolution chain. The `webServer.url` in Playwright configs uses port 3000 (frontend nginx proxy), not port 8080 (API Gateway direct).
+The dev and test compose files extend the main compose via `include`. Both set `JWT_DEV_PUBLIC_KEY_PEM` on the API Gateway, which takes highest priority in the auth resolution chain. In dev, `make docker-up` (with `ENV=dev`) mints a fresh self-signed JWT on the host (`deploy/dev-jwt/gen-dev-jwt.js`, signed with `tests/e2e/scripts/test-jwt-key.pem`) and injects it into the frontend session — so local API calls (e.g. group creation) work without a Keycloak login. The `webServer.url` in Playwright configs uses port 3000 (frontend nginx proxy), not port 8080 (API Gateway direct).
 
 === Raw Docker Compose
 
+NOTE: For the dev environment prefer `make docker-up` (ENV=dev) — the Makefile
+mints a fresh `VEDO_DEV_JWT_TOKEN` and passes it to compose. Running the dev
+compose file directly without the Makefile leaves that variable empty, so API
+calls would fall back to the mock token and return `401 Unauthorized`.
+
 [source,bash]
 ----
-# Dev
-docker compose --env-file config/.env.dev -f deploy/docker-compose.yml up -d
+# Dev (use make docker-up; or export VEDO_DEV_JWT_TOKEN first)
+make docker-up ENV=dev
+# or: VEDO_DEV_JWT_TOKEN="$(node deploy/dev-jwt/gen-dev-jwt.js)" docker compose --env-file config/.env.dev -f deploy/docker-compose.dev.yml up -d
 
 # Test
-docker compose --env-file config/.env.test -f deploy/docker-compose.yml up -d
+docker compose --env-file config/.env.test -f deploy/docker-compose.test.yml up -d
 
 # Staging
 docker compose --env-file config/.env.staging -f deploy/docker-compose.yml up -d
