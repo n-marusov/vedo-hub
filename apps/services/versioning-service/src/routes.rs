@@ -10,16 +10,53 @@ use axum::{
 };
 
 use crate::handlers::{
-    checkout_commit_handler, create_branch_handler, create_commit_handler, delete_branch_handler,
-    get_branch_handler, get_commit_delta_handler, get_commit_handler,
-    get_commit_semantic_diff_handler, list_branches_handler, list_commits_handler,
-    merge_branches_handler, rollback_commit_handler, switch_branch_handler,
+    checkout_commit_handler,
+    create_branch_handler,
+    create_commit_handler,
+    // Project-scoped (GitLab-aligned) handlers
+    create_project_branch_handler,
+    create_project_commit_handler,
+    delete_branch_handler,
+    delete_project_branch_handler,
+    get_branch_handler,
+    get_commit_delta_handler,
+    get_commit_handler,
+    get_commit_semantic_diff_handler,
+    get_project_branch_handler,
+    get_project_commit_diff_handler,
+    get_project_commit_handler,
+    list_branches_handler,
+    list_commits_handler,
+    list_project_branches_handler,
+    list_project_commits_handler,
+    merge_branches_handler,
+    rollback_commit_handler,
+    switch_branch_handler,
 };
 use crate::AppState;
 
 /// Builds the API routes for the versioning service.
 ///
 /// # Endpoints
+///
+/// ## Project-scoped (GitLab-aligned, target surface)
+///
+/// | Method | Path | Description |
+/// |--------|------|-------------|
+/// | POST   | `/api/v1/projects/:pid/repository/commits` | Create a new commit (VEDO extension) |
+/// | GET    | `/api/v1/projects/:pid/repository/commits` | List commits (paginated) |
+/// | GET    | `/api/v1/projects/:pid/repository/commits/:sha` | Get commit details |
+/// | GET    | `/api/v1/projects/:pid/repository/commits/:sha/diff` | Get semantic diff (delta → diff) |
+/// | POST   | `/api/v1/projects/:pid/repository/branches` | Create a new branch |
+/// | GET    | `/api/v1/projects/:pid/repository/branches` | List branches (paginated) |
+/// | GET    | `/api/v1/projects/:pid/repository/branches/:name` | Get branch by name |
+/// | DELETE | `/api/v1/projects/:pid/repository/branches/:name` | Delete a branch by name |
+///
+/// `checkout`/`switch` are intentionally NOT exposed as REST endpoints
+/// (internal-only per F3 / removed per GitLab alignment). `merge` is served
+/// via the MR workflow (501 planned stub until M10).
+///
+/// ## Legacy (deprecated, kept during migration)
 ///
 /// | Method | Path | Description |
 /// |--------|------|-------------|
@@ -56,9 +93,33 @@ pub fn build_routes() -> Router<Arc<AppState>> {
         .route("/:id/switch", post(switch_branch_handler))
         .route("/merge", post(merge_branches_handler));
 
+    // Project-scoped, GitLab-aligned surface (ADR-DES.API.rest-gitlab-alignment §4).
+    // checkout/switch are intentionally absent (internal-only / removed).
+    let project_commits_routes = Router::new()
+        .route(
+            "/commits",
+            post(create_project_commit_handler).get(list_project_commits_handler),
+        )
+        .route("/commits/:sha", get(get_project_commit_handler))
+        .route("/commits/:sha/diff", get(get_project_commit_diff_handler));
+
+    let project_branches_routes = Router::new()
+        .route(
+            "/branches",
+            post(create_project_branch_handler).get(list_project_branches_handler),
+        )
+        .route(
+            "/branches/:name",
+            get(get_project_branch_handler).delete(delete_project_branch_handler),
+        );
+
     Router::new()
         .nest("/api/v1/versioning/commits", commits_routes)
         .nest("/api/v1/versioning/branches", branches_routes)
+        .nest(
+            "/api/v1/projects/:pid/repository",
+            project_commits_routes.merge(project_branches_routes),
+        )
 }
 
 #[cfg(test)]

@@ -24,6 +24,10 @@ pub trait BranchRepositoryTrait: Send + Sync {
     /// Retrieves a single branch by its ID.
     async fn get_by_id(&self, id: Uuid) -> Result<Branch, VersionError>;
 
+    /// Retrieves a single branch by its name within an ontology.
+    /// GitLab-aligned lookup (branch name is the public identifier, not a UUID).
+    async fn get_by_name(&self, ontology_id: Uuid, name: &str) -> Result<Branch, VersionError>;
+
     /// Lists all branches for an ontology, with latest commit info and
     /// ahead/behind counts versus a reference branch.
     async fn list_by_ontology(
@@ -159,6 +163,31 @@ impl BranchRepositoryTrait for BranchRepository {
 
         let branch = row_to_branch(&row)?;
         tracing::debug!(branch_id = %id, name = %branch.name, "Branch found");
+
+        Ok(branch)
+    }
+
+    /// Retrieves a single branch by its name within an ontology.
+    /// GitLab-aligned lookup: branch name is the public identifier.
+    async fn get_by_name(&self, ontology_id: Uuid, name: &str) -> Result<Branch, VersionError> {
+        tracing::debug!(ontology_id = %ontology_id, %name, "Fetching branch by name");
+
+        let row = sqlx::query(
+            r"
+            SELECT id, name, ontology_id, head_commit_id, created_at, is_protected
+            FROM branches
+            WHERE ontology_id = $1 AND name = $2
+            ",
+        )
+        .bind(ontology_id)
+        .bind(name)
+        .fetch_optional(self.pool())
+        .await?
+        .ok_or_else(|| VersionError::BranchNotFound(name.to_string()))?;
+
+        let branch = row_to_branch(&row)?;
+        tracing::debug!(branch_id = %branch.id, name = %branch.name, "Branch found by name");
+
         Ok(branch)
     }
 
@@ -592,6 +621,7 @@ pub(crate) mod mock {
     pub struct MockBranchRepository {
         pub create_result: Mutex<Option<Result<Branch, VersionError>>>,
         pub get_by_id_result: Mutex<Option<Result<Branch, VersionError>>>,
+        pub get_by_name_result: Mutex<Option<Result<Branch, VersionError>>>,
         pub list_by_ontology_result: Mutex<Option<Result<Vec<BranchWithCommit>, VersionError>>>,
         pub update_head_result: Mutex<Option<Result<(), VersionError>>>,
         pub delete_result: Mutex<Option<Result<(), VersionError>>>,
@@ -605,6 +635,7 @@ pub(crate) mod mock {
             Self {
                 create_result: Mutex::new(None),
                 get_by_id_result: Mutex::new(None),
+                get_by_name_result: Mutex::new(None),
                 list_by_ontology_result: Mutex::new(None),
                 update_head_result: Mutex::new(None),
                 delete_result: Mutex::new(None),
@@ -640,6 +671,14 @@ pub(crate) mod mock {
 
         async fn get_by_id(&self, _id: Uuid) -> Result<Branch, VersionError> {
             Self::take_or_error(&self.get_by_id_result)
+        }
+
+        async fn get_by_name(
+            &self,
+            _ontology_id: Uuid,
+            _name: &str,
+        ) -> Result<Branch, VersionError> {
+            Self::take_or_error(&self.get_by_name_result)
         }
 
         async fn list_by_ontology(
