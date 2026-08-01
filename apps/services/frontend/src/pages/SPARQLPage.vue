@@ -1,17 +1,17 @@
 <!-- @ctx: SPARQL page strictly mirrored from design/frontend.pen frame spqBld -->
 <template>
-  <div class="spq-page" role="main" aria-label="SPARQL Query Builder content">
+  <div class="spq-page" role="main" :aria-label="t('sparql.page_label')">
     <section class="spq-title-row">
       <div class="spq-title-wrap">
         <Search :size="20" class="spq-title-icon" />
-        <h1 class="spq-title">SPARQL Query Builder</h1>
+        <h1 class="spq-title">{{ t('sparql.title') }}</h1>
       </div>
-      <span class="spq-readonly">Read-only queries only</span>
+      <span class="spq-readonly">{{ t('sparql.readonly_note') }}</span>
     </section>
 
-    <section class="spq-context" aria-label="Ontology context">
+    <section class="spq-context" :aria-label="t('sparql.ontology_context')">
       <Folder :size="14" class="muted" />
-      <span class="context-label">Querying ontology:</span>
+      <span class="context-label">{{ t('sparql.querying_ontology') }}</span>
       <span class="context-badge context-badge--primary">ProductOntology</span>
       <GitBranch :size="14" class="muted" />
       <span class="context-badge">main</span>
@@ -29,7 +29,7 @@
     </section>
 
     <div v-if="loading" class="spq-loading" role="status" aria-live="polite">
-      <span class="spq-loading-text">Executing query...</span>
+      <span class="spq-loading-text">{{ t('sparql.executing') }}</span>
     </div>
 
     <div v-if="results" class="query-results-table">
@@ -46,7 +46,7 @@
         </tbody>
       </table>
       <div class="spq-results-summary">
-        {{ results.total }} results in {{ results.executionTimeMs }}ms
+        {{ t('sparql.results_summary', { total: String(results.total), ms: String(results.executionTimeMs) }) }}
       </div>
     </div>
 
@@ -62,10 +62,12 @@
 import { executeSparql } from "@/api/sparql";
 import SPARQLQueryEditor from "@/components/organisms/SPARQLQueryEditor.vue";
 import { useErrorPresentation } from "@/composables/useErrorPresentation";
+import { useI18n } from "@/composables/useI18n";
 import { Folder, GitBranch, Search } from "@lucide/vue";
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 
+const { t } = useI18n();
 const route = useRoute();
 const ontologyId = ref(route.params.id as string);
 const error = ref<string | null>(null);

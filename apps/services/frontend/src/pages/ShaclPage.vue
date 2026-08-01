@@ -1,25 +1,25 @@
 <!-- @m4 — SHACL Rule Builder page -->
 <!-- @hlv:artifact shacl-page implements GUI-OW-001 -->
 <template>
-  <div class="shacl-page" role="main" aria-label="SHACL Rule Builder">
+  <div class="shacl-page" role="main" :aria-label="t('shacl.title')">
     <section class="shacl-title-row">
       <div class="shacl-title-wrap">
         <Shield :size="20" class="warning" />
-        <h1 class="shacl-title">SHACL Rule Builder</h1>
+        <h1 class="shacl-title">{{ t('shacl.title') }}</h1>
       </div>
     </section>
 
-    <nav class="shacl-breadcrumbs" aria-label="Breadcrumbs">
+    <nav class="shacl-breadcrumbs" :aria-label="t('shacl.breadcrumbs')">
       <router-link
         :to="{ name: 'ontology-workspace', params: { id: ontologyId } }"
         class="breadcrumb-link"
       >
-        Workspace
+        {{ t('nav.workspace') }}
       </router-link>
       <ChevronRight :size="12" class="breadcrumb-sep" />
       <span class="breadcrumb-current">{{ ontologyName || ontologyId }}</span>
       <ChevronRight :size="12" class="breadcrumb-sep" />
-      <span class="breadcrumb-current">SHACL Rule Builder</span>
+      <span class="breadcrumb-current">{{ t('shacl.title') }}</span>
     </nav>
 
     <!-- Loading state -->
@@ -35,13 +35,13 @@
     <div v-else-if="error" class="shacl-error">
       <AlertTriangle :size="24" class="error-icon" />
       <p class="error-message">{{ error }}</p>
-      <PrimaryButton @click="retry">Retry</PrimaryButton>
+      <PrimaryButton @click="retry">{{ t('common.retry') }}</PrimaryButton>
     </div>
 
     <!-- Empty state -->
     <div v-else-if="rules.length === 0" class="shacl-empty">
       <FileText :size="32" class="empty-icon" />
-      <p class="empty-message">No rules defined. Create your first rule.</p>
+      <p class="empty-message">{{ t('shacl.no_rules') }}</p>
     </div>
 
     <!-- Data state -->
@@ -57,12 +57,14 @@ import type { ValidationViolation } from "@/api/validation";
 import SHACLRuleBuilder from "@/components/organisms/SHACLRuleBuilder.vue";
 import PrimaryButton from "@/components/ui-kit/PrimaryButton.vue";
 import { useErrorPresentation } from "@/composables/useErrorPresentation";
+import { useI18n } from "@/composables/useI18n";
 import { gql } from "@apollo/client";
 import { AlertTriangle, ChevronRight, FileText, Shield } from "@lucide/vue";
 import { useQuery } from "@vue/apollo-composable";
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 
+const { t } = useI18n();
 const route = useRoute();
 const ontologyId = computed(() => (route.params.id as string) || "");
 const ontologyName = computed(() => (route.query.name as string) || "");

@@ -12,13 +12,13 @@
           class="login-logo-icon"
         />
         <div class="login-text-col">
-          <h1 class="login-title" id="login-title" role="heading">Sign in to VEDO</h1>
-          <span class="login-subtitle">Build, connect, and share knowledge at scale</span>
+          <h1 class="login-title" id="login-title" role="heading">{{ t('login.title') }}</h1>
+          <span class="login-subtitle">{{ t('login.subtitle') }}</span>
         </div>
       </div>
 
       <!-- OAuth provider buttons -->
-      <div class="oauth-buttons" aria-label="OAuth providers">
+      <div class="oauth-buttons" :aria-label="t('login.oauth_providers')">
         <button
           v-for="provider in providers"
           :key="provider.id"
@@ -38,50 +38,60 @@
 </template>
 
 <script setup lang="ts">
-import { initiateLogin } from '@/auth/keycloak'
-import { ref } from 'vue'
+import { initiateLogin } from "@/auth/keycloak";
+import { useI18n } from "@/composables/useI18n";
+import { ref } from "vue";
+
+const { t } = useI18n();
 
 // @ctx: OAuth providers per GUI-LOGIN-001 Input provider enum — matches design/frontend.pen
 // @hlv:sec [AUTH_BOUNDARY] — only Corporate SSO enabled; external providers disabled until configured
 const providers = [
-  { id: 'vk' as const, label: 'VK ID', disabled: true },
-  { id: 'yandex' as const, label: 'Yandex ID', disabled: true },
-  { id: 'mailru' as const, label: 'Mail.ru', disabled: true },
-  { id: 'google' as const, label: 'Google', disabled: true },
-  { id: 'corporate_sso' as const, label: 'Corporate SSO', disabled: false }
-]
+	{ id: "vk" as const, label: "VK ID", disabled: true },
+	{ id: "yandex" as const, label: "Yandex ID", disabled: true },
+	{ id: "mailru" as const, label: "Mail.ru", disabled: true },
+	{ id: "google" as const, label: "Google", disabled: true },
+	{
+		id: "corporate_sso" as const,
+		label: t("login.provider_corporate_sso"),
+		disabled: false,
+	},
+];
 
-const error = ref<string | null>(null)
+const error = ref<string | null>(null);
 
 // @hlv:sec [INPUT_VALIDATION] — provider validated against known enum before OAuth redirect
 async function handleLogin(providerId: string): Promise<void> {
-  error.value = null
+	error.value = null;
 
-  // @hlv LOGIN_PROVIDER_UNSUPPORTED
-  const knownProviders = ['vk', 'yandex', 'mailru', 'google', 'corporate_sso']
-  if (!knownProviders.includes(providerId)) {
-    error.value = 'Unsupported OAuth provider.'
-    return
-  }
+	// @hlv LOGIN_PROVIDER_UNSUPPORTED
+	const knownProviders = ["vk", "yandex", "mailru", "google", "corporate_sso"];
+	if (!knownProviders.includes(providerId)) {
+		error.value = t("login.error_unsupported_provider");
+		return;
+	}
 
-  const provider = providers.find((p) => p.id === providerId)
-  if (provider?.disabled) {
-    error.value = `${provider.label} is not configured for this instance.`
-    return
-  }
+	const provider = providers.find((p) => p.id === providerId);
+	if (provider?.disabled) {
+		error.value = t("login.error_not_configured", { provider: provider.label });
+		return;
+	}
 
-  // @hlv:sec [AUTH_BOUNDARY] — Corporate SSO uses local Keycloak OIDC flow with PKCE
-  if (providerId === 'corporate_sso') {
-    try {
-      await initiateLogin()
-    } catch (e: unknown) {
-      error.value = e instanceof Error ? e.message : 'Failed to initiate login'
-    }
-    return
-  }
+	// @hlv:sec [AUTH_BOUNDARY] — Corporate SSO uses local Keycloak OIDC flow with PKCE
+	if (providerId === "corporate_sso") {
+		try {
+			await initiateLogin();
+		} catch (e: unknown) {
+			error.value =
+				e instanceof Error ? e.message : t("login.error_init_failed");
+		}
+		return;
+	}
 
-  // @hlv LOGIN_SSO_CONFIG_MISSING
-  error.value = `${provider?.label} is not configured for this instance.`
+	// @hlv LOGIN_SSO_CONFIG_MISSING
+	error.value = t("login.error_not_configured", {
+		provider: provider?.label ?? "",
+	});
 }
 </script>
 

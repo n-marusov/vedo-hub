@@ -2,14 +2,14 @@
 <!-- @ctx: Deployments page — aligned to design/pages/deployments.pen -->
 <!-- @m4 — Wired to LIST_DEPLOYMENTS_QUERY via Apollo GraphQL -->
 <template>
-    <div class="dp-page" role="main" aria-label="Deployments page">
+    <div class="dp-page" role="main" :aria-label="t('deployments.page_label')">
         <div class="dp-title-col">
             <div class="dp-breadcrumbs">
-                <span class="dp-crumb">Workspace</span>
+                <span class="dp-crumb">{{ t('nav.workspace') }}</span>
                 <ChevronRight :size="12" class="dp-crumb-sep" />
-                <span class="dp-crumb">Deployments</span>
+                <span class="dp-crumb">{{ t('nav.deployments') }}</span>
             </div>
-            <h1 class="dp-page-title">Deployments</h1>
+            <h1 class="dp-page-title">{{ t('nav.deployments') }}</h1>
         </div>
 
         <!-- @m4 Loading state -->
@@ -23,8 +23,8 @@
         <!-- @m4 Error state -->
         <div v-else-if="error" class="dp-section">
             <div class="error-state">
-                <p>Failed to load deployments.</p>
-                <button class="retry-btn" type="button" @click="fetchDeployments()">Retry</button>
+                <p>{{ t('deployments.load_error') }}</p>
+                <button class="retry-btn" type="button" @click="fetchDeployments()">{{ t('common.retry') }}</button>
             </div>
         </div>
 
@@ -36,8 +36,11 @@
 <script setup lang="ts">
 import { type DeploymentInfo, listDeployments } from "@/api/deployments";
 import Deployments from "@/components/organisms/Deployments.vue";
+import { useI18n } from "@/composables/useI18n";
 import { ChevronRight } from "@lucide/vue";
 import { computed, onMounted, ref } from "vue";
+
+const { t } = useI18n();
 
 // @m4 — Wire deployments via REST client
 const loading = ref(false);
@@ -50,7 +53,7 @@ async function fetchDeployments() {
 	try {
 		depsData.value = await listDeployments(true);
 	} catch (e: unknown) {
-		error.value = e instanceof Error ? e.message : "Failed to load deployments";
+		error.value = e instanceof Error ? e.message : t("deployments.load_error");
 	} finally {
 		loading.value = false;
 	}

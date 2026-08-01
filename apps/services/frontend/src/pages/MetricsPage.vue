@@ -1,22 +1,22 @@
 <!-- @ctx: Metrics page strictly mirrored from design/frontend.pen frame metDas -->
 <!-- @m4 — Wired to ONTOLOGY_METRICS_QUERY via Apollo GraphQL -->
 <template>
-  <div class="metrics-page" role="main" aria-label="Metrics Dashboard content">
+  <div class="metrics-page" role="main" :aria-label="t('metrics.page_label')">
     <section class="metrics-title-row">
       <div class="metrics-title-wrap">
         <ChartColumn :size="20" class="primary" />
-        <h1 class="metrics-title">Metrics Dashboard</h1>
+        <h1 class="metrics-title">{{ t('metrics.title') }}</h1>
       </div>
     </section>
 
     <section class="metrics-context">
       <Folder :size="14" class="muted" />
-      <span class="context-label">Analyzing ontology:</span>
+      <span class="context-label">{{ t('metrics.analyzing_ontology') }}</span>
       <span class="context-badge context-badge--primary">{{ ontologyId || '—' }}</span>
       <GitBranch :size="14" class="muted" />
       <span class="context-badge">main</span>
       <Calendar :size="14" class="muted" />
-      <span class="context-time">Last updated: {{ lastUpdated }}</span>
+      <span class="context-time">{{ t('metrics.last_updated', { date: lastUpdated }) }}</span>
     </section>
 
     <!-- @m4 Loading state -->
@@ -33,8 +33,8 @@
     <!-- @m4 Error state -->
     <section v-else-if="error" class="metrics-content card">
       <div class="error-state">
-        <p>Failed to load metrics data.</p>
-        <button class="retry-btn" type="button" @click="fetchMetrics">Retry</button>
+        <p>{{ t('metrics.load_error') }}</p>
+        <button class="retry-btn" type="button" @click="fetchMetrics">{{ t('common.retry') }}</button>
       </div>
     </section>
 
@@ -42,35 +42,35 @@
     <section v-else class="metrics-content card">
       <div class="kpi-grid">
         <article class="kpi-card">
-          <span class="kpi-label">Classes</span>
+          <span class="kpi-label">{{ t('metrics.kpi_classes') }}</span>
           <strong class="kpi-value">{{ counters.classCount }}</strong>
           <span class="kpi-sub">{{ trendSummary.classCount }}</span>
         </article>
         <article class="kpi-card">
-          <span class="kpi-label">Properties</span>
+          <span class="kpi-label">{{ t('metrics.kpi_properties') }}</span>
           <strong class="kpi-value">{{ counters.propertyCount }}</strong>
           <span class="kpi-sub">{{ trendSummary.propertyCount }}</span>
         </article>
         <article class="kpi-card">
-          <span class="kpi-label">Individuals</span>
+          <span class="kpi-label">{{ t('metrics.kpi_individuals') }}</span>
           <strong class="kpi-value">{{ counters.individualCount }}</strong>
           <span class="kpi-sub">{{ trendSummary.individualCount }}</span>
         </article>
         <article class="kpi-card">
-          <span class="kpi-label">Axioms</span>
+          <span class="kpi-label">{{ t('metrics.kpi_axioms') }}</span>
           <strong class="kpi-value">{{ counters.axiomCount }}</strong>
-          <span class="kpi-sub">Total logical axioms</span>
+          <span class="kpi-sub">{{ t('metrics.axioms_sub') }}</span>
         </article>
       </div>
 
       <div class="charts-grid">
         <article class="chart-card">
-          <h2>Trend overview</h2>
-          <div class="chart-placeholder metrics-chart">Activity chart (trends data loaded)</div>
+          <h2>{{ t('metrics.trend_overview') }}</h2>
+          <div class="chart-placeholder metrics-chart">{{ t('metrics.activity_chart_placeholder') }}</div>
         </article>
         <article class="chart-card">
-          <h2>Validation distribution</h2>
-          <div class="chart-placeholder metrics-chart">Distribution chart</div>
+          <h2>{{ t('metrics.validation_distribution') }}</h2>
+          <div class="chart-placeholder metrics-chart">{{ t('metrics.distribution_chart') }}</div>
         </article>
       </div>
     </section>
@@ -83,10 +83,12 @@ import {
 	type OntologyMetrics,
 	getOntologyMetrics,
 } from "@/api/metrics";
+import { useI18n } from "@/composables/useI18n";
 import { Calendar, ChartColumn, Folder, GitBranch } from "@lucide/vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
+const { t, locale } = useI18n();
 const route = useRoute();
 const ontologyId = computed(
 	() =>
@@ -139,7 +141,7 @@ const trendSummary = computed(() => {
 	type TrendField = "classCount" | "propertyCount" | "individualCount";
 	const diff = (field: TrendField) => {
 		const d = (latest[field] || 0) - (previous[field] || 0);
-		return d >= 0 ? `+${d} this period` : `${d} this period`;
+		return t("metrics.this_period", { n: (d >= 0 ? "+" : "") + d });
 	};
 	return {
 		classCount: diff("classCount"),
@@ -151,11 +153,14 @@ const trendSummary = computed(() => {
 const lastUpdated = computed(() => {
 	const trends = metricsData.value?.trends;
 	if (!trends?.length) return "N/A";
-	return new Date(trends[trends.length - 1].date).toLocaleDateString("en-US", {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-	});
+	return new Date(trends[trends.length - 1].date).toLocaleDateString(
+		locale.value,
+		{
+			month: "short",
+			day: "numeric",
+			year: "numeric",
+		},
+	);
 });
 
 // ── Logging ─────────────────────────────────────────────────────────────────

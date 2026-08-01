@@ -1,9 +1,9 @@
 <template>
-  <div class="dash-page" role="main" aria-label="Dashboard content">
+  <div class="dash-page" role="main" :aria-label="t('dashboard.page_label')">
     <div class="dash-breadcrumbs">
-      <span class="crumb">Workspace</span>
+      <span class="crumb">{{ t('dashboard.breadcrumb_workspace') }}</span>
       <ChevronRight :size="12" class="crumb-sep" />
-      <span class="crumb crumb--current">Home</span>
+      <span class="crumb crumb--current">{{ t('dashboard.breadcrumb_home') }}</span>
     </div>
 
     <!-- @m4 Greeting — wired to useCurrentUser for real user name/role -->
@@ -16,7 +16,7 @@
         <h1 class="dash-name">{{ displayName }}</h1>
         <p class="dash-role">{{ userRole }}</p>
       </div>
-      <button class="status-btn" type="button"><Smile :size="14" />Set status</button>
+      <button class="status-btn" type="button"><Smile :size="14" />{{ t('dashboard.set_status') }}</button>
     </section>
 
     <!-- Fork Quick Start — demo project cards -->
@@ -24,8 +24,8 @@
       <div class="fork-header">
         <GitFork :size="24" class="fork-head-icon" />
         <div>
-          <h2 class="fork-title">Quick start: Fork a demo project</h2>
-          <p class="fork-desc">Choose from 5 starter ontologies to fork into your workspace</p>
+          <h2 class="fork-title">{{ t('dashboard.fork_title') }}</h2>
+          <p class="fork-desc">{{ t('dashboard.fork_desc') }}</p>
         </div>
       </div>
       <div class="fork-cards">
@@ -42,19 +42,19 @@
     </section>
 
     <!-- @m4 Widgets — wired to dashboard.widgets from GQL -->
-    <section v-if="loading" class="dash-widgets" aria-label="Loading">
+    <section v-if="loading" class="dash-widgets" :aria-label="t('dashboard.loading')">
       <article v-for="n in 3" :key="n" class="widget card skeleton">
         <div class="skeleton-line skeleton-line--title"></div>
         <div class="skeleton-line skeleton-line--value"></div>
       </article>
     </section>
-    <section v-else-if="error" class="dash-widgets" aria-label="Widgets error">
+    <section v-else-if="error" class="dash-widgets" :aria-label="t('dashboard.widgets_error')">
       <div class="error-state card">
-        <p>Failed to load dashboard data.</p>
-        <button class="retry-btn" type="button" @click="fetchDashboard()">Retry</button>
+        <p>{{ t('dashboard.load_error') }}</p>
+        <button class="retry-btn" type="button" @click="fetchDashboard()">{{ t('common.retry') }}</button>
       </div>
     </section>
-    <section v-else class="dash-widgets" aria-label="Collaboration widgets">
+    <section v-else class="dash-widgets" :aria-label="t('dashboard.widgets_collab')">
       <article v-for="widget in resolvedWidgets" :key="widget.title" class="widget card widget-card" tabindex="0">
         <header class="widget-head">
           <p class="widget-title">{{ widget.title }}</p>
@@ -73,7 +73,7 @@
         <!-- @m4 Attention items — wired to dashboard.attentionItems from GQL -->
         <article class="card attention-card">
           <header class="attention-header">
-            <h2>Items that need your attention</h2>
+            <h2>{{ t('dashboard.attention_title') }}</h2>
             <button class="filter-btn" type="button" @click="toggleAttentionFilter">
               <span>{{ attentionFilter }}</span>
               <ChevronDown :size="10" />
@@ -89,18 +89,18 @@
         <!-- @m4 Activity feed — wired to dashboard.activityFeed from GQL -->
         <article class="card activity-card">
           <header class="activity-header">
-            <h2>Team Activity</h2>
+            <h2>{{ t('dashboard.activity_title') }}</h2>
             <div class="activity-toggle">
               <button
-                :class="['toggle-btn', { 'toggle-btn--active': activityFilter === 'All team' }]"
+                :class="['toggle-btn', { 'toggle-btn--active': activityFilter === t('dashboard.filter_all_team') }]"
                 type="button"
-                @click="activityFilter = 'All team'"
-              >All team</button>
+                @click="activityFilter = t('dashboard.filter_all_team')"
+              >{{ t('dashboard.filter_all_team') }}</button>
               <button
-                :class="['toggle-btn', { 'toggle-btn--active': activityFilter === 'Mine' }]"
+                :class="['toggle-btn', { 'toggle-btn--active': activityFilter === t('dashboard.filter_mine') }]"
                 type="button"
-                @click="activityFilter = 'Mine'"
-              >Mine</button>
+                @click="activityFilter = t('dashboard.filter_mine')"
+              >{{ t('dashboard.filter_mine') }}</button>
             </div>
           </header>
           <div class="sep"></div>
@@ -122,7 +122,7 @@
       <!-- @m4 Recent ontologies — wired to dashboard.recentOntologies from GQL, clickable -->
       <article class="card quick-card">
         <header class="section-header">
-          <h2>Recent Ontologies</h2>
+          <h2>{{ t('dashboard.recent_ontologies') }}</h2>
           <Settings :size="16" class="quick-settings" />
         </header>
         <div class="onto-list">
@@ -152,6 +152,7 @@
 import { type DashboardData, getDashboard } from "@/api/dashboard";
 import { getUserRole } from "@/auth/session";
 import { useCurrentUser } from "@/composables/useCurrentUser";
+import { useI18n } from "@/composables/useI18n";
 import {
 	AlertCircle,
 	ChevronDown,
@@ -168,11 +169,12 @@ import {
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
+const { t } = useI18n();
 const router = useRouter();
 const { displayName, displayInitials } = useCurrentUser();
-const userRole = computed(() => getUserRole() || "Knowledge Engineer");
-const activityFilter = ref("All team");
-const attentionFilter = ref("Everything");
+const userRole = computed(() => getUserRole() || t("dashboard.role_default"));
+const activityFilter = ref(t("dashboard.filter_all_team"));
+const attentionFilter = ref(t("dashboard.filter_everything"));
 
 // @m4 — Dashboard migrated from GraphQL DASHBOARD_QUERY to REST
 const loading = ref(false);
@@ -317,7 +319,7 @@ const resolvedActivityGroups = computed<ActivityGroup[]>(() => {
 			time: formatTimeAgo(a.timestamp),
 		}),
 	);
-	return [{ label: "Recent", items }];
+	return [{ label: t("dashboard.activity_recent"), items }];
 });
 
 interface RecentOntology {
@@ -360,7 +362,9 @@ function navigateToOntology(ontologyId: string): void {
 
 function toggleAttentionFilter(): void {
 	attentionFilter.value =
-		attentionFilter.value === "Everything" ? "Unread" : "Everything";
+		attentionFilter.value === t("dashboard.filter_everything")
+			? t("dashboard.filter_unread")
+			: t("dashboard.filter_everything");
 }
 
 function formatTimeAgo(timestamp: string): string {
@@ -368,10 +372,10 @@ function formatTimeAgo(timestamp: string): string {
 	const now = Date.now();
 	const then = new Date(timestamp).getTime();
 	const minutes = Math.floor((now - then) / 60000);
-	if (minutes < 60) return `${minutes}m ago`;
+	if (minutes < 60) return t("dashboard.time_ago_m", { n: String(minutes) });
 	const hours = Math.floor(minutes / 60);
-	if (hours < 24) return `${hours}h ago`;
-	return `${Math.floor(hours / 24)}d ago`;
+	if (hours < 24) return t("dashboard.time_ago_h", { n: String(hours) });
+	return t("dashboard.time_ago_d", { n: String(Math.floor(hours / 24)) });
 }
 </script>
 

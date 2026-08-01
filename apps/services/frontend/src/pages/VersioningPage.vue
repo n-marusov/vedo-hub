@@ -1,12 +1,12 @@
 <!-- @ctx: Versioning page aligned to design/frontend.pen frames Commits/Branches/Compare/Tags/Repository Graph/Merge Requests -->
 <template>
-  <div class="version-page" role="main" aria-label="Versioning content">
+  <div class="version-page" role="main" :aria-label="t('versioning.page_label')">
     <section class="version-head">
-      <h1 class="version-title">{{ titles[view] || 'Commit History' }}</h1>
+      <h1 class="version-title">{{ titles[view] || t('versioning.title_commits') }}</h1>
       <span v-if="view === 'commits'" class="branch-badge">{{ currentBranch }}</span>
     </section>
 
-    <section class="version-tabs ver-tabs" role="tablist" aria-label="Versioning tabs">
+    <section class="version-tabs ver-tabs" role="tablist" :aria-label="t('versioning.tabs_label')">
       <button
         v-for="tab in tabs"
         :key="tab.id"
@@ -29,13 +29,13 @@
 
     <!-- Error state -->
     <div v-else-if="error" class="version-error" role="alert">
-      <span>Failed to load versioning data</span>
-      <button class="retry-btn" type="button" @click="refetchAll">Retry</button>
+      <span>{{ t('versioning.load_error') }}</span>
+      <button class="retry-btn" type="button" @click="refetchAll">{{ t('common.retry') }}</button>
     </div>
 
     <!-- Empty state -->
     <div v-else-if="view === 'commits' && commits.length === 0" class="version-empty">
-      No commits yet.
+      {{ t('commits.no_commits') }}
     </div>
 
     <!-- Data state -->
@@ -48,11 +48,11 @@
         <span class="fill"></span>
         <div class="filter-box">
           <User :size="14" class="muted" />
-          <span class="filter-text">All authors</span>
+          <span class="filter-text">{{ t('versioning.all_authors') }}</span>
         </div>
         <div class="filter-box filter-box--wide">
           <Search :size="14" class="muted" />
-          <span class="filter-text">Search by message...</span>
+          <span class="filter-text">{{ t('versioning.search_message') }}</span>
         </div>
       </section>
 
@@ -62,7 +62,7 @@
         <DiffView v-else-if="view === 'compare'" :changes="changes" :commit-options="commitOptions" />
         <TagList v-else-if="view === 'tags'" :tags="tags" />
         <RepositoryGraph v-else-if="view === 'graph'" :nodes="graphNodes" />
-        <div v-else class="mr-placeholder">Merge requests — coming soon</div>
+        <div v-else class="mr-placeholder">{{ t('versioning.mr_coming_soon') }}</div>
       </section>
     </template>
   </div>
@@ -83,11 +83,13 @@ import CommitHistory from "@/components/organisms/CommitHistory.vue";
 import DiffView from "@/components/organisms/DiffView.vue";
 import RepositoryGraph from "@/components/organisms/RepositoryGraph.vue";
 import TagList from "@/components/organisms/TagList.vue";
+import { useI18n } from "@/composables/useI18n";
 import { GitBranch, Search, User } from "@lucide/vue";
 import { useQuery } from "@vue/apollo-composable";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
+const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 
@@ -95,12 +97,12 @@ const view = computed(() => String(route.params.view || "commits"));
 const ontologyId = computed(() => String(route.params.id));
 
 const tabs = [
-	{ id: "commits", label: "Commits" },
-	{ id: "branches", label: "Branches" },
-	{ id: "compare", label: "Compare" },
-	{ id: "tags", label: "Tags" },
-	{ id: "graph", label: "Graph" },
-	{ id: "merge_requests", label: "Merge Requests" },
+	{ id: "commits", label: t("versioning.tab_commits") },
+	{ id: "branches", label: t("versioning.tab_branches") },
+	{ id: "compare", label: t("versioning.tab_compare") },
+	{ id: "tags", label: t("versioning.tab_tags") },
+	{ id: "graph", label: t("versioning.tab_graph") },
+	{ id: "merge_requests", label: t("versioning.tab_merge_requests") },
 ];
 
 function onArrowRight(e: KeyboardEvent) {
@@ -122,12 +124,12 @@ function onArrowLeft(e: KeyboardEvent) {
 }
 
 const titles: Record<string, string> = {
-	commits: "Commit History",
-	branches: "Branches",
-	compare: "Compare Revisions",
-	tags: "Tags",
-	graph: "Repository Graph",
-	merge_requests: "Merge Requests",
+	commits: t("versioning.title_commits"),
+	branches: t("versioning.title_branches"),
+	compare: t("versioning.title_compare"),
+	tags: t("versioning.title_tags"),
+	graph: t("versioning.title_graph"),
+	merge_requests: t("versioning.title_merge_requests"),
 };
 
 // ── REST Data (migrated from Apollo) ─────────────────────────────────────────────

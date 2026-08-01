@@ -2,14 +2,14 @@
 <!-- @ctx: Recent Commits page — full-page view aligned to design/pages/recent-commits.pen -->
 <!-- Matches design/pages/recent-commits.pen frame rcPage -->
 <template>
-    <div class="rc-page" role="main" aria-label="Recent commits page">
+    <div class="rc-page" role="main" :aria-label="t('recent_commits.page_label')">
         <div class="rc-title-col">
             <div class="rc-breadcrumbs">
-                <span class="rc-crumb">Workspace</span>
+                <span class="rc-crumb">{{ t('nav.workspace') }}</span>
                 <ChevronRight :size="12" class="rc-crumb-sep" />
-                <span class="rc-crumb">Commits</span>
+                <span class="rc-crumb">{{ t('nav.commits') }}</span>
             </div>
-            <h1 class="rc-page-title">Commits</h1>
+            <h1 class="rc-page-title">{{ t('nav.commits') }}</h1>
         </div>
 
         <RecentCommits class="rc-recent-section" />
@@ -18,7 +18,10 @@
 
 <script setup lang="ts">
 import RecentCommits from "@/components/organisms/RecentCommits.vue";
+import { useI18n } from "@/composables/useI18n";
 import { ChevronRight } from "@lucide/vue";
+
+const { t } = useI18n();
 </script>
 
 <style scoped>

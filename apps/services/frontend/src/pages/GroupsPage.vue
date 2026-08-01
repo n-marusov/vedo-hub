@@ -1,27 +1,27 @@
 <template>
-  <div class="groups-page" role="main" aria-label="Groups page">
+  <div class="groups-page" role="main" :aria-label="t('groups.page_label')">
     <section class="gp-top">
       <div class="gp-title-col">
         <div class="gp-breadcrumbs">
-          <span class="gp-breadcrumb-text">Workspace</span>
+          <span class="gp-breadcrumb-text">{{ t('groups.breadcrumb_workspace') }}</span>
           <ChevronRight :size="12" class="gp-breadcrumb-sep" />
-          <span class="gp-breadcrumb-text">Groups</span>
+          <span class="gp-breadcrumb-text">{{ t('groups.breadcrumb_groups') }}</span>
         </div>
-        <h1 class="gp-title">Groups</h1>
+        <h1 class="gp-title">{{ t('groups.title') }}</h1>
       </div>
-      <button class="gp-new-btn" type="button" @click="router.push('/dashboard/groups/new')"><Plus :size="14" />New group</button>
+      <button class="gp-new-btn" type="button" @click="router.push('/dashboard/groups/new')"><Plus :size="14" />{{ t('groups.new_group') }}</button>
     </section>
 
     <section class="gp-toolbar">
       <div class="gp-search-wrap">
         <Search :size="14" class="gp-search-icon" />
-        <input class="gp-search-input" type="text" v-model="searchQuery" placeholder="Search groups" aria-label="Search groups" />
+        <input class="gp-search-input" type="text" v-model="searchQuery" :placeholder="t('groups.search_placeholder')" :aria-label="t('groups.search_placeholder')" />
       </div>
       <div class="gp-sort-wrap">
-        <span class="gp-sort-label">Name</span>
+        <span class="gp-sort-label">{{ t('groups.sort_name') }}</span>
         <ChevronDown :size="12" class="gp-sort-chevron" />
         <span class="gp-sort-divider"></span>
-        <span class="gp-sort-label">Ascending</span>
+        <span class="gp-sort-label">{{ t('groups.sort_ascending') }}</span>
         <ChevronDown :size="12" class="gp-sort-chevron" />
       </div>
     </section>

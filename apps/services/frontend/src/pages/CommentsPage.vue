@@ -2,30 +2,30 @@
 <!-- @ctx: Comments page — full-page view with real Apollo-backed comment feed -->
 <!-- Matches design/pages/comments.pen frame commentsPage -->
 <template>
-    <div class="comments-page" role="main" aria-label="Comments page">
+    <div class="comments-page" role="main" :aria-label="t('comments.page_label')">
         <div class="cm-title-col">
             <div class="cm-breadcrumbs">
-                <span class="cm-crumb">Workspace</span>
+                <span class="cm-crumb">{{ t('nav.workspace') }}</span>
                 <ChevronRight :size="12" class="cm-crumb-sep" />
-                <span class="cm-crumb">Comments</span>
+                <span class="cm-crumb">{{ t('nav.comments') }}</span>
             </div>
-            <h1 class="cm-page-title">Comments</h1>
+            <h1 class="cm-page-title">{{ t('nav.comments') }}</h1>
         </div>
 
-        <div v-if="loading" class="cm-loading">Loading comments...</div>
-        <div v-else-if="error" class="cm-error">Failed to load comments: {{ error }}</div>
-        <div v-else-if="mutationError" class="cm-error">Failed to send comment: {{ mutationError }}</div>
+        <div v-if="loading" class="cm-loading">{{ t('comments.loading') }}</div>
+        <div v-else-if="error" class="cm-error">{{ t('comments.load_error', { error }) }}</div>
+        <div v-else-if="mutationError" class="cm-error">{{ t('comments.send_error', { error: mutationError }) }}</div>
         <Comments v-else :comments="commentItems" class="cm-section" />
 
         <div class="cm-new-comment">
             <textarea
                 v-model="newCommentText"
                 class="cm-new-comment__input"
-                placeholder="Write a comment..."
+                :placeholder="t('comments.write_placeholder')"
                 rows="3"
             />
             <button class="cm-new-comment__submit" :disabled="!newCommentText.trim()" @click="submitComment">
-                Send
+                {{ t('comments.send') }}
             </button>
         </div>
     </div>
@@ -38,10 +38,12 @@ import {
 	listComments as apiListComments,
 } from "@/api/comments";
 import Comments from "@/components/organisms/Comments.vue";
+import { useI18n } from "@/composables/useI18n";
 import { ChevronRight } from "@lucide/vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
+const { t } = useI18n();
 const route = useRoute();
 const ontologyId = (route.params.ontologyId as string) || "default";
 
@@ -73,7 +75,7 @@ const commentItems = computed(() =>
 		author: c.authorName ?? c.author ?? "",
 		handle: `@${c.author ?? ""}`,
 		timestamp: formatRelativeTime(c.createdAt ?? ""),
-		action: `commented on entity ${c.entityId}`,
+		action: t("comments.commented_on_entity", { id: String(c.entityId ?? "") }),
 		text: c.text ?? "",
 	})),
 );
@@ -88,7 +90,8 @@ async function submitComment() {
 		newCommentText.value = "";
 		await fetchFeed();
 	} catch (err: unknown) {
-		const message = err instanceof Error ? err.message : "Unknown error";
+		const message =
+			err instanceof Error ? err.message : t("common.unknown_error");
 		mutationError.value = message;
 	}
 }
@@ -98,12 +101,12 @@ function formatRelativeTime(dateStr: string): string {
 	const then = new Date(dateStr).getTime();
 	const diffMs = now - then;
 	const minutes = Math.floor(diffMs / 60000);
-	if (minutes < 1) return "just now";
-	if (minutes < 60) return `${minutes}m ago`;
+	if (minutes < 1) return t("comments.just_now");
+	if (minutes < 60) return t("comments.time_ago_m", { n: String(minutes) });
 	const hours = Math.floor(minutes / 60);
-	if (hours < 24) return `${hours}h ago`;
+	if (hours < 24) return t("comments.time_ago_h", { n: String(hours) });
 	const days = Math.floor(hours / 24);
-	return `${days}d ago`;
+	return t("comments.time_ago_d", { n: String(days) });
 }
 
 // ── Logging ─────────────────────────────────────────────────────────────────

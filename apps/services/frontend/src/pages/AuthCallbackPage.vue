@@ -4,41 +4,46 @@
   <div class="callback-page">
     <div class="callback-card">
       <div v-if="error" class="callback-error" role="alert">
-        <h2>Authentication Failed</h2>
+        <h2>{{ t('auth_callback.error_title') }}</h2>
         <p>{{ error }}</p>
-        <button class="retry-button" @click="retryLogin">Return to Login</button>
+        <button class="retry-button" @click="retryLogin">{{ t('auth_callback.return_to_login') }}</button>
       </div>
       <div v-else class="callback-loading">
         <div class="spinner" aria-hidden="true"></div>
-        <p>Signing you in...</p>
+        <p>{{ t('auth_callback.signing_in') }}</p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { handleCallback } from '@/auth/keycloak'
-import { logAuthRedirect } from '@/utils/structured-logger'
-import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { handleCallback } from "@/auth/keycloak";
+import { useI18n } from "@/composables/useI18n";
+import { logAuthRedirect } from "@/utils/structured-logger";
+import { onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 
-const router = useRouter()
-const error = ref<string | null>(null)
+const { t } = useI18n();
+const router = useRouter();
+const error = ref<string | null>(null);
 
 onMounted(async () => {
-  try {
-    await handleCallback()
-    const redirect = new URLSearchParams(window.location.search).get('redirect') || '/dashboard'
-    router.replace(redirect)
-  } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : 'Unknown authentication error'
-    error.value = message
-    logAuthRedirect({ reason: 'callback_error', target: '/auth/callback' })
-  }
-})
+	try {
+		await handleCallback();
+		const redirect =
+			new URLSearchParams(window.location.search).get("redirect") ||
+			"/dashboard";
+		router.replace(redirect);
+	} catch (e: unknown) {
+		const message =
+			e instanceof Error ? e.message : t("auth_callback.error_unknown");
+		error.value = message;
+		logAuthRedirect({ reason: "callback_error", target: "/auth/callback" });
+	}
+});
 
 function retryLogin(): void {
-  router.replace('/login')
+	router.replace("/login");
 }
 </script>
 

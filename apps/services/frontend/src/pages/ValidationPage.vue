@@ -1,22 +1,22 @@
 <!-- @ctx: Validation page strictly mirrored from design/frontend.pen frame valRep -->
 <!-- @m4 — Wired to RUN_VALIDATION_MUTATION via Apollo GraphQL -->
 <template>
-  <div class="validation-page" role="main" aria-label="Validation Report content">
+  <div class="validation-page" role="main" :aria-label="t('validation.page_label')">
     <section class="validation-title-row">
       <div class="validation-title-wrap">
         <Shield :size="20" class="warning" />
-        <h1 class="validation-title">Validation Report</h1>
+        <h1 class="validation-title">{{ t('validation.title') }}</h1>
       </div>
     </section>
 
     <section class="validation-context">
       <Folder :size="14" class="muted" />
-      <span class="context-label">Validating ontology:</span>
+      <span class="context-label">{{ t('validation.validating_ontology') }}</span>
       <span class="context-badge context-badge--primary">{{ ontologyId || '—' }}</span>
       <GitBranch :size="14" class="muted" />
       <span class="context-badge">main</span>
       <Calendar :size="14" class="muted" />
-      <span class="context-time validation-timestamp">Last validation: {{ lastValidatedAt }}</span>
+      <span class="context-time validation-timestamp">{{ t('validation.last_validation', { date: lastValidatedAt }) }}</span>
     </section>
 
     <section class="validation-actions">
@@ -28,7 +28,7 @@
       >
         <Loader v-if="loading" :size="14" class="spinning spinner" />
         <Play v-else :size="14" />
-        {{ loading ? 'Running...' : 'Run validation' }}
+        {{ loading ? t('validation.running') : t('validation.run') }}
       </button>
     </section>
 
@@ -42,10 +42,12 @@
 import { runValidation as apiRunValidation } from "@/api/validation";
 import type { ValidationReport as ValidationReportPayload } from "@/api/validation";
 import ValidationReport from "@/components/organisms/ValidationReport.vue";
+import { useI18n } from "@/composables/useI18n";
 import { Calendar, Folder, GitBranch, Loader, Play, Shield } from "@lucide/vue";
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 
+const { t, locale } = useI18n();
 const route = useRoute();
 const ontologyId = computed(
 	() =>
@@ -75,15 +77,18 @@ const summary = computed(() => {
 });
 
 const lastValidatedAt = computed(() => {
-	if (!validationResult.value?.validatedAt) return "Never";
-	return new Date(validationResult.value.validatedAt).toLocaleString("en-US", {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-		hour: "2-digit",
-		minute: "2-digit",
-		second: "2-digit",
-	});
+	if (!validationResult.value?.validatedAt) return t("validation.never");
+	return new Date(validationResult.value.validatedAt).toLocaleString(
+		locale.value,
+		{
+			month: "short",
+			day: "numeric",
+			year: "numeric",
+			hour: "2-digit",
+			minute: "2-digit",
+			second: "2-digit",
+		},
+	);
 });
 
 async function runValidation(): Promise<void> {

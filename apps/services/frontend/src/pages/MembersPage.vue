@@ -1,10 +1,10 @@
 <!-- @ctx: Members page strictly mirrored from design/frontend.pen frame memPan -->
 <template>
-  <div class="members-page" role="main" aria-label="Members content">
+  <div class="members-page" role="main" :aria-label="t('members.page_label')">
     <section class="members-title-row">
       <div class="members-title-wrap">
         <Users :size="20" class="primary" />
-        <h1 class="members-title">Members</h1>
+        <h1 class="members-title">{{ t('members.title') }}</h1>
       </div>
       <span class="members-count">{{ members.length }}</span>
     </section>
@@ -16,31 +16,31 @@
 
     <!-- Error state -->
     <div v-else-if="error" class="members-error" role="alert">
-      <span>Failed to load members</span>
-      <button class="retry-btn" type="button" @click="fetchMembers">Retry</button>
+      <span>{{ t('members.load_error') }}</span>
+      <button class="retry-btn" type="button" @click="fetchMembers">{{ t('common.retry') }}</button>
     </div>
 
     <!-- Empty state -->
     <div v-else-if="members.length === 0" class="members-empty">
-      <span>No members found.</span>
+      <span>{{ t('members.no_members') }}</span>
     </div>
 
     <!-- Data state -->
     <template v-else>
       <section class="members-context">
         <Folder :size="14" class="muted" />
-        <span class="context-label">Managing access for:</span>
+        <span class="context-label">{{ t('members.managing_access_for') }}</span>
         <span class="context-badge context-badge--primary">ProductOntology</span>
         <Shield :size="14" class="muted" />
-        <span class="context-note">Only owners can manage members</span>
+        <span class="context-note">{{ t('members.only_owners_note') }}</span>
       </section>
 
       <section class="members-card">
         <div class="table-head">
-          <span class="member-col">Member</span>
-          <span class="role-col">Role</span>
-          <span class="mail-col">Email</span>
-          <span class="actions-col">Actions</span>
+          <span class="member-col">{{ t('members.col_member') }}</span>
+          <span class="role-col">{{ t('members.col_role') }}</span>
+          <span class="mail-col">{{ t('members.col_email') }}</span>
+          <span class="actions-col">{{ t('members.col_actions') }}</span>
         </div>
         <div class="sep"></div>
         <div v-for="member in members" :key="member.name + member.mail" class="table-row">
@@ -51,7 +51,7 @@
               v-if="editingMemberName === member.name"
               :value="member.role"
               class="role-select"
-              aria-label="Select role"
+              :aria-label="t('members.select_role')"
               @change="onRoleChange(member, ($event.target as HTMLSelectElement).value)"
               @blur="onRoleBlur(member)"
             >
@@ -66,15 +66,15 @@
             <button
               class="icon-btn"
               type="button"
-              aria-label="Edit member"
+              :aria-label="t('members.edit_member')"
               @click="startEdit(member)"
             ><Pencil :size="14" /></button>
             <button
               class="icon-btn danger"
               type="button"
-              aria-label="Remove member"
+              :aria-label="t('members.remove_member')"
               :disabled="isLastOwner(member.name)"
-              :title="isLastOwner(member.name) ? 'Cannot remove last owner' : ''"
+              :title="isLastOwner(member.name) ? t('members.cannot_remove_last_owner') : ''"
               @click="confirmRemove(member)"
             ><Trash2 :size="14" /></button>
           </span>
@@ -85,14 +85,14 @@
     <!-- @m4 Remove confirmation dialog -->
     <Dialog
       :open="removeDialogOpen"
-      title="Remove member"
+      :title="t('members.remove_member')"
       size="sm"
       @close="removeDialogOpen = false"
     >
-      <p>Are you sure you want to remove <strong>{{ removingMemberName }}</strong>?</p>
+      <p>{{ t('members.confirm_remove', { name: removingMemberName }) }}</p>
       <template #footer>
-        <button class="dialog-cancel-btn" type="button" @click="removeDialogOpen = false">Cancel</button>
-        <button class="dialog-confirm-btn" type="button" @click="doRemoveMember">Confirm</button>
+        <button class="dialog-cancel-btn" type="button" @click="removeDialogOpen = false">{{ t('common.cancel') }}</button>
+        <button class="dialog-confirm-btn" type="button" @click="doRemoveMember">{{ t('common.confirm') }}</button>
       </template>
     </Dialog>
 
@@ -104,10 +104,12 @@
 <script setup lang="ts">
 import { type MemberInfo, listMembers } from "@/api/org";
 import Dialog from "@/components/ui-kit/Dialog.vue";
+import { useI18n } from "@/composables/useI18n";
 import { Folder, Pencil, Shield, Trash2, Users } from "@lucide/vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 
+const { t } = useI18n();
 const route = useRoute();
 const projectId = computed(() => String(route.params.id || ""));
 
@@ -165,7 +167,7 @@ function startEdit(member: MemberRow): void {
 function onRoleChange(member: MemberRow, newRole: string): void {
 	member.role = newRole;
 	editingMemberName.value = null;
-	notifyMessage.value = "role updated";
+	notifyMessage.value = t("members.role_updated");
 	setTimeout(() => {
 		notifyMessage.value = null;
 	}, 3000);
@@ -196,7 +198,7 @@ function isLastOwner(name: string): boolean {
 
 function confirmRemove(member: MemberRow): void {
 	if (isLastOwner(member.name)) {
-		notifyMessage.value = "Cannot remove last owner";
+		notifyMessage.value = t("members.cannot_remove_last_owner");
 		setTimeout(() => {
 			notifyMessage.value = null;
 		}, 3000);

@@ -1,9 +1,15 @@
 <template>
   <div class="page">
-    <h1 class="page-title">Commits</h1>
-    <p class="page-empty">No commits yet.</p>
+    <h1 class="page-title">{{ t('nav.commits') }}</h1>
+    <p class="page-empty">{{ t('commits.no_commits') }}</p>
   </div>
 </template>
+
+<script setup lang="ts">
+import { useI18n } from "@/composables/useI18n";
+
+const { t } = useI18n();
+</script>
 
 <style scoped>
 .page {

@@ -2,19 +2,21 @@
 <template>
   <div class="not-found-page" role="main" aria-labelledby="nf-title">
     <h1 id="nf-title" class="nf-code">404</h1>
-    <p class="nf-message">Page not found</p>
-    <PrimaryButton @click="goHome" aria-label="Go to Dashboard">Go to Dashboard</PrimaryButton>
+    <p class="nf-message">{{ t('not_found.message') }}</p>
+    <PrimaryButton @click="goHome" :aria-label="t('not_found.go_dashboard')">{{ t('not_found.go_dashboard') }}</PrimaryButton>
   </div>
 </template>
 
 <script setup lang="ts">
-import PrimaryButton from '@/components/ui-kit/PrimaryButton.vue'
-import { useRouter } from 'vue-router'
+import PrimaryButton from "@/components/ui-kit/PrimaryButton.vue";
+import { useI18n } from "@/composables/useI18n";
+import { useRouter } from "vue-router";
 
-const router = useRouter()
+const { t } = useI18n();
+const router = useRouter();
 
 function goHome(): void {
-  router.push({ name: 'dashboard' })
+	router.push({ name: "dashboard" });
 }
 </script>
 

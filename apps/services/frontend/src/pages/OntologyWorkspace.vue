@@ -1,18 +1,18 @@
 <!-- @ctx: Ontology workspace page — wired to real backend via Apollo GraphQL queries -->
 <template>
-  <div class="workspace-page" role="main" aria-label="Ontology Workspace content">
+  <div class="workspace-page" role="main" :aria-label="t('ontology_workspace.page_label')">
     <div v-if="loading" class="workspace-loading">
-      <span>Loading ontology...</span>
+      <span>{{ t('ontology_workspace.loading') }}</span>
     </div>
 
     <div v-else-if="error" class="workspace-error">
-      <span>Failed to load ontology: {{ error }}</span>
+      <span>{{ t('ontology_workspace.load_error', { error }) }}</span>
     </div>
 
     <template v-else>
    <div class="workspace-main">
     <aside class="group-sidebar card-side panel-left">
-          <div class="group-header">Project group</div>
+          <div class="group-header">{{ t('ontology_workspace.project_group') }}</div>
         </aside>
 
         <div class="splitter"><GripVertical :size="8" /></div>
@@ -21,9 +21,9 @@
             <div class="workspace-toolbar">
               <span class="toolbar-title">{{ ontologyData?.name || ontologyId }}</span>
               <span v-if="ontologyData?.branch" class="toolbar-branch-badge">{{ ontologyData.branch }}</span>
-              <span v-if="ontologyData?.dirty" class="toolbar-dirty-badge">Dirty</span>
+              <span v-if="ontologyData?.dirty" class="toolbar-dirty-badge">{{ t('ontology_workspace.dirty') }}</span>
               <span class="toolbar-spacer"></span>
-              <button class="toolbar-btn" type="button">Publish</button>
+              <button class="toolbar-btn" type="button">{{ t('ontology_workspace.publish') }}</button>
               <button
                 class="toolbar-btn toolbar-btn--primary"
                 type="button"
@@ -31,22 +31,22 @@
                 @click="handleSave"
               >
                 <span v-if="saving" class="btn-spinner"></span>
-                {{ saving ? 'Saving...' : 'Save' }}
+                {{ saving ? t('ontology_workspace.saving') : t('common.save') }}
               </button>
               <div class="toolbar-create-group">
                 <button
                   class="toolbar-btn toolbar-create-btn"
                   type="button"
-                  title="Create entity"
+                  :title="t('ontology_workspace.create_entity')"
                   @click="openCreateClass"
                 >
                   <Plus :size="14" />
-                  Create
+                  {{ t('ontology_workspace.create') }}
                 </button>
                 <div class="toolbar-create-dropdown">
-                  <button type="button" @click="openCreateClass">Class</button>
-                  <button type="button" @click="openCreateProperty">Property</button>
-                  <button type="button" @click="openCreateIndividual">Individual</button>
+                  <button type="button" @click="openCreateClass">{{ t('ontology_workspace.create_class') }}</button>
+                  <button type="button" @click="openCreateProperty">{{ t('ontology_workspace.create_property') }}</button>
+                  <button type="button" @click="openCreateIndividual">{{ t('ontology_workspace.create_individual') }}</button>
                 </div>
               </div>
               <button
@@ -55,15 +55,15 @@
                 @click="showAiPanel = !showAiPanel"
               >
                 <Zap :size="14" />
-                AI Import
+                {{ t('ontology_workspace.ai_import') }}
               </button>
             </div>
 
             <!-- AI Import Panel (toggleable) -->
             <div v-if="showAiPanel" class="workspace-ai-panel">
               <div class="ai-panel__header">
-                <h3 class="ai-panel__title">AI-Assisted Ontology Import</h3>
-                <p class="ai-panel__desc">Upload documents or describe your ontology in natural language.</p>
+                <h3 class="ai-panel__title">{{ t('ontology_workspace.ai_import_title') }}</h3>
+                <p class="ai-panel__desc">{{ t('ontology_workspace.ai_import_desc') }}</p>
               </div>
 
               <!-- Tab bar: Document Import / NL→OWL -->
@@ -75,7 +75,7 @@
                   @click="switchAiTab('document')"
                 >
                   <FileText :size="14" />
-                  Document Import
+                  {{ t('ontology_workspace.document_import') }}
                 </button>
                 <button
                   :class="['ai-panel__tab', { 'ai-panel__tab--active': aiTab === 'nl-to-owl' }]"
@@ -115,14 +115,14 @@
                     type="button"
                     @click="uploadMode = 'single'"
                   >
-                    Single file
+                    {{ t('ontology_workspace.single_file') }}
                   </button>
                   <button
                     :class="['ai-panel__mode-btn', { 'ai-panel__mode-btn--active': uploadMode === 'batch' }]"
                     type="button"
                     @click="uploadMode = 'batch'"
                   >
-                    Batch upload
+                    {{ t('ontology_workspace.batch_upload') }}
                   </button>
                 </div>
               </template>
@@ -133,19 +133,19 @@
                 <div class="ai-panel__section">
                   <div class="nl-prompt">
                     <label class="nl-prompt__label" for="nl-to-owl-input">
-                      Describe your ontology in natural language
+                      {{ t('ontology_workspace.nl_label') }}
                     </label>
                     <textarea
                       id="nl-to-owl-input"
                       v-model="nlPrompt"
                       class="nl-prompt__textarea"
                       data-testid="nl-to-owl-input"
-                      placeholder="Example: Create a product ontology with classes for Product, Category, Manufacturer, and Review."
+                      :placeholder="t('ontology_workspace.nl_placeholder')"
                       :disabled="isGenerating"
                       rows="4"
                     ></textarea>
                     <div class="nl-prompt__actions">
-                      <span class="nl-prompt__hint">Describe classes, properties, and relationships you want to model.</span>
+                      <span class="nl-prompt__hint">{{ t('ontology_workspace.nl_hint') }}</span>
                       <button
                         class="nl-prompt__generate-btn"
                         type="button"
@@ -154,7 +154,7 @@
                         @click="handleGenerateFromText"
                       >
                         <span v-if="isGenerating" class="btn-spinner"></span>
-                        {{ isGenerating ? 'Generating...' : 'Generate' }}
+                        {{ isGenerating ? t('ontology_workspace.generating') : t('ontology_workspace.generate') }}
                       </button>
                     </div>
                   </div>
@@ -165,7 +165,7 @@
                   <div class="nl-error">
                     <span class="nl-error__icon">!</span>
                     <span>{{ generationError }}</span>
-                    <button class="nl-error__retry" type="button" @click="handleGenerateFromText">Retry</button>
+                    <button class="nl-error__retry" type="button" @click="handleGenerateFromText">{{ t('common.retry') }}</button>
                   </div>
                 </div>
 
@@ -173,7 +173,7 @@
                 <div v-if="nlResult && nlResult.steps.length > 0 && !isGenerating" class="ai-panel__section">
                   <div class="nl-refinement">
                     <label class="nl-refinement__label" for="refinement-input">
-                      Refine the result (optional)
+                      {{ t('ontology_workspace.refine_label') }}
                     </label>
                     <div class="nl-refinement__row">
                       <input
@@ -182,7 +182,7 @@
                         class="nl-refinement__input"
                         data-testid="refinement-input"
                         type="text"
-                        placeholder="Add more classes, change relationships, or specify details..."
+                        :placeholder="t('ontology_workspace.refine_placeholder')"
                         :disabled="isRefining"
                       />
                       <button
@@ -193,11 +193,11 @@
                         @click="handleRefine"
                       >
                         <span v-if="isRefining" class="btn-spinner"></span>
-                        {{ isRefining ? 'Refining...' : 'Refine' }}
+                        {{ isRefining ? t('ontology_workspace.refining') : t('ontology_workspace.refine') }}
                       </button>
                     </div>
                     <span v-if="refinementRound > 0" class="nl-refinement__round">
-                      Refinement round {{ refinementRound }} / {{ maxRefinementRounds }}
+                      {{ t('ontology_workspace.refinement_round', { round: String(refinementRound), max: String(maxRefinementRounds) }) }}
                     </span>
                   </div>
                 </div>
@@ -231,7 +231,7 @@
             <aside class="class-panel card-side">
               <div class="panel-tools">
                 <Search :size="14" class="muted" />
-                <div class="panel-input">Filter classes...</div>
+                <div class="panel-input">{{ t('ontology_workspace.filter_classes') }}</div>
               </div>
 
               <div class="class-list">
@@ -259,14 +259,14 @@
                   :class="{ 'graph-panel__toggle--active': viewMode === 'graph' }"
                   @click="viewMode = 'graph'"
                 >
-                  Graph
+                  {{ t('ontology_workspace.graph_view') }}
                 </button>
                 <button
                   class="graph-panel__toggle"
                   :class="{ 'graph-panel__toggle--active': viewMode === 'table' }"
                   @click="viewMode = 'table'"
                 >
-                  Table
+                  {{ t('ontology_workspace.table_view') }}
                 </button>
               </div>
 
@@ -292,9 +292,9 @@
               <!-- Table view (existing) -->
               <template v-else>
                 <div class="graph-head">
-                  <span class="col-ind">Individual</span>
-                  <span class="col-prop">Property</span>
-                  <span class="col-val">Value</span>
+                  <span class="col-ind">{{ t('ontology_workspace.col_individual') }}</span>
+                  <span class="col-prop">{{ t('ontology_workspace.col_property') }}</span>
+                  <span class="col-val">{{ t('ontology_workspace.col_value') }}</span>
                 </div>
                 <div
                   v-for="ind in individuals"
@@ -307,7 +307,7 @@
                   <span class="col-val">{{ ind.classLabel }}</span>
                 </div>
                 <div v-if="individuals.length === 0" class="graph-empty">
-                  <span class="muted">No individuals. Select a class to browse.</span>
+                  <span class="muted">{{ t('ontology_workspace.no_individuals') }}</span>
                 </div>
               </template>
             </section>
@@ -315,12 +315,12 @@
             <div class="splitter"><GripVertical :size="8" /></div>
 
             <aside class="property-panel card-side panel-right">
-              <div class="panel-title">Individuals</div>
+              <div class="panel-title">{{ t('ontology_workspace.individuals') }}</div>
               <div class="panel-tools">
                 <Search :size="14" class="muted" />
-                <div class="panel-input">Filter individuals...</div>
+                <div class="panel-input">{{ t('ontology_workspace.filter_individuals') }}</div>
               </div>
-              <div class="indiv-head"><span class="i-name">Name</span><span class="i-type">Type</span></div>
+              <div class="indiv-head"><span class="i-name">{{ t('ontology_workspace.col_name') }}</span><span class="i-type">{{ t('ontology_workspace.col_type') }}</span></div>
               <div v-for="item in individuals" :key="item.id" class="indiv-row">
                 <span class="i-name">{{ item.label }}</span>
                 <span class="i-type i-type--active">{{ item.classLabel }}</span>
@@ -369,6 +369,7 @@ import CreatePropertyDialog from "@/components/ontology/CreatePropertyDialog.vue
 import DocumentUploader from "@/components/ontology/DocumentUploader.vue";
 import SequencePreview from "@/components/ontology/SequencePreview.vue";
 import GraphVisualization from "@/components/organisms/GraphVisualization.vue";
+import { useI18n } from "@/composables/useI18n";
 import {
 	ChevronRight,
 	FileText,
@@ -394,6 +395,7 @@ import type {
 } from "../types/extraction";
 
 const route = useRoute();
+const { t } = useI18n();
 const ontologyId = ref((route.params.id as string) || "default");
 const selectedClassId = ref<string | null>(null);
 const selectedIndividualId = ref<string | null>(null);

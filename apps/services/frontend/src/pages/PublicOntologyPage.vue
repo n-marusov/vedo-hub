@@ -1,23 +1,23 @@
 <!-- @ctx: Public ontology view — dynamically loaded from public-browse-api -->
 <template>
-  <div class="public-page" role="main" aria-label="Public Ontology View">
+  <div class="public-page" role="main" :aria-label="t('public_ontology.page_label')">
     <header class="public-header">
       <div class="public-brand">
         <img src="/vedo-core-logo-1.jpg" alt="VEDO Core" class="public-brand-logo" />
-        <h1 class="public-brand-text" role="heading">Public Ontology</h1>
+        <h1 class="public-brand-text" role="heading">{{ t('public_ontology.title') }}</h1>
       </div>
-      <span class="public-center">{{ metadata?.name ?? 'Public Ontology' }}</span>
-      <span class="public-readonly">Read-only</span>
+      <span class="public-center">{{ metadata?.name ?? t('public_ontology.title') }}</span>
+      <span class="public-readonly">{{ t('public_ontology.readonly') }}</span>
     </header>
 
-    <div v-if="loading" class="public-loading">Loading ontology...</div>
+    <div v-if="loading" class="public-loading">{{ t('public_ontology.loading') }}</div>
     <div v-else-if="error" class="public-error">{{ error }}</div>
 
     <div v-else class="public-main">
       <aside class="public-class card-side">
         <div class="public-tools">
           <Search :size="14" class="muted" />
-          <div class="panel-input">Filter classes...</div>
+          <div class="panel-input">{{ t('public_ontology.filter_classes') }}</div>
         </div>
         <div
           v-for="node in classTree"
@@ -29,40 +29,42 @@
           <Folder :size="14" />
           {{ node.label }}
         </div>
-        <div v-if="classTree.length === 0" class="public-tree-row muted">No classes found</div>
+        <div v-if="classTree.length === 0" class="public-tree-row muted">{{ t('public_ontology.no_classes') }}</div>
       </aside>
 
       <section class="public-graph card-side">
         <div class="graph-head">
-          <span class="col-ind">Individual</span>
-          <span class="col-prop">Property</span>
-          <span class="col-val">Value</span>
+          <span class="col-ind">{{ t('public_ontology.col_individual') }}</span>
+          <span class="col-prop">{{ t('public_ontology.col_property') }}</span>
+          <span class="col-val">{{ t('public_ontology.col_value') }}</span>
         </div>
-        <div class="public-empty" v-if="metadata">Published ontology with {{ metadata.classCount }} classes, {{ metadata.propertyCount }} properties, {{ metadata.individualCount }} individuals</div>
+        <div class="public-empty" v-if="metadata">{{ t('public_ontology.published_summary', { classes: String(metadata.classCount), properties: String(metadata.propertyCount), individuals: String(metadata.individualCount) }) }}</div>
       </section>
 
       <aside class="public-props card-side">
-        <h2 class="prop-title">Properties</h2>
+        <h2 class="prop-title">{{ t('public_ontology.properties') }}</h2>
         <div v-for="prop in properties" :key="prop.id" class="prop-row">
           <span>{{ prop.label }}</span>
           <span class="muted">{{ prop.propertyType }}</span>
         </div>
-        <div v-if="properties.length === 0" class="muted prop-row">No properties</div>
+        <div v-if="properties.length === 0" class="muted prop-row">{{ t('public_ontology.no_properties') }}</div>
       </aside>
     </div>
 
     <footer class="public-banner">
       <Globe :size="14" class="muted" />
-      <span>You are viewing a published snapshot. Edits are disabled.</span>
+      <span>{{ t('public_ontology.snapshot_banner') }}</span>
     </footer>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from "@/composables/useI18n";
 import { usePublicOntology } from "@/composables/usePublicOntology";
 import { ChevronDown, Folder, Globe, Search } from "@lucide/vue";
 import { useRoute } from "vue-router";
 
+const { t } = useI18n();
 const route = useRoute();
 const slug = (route.params.id as string) || "default";
 const {

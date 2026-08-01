@@ -2,23 +2,23 @@
 <!-- @ctx: Merge Requests page — aligned to design/pages/merge-requests.pen -->
 <!-- @m4 — Wired to LIST_MERGE_REQUESTS_QUERY via Apollo GraphQL, filtered by tab -->
 <template>
-    <div class="mr-page" role="main" aria-label="Merge requests">
+    <div class="mr-page" role="main" :aria-label="t('merge_requests.page_label')">
         <div class="mr-title-row">
             <div class="mr-title-left">
                 <div class="mr-breadcrumbs">
-                    <span class="mr-crumb">Workspace</span>
+                    <span class="mr-crumb">{{ t('nav.workspace') }}</span>
                     <ChevronRight :size="12" class="mr-crumb-sep" />
-                    <span class="mr-crumb">Merge request</span>
+                    <span class="mr-crumb">{{ t('merge_requests.title') }}</span>
                 </div>
-                <h1 class="mr-title">Merge Requests</h1>
+                <h1 class="mr-title">{{ t('merge_requests.title') }}</h1>
             </div>
             <button class="mr-project-select" type="button">
-                <span>Select project to create merge request</span>
+                <span>{{ t('merge_requests.select_project') }}</span>
                 <ChevronDown :size="12" class="mr-select-chevron" />
             </button>
         </div>
 
-        <Tab v-model="activeTab" :tabs="tabs" label="Merge request filter" />
+        <Tab v-model="activeTab" :tabs="tabs" :label="t('merge_requests.tab_label')" />
 
         <!-- @m4 Loading state -->
         <div v-if="loading" class="mr-section">
@@ -31,8 +31,8 @@
         <!-- @m4 Error state -->
         <div v-else-if="error" class="mr-section">
             <div class="error-state">
-                <p>Failed to load merge requests.</p>
-                <button class="retry-btn" type="button" @click="fetchMRs">Retry</button>
+                <p>{{ t('merge_requests.load_error') }}</p>
+                <button class="retry-btn" type="button" @click="fetchMRs">{{ t('common.retry') }}</button>
             </div>
         </div>
 
@@ -46,14 +46,17 @@ import { listMergeRequests } from "@/api/merge-requests";
 import type { MergeRequestInfo } from "@/api/merge-requests";
 import MergeRequests from "@/components/organisms/MergeRequests.vue";
 import Tab from "@/components/ui-kit/Tab.vue";
+import { useI18n } from "@/composables/useI18n";
 import { ChevronDown, ChevronRight } from "@lucide/vue";
 import { computed, onMounted, ref, watch } from "vue";
 
-const tabs = [
-	{ value: "active", label: "Active" },
-	{ value: "merged", label: "Merged" },
-	{ value: "all", label: "Search" },
-];
+const { t } = useI18n();
+
+const tabs = computed(() => [
+	{ value: "active", label: t("merge_requests.tab_active") },
+	{ value: "merged", label: t("merge_requests.tab_merged") },
+	{ value: "all", label: t("merge_requests.tab_all") },
+]);
 
 const activeTab = ref("active");
 
