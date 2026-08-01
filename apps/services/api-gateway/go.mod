@@ -6,7 +6,10 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/prometheus/client_golang v1.19.1
+	github.com/redis/go-redis/v9 v9.21.0
+	golang.org/x/text v0.14.0
 	google.golang.org/grpc v1.64.0
+	vedo-core/src/services/shared/llm v0.0.0-00010101000000-000000000000
 	vedo-core/src/services/shared/proto v0.0.0-00010101000000-000000000000
 )
 
@@ -34,7 +37,6 @@ require (
 	github.com/prometheus/client_model v0.5.0 // indirect
 	github.com/prometheus/common v0.48.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
-	github.com/redis/go-redis/v9 v9.21.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	go.opentelemetry.io/otel v1.32.0 // indirect
@@ -45,11 +47,9 @@ require (
 	golang.org/x/crypto v0.21.0 // indirect
 	golang.org/x/net v0.22.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240318140521-94a12d6c2237 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	vedo-core/src/services/shared/llm v0.0.0-00010101000000-000000000000 // indirect
 )
 
 replace vedo-core/src/services/shared/llm => ../../shared/llm
