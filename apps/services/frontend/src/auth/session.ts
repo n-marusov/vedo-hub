@@ -10,9 +10,12 @@ export interface UserSession {
 
 // SKIP_AUTH is disabled in production builds — Vite's dead-code elimination
 // removes all SKIP_AUTH branches at build time when MODE=production.
-// In non-production builds (dev server, e2e test images), the runtime
+// In non-production builds (dev server, dev/e2e images), the runtime
 // window.__VEDO_CONFIG__.SKIP_AUTH value is honored.
-const SKIP_AUTH = import.meta.env.PROD
+// NOTE: must use MODE (not import.meta.env.PROD) — vite build sets
+// NODE_ENV=production (→ PROD=true) for ANY --mode, so PROD would
+// tree-shake SKIP_AUTH even in dev/e2e builds.
+const SKIP_AUTH = import.meta.env.MODE === "production"
 	? false
 	: (window.__VEDO_CONFIG__?.SKIP_AUTH || "false") === "true";
 
