@@ -79,6 +79,8 @@ func (p *PostgresOrgStore) runMigrations() error {
 		"007_rename_ontology_scope_to_project.sql",
 		// Fork infrastructure — upstream tracking
 		"010_add_upstream_project_id.sql",
+		// GitLab-style slugs for GUI navigation
+		"011_add_slug_to_scopes.sql",
 	}
 
 	for _, m := range migrations {
@@ -113,17 +115,18 @@ func (p *PostgresOrgStore) Close() error {
 
 func (p *PostgresOrgStore) UpsertScope(s ScopeNode) error {
 	_, err := p.db.Exec(`
-		INSERT INTO scopes (id, type, parent_id, visibility, tenant_id, name, description, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, now(), now())
+		INSERT INTO scopes (id, type, parent_id, visibility, tenant_id, name, slug, description, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, now(), now())
 		ON CONFLICT (id) DO UPDATE SET
 			type = EXCLUDED.type,
 			parent_id = EXCLUDED.parent_id,
 			visibility = EXCLUDED.visibility,
 			tenant_id = EXCLUDED.tenant_id,
 			name = EXCLUDED.name,
+			slug = EXCLUDED.slug,
 			description = EXCLUDED.description,
 			updated_at = now()
-	`, s.ID, string(s.Type), nullString(s.ParentID), string(s.Visibility), s.TenantID, s.Name, s.Description)
+	`, s.ID, string(s.Type), nullString(s.ParentID), string(s.Visibility), s.TenantID, s.Name, nullString(s.Slug), s.Description)
 	if err != nil {
 		log.Printf(`{"event":"store.error","operation":"UpsertScope","scope":"%s","error":"%v"}`, s.ID, err)
 		return err
@@ -133,11 +136,11 @@ func (p *PostgresOrgStore) UpsertScope(s ScopeNode) error {
 
 func (p *PostgresOrgStore) GetScope(id string) (*ScopeNode, error) {
 	var s ScopeNode
-	var parentID, name, desc sql.NullString
+	var parentID, name, slug, desc sql.NullString
 	err := p.db.QueryRow(`
-		SELECT id, type, parent_id, visibility, tenant_id, name, description
+		SELECT id, type, parent_id, visibility, tenant_id, name, slug, description
 		FROM scopes WHERE id = $1
-	`, id).Scan(&s.ID, &s.Type, &parentID, &s.Visibility, &s.TenantID, &name, &desc)
+	`, id).Scan(&s.ID, &s.Type, &parentID, &s.Visibility, &s.TenantID, &name, &slug, &desc)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -150,6 +153,9 @@ func (p *PostgresOrgStore) GetScope(id string) (*ScopeNode, error) {
 	}
 	if name.Valid {
 		s.Name = name.String
+	}
+	if slug.Valid {
+		s.Slug = slug.String
 	}
 	if desc.Valid {
 		s.Description = desc.String
@@ -172,7 +178,7 @@ func (p *PostgresOrgStore) DeleteScope(id string) error {
 
 func (p *PostgresOrgStore) ListChildScopes(parentID string) ([]ScopeNode, error) {
 	rows, err := p.db.Query(`
-		SELECT id, type, parent_id, visibility, tenant_id, name, description
+		SELECT id, type, parent_id, visibility, tenant_id, name, slug, description
 		FROM scopes WHERE parent_id = $1
 	`, parentID)
 	if err != nil {
@@ -183,8 +189,8 @@ func (p *PostgresOrgStore) ListChildScopes(parentID string) ([]ScopeNode, error)
 	var scopes []ScopeNode
 	for rows.Next() {
 		var s ScopeNode
-		var pid, name, desc sql.NullString
-		if err := rows.Scan(&s.ID, &s.Type, &pid, &s.Visibility, &s.TenantID, &name, &desc); err != nil {
+		var pid, name, slug, desc sql.NullString
+		if err := rows.Scan(&s.ID, &s.Type, &pid, &s.Visibility, &s.TenantID, &name, &slug, &desc); err != nil {
 			return nil, err
 		}
 		if pid.Valid {
@@ -192,6 +198,9 @@ func (p *PostgresOrgStore) ListChildScopes(parentID string) ([]ScopeNode, error)
 		}
 		if name.Valid {
 			s.Name = name.String
+		}
+		if slug.Valid {
+			s.Slug = slug.String
 		}
 		if desc.Valid {
 			s.Description = desc.String
@@ -203,7 +212,7 @@ func (p *PostgresOrgStore) ListChildScopes(parentID string) ([]ScopeNode, error)
 
 func (p *PostgresOrgStore) ListAllScopes() ([]ScopeNode, error) {
 	rows, err := p.db.Query(`
-		SELECT id, type, parent_id, visibility, tenant_id, name, description
+		SELECT id, type, parent_id, visibility, tenant_id, name, slug, description
 		FROM scopes ORDER BY id
 	`)
 	if err != nil {
@@ -214,8 +223,8 @@ func (p *PostgresOrgStore) ListAllScopes() ([]ScopeNode, error) {
 	var scopes []ScopeNode
 	for rows.Next() {
 		var s ScopeNode
-		var pid, name, desc sql.NullString
-		if err := rows.Scan(&s.ID, &s.Type, &pid, &s.Visibility, &s.TenantID, &name, &desc); err != nil {
+		var pid, name, slug, desc sql.NullString
+		if err := rows.Scan(&s.ID, &s.Type, &pid, &s.Visibility, &s.TenantID, &name, &slug, &desc); err != nil {
 			return nil, err
 		}
 		if pid.Valid {
@@ -223,6 +232,9 @@ func (p *PostgresOrgStore) ListAllScopes() ([]ScopeNode, error) {
 		}
 		if name.Valid {
 			s.Name = name.String
+		}
+		if slug.Valid {
+			s.Slug = slug.String
 		}
 		if desc.Valid {
 			s.Description = desc.String

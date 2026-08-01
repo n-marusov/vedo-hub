@@ -68,7 +68,7 @@
 
         <!-- Data state -->
         <section v-else class="pp-list">
-            <article v-for="p in projects" :key="p.name" class="pp-row" @click="router.push({ name: 'ontology-workspace', params: { id: p.id } })">
+            <article v-for="p in projects" :key="p.name" class="pp-row" @click="router.push({ name: 'ontology-workspace', params: { id: p.slug || p.id } })">
                 <div class="pp-row-body">
                     <div class="pp-row-body-top">
                         <Folder :size="20" class="pp-row-folder-icon" />
@@ -196,6 +196,7 @@ function navigateToCreateProject(): void {
 
 interface ProjectRow {
 	id: string;
+	slug: string;
 	name: string;
 	visibility: "public" | "private";
 	description: string;
@@ -244,6 +245,7 @@ const projects = computed<ProjectRow[]>(() => {
 	}
 	return items.map((p: Record<string, unknown>) => ({
 		id: String(p.id || ""),
+		slug: String(p.slug || ""),
 		name: String(p.name || ""),
 		visibility: String(p.visibility || "public").toLowerCase() as
 			| "public"

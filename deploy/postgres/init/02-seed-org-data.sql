@@ -5,21 +5,21 @@
 \connect vedo_org
 
 -- Demo groups (Engineering with a Data Science subgroup, Research)
-INSERT INTO scopes (id, type, parent_id, visibility, tenant_id, name, description)
-SELECT '11111111-1111-4111-8111-111111111111', 'group', NULL, 'Private', '', 'Engineering', 'Engineering team'
+INSERT INTO scopes (id, type, parent_id, visibility, tenant_id, name, slug, description)
+SELECT '11111111-1111-4111-8111-111111111111', 'group', NULL, 'Private', '', 'Engineering', 'engineering', 'Engineering team'
 WHERE NOT EXISTS (SELECT 1 FROM scopes WHERE id = '11111111-1111-4111-8111-111111111111');
 
-INSERT INTO scopes (id, type, parent_id, visibility, tenant_id, name, description)
-SELECT '22222222-2222-4222-8222-222222222222', 'group', '11111111-1111-4111-8111-111111111111', 'Private', '', 'Data Science', 'Data science team'
+INSERT INTO scopes (id, type, parent_id, visibility, tenant_id, name, slug, description)
+SELECT '22222222-2222-4222-8222-222222222222', 'group', '11111111-1111-4111-8111-111111111111', 'Private', '', 'Data Science', 'data-science', 'Data science team'
 WHERE NOT EXISTS (SELECT 1 FROM scopes WHERE id = '22222222-2222-4222-8222-222222222222');
 
-INSERT INTO scopes (id, type, parent_id, visibility, tenant_id, name, description)
-SELECT '33333333-3333-4333-8333-333333333333', 'group', NULL, 'Public', '', 'Research', 'Research division'
+INSERT INTO scopes (id, type, parent_id, visibility, tenant_id, name, slug, description)
+SELECT '33333333-3333-4333-8333-333333333333', 'group', NULL, 'Public', '', 'Research', 'research', 'Research division'
 WHERE NOT EXISTS (SELECT 1 FROM scopes WHERE id = '33333333-3333-4333-8333-333333333333');
 
 -- Demo project under Engineering
-INSERT INTO scopes (id, type, parent_id, visibility, tenant_id, name, description)
-SELECT '44444444-4444-4444-8444-444444444444', 'project', '11111111-1111-4111-8111-111111111111', 'Private', '', 'Demo Project', 'Demo project for E2E tests'
+INSERT INTO scopes (id, type, parent_id, visibility, tenant_id, name, slug, description)
+SELECT '44444444-4444-4444-8444-444444444444', 'project', '11111111-1111-4111-8111-111111111111', 'Private', '', 'Demo Project', 'demo-project', 'Demo project for E2E tests'
 WHERE NOT EXISTS (SELECT 1 FROM scopes WHERE id = '44444444-4444-4444-8444-444444444444');
 
 -- Memberships: OWNER_JWT user (user-123) is Owner of Engineering and Research;

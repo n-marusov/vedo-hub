@@ -65,6 +65,7 @@ type ScopeNode struct {
 	Visibility        Visibility `json:"visibility"`
 	TenantID          string     `json:"tenant_id"`
 	UpstreamProjectID string     `json:"upstream_project_id,omitempty"`
+	Slug              string     `json:"slug,omitempty"`
 	Name              string     `json:"name,omitempty"`
 	Description       string     `json:"description,omitempty"`
 }

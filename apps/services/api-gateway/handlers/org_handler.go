@@ -84,6 +84,7 @@ func (h *OrgHandler) HandleCreateGroup(c *gin.Context) {
 		Description string `json:"description"`
 		ParentID    string `json:"parent_id"`
 		Visibility  string `json:"visibility"`
+		Slug        string `json:"slug"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		slog.Warn("http.org.create_group.invalid_request", "error", err.Error())
@@ -113,6 +114,7 @@ func (h *OrgHandler) HandleCreateGroup(c *gin.Context) {
 		Description: req.Description,
 		ParentId:    req.ParentID,
 		Visibility:  req.Visibility,
+		Slug:        req.Slug,
 	}, token)
 	if err != nil {
 		st, ok := status.FromError(err)
@@ -272,6 +274,7 @@ func (h *OrgHandler) HandleCreateProject(c *gin.Context) {
 		Description string `json:"description"`
 		GroupID     string `json:"group_id"`
 		Visibility  string `json:"visibility"`
+		Slug        string `json:"slug"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		slog.Warn("http.org.create_project.invalid_request", "error", err.Error())
@@ -301,6 +304,7 @@ func (h *OrgHandler) HandleCreateProject(c *gin.Context) {
 		Description: req.Description,
 		GroupId:     req.GroupID,
 		Visibility:  req.Visibility,
+		Slug:        req.Slug,
 	}, token)
 	if err != nil {
 		st, ok := status.FromError(err)

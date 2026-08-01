@@ -73,6 +73,7 @@ func (s *OrgGrpcServer) CreateGroup(ctx context.Context, req *authv1.CreateGroup
 		Type:        org.ScopeGroup,
 		TenantID:    req.OrganizationId,
 		Name:        req.Name,
+		Slug:        req.Slug,
 		Description: req.Description,
 		Visibility:  org.Visibility(visibility),
 	}
@@ -224,6 +225,7 @@ func (s *OrgGrpcServer) CreateProject(ctx context.Context, req *authv1.CreatePro
 		Type:        org.ScopeProject,
 		TenantID:    req.OrganizationId,
 		Name:        req.Name,
+		Slug:        req.Slug,
 		Description: req.Description,
 		ParentID:    req.GroupId,
 		Visibility:  org.Visibility(projectVisibility),
@@ -613,6 +615,7 @@ func scopeNodeToProto(s *org.ScopeNode) *authv1.Scope {
 		Id:                s.ID,
 		Type:              string(s.Type),
 		Name:              name,
+		Slug:              s.Slug,
 		ParentId:          s.ParentID,
 		Visibility:        string(s.Visibility),
 		TenantId:          s.TenantID,
