@@ -216,8 +216,7 @@ PKGJSON
     fi
 
     log "Running Playwright tests..."
-    if FRONTEND_URL="http://127.0.0.1:3000" PUBLISH_URL="http://127.0.0.1:3002" \
-       (cd "$test_dir" && npx playwright test 2>&1); then
+    if (cd "$test_dir" && FRONTEND_URL="http://127.0.0.1:3000" PUBLISH_URL="http://127.0.0.1:3002" npx playwright test 2>&1); then
         pass "Playwright smoke tests passed"
     else
         fail "Playwright smoke tests failed"

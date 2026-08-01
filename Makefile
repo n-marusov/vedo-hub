@@ -792,6 +792,8 @@ test-e2e-gui-full: ## E2E GUI tests — full run (no max-failures)
 .PHONY: test-gates-fast test-gates-full test-gates-security-fast test-gates-security-full
 test-gates-fast: ## Gate tests — fail-fast (unit + static, no infra needed)
 		@printf "$(C_CYAN)[Gates]$(C_RESET) fail-fast mode\n"
+		@printf "$(C_CYAN)[Gates]$(C_RESET) shell script syntax (bash -n)...\n"
+		@bash $(ROOT)/tests/gates/test_shell_syntax.sh || { printf "$(C_RED)[FAIL]$(C_RESET) shell-syntax gate failed\n"; exit 1; }
 		@printf "$(C_CYAN)[Gates]$(C_RESET) contract tests (Go unit + build checks)...\n"
 		@bash $(ROOT)/tests/gates/test_contract_gate.sh || { printf "$(C_RED)[FAIL]$(C_RESET) contract gate failed\n"; exit 1; }
 		@printf "$(C_CYAN)[Gates]$(C_RESET) BOLA/BFLA unit tests (auth middleware)...\n"
@@ -807,6 +809,8 @@ test-gates-fast: ## Gate tests — fail-fast (unit + static, no infra needed)
 test-gates-full: ## Gate tests — full statistics (unit + static, collect all failures)
 		@gate_failures=""; \
 		printf "$(C_CYAN)[Gates]$(C_RESET) full statistics mode\n"; \
+		printf "$(C_CYAN)[Gates]$(C_RESET) shell script syntax...\n"; \
+		bash $(ROOT)/tests/gates/test_shell_syntax.sh 2>&1 || gate_failures="$${gate_failures} shell-syntax"; \
 		printf "$(C_CYAN)[Gates]$(C_RESET) contract tests...\n"; \
 		bash $(ROOT)/tests/gates/test_contract_gate.sh 2>&1 || gate_failures="$${gate_failures} contract"; \
 		printf "$(C_CYAN)[Gates]$(C_RESET) BOLA/BFLA unit tests...\n"; \
