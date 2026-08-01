@@ -357,7 +357,15 @@ export async function listMembers(projectId: string): Promise<MemberInfo[]> {
 				ts: new Date().toISOString(),
 			}),
 		);
-		return data.data ?? [];
+		// Map API snake_case fields to the camelCase MemberInfo interface.
+		// The members endpoint returns user_id; username/avatarUrl are absent.
+		return (data.data ?? []).map((m: Record<string, unknown>) => ({
+			userId: String(m.user_id ?? ""),
+			username: (m.username as string | null) ?? null,
+			avatarUrl: (m.avatar_url as string | null) ?? null,
+			role: String(m.role ?? "Viewer"),
+			addedAt: (m.added_at as string | null) ?? null,
+		}));
 	} catch (err: unknown) {
 		const msg = extractErrorMessage(err, "Failed to list members");
 		console.error(
