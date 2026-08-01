@@ -529,6 +529,21 @@ func (s *OrgService) CreateScope(requesterID string, node ScopeNode) error {
 		return err
 	}
 
+	// @hlv:sec [AUTH_BOUNDARY] — Group creator becomes Owner of the new group.
+	// GitLab-aligned: without auto-membership, the creator would have no role in
+	// their own group and would be FORBIDDEN_INSUFFICIENT_ROLE when creating a
+	// project under it. Projects do not auto-add membership (access is inherited
+	// via the parent group).
+	if node.Type == ScopeGroup {
+		if err := s.store.UpsertMembership(OrgMembership{
+			UserID: requesterID,
+			Scope:  node.ID,
+			Role:   "Owner",
+		}); err != nil {
+			return err
+		}
+	}
+
 	// @hlv audit_log
 	log.Printf(`{"event":"audit.scope.created","scope":"%s","type":"%s","parent":"%s","requester":"%s","visibility":"%s"}`, node.ID, node.Type, node.ParentID, requesterID, node.Visibility)
 

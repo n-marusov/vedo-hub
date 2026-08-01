@@ -25,6 +25,9 @@ import (
 	"sync"
 	"time"
 
+	"bytes"
+	"io"
+
 	"context"
 
 	"github.com/gin-gonic/gin"
@@ -248,6 +251,9 @@ func Idempotency(cfg *IdempotencyConfig) gin.HandlerFunc {
 			c.Next()
 			return
 		}
+		// Restore the request body — GetRawData() consumes it, and downstream
+		// handlers (e.g. ShouldBindJSON) must still read the payload.
+		c.Request.Body = io.NopCloser(bytes.NewReader(bodyBytes))
 		bodyHash := sha256Hex(bodyBytes)
 
 		// Check for existing key
