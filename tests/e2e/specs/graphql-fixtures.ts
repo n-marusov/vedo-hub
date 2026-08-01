@@ -353,15 +353,19 @@ export { expect } from '@playwright/test';
 const MOCK_GROUP_RESPONSE = {
   data: [
     {
-      id: 'grp-001', name: 'Engineering', description: 'Engineering team',
-      visibility: 'private', parentGroupId: null,
-      childGroups: [{ id: 'grp-002', name: 'Data Science', description: 'Data science team', visibility: 'private', parentGroupId: 'grp-001', childGroups: [], memberCount: 8, projectCount: 3 }],
-      memberCount: 12, projectCount: 5,
+      id: 'grp-001', slug: 'engineering', name: 'Engineering', description: 'Engineering team',
+      visibility: 'private', parent_id: null,
+      member_count: 12, project_count: 5,
     },
     {
-      id: 'grp-003', name: 'Research', description: 'Research division',
-      visibility: 'public', parentGroupId: null,
-      childGroups: [], memberCount: 5, projectCount: 2,
+      id: 'grp-002', slug: 'data-science', name: 'Data Science', description: 'Data science team',
+      visibility: 'private', parent_id: 'grp-001',
+      member_count: 8, project_count: 3,
+    },
+    {
+      id: 'grp-003', slug: 'research', name: 'Research', description: 'Research division',
+      visibility: 'public', parent_id: null,
+      member_count: 5, project_count: 2,
     },
   ],
 };
@@ -392,13 +396,13 @@ async function handleRestGroups(route: Route) {
       const body = request.postDataJSON();
       const newGroup = {
         id: 'grp-new-' + Date.now(),
+        slug: body.slug || String(body.label || body.name || 'group').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
         name: body.label || body.name,
         description: body.description || '',
         visibility: body.visibility || 'private',
-        parentGroupId: body.parent_id || null,
-        childGroups: [],
-        memberCount: 1,
-        projectCount: 0,
+        parent_id: body.parent_id || null,
+        member_count: 1,
+        project_count: 0,
       };
       groupStore.data.push(newGroup);
       return route.fulfill({
