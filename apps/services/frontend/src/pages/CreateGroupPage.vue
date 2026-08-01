@@ -246,7 +246,7 @@ onMounted(() => {
 <style scoped>
 .create-group-page {
   padding: 32px 40px;
-  max-width: 720px;
+  width: 100%;
 }
 
 .cgp-breadcrumbs {
