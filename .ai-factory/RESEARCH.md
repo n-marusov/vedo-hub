@@ -1,53 +1,61 @@
 # Research
 
-Updated: 2026-07-22 18:00
+Updated: 2026-08-01 12:00
 Status: active
 
 ## Active Summary (input for $aif-plan)
 <!-- aif:active-summary:start -->
-Topic: DDD Context Map — Templates-via-Forks implemented; M5 Gap Closure next
+Topic: Publishing model + write-path invariant + GitLab-aligned REST API — exploration done; artifact revision mapped
 
 Goal:
-(1) DONE — Templates-via-Forks: 17 tasks, 8 commits, merged to main (d823d8e). Templates BC removed; replaced with VEDO Demos group + fork mechanism. F13.1 Forks in MVP.
-(2) DONE — Project-Ontology Separation: merged to main (164d02d). Project ≠ Ontology, 1:1, canonical paths /projects/{id}/....
-(3) Next: define M5 MVP Scope Gap Closure scope — what remains after Templates-via-Forks.
+- Explore mode session 2026-08-01: ontology publishing (snapshot serving + access model), write-path invariant (no direct writes), external AI integration (capability scopes), REST API realignment to GitLab.
+- Next: formalize via ADRs (write-invariant, REST refactoring, publishing extension) + $aif-plan; apply glossary/vision/roadmap revisions via owners.
 
-Accomplished:
-- templates-via-forks: 17 tasks, fork endpoint POST /api/v1/projects/{id}/fork, Fork Saga in auth-service org.go, 5 demo projects (VEDO Demos), UI (ForkDemoDialog, DemoProjectCard), GUI tests, Antora fork flow docs, security tests, traceability
-- project-ontology-separation: PostgreSQL migration (scopes.type='project', ontologies table), OpenAPI update, Antora docs, negative auth tests
+Decisions:
+1. Publishing: snapshot = read-only serving layer (CQRS; reads >> writes). Access binary: public (no auth) / restricted (API key). Publish gate = maintainer+ (no separate publisher role). Snapshot visibility decoupled from project visibility. Snapshots exposed as /releases (GitLab naming).
+2. Write-path invariant: NO direct writes to ontology — nobody (humans, AI, admins), neither ABox nor TBox. Only branch → commit → MR → review → merge; every mutation = logged commit. REST writes to branch snapshot; ontology changes only via logged commit.
+3. External AI (DMZ, not part of VEDO): integrates via platform API (F6) — ADR premise "no external integration" stays valid. Capability scopes for machines (NOT role ladder): read, propose:abox, propose:tbox, mr:create, publish:restricted; never write:direct, merge:self, publish:public without human. Autonomy×Authority: ABox auto, TBox deterministic gate, public = human. Review gate = deterministic code (reasoner/policy), never "AI reviews AI". Security containment: AI writes ONLY to own branches (ownership namespace branches/{client}/*); identity separation (proposer ≠ approver ≠ publisher) even in full automation; TBox/ABox split: different channels, frequencies, gates (ABox streamed, TBox versioned).
+4. REST API: GitLab-aligned — nested under /projects/{pid}/ (verified vs official GitLab docs; flat contradicts GitLab; global endpoints = read-aggregations only). /api/v1/ontologies/* removed entirely. Content under /projects/{pid}/repository/* with ?branch= (GitLab ?ref= pattern). MR lifecycle 1:1 GitLab (iid, PUT merge, state_event, /diffs). Publishing = /projects/{pid}/releases. Branch protection = /projects/{pid}/protected_branches. Feature *_access_level on PUT /projects/{pid}.
 
-DDD Context Map (12 BC + façade, from session 2026-07-22 14:00):
-- Core (3): Ontology/Knowledge Graph BC (ontology-service, Neo4j), Versioning BC (versioning-service, PostgreSQL), Organization/Access BC (auth-service, PostgreSQL scopes)
-- Supporting MVP (4): AI Orchestration BC (ai-orchestration-service), Document Extraction BC (document-extractor), Publishing BC (publisher+public-browse-api), Collaboration BC (commenting-service)
-- Supporting post-MVP (3): MCP BC (thin proxy), Search BC (cross-ontology), Social BC (forks/stars/DOI/profile)
-- Generic (4): Identity BC, Support/Ticketing BC, Metrics & Observability BC, Administration BC
-- Façade: API Gateway (OHS+ACL), Frontend BC (BFF), Publish Browse UI
+Findings (code vs specs):
+- ADR-DES.INFRA.ontology-publishing NOT implemented: publisher-service + public-browse-api = in-memory stubs; no separate public Neo4j; no rate limiting; publish-browse-ui = stub.
+- Write invariant violated in code: ontology-service direct CRUD (classes/properties/individuals) → Neo4j without branch/commit; import replace/merge direct.
+- Versioning and CRUD disconnected: commit writes delta to PostgreSQL, does NOT apply to Neo4j (only checkout re-materializes + internal state push).
+- MR workflow not implemented (deferred to M10); webhooks (F6.3) declared but absent in code.
+- Roles: no publisher (use maintainer weight 2); Keycloak editor="write" contradicts branch model; reviewer in realm, absent in collaboration spec.
+- specs/requirements/branching-model.md — broken reference (file missing).
+- Specs partially cover invariant: collaboration §3.3 "no direct main editing", storage-stack ADR "deltas per commit"; missing absolute "no direct writes by design" declaration.
 
-Resolved open questions (since 2026-07-22 14:00):
-- Templates/Fork Saga orchestrator → auth-service org.go (decided in plan, implemented)
-- Templates BC → removed (ADR-DES.PROCESS.templates-via-forks)
+Artifact revision (from session 2026-08-01; owners to apply):
+- glossary.md: update restApi (project-scoped paths, branch-scoped writes), publisherService/publicBrowseApi (visibility public/restricted + API key), rbac (maintainer publish gate, capability scopes), serviceAccount/m2mToken (external AI machine identity); add terms: Snapshot/Release, API Key, Capability Scope, write-path invariant.
+- vision.md: F6.1/F16.1 (project-scoped REST), F11 (snapshot visibility + API key + maintainer gate), F3 (checkout internal), MVP 2.5 REST section.
+- ROADMAP.md: M5 Semantic Diff path change (/projects/{pid}/repository/commits/{id}/diffs), M10 MR workflow (invariant enforcement), M11 Publishing (binary visibility, API key, releases naming), M5 REST & Auth (branch-scoped writes).
 
-Carry-over open questions:
-- Audit: shared library ownership + audit_events table placement in Support DB
-- Social Hub: ADR "post-MVP defer" to formalize priority #1 vision-specs gap
-- MCP: should Phase 7 (M2 migration) include MCP contract design?
+Open questions:
+- ADR-DES.API.organization-rest-endpoints: remove /api/v1/ontologies/{id} from public surface (ontology_id stays internal).
+- GraphQL: args ontology_id → project_id (+branch), cursor pagination, DataLoader (ontology-service graphql/query.rs).
+- HITL decision: full AI automation requires revising REQ-NFR.SECURITY.llm-write-human-approval (P0) — keep HITL or consciously replace with deterministic gates.
+- Capability model: bot-user vs principal_type in membership (auth-service/membership).
+- M10 MR workflow is the enforcement backbone — needed before write-invariant holds.
+- Public browse shape: flat /api/v1/public/snapshots/{id} vs GitLab-nested /api/v1/public/projects/{pid}/releases/{id} — to decide (write API is nested; public perimeter has no exact GitLab analog).
+- Storage alternatives for serving layer were analyzed (second Neo4j vs MinIO+index vs Neo4j Enterprise read replica) — decision: separate read-only serving store (CQRS); import mechanism for second Neo4j (neosemantics vs custom mapper) still open if Neo4j route is taken.
 
-New open questions:
-- Should merged feature branches (feature/templates-via-forks, feature/project-ontology-separation) be deleted?
-- What exactly remains in M5 after F13.1 Forks is done? (TBox editor polish, ABox CRUD, class hierarchy/TBox/ABox views, basic Semantic Diff, merge blocking, comments, SPARQL limits)
-
-Decisions (from templates-via-forks plan, now implemented):
-1. Templates BC removed. Demo projects in VEDO Demos group + fork mechanism.
-2. Fork model: upstream_project_id on Project (nullable, Git-style). Endpoint: POST /api/v1/projects/{id}/fork.
-3. Fork Saga orchestrator: auth-service org.go (not API Gateway).
-4. Guest role can fork (read access to source is sufficient; fork creates new Project in user space).
+FULL BLAST RADIUS (from session 2026-08-01, verified against repo — this is a cross-cutting change, NOT a 3-file edit):
+- Specs ADR (~20): organization-rest-endpoints (remove /api/v1/ontologies/{id}), graphql-sparql-split-strategy + protocol-stack-strategy + rest-graphql-mutation-boundary (endpoint tables /api/v1/ontologies/{id}/... → /projects/{pid}/repository/...), ontology-publishing (snapshot → releases, visibility, API key, maintainer gate), doc-extractor-service-strategy (extract/confirm paths), merge-request-strategy (MR = only path to main + automated review), monolith-vs-microservices (checkout internal), public-ontology-access (binary access), gitlab-like-organization-model (maintainer publish gate, capability scopes), storage-stack-strategy (deltas per commit, separate serving store), bola-bfla-negative-tests-mandate (endpoint-class table), vedo-cli-admin-boundary + cli-mfa-strategy (service account scopes), deprecation-policy + backward-compatibility (path migration), + all ADRs referencing /api/v1/ontologies (grep).
+- Specs REQ (~10 direct + ~30 by path): ontology-publishing, DATA.versioning (paths /ontologies/{id}/commits|branches|merge → project-scoped), API.doc-extract-flow (paths), DATA.ontology-identifier-standard (GET /api/v1/ontologies/{id}), API.rest-versioning (examples), CROSS.sequences (publish/browse sequence diagrams, GET /public/ontologies/{slug}/metadata), INTEGRATION.saga-pattern (publish snapshot), PROCESS.e2e-testing (test dirs), SECURITY.llm-write-human-approval (HITL revision), SECURITY.llm-excessive-agency-control (Autonomy×Authority for publishing).
+- Specs UC (~10): io.publish.publish-ontology-snapshot, browse.public.view-published-ontology, editor.classes/properties.* (branch+commit writes), git.branches/commits.* (checkout internal, branch=snapshot), team.reviews.review-merge-request, api.integration.integrate-through-platform-apis, api.webhooks.*, org.projects.manage-project-lifecycle, platform.landing.* (already in submodule bump).
+- Specs US (~15): api.classes.create-rest, api.ontologies.read-rest, browse.public.view + view-accessible, io.publish.snapshot, editor.classes.*, abox.individuals.*, git.branches.* + commits.*, team.reviews.approve, E2E-api.integration.rest, E2E-versioning.branches.switch-rollback, + US with /ontologies/ (grep).
+- openapi.json (apps/services/api-gateway/docs/openapi.json): ALL paths block — /ontologies (L23), /ontologies/{id} (L99), /ontologies/{id}/classes (L208), /properties (L443), /individuals (L544), /{propertyId} (L1756), /{individualId} (L1881), /export (L2006), /import (L2056), /versioning/commits* (L2106+), /versioning/branches* (L2373+) → /projects/{pid}/repository/* + new /merge_requests, /releases, /protected_branches. Keep ProjectDetail.ontology_id (internal); revise CreateOntologyRequest/UpdateOntologyRequest.
+- Code (7 services): api-gateway routes.go + auth/auth.go (role weights, RequiredRoleLevel, publish gate maintainer=2) + main.go (exempt paths); ontology-service lib.rs (routes) + classes/properties/individuals.rs + handlers (export/import/validate) + graphql/query.rs (ontology_id → project_id); versioning-service routes.rs + handlers + sync_client.rs (project-scoped, MR endpoints); publisher-service storage.rs + handlers (releases, visibility, API key); public-browse-api snapshot_reader.rs + handlers (binary access); frontend api/ontology.ts + versioning.ts + validation.ts + extraction.ts + merge-requests.ts + fork.ts + org.ts + pages (OntologyWorkspace, VersioningPage, ValidationPage, PublishSnapshotDialog, ...); vedo-cli commands; shared/proto (publisher, public_browse stubs → real).
+- Tests (84+ spec files): tests/e2e/specs/api/rest/* (api-gateway-full, api-integration, jwt-auth, org-api, query-execution), tests/e2e/specs/gui/flows/* (a11y, admin, ai-completion, browse, commenting-flow, document-*, editor, ontology-lifecycle), tests/e2e/pages/*.page.ts (mock intercepts **/api/v1/ontologies/*), tests/security/* (BOLA/BFLA /api/v1/ontologies/{ontologyId}/*), apps/services/frontend/src/__tests__/*.spec.ts (PublishSnapshotDialog, VersioningPage, OntologyWorkspaceSave, ...), tests/gates, tests/integration.
+- Docs (Antora): developer-guide (architecture, development, testing, configuration, deployment), user-guide (versioning.adoc — protected branches, MR), integrator-guide (API reference, REST paths), admin-guide.
+- Note: .ai-factory/plans/*, evolution/*, patches/* also reference old paths (M3 plan, AI-creation plan, patches) — historical, update only if still active.
 
 Success signals:
-- templates-via-forks: implemented, tested, merged
-- project-ontology-separation: implemented, merged
-- RESEARCH.md actualized
+- Exploration decisions captured; artifact revision mapped to owners.
+- RESEARCH.md actualized.
 
-Next step: $aif-plan full m5-gap-closure — close MVP scope gaps after Templates-via-Forks. Or $aif-explore M5 scope to refine what remains.
+Next step: $aif-plan full rest-api-realignment (write-invariant + GitLab-aligned REST + publishing) or first formalize ADRs; apply glossary/vision/roadmap edits via owners.
 <!-- aif:active-summary:end -->
 
 ## Sessions
@@ -218,4 +226,39 @@ Links (paths):
 - deploy/seeds/vedo-demos/bootstrap.sh (5 demo projects)
 - specs/adr/ADR-DES.PROCESS.templates-via-forks.md
 - ROADMAP.md (M5 updated with F13.1)
-<!-- aif:sessions:end -->
+
+### 2026-08-01 12:00 — Ревизия: публикация снэпшотов, write-path инвариант, GitLab-выровненный REST API
+
+What changed (exploration arc, starting from publishing model):
+- Проанализирован ADR-DES.INFRA.ontology-publishing + REQ-CON.STACK.ontology-publishing: снэпшот = read-only serving-слой, CQRS (чтения ≫ записи), отдельное хранилище.
+- Доступ к снэпшоту: бинарный public (без auth) / restricted (API key); видимость снэпшота не связана с видимостью Project; публикация — роль maintainer+ (отдельную publisher-роль не вводим).
+- Зафиксирован write-path инвариант: никто (включая AI и админов) не меняет онтологию напрямую — ни ABox, ни TBox; только ветка → коммит → MR → review → merge; каждое изменение = логгируемый коммит. REST работает с локальным снимком ветки.
+- Сценарий внешней AI-системы (DMZ, вне VEDO): интеграция через платформенный API (F6), premise ADR «интеграция не планируется» остаётся в силе; capability-скоупы (не лестница ролей); автономия × авторитет; review-gate = детерминированный код.
+- REST API выровнен по GitLab (проверено по официальной документации: плоские пути противоречат GitLab — всё вложено в /projects/:id/, глобальные эндпоинты только read-агрегации): /api/v1/ontologies/* убрано; контент /projects/{pid}/repository/* с ?branch=; MR 1:1 GitLab (iid, PUT merge, state_event, /diffs); публикация = /projects/{pid}/releases; protected_branches отдельным ресурсом.
+- Проведена ревизия затрагиваемых артефактов: glossary.md, vision.md, ROADMAP.md (детали в Active Summary и ниже).
+
+Key notes (код vs спеки):
+- ADR публикации не реализован: publisher-service и public-browse-api — in-memory заглушки; нет отдельного public Neo4j; нет rate limiting; publish-browse-ui — stub.
+- Инвариант в коде нарушен: ontology-service пишет прямо в Neo4j (CRUD + import replace/merge) без ветки/коммита; versioning и CRUD развязаны (коммит пишет дельту в PostgreSQL, Neo4j не меняет; только checkout перематериализует через /internal/ontologies/{id}/state).
+- MR-workflow не реализован (M10); webhooks (F6.3) заявлены, в коде нет.
+- Роли: в Keycloak нет publisher (нужен гейт maintainer=2 в gateway RequiredRoleLevel); editor описан как «write» — противоречит веточной модели; reviewer есть в realm, нет в collaboration-спеке.
+- specs/requirements/branching-model.md — битая ссылка (файла нет).
+- Спеки частично покрывают инвариант (collaboration §3.3, storage-stack ADR «дельты = каждый коммит»), но нет абсолютной декларации «прямых записей не существует by design» — требуется новый ADR/требование.
+- TBox/ABox split как модель эволюции знаний: ABox — высокочастотные факты, стрим/авто, TBox — редкие рискованные изменения, versioned + гейт; разные каналы публикации (live vs stable/release train).
+- Анализ альтернатив serving-хранилища: (A) второй Neo4j — готовый граф/FTS, но двойная эксплуатация + сложность импорта (neosemantics/кастомный маппер); (B) MinIO снэпшот + индекс (Postgres JSONB/tantivy) — нулевой контакт с prod-БД, но строить индекс самим; (C) Neo4j Enterprise read replica — лучшее из обоих, но лицензия. Итог: отдельное read-only serving-хранилище (CQRS); конкретный механизм импорта — open question.
+- Принципы безопасности автоматизации: AI пишет только в свои ветки (ownership namespace branches/{client}/*); разделение identity (proposer ≠ approver ≠ publisher) даже при полной автоматизации; review-gate = детерминированный код; человек — на границе public-публикации; rate limits/circuit breakers; провинанс+аудит (модель, версия, промпт, входы).
+
+Links (paths):
+- specs/adr/ADR-DES.INFRA.ontology-publishing.md
+- specs/requirements/REQ-CON.STACK.ontology-publishing.md
+- specs/requirements/REQ-FUN.INTEGRATION.collaboration.md (§1, §3.1, §3.3)
+- specs/adr/ADR-DES.PROCESS.merge-request-strategy.md
+- specs/adr/ADR-DES.API.organization-rest-endpoints.md
+- specs/adr/ADR-DES.DATA.storage-stack-strategy.md
+- specs/requirements/REQ-NFR.SECURITY.llm-write-human-approval.md, REQ-NFR.SECURITY.llm-excessive-agency-control.md
+- .ai-factory/references/gitlab-projects-groups-api.md + официальные доки GitLab (merge_requests API: /projects/:id/...)
+- apps/services/ontology-service/src/lib.rs, classes.rs, handlers/import_handler.rs
+- apps/services/versioning-service/src/handlers/commit_handler.rs, services/sync_client.rs
+- apps/services/publisher-service/src/storage.rs, public-browse-api/src/snapshot_reader.rs
+- apps/services/api-gateway/auth/auth.go (role weights), routes.go, main.go
+- deploy/keycloak/vedo-core-realm.json (роли), specs/glossary.md, specs/vision.md, .ai-factory/ROADMAP.md
