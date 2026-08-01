@@ -198,71 +198,30 @@
                           "textGrowth": "fixed-width",
                           "width": "fill_container"
                         },
-                        {
-                          "type": "frame",
-                          "id": "cppUrlRow",
-                          "name": "urlRow",
-                          "width": "fill_container",
-                          "alignItems": "center",
-                          "gap": 0,
-                          "children": [
-                            {
-                              "type": "frame",
-                              "id": "cppUrlPrefix",
-                              "name": "urlPrefix",
-                              "height": 36,
-                              "alignItems": "center",
-                              "padding": [4, 12],
-                              "fill": "$B:background",
-                              "stroke": "$B:input",
-                              "strokeWidth": 1,
-                              "strokeAlignment": "inner",
-                              "children": [
-                                {
-                                  "type": "text",
-                                  "id": "cppUrlPrefixText",
-                                  "content": "https://vedo-hub.ru/",
-                                  "fill": "$B:muted-foreground",
-                                  "fontFamily": "IBM Plex Mono",
-                                  "fontSize": 13,
-                                  "fontWeight": "normal"
-                                }
-                              ]
-                            },
-                            {
-                              "id": "cppNamespaceSelect",
-                              "type": "ref",
-                              "ref": "B:K5sXB",
-                              "name": "namespaceSelect",
-                              "width": 160,
-                              "descendants": {
-                                "B:3Fqj2": { "content": "vedo-core" },
-                                "B:AJyq3": { "content": "personal" },
-                                "B:SKPVU": { "content": "vedo-core" },
-                                "B:ZSVhE": { "content": "team" }
-                              }
-                            },
-                            {
-                              "type": "text",
-                              "id": "cppUrlSlash",
-                              "content": "/",
-                              "fill": "$B:muted-foreground",
-                              "fontFamily": "IBM Plex Mono",
-                              "fontSize": 16,
-                              "fontWeight": "normal"
-                            },
-                            {
-                              "id": "cppSlugInput",
-                              "type": "ref",
-                              "ref": "B:yA4l7",
-                              "name": "slugInput",
-                              "width": "fill_container",
-                              "descendants": {
-                                "B:xAwdW": { "content": "my-project" }
-                              }
-                            }
-                          ]
-                        }
+                        						{
+                        						  "type": "frame",
+                        						  "id": "cppUrlRow",
+                        						  "name": "urlRow",
+                        						  "width": "fill_container",
+                        						  "gap": 0,
+                        						  "children": [
+                        						    {
+                        						      "type": "ref",
+                        						      "ref": "B:jBW87",
+                        						      "id": "cppSlugInput",
+                        						      "name": "urlInputGroup",
+                        						      "width": "fill_container",
+                        						      "descendants": {
+                        						        "hxtPz": {
+                        						          "content": "https://vedo-hub.ru/"
+                        						        },
+                        						        "E9tIuN": {
+                        						          "content": "my-project"
+                        						        }
+                        						      }
+                        						    }
+                        						  ]
+                        						}
                       ]
                     },
                     {

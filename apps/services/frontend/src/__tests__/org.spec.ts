@@ -188,3 +188,79 @@ describe("org API - createGroup", () => {
 		);
 	});
 });
+
+describe("org API - createProject", () => {
+	afterEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it("should include slug in createProject payload when provided", async () => {
+		const axios = await import("axios");
+		const mockApi = axios.default.create();
+		vi.mocked(mockApi.post).mockResolvedValue({
+			data: {
+				data: {
+					id: "new-project-1",
+					slug: "my-test-project",
+					name: "My Test Project",
+					description: null,
+					visibility: "Private",
+					ontologyId: "ontology-uuid",
+					memberCount: 0,
+					updatedAt: null,
+				},
+			},
+		});
+
+		const { createProject } = await import("@/api/org");
+		await createProject({
+			name: "My Test Project",
+			groupId: "group-1",
+			visibility: "Private",
+			slug: "my-test-project",
+		});
+
+		expect(mockApi.post).toHaveBeenCalledWith(
+			"/projects",
+			expect.objectContaining({
+				name: "My Test Project",
+				group_id: "group-1",
+				visibility: "Private",
+				slug: "my-test-project",
+			}),
+			expect.objectContaining({ headers: expect.any(Object) }),
+		);
+	});
+
+	it("should not include slug in createProject payload when omitted", async () => {
+		const axios = await import("axios");
+		const mockApi = axios.default.create();
+		vi.mocked(mockApi.post).mockResolvedValue({
+			data: {
+				data: {
+					id: "new-project-1",
+					slug: "",
+					name: "My Project",
+					description: null,
+					visibility: "Private",
+					ontologyId: "ontology-uuid",
+					memberCount: 0,
+					updatedAt: null,
+				},
+			},
+		});
+
+		const { createProject } = await import("@/api/org");
+		await createProject({
+			name: "My Project",
+			groupId: "group-1",
+			visibility: "Private",
+		});
+
+		const [, payload] = vi.mocked(mockApi.post).mock.calls[0] as [
+			string,
+			Record<string, unknown>,
+		];
+		expect(payload).not.toHaveProperty("slug");
+	});
+});

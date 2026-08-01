@@ -10,6 +10,10 @@ interface Window {
 		USE_MOCK_API?: string;
 		APP_VERSION?: string;
 		APP_ENV?: string;
+		// Public domain (host) used to build group/project URLs. Injected at
+		// runtime by docker-entrypoint.sh from the VEDO_PUBLIC_DOMAIN env var
+		// (defaults to vedo-core.local). Non-sensitive, served from /config.js.
+		PUBLIC_DOMAIN?: string;
 		// Dev-only self-signed JWT minted on the host by `make docker-up`
 		// (deploy/dev-jwt/gen-dev-jwt.js) and passed via VEDO_DEV_JWT_TOKEN.
 		// Used by session.ts in SKIP_AUTH mode so API calls carry a

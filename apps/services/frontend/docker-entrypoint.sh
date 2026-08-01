@@ -61,6 +61,7 @@ window.__VEDO_CONFIG__ = {
   USE_MOCK_API: "${VEDO_USE_MOCK_API:-false}",
   APP_VERSION: "${VEDO_APP_VERSION:-dev}",
   APP_ENV: "${VEDO_APP_ENV:-dev}",
+  PUBLIC_DOMAIN: "${VEDO_PUBLIC_DOMAIN:-vedo-core.local}",
   DEV_JWT_TOKEN: "${DEV_JWT_TOKEN}"
 };
 SAFE_EOF

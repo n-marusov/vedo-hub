@@ -229,44 +229,21 @@
                           "fontSize": 12,
                           "fontWeight": "500"
                         },
-                        {
-                          "type": "frame",
-                          "id": "cgUrlPreview",
-                          "name": "urlPreview",
-                          "width": "fill_container",
-                          "height": 36,
-                          "fill": "$B:background",
-                          "cornerRadius": 6,
-                          "stroke": "$B:input",
-                          "strokeWidth": 1,
-                          "strokeAlignment": "inner",
-                          "padding": [
-                            4,
-                            12
-                          ],
-                          "alignItems": "center",
-                          "children": [
-                            {
-                              "type": "text",
-                              "id": "cgUrlPrefix",
-                              "fill": "$B:muted-foreground",
-                              "content": "vedo-core.local/",
-                              "fontFamily": "IBM Plex Mono",
-                              "fontSize": 14,
-                              "fontWeight": "normal"
-                            },
-                            {
-                              "type": "text",
-                              "id": "cgUrlSlug",
-                              "opacity": 0.6,
-                              "fill": "$B:foreground",
-                              "content": "my-group",
-                              "fontFamily": "IBM Plex Mono",
-                              "fontSize": 14,
-                              "fontWeight": "normal"
-                            }
-                          ]
-                        }
+						{
+						  "type": "ref",
+						  "ref": "B:jBW87",
+						  "id": "cgUrlPreview",
+						  "name": "urlInputGroup",
+						  "width": "fill_container",
+						  "descendants": {
+						    "hxtPz": {
+						      "content": "vedo-core.local/"
+						    },
+						    "E9tIuN": {
+						      "content": "my-group"
+						    }
+						  }
+						}
                       ]
                     },
                     {

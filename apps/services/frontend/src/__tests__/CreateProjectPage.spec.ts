@@ -36,6 +36,8 @@ vi.mock("@/composables/useI18n", () => ({
 				"projects.name_placeholder": "My project",
 				"projects.name_required": "Project name is required",
 				"projects.project_url": "Project URL",
+				"projects.slug_placeholder": "project-slug",
+				"projects.slug_help": "The URL path used to access the project.",
 				"projects.description": "Description",
 				"projects.description_placeholder": "Project description (optional)",
 				"projects.visibility": "Visibility level",
@@ -84,6 +86,7 @@ vi.mock("@/composables/useToast", () => ({
 const mockGroups = [
 	{
 		id: "group-1",
+		slug: "research-team",
 		name: "Research Team",
 		description: "Research group",
 		parentGroupId: null,
@@ -93,6 +96,7 @@ const mockGroups = [
 	},
 	{
 		id: "group-2",
+		slug: "engineering",
 		name: "Engineering",
 		description: "Engineering group",
 		parentGroupId: null,
@@ -192,6 +196,7 @@ describePage("CreateProjectPage", () => {
 		vi.mocked(listGroups).mockResolvedValue(mockGroups);
 		vi.mocked(createProject).mockResolvedValue({
 			id: "new-project-1",
+			slug: "knowledge-graph",
 			name: "Knowledge Graph",
 			description: null,
 			visibility: "Private",
@@ -240,6 +245,7 @@ describePage("CreateProjectPage", () => {
 		vi.mocked(listGroups).mockResolvedValue(mockGroups);
 		vi.mocked(createProject).mockResolvedValue({
 			id: "new-project-1",
+			slug: "test-project",
 			name: "Test Project",
 			description: null,
 			visibility: "Private",
@@ -304,5 +310,103 @@ describePage("CreateProjectPage", () => {
 
 		// Page should still be visible (no redirect on error)
 		expect(wrapper.text()).toContain("New project");
+	});
+
+	it("should auto-fill the slug with transliteration for a Cyrillic project name", async () => {
+		const { listGroups } = await import("@/api/org");
+		vi.mocked(listGroups).mockResolvedValue(mockGroups);
+		const CreateProjectPage = (await import("@/pages/CreateProjectPage.vue"))
+			.default;
+		const wrapper = mountWithProviders(CreateProjectPage);
+		await waitForQuery();
+		await nextTick();
+
+		await flushPromises();
+		await nextTick();
+
+		const select = wrapper.find("#cpp-group-select");
+		await select.setValue("group-1");
+		await nextTick();
+
+		const input = wrapper.find("#cpp-project-name");
+		await input.setValue("Онтология продукта");
+		await nextTick();
+
+		// Slug input should show the transliterated value
+		const slugInput = wrapper.find("#cpp-slug-input");
+		expect((slugInput.element as HTMLInputElement).value).toBe(
+			"ontologiya-produkta",
+		);
+	});
+
+	it("should render the project slug input with the domain prefix", async () => {
+		const { listGroups } = await import("@/api/org");
+		vi.mocked(listGroups).mockResolvedValue(mockGroups);
+		const CreateProjectPage = (await import("@/pages/CreateProjectPage.vue"))
+			.default;
+		const wrapper = mountWithProviders(CreateProjectPage);
+		await waitForQuery();
+		await nextTick();
+
+		await flushPromises();
+		await nextTick();
+
+		const select = wrapper.find("#cpp-group-select");
+		await select.setValue("group-1");
+		await nextTick();
+
+		const slugInput = wrapper.find("#cpp-slug-input");
+		expect(slugInput.exists()).toBe(true);
+		expect(wrapper.text()).toContain("vedo-core.local/");
+	});
+
+	it("should send the edited slug to the createProject API", async () => {
+		const { listGroups, createProject } = await import("@/api/org");
+		vi.mocked(listGroups).mockResolvedValue(mockGroups);
+		vi.mocked(createProject).mockResolvedValue({
+			id: "new-project-1",
+			slug: "knowledge-graph",
+			name: "Knowledge Graph",
+			description: null,
+			visibility: "Private",
+			ontologyId: "ontology-uuid",
+			memberCount: 1,
+			updatedAt: null,
+		});
+		const CreateProjectPage = (await import("@/pages/CreateProjectPage.vue"))
+			.default;
+		const wrapper = mountWithProviders(CreateProjectPage);
+		await waitForQuery();
+		await nextTick();
+
+		await flushPromises();
+		await nextTick();
+
+		const select = wrapper.find("#cpp-group-select");
+		await select.setValue("group-1");
+		await nextTick();
+
+		const input = wrapper.find("#cpp-project-name");
+		await input.setValue("Knowledge Graph");
+		await nextTick();
+
+		const slugInput = wrapper.find("#cpp-slug-input");
+		await slugInput.setValue("knowledge-graph-custom");
+		await nextTick();
+
+		const createBtn = wrapper.find(".cpp-btn-create");
+		await createBtn.trigger("click");
+
+		await flushPromises();
+		await nextTick();
+
+		expect(createProject).toHaveBeenCalledWith(
+			expect.objectContaining({
+				name: "Knowledge Graph",
+				groupId: "group-1",
+				visibility: "Private",
+				slug: "knowledge-graph-custom",
+			}),
+		);
 	});
 });

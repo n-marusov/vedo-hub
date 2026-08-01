@@ -36,14 +36,20 @@
         <p class="cgp-help-text">{{ t('groups.name_help') }}</p>
       </div>
 
-      <!-- Group URL / Slug (read-only) -->
-      <div class="cgp-field">
-        <label class="cgp-label">{{ t('groups.group_url') }}</label>
-        <div class="cgp-slug-wrap">
-          <span class="cgp-slug-prefix">vedo-core.local/</span>
-          <span class="cgp-slug-value">{{ slugPreview || t('groups.slug_placeholder') }}</span>
-        </div>
-      </div>
+    	  <!-- Group URL / Slug (editable) -->
+    	  <div class="cgp-field">
+    	    <label class="cgp-label" for="cgp-slug-input">{{ t('groups.group_url') }}</label>
+	    <InputGroup
+	      :id="'cgp-slug-input'"
+	      v-model="slug"
+	      :prefix="urlPrefix"
+	      :placeholder="t('groups.slug_placeholder')"
+	      :disabled="creating"
+	      :aria-label="t('groups.group_url')"
+	      @update:modelValue="onSlugInput"
+	    />
+    	    <p class="cgp-help-text">{{ t('groups.slug_help') }}</p>
+    	  </div>
 
       <!-- Visibility -->
       <div class="cgp-field--vis">
@@ -99,8 +105,11 @@
 
 <script setup lang="ts">
 import { createGroup } from "@/api/org";
+import InputGroup from "@/components/ui-kit/InputGroup.vue";
 import { useI18n } from "@/composables/useI18n";
 import { useToast } from "@/composables/useToast";
+import { getPublicDomain } from "@/config";
+import { slugify } from "@/utils/slug";
 import {
 	ChevronRight,
 	FolderTree,
@@ -119,6 +128,8 @@ const route = useRoute();
 const router = useRouter();
 
 const groupName = ref("");
+const slug = ref("");
+const slugTouched = ref(false);
 const nameError = ref("");
 const creating = ref(false);
 const parentName = ref("");
@@ -165,17 +176,34 @@ const selectedVisibility = ref(
 	isSubgroup.value ? parentVisibility.value : "private",
 );
 
-const slugPreview = computed(() => {
-	if (!groupName.value) return "";
-	return groupName.value
-		.toLowerCase()
-		.replace(/\s+/g, "-")
-		.replace(/[^a-z0-9-]/g, "")
-		.substring(0, 64);
-});
+// Immutable domain prefix — resolved from the runtime env (VEDO_PUBLIC_DOMAIN).
+const urlPrefix = computed(() => `${getPublicDomain()}/`);
 
 function onNameInput() {
 	nameError.value = "";
+	// Auto-fill the slug from the name until the user edits it manually.
+	// Transliteration (Cyrillic → Latin) is applied so non-Latin names
+	// still produce a valid URL path segment.
+	if (!slugTouched.value) {
+		slug.value = slugify(groupName.value);
+		console.info(
+			JSON.stringify({
+				level: "info",
+				msg: "[FIX] CreateGroupPage.slug_autofill",
+				name: groupName.value,
+				slug: slug.value,
+				transliterated: /[а-яё]/i.test(groupName.value),
+				ts: new Date().toISOString(),
+			}),
+		);
+	}
+}
+
+function onSlugInput(value: string) {
+	slugTouched.value = true;
+	// Sanitize what the user types: keep only [a-z0-9-], transliterate
+	// any Cyrillic typed directly into the field.
+	slug.value = slugify(value);
 }
 
 async function handleCreate() {
@@ -201,7 +229,7 @@ async function handleCreate() {
 	try {
 		const result = await createGroup({
 			name: trimmed,
-			slug: slugPreview.value || undefined,
+			slug: slug.value || undefined,
 			visibility: selectedVisibility.value,
 			parent_id: parentId.value || undefined,
 		});
@@ -378,34 +406,10 @@ onMounted(() => {
 }
 
 .cgp-error-text {
-  margin: 0;
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
-  color: var(--destructive);
-}
-
-.cgp-slug-wrap {
-  display: flex;
-  align-items: center;
-  height: 36px;
-  padding: 4px 12px;
-  border-radius: 6px;
-  border: 1px solid var(--input, var(--border));
-  background: var(--background, var(--card));
-  gap: 0;
-}
-
-.cgp-slug-prefix {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 14px;
-  color: var(--muted-foreground);
-}
-
-.cgp-slug-value {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 14px;
-  color: var(--foreground);
-  opacity: 0.5;
+	margin: 0;
+	font-family: 'IBM Plex Mono', monospace;
+	font-size: 11px;
+	color: var(--destructive);
 }
 
 .cgp-inherited-vis {

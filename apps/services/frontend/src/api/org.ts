@@ -269,6 +269,7 @@ export async function createProject(params: {
 	description?: string;
 	groupId?: string | null;
 	visibility?: string;
+	slug?: string;
 }): Promise<ProjectInfo> {
 	console.info(
 		JSON.stringify({
@@ -277,6 +278,7 @@ export async function createProject(params: {
 			name: params.name,
 			groupId: params.groupId,
 			visibility: params.visibility,
+			slug: params.slug,
 			ts: new Date().toISOString(),
 		}),
 	);
@@ -288,6 +290,9 @@ export async function createProject(params: {
 			group_id: params.groupId ?? undefined,
 			visibility: params.visibility ?? "Private",
 		};
+		if (params.slug) {
+			payload.slug = params.slug;
+		}
 
 		// Add Idempotency-Key for safe retry (REQ-FUN.API.write-idempotency).
 		const idempotencyKey =

@@ -54,15 +54,20 @@
         <p class="cpp-help-text">{{ t('projects.name_hint') }}</p>
       </div>
 
-      <!-- Project URL / Slug (read-only preview) -->
-      <div class="cpp-field">
-        <label class="cpp-label">{{ t('projects.project_url') }}</label>
-        <div class="cpp-slug-wrap">
-          <span class="cpp-slug-prefix">vedo-core.local/</span>
-          <span class="cpp-slug-group">{{ selectedGroupSlug || 'group' }}/</span>
-          <span class="cpp-slug-value">{{ slugPreview || 'project-slug' }}</span>
-        </div>
-      </div>
+	      <!-- Project URL / Slug (editable) -->
+	      <div class="cpp-field">
+	        <label class="cpp-label">{{ t('projects.project_url') }}</label>
+	        <InputGroup
+	          :id="'cpp-slug-input'"
+	          v-model="slug"
+	          :prefix="urlPrefix"
+	          :placeholder="t('projects.slug_placeholder')"
+	          :disabled="creating"
+	          :aria-label="t('projects.project_url')"
+	          @update:modelValue="onSlugInput"
+	        />
+	        <p class="cpp-help-text">{{ t('projects.slug_help') }}</p>
+	      </div>
 
       <!-- Description -->
       <div class="cpp-field">
@@ -130,8 +135,11 @@
 <script setup lang="ts">
 import { createProject, listGroups } from "@/api/org";
 import type { GroupInfo } from "@/api/org";
+import InputGroup from "@/components/ui-kit/InputGroup.vue";
 import { useI18n } from "@/composables/useI18n";
 import { useToast } from "@/composables/useToast";
+import { getPublicDomain } from "@/config";
+import { slugify } from "@/utils/slug";
 import {
 	ChevronRight,
 	Globe,
@@ -150,6 +158,8 @@ const router = useRouter();
 const groups = ref<GroupInfo[]>([]);
 const selectedGroupId = ref("");
 const projectName = ref("");
+const slug = ref("");
+const slugTouched = ref(false);
 const projectDescription = ref("");
 const nameError = ref("");
 const groupError = ref("");
@@ -185,27 +195,46 @@ const visOptions: VisOption[] = [
 	},
 ];
 
-const slugPreview = computed(() => {
-	if (!projectName.value) return "";
-	return projectName.value
-		.toLowerCase()
-		.replace(/\s+/g, "-")
-		.replace(/[^a-z0-9-]/g, "")
-		.substring(0, 64);
+const selectedGroupSlug = computed(() => {
+	const g = groups.value.find((gr) => gr.id === selectedGroupId.value);
+	if (!g) return "";
+	// Prefer the server-provided slug; fall back to a slugified name so
+	// the URL preview stays correct for legacy/no-slug groups.
+	return g.slug || slugify(g.name, 32);
 });
 
-const selectedGroupSlug = computed(() => {
-	const g = groups.value.find((g) => g.id === selectedGroupId.value);
-	if (!g) return "";
-	return g.name
-		.toLowerCase()
-		.replace(/\s+/g, "-")
-		.replace(/[^a-z0-9-]/g, "")
-		.substring(0, 32);
+// Immutable URL prefix: {domain}/{groupSlug}/ — domain comes from the
+// runtime env (VEDO_PUBLIC_DOMAIN).
+const urlPrefix = computed(() => {
+	const group = selectedGroupSlug.value;
+	return group ? `${getPublicDomain()}/${group}/` : `${getPublicDomain()}/`;
 });
 
 function onNameInput() {
 	nameError.value = "";
+	// Auto-fill the slug from the name until the user edits it manually.
+	// Transliteration (Cyrillic → Latin) is applied so non-Latin names
+	// still produce a valid URL path segment.
+	if (!slugTouched.value) {
+		slug.value = slugify(projectName.value);
+		console.info(
+			JSON.stringify({
+				level: "info",
+				msg: "[FIX] CreateProjectPage.slug_autofill",
+				name: projectName.value,
+				slug: slug.value,
+				transliterated: /[а-яё]/i.test(projectName.value),
+				ts: new Date().toISOString(),
+			}),
+		);
+	}
+}
+
+function onSlugInput(value: string) {
+	slugTouched.value = true;
+	// Sanitize what the user types: keep only [a-z0-9-], transliterate
+	// any Cyrillic typed directly into the field.
+	slug.value = slugify(value);
 }
 
 function onGroupChange() {
@@ -271,6 +300,7 @@ async function handleCreate() {
 			description: projectDescription.value || undefined,
 			groupId: selectedGroupId.value,
 			visibility: selectedVisibility.value,
+			slug: slug.value || undefined,
 		});
 
 		console.info(
@@ -445,40 +475,10 @@ onMounted(() => {
 }
 
 .cpp-error-text {
-  margin: 0;
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 12px;
-  color: var(--destructive, #ef4444);
-}
-
-.cpp-slug-wrap {
-  display: flex;
-  align-items: center;
-  height: 36px;
-  padding: 0 12px;
-  border-radius: 6px;
-  border: 1px solid var(--input, var(--border));
-  background: var(--card);
-}
-
-.cpp-slug-prefix {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 13px;
-  color: var(--muted-foreground);
-}
-
-.cpp-slug-group {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 13px;
-  color: var(--muted-foreground);
-  opacity: 0.7;
-}
-
-.cpp-slug-value {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 13px;
-  color: var(--foreground);
-  opacity: 0.5;
+	margin: 0;
+	font-family: 'IBM Plex Mono', monospace;
+	font-size: 12px;
+	color: var(--destructive, #ef4444);
 }
 
 .cpp-vis-options {

@@ -31,6 +31,7 @@ vi.mock("@/composables/useI18n", () => ({
 				"groups.name_placeholder": "My group",
 				"groups.group_url": "Group URL",
 				"groups.slug_placeholder": "my-awesome-group",
+				"groups.slug_help": "The URL path used to access the group.",
 				"groups.name_help": "Start with a letter, digit, emoji, or underscore.",
 				"groups.visibility": "Visibility level",
 				"groups.visibility_help": "Who will be able to see this group?",
@@ -131,6 +132,7 @@ describePage("CreateGroupPage", () => {
 		const { createGroup } = await import("@/api/org");
 		vi.mocked(createGroup).mockResolvedValue({
 			id: "new-group-1",
+			slug: "research-team",
 			name: "Research Team",
 			description: null,
 			parentGroupId: null,
@@ -196,7 +198,76 @@ describePage("CreateGroupPage", () => {
 		await input.setValue("My Test Group");
 		await nextTick();
 
-		expect(wrapper.text()).toContain("my-test-group");
+		const slugInput = wrapper.find('input[aria-label="Group URL"]');
+		expect((slugInput.element as HTMLInputElement).value).toBe("my-test-group");
+	});
+
+	it("should auto-fill slug with transliteration for a Cyrillic group name", async () => {
+		const CreateGroupPage = (await import("@/pages/CreateGroupPage.vue"))
+			.default;
+		const wrapper = mountWithProviders(CreateGroupPage);
+		await waitForQuery();
+		await nextTick();
+
+		const input = wrapper.find('input[aria-label="Group name"]');
+		await input.setValue("Моя группа");
+		await nextTick();
+
+		const slugInput = wrapper.find('input[aria-label="Group URL"]');
+		expect((slugInput.element as HTMLInputElement).value).toBe("moya-gruppa");
+	});
+
+	it("should render an editable slug input with the domain prefix", async () => {
+		const CreateGroupPage = (await import("@/pages/CreateGroupPage.vue"))
+			.default;
+		const wrapper = mountWithProviders(CreateGroupPage);
+		await waitForQuery();
+		await nextTick();
+
+		const slugInput = wrapper.find('input[aria-label="Group URL"]');
+		expect(slugInput.exists()).toBe(true);
+		expect(wrapper.text()).toContain("vedo-core.local/");
+	});
+
+	it("should send the edited slug to the createGroup API", async () => {
+		const { createGroup } = await import("@/api/org");
+		vi.mocked(createGroup).mockResolvedValue({
+			id: "new-group-1",
+			slug: "custom-slug",
+			name: "Research Team",
+			description: null,
+			parentGroupId: null,
+			visibility: "private",
+			memberCount: 0,
+			projectCount: 0,
+		});
+
+		const CreateGroupPage = (await import("@/pages/CreateGroupPage.vue"))
+			.default;
+		const wrapper = mountWithProviders(CreateGroupPage);
+		await waitForQuery();
+		await nextTick();
+
+		const input = wrapper.find('input[aria-label="Group name"]');
+		await input.setValue("Research Team");
+		await nextTick();
+
+		const slugInput = wrapper.find('input[aria-label="Group URL"]');
+		await slugInput.setValue("custom-slug");
+		await nextTick();
+
+		const createBtn = wrapper.find(".cgp-btn-create");
+		await createBtn.trigger("click");
+
+		await new Promise((resolve) => setTimeout(resolve, 100));
+		await nextTick();
+
+		expect(createGroup).toHaveBeenCalledWith(
+			expect.objectContaining({
+				name: "Research Team",
+				slug: "custom-slug",
+			}),
+		);
 	});
 
 	it("should render breadcrumbs", async () => {

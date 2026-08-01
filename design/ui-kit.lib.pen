@@ -2918,13 +2918,14 @@
             }
           ]
         },
-        {
-          "type": "frame",
-          "id": "pd09Z",
-          "name": "Form Molecules",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 12,
+        		{
+        		  "type": "frame",
+        		  "id": "pd09Z",
+        		  "name": "Form Molecules",
+        		  "width": "fill_container",
+        		  "height": 410,
+        		  "layout": "vertical",
+        		  "gap": 12,
           "children": [
             {
               "type": "text",
@@ -3190,14 +3191,21 @@
                   "fontFamily": "IBM Plex Mono",
                   "fontSize": 12,
                   "fontWeight": "normal"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "frame",
-          "id": "VXFUG",
+        		        }
+        		      ]
+        		    },
+        		    {
+        		      "id": "KxBxd",
+        		      "type": "ref",
+        		      "ref": "jBW87",
+        		      "name": "InputGroup display",
+        		      "width": "fit_content"
+        		    }
+        		  ]
+        		},
+        		{
+        		  "type": "frame",
+        		  "id": "VXFUG",
           "name": "Navigation & Controls",
           "width": "fill_container",
           "layout": "vertical",
@@ -3666,6 +3674,46 @@
                               "fontSize": 12
                             }
                           }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "jBW87",
+                      "name": "Molecule/InputGroup",
+                      "reusable": true,
+                      "width": 360,
+                      "height": 36,
+                      "gap": 0,
+                      "alignItems": "center",
+                      "fill": "$card",
+                      "padding": [
+                        4,
+                        12
+                      ],
+                      "stroke": "$input",
+                      "strokeWidth": 1,
+                      "strokeAlignment": "inner",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "hxtPz",
+                          "name": "igPrefix",
+                          "fill": "$muted-foreground",
+                          "content": "vedo-core.local/",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "E9tIuN",
+                          "name": "igInput",
+                          "fill": "$foreground",
+                          "content": "my-awesome-group",
+                          "fontFamily": "IBM Plex Mono",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
                         }
                       ]
                     }
@@ -23758,13 +23806,14 @@
             }
           ]
         },
-        {
-          "type": "frame",
-          "id": "nJ5sp",
-          "name": "Form Molecules",
-          "width": "fill_container",
-          "layout": "vertical",
-          "gap": 12,
+        		{
+        		  "type": "frame",
+        		  "id": "nJ5sp",
+        		  "name": "Form Molecules",
+        		  "width": "fill_container",
+        		  "height": 410,
+        		  "layout": "vertical",
+        		  "gap": 12,
           "children": [
             {
               "type": "text",
@@ -23900,25 +23949,32 @@
                 }
               ]
             },
-            {
-              "id": "XW1KI",
-              "type": "ref",
-              "ref": "1kAx2",
-              "name": "DropZone",
-              "y": 251,
-              "descendants": {
-                "J0mls": {
-                  "x": 39.5,
-                  "y": 23
-                },
-                "HaNWx": {
-                  "x": 59.5,
-                  "y": 22
-                }
-              }
-            }
-          ]
-        },
+            			{
+            			  "id": "XW1KI",
+            			  "type": "ref",
+            			  "ref": "1kAx2",
+            			  "name": "DropZone",
+            			  "y": 251,
+            			  "descendants": {
+            			    "J0mls": {
+            			      "x": 39.5,
+            			      "y": 23
+            			    },
+            			    "HaNWx": {
+            			      "x": 59.5,
+            			      "y": 22
+            			    }
+            			  }
+            			},
+            			{
+            			  "id": "UscMK",
+            			  "type": "ref",
+            			  "ref": "jBW87",
+            			  "name": "InputGroup display",
+            			  "width": "fit_content"
+            			}
+            		  ]
+            		},
         {
           "type": "frame",
           "id": "VSToP",
