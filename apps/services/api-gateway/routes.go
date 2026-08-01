@@ -22,7 +22,8 @@ var openAPISpec []byte
 
 // deprecationSunset returns the SunsetConfig applied to the legacy
 // /api/v1/ontologies/* surface (ADR-DES.API.rest-gitlab-alignment). Routes
-// stay active — headers only; removal happens in Phase B (REST migration).
+// stay active — headers only; removal happens in the REST API GitLab
+// Alignment Migration (M10/M11).
 func deprecationSunset() middleware.SunsetConfig {
 	return middleware.SunsetConfig{
 		SunsetDate:   time.Date(2026, 8, 1, 0, 0, 0, 0, time.UTC),
@@ -168,7 +169,7 @@ func RegisterRoutes(r *gin.Engine, grpcPool *proxy.GrpcClientPool) {
 	// Deprecated per ADR-DES.API.rest-gitlab-alignment: the flat
 	// /api/v1/ontologies/* paths are legacy; target structure nests content
 	// under /projects/{pid}/repository/*. Routes stay active (headers only),
-	// removal happens in Phase B (REST migration).
+	// removal happens in the REST API GitLab Alignment Migration (M10/M11).
 	ontologyHandler := handlers.NewOntologyHandler(ontologyProxy, ontologyGrpc)
 
 	// Deprecation middleware for all /api/v1/ontologies/* routes
@@ -211,19 +212,42 @@ func RegisterRoutes(r *gin.Engine, grpcPool *proxy.GrpcClientPool) {
 	orgWrite.PUT("/ontologies/:id/draft", middleware.SunsetHeader(deprecationSunset()), gin.WrapH(ontologyProxy))
 
 	// Versioning service proxy.
-	api.POST("/versioning/commits", gin.WrapH(versioningProxy))
-	api.GET("/versioning/commits", gin.WrapH(versioningProxy))
-	api.GET("/versioning/commits/:id", gin.WrapH(versioningProxy))
-	api.GET("/versioning/commits/:id/delta", gin.WrapH(versioningProxy))
-	api.POST("/versioning/commits/:id/checkout", gin.WrapH(versioningProxy))
-	api.POST("/versioning/commits/:id/rollback", gin.WrapH(versioningProxy))
+	//
+	// Project-scoped (GitLab-aligned) surface per ADR-DES.API.rest-gitlab-alignment §4:
+	//   /api/v1/projects/{pid}/repository/commits|branches
+	// Legacy /api/v1/versioning/* stays active with deprecation headers during
+	// the migration (removal when consumers switch, M10).
 
-	api.POST("/versioning/branches", gin.WrapH(versioningProxy))
-	api.GET("/versioning/branches", gin.WrapH(versioningProxy))
-	api.GET("/versioning/branches/:id", gin.WrapH(versioningProxy))
-	api.DELETE("/versioning/branches/:id", gin.WrapH(versioningProxy))
-	api.POST("/versioning/branches/:id/switch", gin.WrapH(versioningProxy))
-	api.POST("/versioning/branches/merge", gin.WrapH(versioningProxy))
+	// --- Project-scoped versioning routes ---
+	api.POST("/projects/:id/repository/commits", gin.WrapH(versioningProxy))
+	api.GET("/projects/:id/repository/commits", gin.WrapH(versioningProxy))
+	api.GET("/projects/:id/repository/commits/:sha", gin.WrapH(versioningProxy))
+	api.GET("/projects/:id/repository/commits/:sha/diff", gin.WrapH(versioningProxy))
+	api.POST("/projects/:id/repository/branches", gin.WrapH(versioningProxy))
+	api.GET("/projects/:id/repository/branches", gin.WrapH(versioningProxy))
+	api.GET("/projects/:id/repository/branches/:name", gin.WrapH(versioningProxy))
+	api.DELETE("/projects/:id/repository/branches/:name", gin.WrapH(versioningProxy))
+	// checkout/switch are intentionally NOT exposed on the project-scoped
+	// surface (internal-only per F3; removed per GitLab alignment).
+	// Merge goes through the MR workflow — planned stub until M10.
+	registerPlannedStub(http.MethodPost, "/projects/:id/repository/branches/merge", "M10")
+
+	// --- Legacy versioning routes (deprecated, kept during migration) ---
+	versioningDeprecated := api.Group("")
+	versioningDeprecated.Use(middleware.SunsetHeader(deprecationSunset()))
+	versioningDeprecated.POST("/versioning/commits", gin.WrapH(versioningProxy))
+	versioningDeprecated.GET("/versioning/commits", gin.WrapH(versioningProxy))
+	versioningDeprecated.GET("/versioning/commits/:id", gin.WrapH(versioningProxy))
+	versioningDeprecated.GET("/versioning/commits/:id/delta", gin.WrapH(versioningProxy))
+	versioningDeprecated.POST("/versioning/commits/:id/checkout", gin.WrapH(versioningProxy))
+	versioningDeprecated.POST("/versioning/commits/:id/rollback", gin.WrapH(versioningProxy))
+
+	versioningDeprecated.POST("/versioning/branches", gin.WrapH(versioningProxy))
+	versioningDeprecated.GET("/versioning/branches", gin.WrapH(versioningProxy))
+	versioningDeprecated.GET("/versioning/branches/:id", gin.WrapH(versioningProxy))
+	versioningDeprecated.DELETE("/versioning/branches/:id", gin.WrapH(versioningProxy))
+	versioningDeprecated.POST("/versioning/branches/:id/switch", gin.WrapH(versioningProxy))
+	versioningDeprecated.POST("/versioning/branches/merge", gin.WrapH(versioningProxy))
 
 	// Query routes — SPARQL/CYPHER with read-only enforcement.
 	queryMaxLimit := 1000
