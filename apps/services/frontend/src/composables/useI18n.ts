@@ -9,17 +9,39 @@ export type Locale = "ru" | "en";
 const STORAGE_KEY = "vedo-locale";
 const DEFAULT_LOCALE: Locale = "ru";
 
-function readPersistedLocale(): Locale {
+function readPersistedLocale(): Locale | null {
 	try {
 		const stored = localStorage.getItem(STORAGE_KEY);
 		if (stored === "ru" || stored === "en") return stored;
 	} catch {
 		// localStorage may be unavailable (SSR, privacy mode)
 	}
-	return DEFAULT_LOCALE;
+	return null;
 }
 
-const currentLocale = ref<Locale>(readPersistedLocale());
+// Detect the user's preferred interface language from browser settings
+// (navigator.languages), falling back to navigator.language. Only the
+// primary language tag is considered (e.g. "ru-RU" → "ru").
+function detectBrowserLocale(): Locale | null {
+	if (typeof navigator === "undefined") return null;
+	const candidates = [
+		...(navigator.languages ?? []),
+		navigator.language,
+	].filter(Boolean) as string[];
+	for (const lang of candidates) {
+		const primary = lang.toLowerCase().split("-")[0];
+		if (primary === "ru" || primary === "en") return primary as Locale;
+	}
+	return null;
+}
+
+// Initial locale resolution order: explicit user choice (localStorage) →
+// browser language preferences → project default ("ru").
+function resolveInitialLocale(): Locale {
+	return readPersistedLocale() ?? detectBrowserLocale() ?? DEFAULT_LOCALE;
+}
+
+const currentLocale = ref<Locale>(resolveInitialLocale());
 const messages = ref<Record<string, string>>({});
 const loadedLocales = ref<Set<Locale>>(new Set());
 
@@ -93,5 +115,20 @@ export function useI18n() {
 		}
 	}
 
-	return { locale, isLoaded, t, setLocale, toggleLocale, preloadEn };
+	// Resolve the initial locale the same way the module state does, so
+	// callers (e.g. main.ts) can apply it without duplicating the priority
+	// order: localStorage → browser preferences → default.
+	function initialLocale(): Locale {
+		return resolveInitialLocale();
+	}
+
+	return {
+		locale,
+		isLoaded,
+		t,
+		setLocale,
+		toggleLocale,
+		preloadEn,
+		initialLocale,
+	};
 }

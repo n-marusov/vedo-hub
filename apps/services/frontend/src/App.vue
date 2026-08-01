@@ -6,7 +6,7 @@
 
   <div v-else class="shell" @keydown="handleShellKeydown">
     <header class="shell-header" role="banner">
-      <div class="header-brand" aria-label="VEDO Core (go to dashboard)" @click="router.push('/dashboard/home')" role="button" tabindex="0" @keydown.enter="router.push('/dashboard/home')">
+      <div class="header-brand" :aria-label="t('header.go_dashboard')" @click="router.push('/dashboard/home')" role="button" tabindex="0" @keydown.enter="router.push('/dashboard/home')">
         <img class="header-brand-logo" src="/vedo-core-logo-1.jpg" alt="VEDO Core" />
         <span class="header-brand-text">VEDO Core</span>
       </div>
@@ -14,14 +14,14 @@
       <div class="header-fill-spacer"></div>
 
       <!-- @m4 Search bar with keyboard shortcut (Ctrl+K or /) -->
-      <div class="header-search" role="search" aria-label="Search">
+      <div class="header-search" role="search" :aria-label="t('common.search')">
         <Search :size="15" class="header-search-icon" />
         <input
           ref="searchInput"
           v-model="searchQuery"
           class="header-search-input"
           type="text"
-          placeholder="Search or go to..."
+          :placeholder="t('header.search_placeholder')"
           @keydown.enter="handleSearch"
         />
         <span class="header-search-shortcut">/</span>
@@ -30,27 +30,27 @@
       <div class="header-fill-spacer"></div>
 
       <!-- @m4 Header action buttons — all wired with @click handlers -->
-      <div class="header-actions" aria-label="Header actions">
-        <button class="header-icon-btn" type="button" aria-label="Create" @click="handleCreate">
+      <div class="header-actions" :aria-label="t('header.actions')">
+        <button class="header-icon-btn" type="button" :aria-label="t('header.create')" @click="handleCreate">
           <Plus :size="14" />
         </button>
         <span class="header-action-divider" aria-hidden="true"></span>
-        <button class="header-combo-btn" type="button" aria-label="Merge requests" @click="router.push('/dashboard/merge_requests')">
+        <button class="header-combo-btn" type="button" :aria-label="t('nav.merge_requests')" @click="router.push('/dashboard/merge_requests')">
           <GitMerge :size="16" />
           <span class="header-pill-badge">{{ navCounts.mr }}</span>
         </button>
-        <button class="header-combo-btn" type="button" aria-label="Comments" @click="router.push('/comments')">
+        <button class="header-combo-btn" type="button" :aria-label="t('nav.comments')" @click="router.push('/comments')">
           <MessageSquare :size="16" />
           <span class="header-pill-badge">{{ navCounts.comments }}</span>
         </button>
-        <button class="header-icon-btn" type="button" aria-label="Help" @click="handleHelp">
+        <button class="header-icon-btn" type="button" :aria-label="t('header.help')" @click="handleHelp">
           <CircleHelp :size="16" />
         </button>
         <button class="header-icon-btn" type="button" :aria-label="themeLabel" @click="toggleTheme">
           <component :is="themeIcon" :size="16" />
         </button>
         <!-- @m4 User avatar — wired to useCurrentUser for real name/initials -->
-        <button class="header-avatar-menu" type="button" aria-label="Current user menu">
+        <button class="header-avatar-menu" type="button" :aria-label="t('header.user_menu')">
           <span class="header-avatar">
             <span v-if="displayInitials && displayInitials !== '?'" class="header-avatar-initials">{{ displayInitials }}</span>
             <User v-else :size="16" />
@@ -62,9 +62,9 @@
     </header>
 
     <div class="shell-main">
-      <aside :class="['shell-sidebar', { 'shell-sidebar--collapsed': collapsed }]" aria-label="Main navigation">
+      <aside :class="['shell-sidebar', { 'shell-sidebar--collapsed': collapsed }]" :aria-label="t('nav.main_navigation')">
         <div class="sidebar-header">
-          <span class="sidebar-header-text">Workspace</span>
+          <span class="sidebar-header-text">{{ t('nav.workspace') }}</span>
         </div>
 
         <nav class="sidebar-nav">
@@ -86,16 +86,16 @@
 
         <span class="sidebar-spacer"></span>
 
-        <button class="sidebar-item" type="button" aria-label="Help" @click="handleHelp">
+        <button class="sidebar-item" type="button" :aria-label="t('header.help')" @click="handleHelp">
           <Info :size="16" class="sidebar-item-icon" />
-          <span class="sidebar-item-label">Help</span>
+          <span class="sidebar-item-label">{{ t('header.help') }}</span>
         </button>
 
         <div class="sidebar-divider"></div>
 
-        <button class="sidebar-item" type="button" :aria-label="collapsed ? 'Expand sidebar' : 'Collapse sidebar'" @click="toggleSidebar">
+        <button class="sidebar-item" type="button" :aria-label="collapsed ? t('nav.expand_sidebar') : t('nav.collapse_sidebar')" @click="toggleSidebar">
           <component :is="collapsed ? PanelLeftOpen : PanelLeftClose" :size="16" class="sidebar-item-icon" />
-          <span class="sidebar-item-label">{{ collapsed ? 'Expand sidebar' : 'Collapse sidebar' }}</span>
+          <span class="sidebar-item-label">{{ collapsed ? t('nav.expand_sidebar') : t('nav.collapse_sidebar') }}</span>
         </button>
       </aside>
 
@@ -111,6 +111,7 @@
 import { getDashboard } from "@/api/dashboard";
 import Toast from "@/components/ui-kit/Toast.vue";
 import { useCurrentUser } from "@/composables/useCurrentUser";
+import { useI18n } from "@/composables/useI18n";
 import {
 	ChevronDown,
 	CircleHelp,
@@ -138,6 +139,7 @@ import { applyThemeMode } from "./theme/manager";
 const route = useRoute();
 const router = useRouter();
 const { displayName, displayInitials } = useCurrentUser();
+const { t } = useI18n();
 
 const searchQuery = ref("");
 const searchInput = ref<HTMLInputElement | null>(null);
@@ -174,6 +176,7 @@ onMounted(async () => {
 });
 
 type SidebarItem = {
+	key: string;
 	label: string;
 	icon: LucideIcon;
 	to: string;
@@ -181,16 +184,17 @@ type SidebarItem = {
 	badge?: string;
 };
 
-// @m4 — Sidebar items updated with all M2.5 route matches
-const mainItems: SidebarItem[] = [
+const mainItems = computed<SidebarItem[]>(() => [
 	{
-		label: "Home",
+		key: "nav.home",
+		label: t("nav.home"),
 		icon: LayoutDashboard,
 		to: "/dashboard/home",
 		matches: ["/dashboard/home"],
 	},
 	{
-		label: "Groups",
+		key: "nav.groups",
+		label: t("nav.groups"),
 		icon: Layers,
 		to: "/dashboard/groups",
 		matches: [
@@ -200,60 +204,45 @@ const mainItems: SidebarItem[] = [
 		],
 	},
 	{
-		label: "Projects",
+		key: "nav.projects",
+		label: t("nav.projects"),
 		icon: Folder,
 		to: "/dashboard/projects",
 		matches: ["/dashboard/projects"],
 	},
 	{
-		label: "Merge requests",
+		key: "nav.merge_requests",
+		label: t("nav.merge_requests"),
 		icon: GitMerge,
 		to: "/dashboard/merge_requests",
 		matches: ["/dashboard/merge_requests"],
 		badge: navCounts.mr,
 	},
 	{
-		label: "Commits",
+		key: "nav.commits",
+		label: t("nav.commits"),
 		icon: History,
 		to: "/commits",
 		matches: ["/commits", "/ontology/", "/versioning"],
 		badge: navCounts.commits,
 	},
 	{
-		label: "Comments",
+		key: "nav.comments",
+		label: t("nav.comments"),
 		icon: MessageSquare,
 		to: "/comments",
 		matches: ["/comments"],
 		badge: navCounts.comments,
 	},
 	{
-		label: "Deployments",
+		key: "nav.deployments",
+		label: t("nav.deployments"),
 		icon: Cloud,
 		to: "/dashboard/deployments",
 		matches: ["/dashboard/deployments"],
 		badge: navCounts.deployments,
 	},
-];
-
-// @m4 — Reactive badge updates from navCounts
-watch(
-	() => [
-		navCounts.mr,
-		navCounts.commits,
-		navCounts.comments,
-		navCounts.deployments,
-	],
-	() => {
-		const mrItem = mainItems.find((i) => i.label === "Merge requests");
-		if (mrItem) mrItem.badge = navCounts.mr;
-		const commitsItem = mainItems.find((i) => i.label === "Commits");
-		if (commitsItem) commitsItem.badge = navCounts.commits;
-		const commentsItem = mainItems.find((i) => i.label === "Comments");
-		if (commentsItem) commentsItem.badge = navCounts.comments;
-		const depItem = mainItems.find((i) => i.label === "Deployments");
-		if (depItem) depItem.badge = navCounts.deployments;
-	},
-);
+]);
 
 function isActive(matches: string[]): boolean {
 	return matches.some((value) => route.path.startsWith(value));
@@ -277,8 +266,8 @@ const currentTheme = ref<"light" | "dark">("dark");
 const themeIcon = computed(() => (currentTheme.value === "dark" ? Sun : Moon));
 const themeLabel = computed(() =>
 	currentTheme.value === "dark"
-		? "Switch to light theme"
-		: "Switch to dark theme",
+		? t("theme.switch_to_light")
+		: t("theme.switch_to_dark"),
 );
 
 onMounted(() => {

@@ -29,7 +29,10 @@ const app = createApp({
 		errorPresentation.installGlobalHandler();
 
 		const i18n = useI18n();
-		i18n.setLocale("ru");
+		// Resolve the interface language from browser preferences (falling
+		// back to the persisted choice or the project default) instead of
+		// forcing Russian regardless of the user's browser language.
+		i18n.setLocale(i18n.initialLocale());
 
 		return () => h(App);
 	},

@@ -92,4 +92,58 @@ describe("useI18n", () => {
 		await nextTick();
 		expect(locale.value).toBe("en");
 	});
+
+	describe("browser language preference detection", () => {
+		afterEach(() => {
+			// Restore jsdom defaults (en-US)
+			Object.defineProperty(navigator, "languages", {
+				value: ["en-US"],
+				configurable: true,
+			});
+			Object.defineProperty(navigator, "language", {
+				value: "en-US",
+				configurable: true,
+			});
+		});
+
+		function stubBrowserLanguage(languages: string[]) {
+			Object.defineProperty(navigator, "languages", {
+				value: languages,
+				configurable: true,
+			});
+			Object.defineProperty(navigator, "language", {
+				value: languages[0] ?? "",
+				configurable: true,
+			});
+		}
+
+		it("should resolve ru from browser preference when no persisted locale", async () => {
+			stubBrowserLanguage(["ru-RU", "ru"]);
+			const { useI18n } = await import("@/composables/useI18n");
+			const { initialLocale } = useI18n();
+			expect(initialLocale()).toBe("ru");
+		});
+
+		it("should resolve en from secondary browser preference when ru is absent", async () => {
+			stubBrowserLanguage(["de-DE", "en-US"]);
+			const { useI18n } = await import("@/composables/useI18n");
+			const { initialLocale } = useI18n();
+			expect(initialLocale()).toBe("en");
+		});
+
+		it("should fall back to default ru when browser has no ru/en preference", async () => {
+			stubBrowserLanguage(["de-DE"]);
+			const { useI18n } = await import("@/composables/useI18n");
+			const { initialLocale } = useI18n();
+			expect(initialLocale()).toBe("ru");
+		});
+
+		it("should prefer persisted locale over browser preference", async () => {
+			stubBrowserLanguage(["ru-RU"]);
+			localStorage.setItem("vedo-locale", "en");
+			const { useI18n } = await import("@/composables/useI18n");
+			const { initialLocale } = useI18n();
+			expect(initialLocale()).toBe("en");
+		});
+	});
 });
