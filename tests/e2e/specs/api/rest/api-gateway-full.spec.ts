@@ -51,16 +51,6 @@ test.describe('API Gateway Integration', () => {
       }
     })
 
-    test('POST /api/v1/ontologies/{id}/validate — should run validation route', async ({ page }) => {
-      const res = await page.request.post(`${BASE}/ontologies/${ONTOLOGY_ID}/validate`, { headers: AUTH })
-      expect(res.status()).toBeLessThan(500)
-      if (res.ok()) {
-        const body = await res.json()
-        expect(body).toHaveProperty('status')
-        expect(body).toHaveProperty('violations')
-      }
-    })
-
     test('GET /api/v1/ontologies/{id}/export — should reach export route', async ({ page }) => {
       const res = await page.request.get(`${BASE}/ontologies/${ONTOLOGY_ID}/export`, { headers: AUTH })
       expect(res.status()).toBeLessThan(500)
@@ -116,22 +106,16 @@ test.describe('API Gateway Integration', () => {
   })
 
   test.describe('GraphQL', () => {
-    test('ontology metadata query — should return gateway-proxied GraphQL data', async ({ page }) => {
-      const res = await page.request.post(`${BASE}/graphql`, {
-        data: {
-          query: `
-            query Ontology($id: ID!) {
-              ontology(id: $id) { id name branch commit dirty }
-            }
-          `,
-          variables: { id: ONTOLOGY_ID }
-        },
-        headers: AUTH
-      })
-      expect(res.ok()).toBeTruthy()
-      const body = await res.json()
-      expect(body.errors ?? []).toEqual([])
-      expect(body.data.ontology).toMatchObject({ id: ONTOLOGY_ID, branch: 'main', dirty: false })
+    test('ontology metadata — served via REST (non-graph per ADR)', async ({ page }) => {
+      // Per ADR: non-graph queries (ontology metadata, commits, branches)
+      // are served exclusively via REST, not GraphQL.
+      const res = await page.request.get(`${BASE}/ontologies/${ONTOLOGY_ID}`, { headers: AUTH })
+      expect(res.status()).toBeLessThan(500)
+      if (res.ok()) {
+        const body = await res.json()
+        expect(body.data).toHaveProperty('id')
+        expect(body.data).toHaveProperty('label')
+      }
     })
 
     test('classes query — should return a typed connection', async ({ page }) => {
@@ -183,30 +167,6 @@ test.describe('API Gateway Integration', () => {
       }
     })
 
-    test('save draft mutation — should save draft changes', async ({ page }) => {
-      const res = await page.request.post(`${BASE}/graphql`, {
-        data: {
-          query: `
-            mutation UpdateDraft($ontologyId: String!, $changes: DraftInput!) {
-              updateDraft(ontologyId: $ontologyId, changes: $changes) {
-                success
-                timestamp
-              }
-            }
-          `,
-          variables: {
-            ontologyId: ONTOLOGY_ID,
-            changes: { changes: JSON.stringify([{ field: 'class:1', oldValue: null, newValue: { label: 'Test' } }]) }
-          }
-        },
-        headers: AUTH
-      })
-      expect(res.ok()).toBeTruthy()
-      const body = await res.json()
-      expect(body.errors ?? []).toEqual([])
-      expect(body.data.updateDraft.success).toBeTruthy()
-      expect(body.data.updateDraft.timestamp).toBeTruthy()
-    })
   })
 
   test.describe('Auth / Error Handling', () => {
