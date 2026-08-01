@@ -79,6 +79,28 @@ test.describe('API Gateway Integration', () => {
         expect(Array.isArray(body.items)).toBeTruthy()
       }
     })
+
+    // Validates: REQ-FUN.API.rest-gitlab-alignment
+    test('GET /api/v1/projects/{pid}/repository/commits — project-scoped commit history', async ({ page }) => {
+      const res = await page.request.get(`${BASE}/projects/${ONTOLOGY_ID}/repository/commits`, { headers: AUTH })
+      expect(res.status()).toBeLessThan(500)
+      if (res.ok()) {
+        const body = await res.json()
+        expect(body).toHaveProperty('items')
+        expect(Array.isArray(body.items)).toBeTruthy()
+      }
+    })
+
+    // Validates: REQ-FUN.API.rest-gitlab-alignment
+    test('GET /api/v1/projects/{pid}/repository/branches — project-scoped branch list', async ({ page }) => {
+      const res = await page.request.get(`${BASE}/projects/${ONTOLOGY_ID}/repository/branches`, { headers: AUTH })
+      expect(res.status()).toBeLessThan(500)
+      if (res.ok()) {
+        const body = await res.json()
+        expect(body).toHaveProperty('items')
+        expect(Array.isArray(body.items)).toBeTruthy()
+      }
+    })
   })
 
   test.describe('REST — Health and docs', () => {

@@ -2,6 +2,11 @@
 //
 // After GraphQL tightening: versioning reads migrated from GraphQL
 // (commits, branch, branches, tags, compareRevisions) to REST.
+//
+// GitLab-aligned project-scoped surface (ADR-DES.API.rest-gitlab-alignment):
+//   /api/v1/projects/{pid}/repository/commits|branches
+// The caller passes the ontologyId; Project ↔ Ontology is 1:1, so the
+// ontology id doubles as the project pid in the URL.
 
 import axios from "axios";
 
@@ -101,7 +106,9 @@ export async function listCommits(
 		if (branchId) params.set("branch_id", branchId);
 		params.set("page", String(page));
 		params.set("per_page", String(perPage));
-		const { data } = await api.get(`/versioning/commits?${params}`);
+		const { data } = await api.get(
+			`/projects/${ontologyId}/repository/commits?${params}`,
+		);
 		console.info(
 			JSON.stringify({
 				level: "info",
@@ -151,7 +158,9 @@ export async function listBranches(
 	try {
 		const params = new URLSearchParams();
 		if (referenceBranchId) params.set("reference_branch_id", referenceBranchId);
-		const { data } = await api.get(`/versioning/branches?${params}`);
+		const { data } = await api.get(
+			`/projects/${ontologyId}/repository/branches?${params}`,
+		);
 		console.info(
 			JSON.stringify({
 				level: "info",
@@ -195,7 +204,7 @@ export async function getBranch(branchId: string): Promise<BranchInfo> {
 	);
 
 	try {
-		const { data } = await api.get(`/versioning/branches/${branchId}`);
+		const { data } = await api.get(`/projects/${branchId}/repository/branches`);
 		console.info(
 			JSON.stringify({
 				level: "info",
@@ -291,7 +300,7 @@ export async function compareRevisions(
 
 	try {
 		const { data } = await api.get(
-			`/versioning/commits/${toRevision}/delta?from=${fromRevision}`,
+			`/projects/${ontologyId}/repository/commits/${toRevision}/diff?from=${fromRevision}`,
 		);
 		console.info(
 			JSON.stringify({
