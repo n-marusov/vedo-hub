@@ -534,6 +534,58 @@ base:adr/database-neo4j a vdo:ArchitectureDecision ;
     rdfs:comment "Decision to use Neo4j as primary triple store and PostgreSQL for version store"@en ;
     vdo:belongsTo base:adr/stack-decisions .
 
+# --- ADR Files (specs/adr/) ---
+
+base:adr/ADR-DES.API.write-path-invariant a vdo:ArchitectureDecisionRecord ;
+    rdfs:label "ADR-DES.API.write-path-invariant"@en ;
+    rdfs:comment "No path to mutate ontology state outside the versioning pipeline; capability scopes for AI agents"@en ;
+    vdo:filePath "specs/adr/ADR-DES.API.write-path-invariant.md" .
+
+base:adr/ADR-DES.API.rest-gitlab-alignment a vdo:ArchitectureDecisionRecord ;
+    rdfs:label "ADR-DES.API.rest-gitlab-alignment"@en ;
+    rdfs:comment "REST API path structure aligned with GitLab conventions, nested under /projects/{pid}/"@en ;
+    vdo:filePath "specs/adr/ADR-DES.API.rest-gitlab-alignment.md" .
+
+base:adr/ADR-DES.INFRA.publishing-extension a vdo:ArchitectureDecisionRecord ;
+    rdfs:label "ADR-DES.INFRA.publishing-extension"@en ;
+    rdfs:comment "Publishing model extension: CQRS serving layer, binary visibility, maintainer gate"@en ;
+    vdo:filePath "specs/adr/ADR-DES.INFRA.publishing-extension.md" .
+
+# --- Referenced ADR files (declared so vdo:references targets resolve) ---
+
+base:adr/ADR-DES.DATA.storage-stack-strategy a vdo:ArchitectureDecisionRecord ;
+    rdfs:label "ADR-DES.DATA.storage-stack-strategy"@en ;
+    rdfs:comment "Storage stack: Neo4j + PostgreSQL JSONB version store with per-commit triple deltas"@en ;
+    vdo:filePath "specs/adr/ADR-DES.DATA.storage-stack-strategy.md" .
+
+base:adr/ADR-DES.PROCESS.merge-request-strategy a vdo:ArchitectureDecisionRecord ;
+    rdfs:label "ADR-DES.PROCESS.merge-request-strategy"@en ;
+    rdfs:comment "Merge Request lifecycle as the enforcement backbone for the write-path invariant"@en ;
+    vdo:filePath "specs/adr/ADR-DES.PROCESS.merge-request-strategy.md" .
+
+base:adr/ADR-DES.API.organization-rest-endpoints a vdo:ArchitectureDecisionRecord ;
+    rdfs:label "ADR-DES.API.organization-rest-endpoints"@en ;
+    rdfs:comment "Canonical REST contract for the GitLab-like organization model"@en ;
+    vdo:filePath "specs/adr/ADR-DES.API.organization-rest-endpoints.md" .
+
+base:adr/ADR-DES.INFRA.ontology-publishing a vdo:ArchitectureDecisionRecord ;
+    rdfs:label "ADR-DES.INFRA.ontology-publishing"@en ;
+    rdfs:comment "Original publishing decision: publisher service, public browse API, isolated serving store"@en ;
+    vdo:filePath "specs/adr/ADR-DES.INFRA.ontology-publishing.md" .
+
+# --- ADR to REQ traces ---
+
+base:adr/ADR-DES.API.write-path-invariant vdo:tracesTo base:req/REQ-CON.SECURITY.write-path-invariant .
+base:adr/ADR-DES.API.rest-gitlab-alignment vdo:tracesTo base:req/REQ-FUN.API.rest-gitlab-alignment .
+base:adr/ADR-DES.INFRA.publishing-extension vdo:tracesTo base:req/REQ-CON.STACK.publishing-extension .
+
+# --- ADR to ADR cross-references ---
+
+base:adr/ADR-DES.API.write-path-invariant vdo:references base:adr/ADR-DES.DATA.storage-stack-strategy .
+base:adr/ADR-DES.API.write-path-invariant vdo:references base:adr/ADR-DES.PROCESS.merge-request-strategy .
+base:adr/ADR-DES.API.rest-gitlab-alignment vdo:references base:adr/ADR-DES.API.organization-rest-endpoints .
+base:adr/ADR-DES.INFRA.publishing-extension vdo:references base:adr/ADR-DES.INFRA.ontology-publishing .
+
 # =============================================================================
 # INSTANCES — Non-Functional Requirements
 # =============================================================================
@@ -605,6 +657,13 @@ base:req/REQ-FUN.API.protocol-stack a vdo:FunctionalRequirement ;
     vdo:priority "P0" ;
     vdo:area "API" ;
     vdo:filePath "specs/requirements/REQ-FUN.API.protocol-stack.md" .
+
+base:req/REQ-FUN.API.rest-gitlab-alignment a vdo:FunctionalRequirement ;
+    rdfs:label "FUN API REST GitLab alignment"@en ;
+    rdfs:comment "REST API target structure aligned with GitLab: /projects/{pid}/ paths, ?ref=, MR/releases/protected_branches"@en ;
+    vdo:priority "P0" ;
+    vdo:area "API" ;
+    vdo:filePath "specs/requirements/REQ-FUN.API.rest-gitlab-alignment.md" .
 
 # --- Data Functional Requirements ---
 
@@ -865,6 +924,21 @@ base:test/run-all a vdo:TestSuite ;
     rdfs:comment "Combined test runner executing all test scripts"@en ;
     vdo:filePath "tests/run_all_tests.sh" ;
     vdo:belongsTo base:context/PLAT-LOCAL-002 .
+
+base:ts/specs.adr_structure a vdo:TestSuite ;
+    rdfs:label "ADR Structure Validation Tests"@en ;
+    rdfs:comment "Structural validation of specs/adr ADR files: frontmatter, sections, links"@en ;
+    vdo:filePath "tests/specs/adr_structure_test.go" .
+
+base:ts/specs.traceability_integrity a vdo:TestSuite ;
+    rdfs:label "Traceability Integrity Tests"@en ;
+    rdfs:comment "Integrity validation of .ai-factory/traceability/traceability.ttl"@en ;
+    vdo:filePath "tests/specs/traceability_integrity_test.go" .
+
+# --- Specs validation links ---
+
+base:ts/specs.adr_structure vdo:validates base:req/REQ-CON.SECURITY.write-path-invariant .
+base:ts/specs.traceability_integrity vdo:validates base:req/REQ-CON.SECURITY.write-path-invariant .
 
 base:test/build-commands a vdo:TestSuite ;
     rdfs:label "Build Command Tests"@en ;
@@ -1408,6 +1482,13 @@ base:req/REQ-CON.SECURITY.nl-query-length-limit a vdo:NonFunctionalRequirement ;
     vdo:area "Security" ;
     vdo:filePath "specs/requirements/REQ-CON.SECURITY.nl-query-length-limit.md" .
 
+base:req/REQ-CON.SECURITY.write-path-invariant a vdo:FunctionalRequirement ;
+    rdfs:label "CON SECURITY write path invariant"@en ;
+    rdfs:comment "No direct writes to ontology storage; every mutation via branch/commit/MR/merge pipeline"@en ;
+    vdo:priority "P0" ;
+    vdo:area "Security" ;
+    vdo:filePath "specs/requirements/REQ-CON.SECURITY.write-path-invariant.md" .
+
 base:req/REQ-CON.STACK.backend-service-stack a vdo:NonFunctionalRequirement ;
     rdfs:label "CON STACK backend service stack"@en ;
     vdo:priority "P0" ;
@@ -1431,6 +1512,13 @@ base:req/REQ-CON.STACK.ontology-publishing a vdo:NonFunctionalRequirement ;
     vdo:priority "P1" ;
     vdo:area "Technology Stack" ;
     vdo:filePath "specs/requirements/REQ-CON.STACK.ontology-publishing.md" .
+
+base:req/REQ-CON.STACK.publishing-extension a vdo:FunctionalRequirement ;
+    rdfs:label "CON STACK publishing extension"@en ;
+    rdfs:comment "Extended publishing: CQRS serving layer, binary visibility (public/restricted via API key), maintainer gate"@en ;
+    vdo:priority "P1" ;
+    vdo:area "Technology Stack" ;
+    vdo:filePath "specs/requirements/REQ-CON.STACK.publishing-extension.md" .
 
 base:req/REQ-CON.STACK.ui-design-tool a vdo:NonFunctionalRequirement ;
     rdfs:label "CON STACK ui design tool"@en ;
@@ -3842,6 +3930,19 @@ base:ts/api-gateway.query_integration vdo:validates base:req/REQ-FUN.DATA.query-
 base:ts/api-gateway.query_integration vdo:validates base:req/REQ-FUN.DATA.query-export-validation .
 base:ts/api-gateway.main vdo:validates base:req/REQ-FUN.API.unified-root-endpoint .
 base:ts/publish-browse-ui.__tests__.setup vdo:validates base:req/REQ-USR.UI.gui-implementation .
+
+# --- REST API realignment validation links (ADR-DES.API.rest-gitlab-alignment) ---
+base:ts/api-gateway.auth_integration vdo:validates base:req/REQ-FUN.API.rest-gitlab-alignment .
+base:ts/api-gateway.rest_entity_crud_integration vdo:validates base:req/REQ-FUN.API.rest-gitlab-alignment .
+base:ts/e2e.playwright.tests.api.rest.api-gateway-full vdo:validates base:req/REQ-FUN.API.rest-gitlab-alignment .
+base:ts/e2e.playwright.tests.api.rest.org-api vdo:validates base:req/REQ-FUN.API.rest-gitlab-alignment .
+
+# --- Write-path invariant validation links (REQ-CON.SECURITY.write-path-invariant) ---
+base:ts/ontology-service.tests.class_integration vdo:validates base:req/REQ-CON.SECURITY.write-path-invariant .
+base:ts/ontology-service.tests.property_integration vdo:validates base:req/REQ-CON.SECURITY.write-path-invariant .
+base:ts/ontology-service.tests.individual_integration vdo:validates base:req/REQ-CON.SECURITY.write-path-invariant .
+base:ts/security.authorization.rbac_cross_tenant_bola vdo:validates base:req/REQ-CON.SECURITY.write-path-invariant .
+base:ts/security.authorization.rbac_bfla_membership vdo:validates base:req/REQ-CON.SECURITY.write-path-invariant .
 
 # --- Security validation links ---
 # CLI emergency-policy-disable tests
