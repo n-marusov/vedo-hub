@@ -343,6 +343,7 @@ export const test = base.extend({
     await page.route('**/api/v1/groups*', handleRestGroups);
     await page.route('**/api/v1/versioning/*', handleRestVersioning);
     await page.route('**/api/v1/ontologies/*/validate', handleValidationRest);
+    await page.route('**/api/v1/ontologies/*', handleOntologyMeta);
 
     await use(page);
   },
@@ -454,6 +455,26 @@ async function handleRestVersioning(route: Route) {
   }
 
   return route.fallback();
+}
+
+async function handleOntologyMeta(route: Route) {
+  const request = route.request();
+  if (request.method() !== 'GET') return route.fallback();
+
+  return route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      id: 'ont-123',
+      name: 'University Ontology',
+      label: 'University Ontology',
+      branch: 'main',
+      description: 'Academic ontology project',
+      class_count: 4,
+      property_count: 2,
+      individual_count: 2,
+    }),
+  });
 }
 
 async function handleValidationRest(route: Route) {

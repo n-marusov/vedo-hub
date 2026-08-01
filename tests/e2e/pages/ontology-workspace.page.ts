@@ -40,9 +40,9 @@ export class OntologyWorkspacePage {
     }
 
     // Fill the form — textboxes are identified by their placeholder text
-    await this.page.getByPlaceholder(/e\.g\. Person/i).fill(label);
+    await this.page.getByPlaceholder(/enter class name/i).fill(label);
     if (comment) {
-      await this.page.getByPlaceholder(/optional description/i).fill(comment);
+      await this.page.getByPlaceholder(/enter description/i).fill(comment);
     }
     for (const parent of parents) {
       // Parent select is a native <select> with hardcoded options ("owl:Thing", "— None —").
