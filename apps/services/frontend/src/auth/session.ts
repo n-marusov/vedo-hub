@@ -15,9 +15,10 @@ export interface UserSession {
 // NOTE: must use MODE (not import.meta.env.PROD) — vite build sets
 // NODE_ENV=production (→ PROD=true) for ANY --mode, so PROD would
 // tree-shake SKIP_AUTH even in dev/e2e builds.
-const SKIP_AUTH = import.meta.env.MODE === "production"
-	? false
-	: (window.__VEDO_CONFIG__?.SKIP_AUTH || "false") === "true";
+const SKIP_AUTH =
+	import.meta.env.MODE === "production"
+		? false
+		: (window.__VEDO_CONFIG__?.SKIP_AUTH || "false") === "true";
 
 const SESSION_KEY = "vedo_session";
 
@@ -62,6 +63,19 @@ export function saveSession(session: UserSession): void {
 	localStorage.setItem("vedo-jwt-token", session.accessToken);
 }
 
+// Eagerly seed the session at app startup (called once from main.ts).
+// In SKIP_AUTH mode the router guard short-circuits without calling
+// getSession(), so without this the dev-minted JWT would never reach
+// localStorage.vedo-jwt-token — API clients (Apollo/Axios) read that key
+// directly and would send no (or a stale) Authorization header → 401.
+// Always calls getSession() (even when a session already exists) so the
+// token is synced to localStorage in every SKIP_AUTH branch.
+export function initSession(): void {
+	if (SKIP_AUTH) {
+		getSession();
+	}
+}
+
 export function getSession(): UserSession | null {
 	// In SKIP_AUTH (test) mode, honor an explicitly injected session first
 	// (e.g. tests that set sessionStorage.vedo_session to control roles),
@@ -94,6 +108,13 @@ export function getSession(): UserSession | null {
 			};
 			saveSession(devSession);
 			return devSession;
+		}
+		// No dev token (e.g. e2e without the dev overlay): seed the mock
+		// session token too so interceptors still attach an Authorization
+		// header (the gateway is configured to accept only the dev key in
+		// dev/test, but the browser must at least send SOMETHING consistent).
+		if (!sessionStorage.getItem(SESSION_KEY)) {
+			saveSession(MOCK_SESSION);
 		}
 		return MOCK_SESSION;
 	}

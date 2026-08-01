@@ -57,7 +57,12 @@ RUN npx vite build --mode ${BUILD_PROFILE}
 # Pre-compress text-based assets for nginx gzip_static.
 # Saves CPU at runtime — nginx serves .gz files directly instead of
 # compressing on every request. Adds ~30% to dist size, acceptable trade-off.
+# NOTE: config.js is EXCLUDED — it holds a placeholder in dist and is
+# regenerated at runtime by docker-entrypoint.sh. Pre-compressing it would
+# bake the stale placeholder into config.js.gz, which nginx (gzip_static on)
+# would serve to gzip-capable clients instead of the fresh runtime config.
 RUN find /app/dist -type f \( -name "*.js" -o -name "*.css" -o -name "*.html" -o -name "*.json" -o -name "*.svg" -o -name "*.txt" \) \
+      ! -name "config.js" \
       -exec gzip -9 -k {} \;
 
 

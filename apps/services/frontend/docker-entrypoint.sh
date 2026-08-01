@@ -65,5 +65,13 @@ window.__VEDO_CONFIG__ = {
 };
 SAFE_EOF
 
+# Remove the pre-compressed config.js.gz baked at build time (it still holds
+# the public/config.js placeholder). With gzip_static on, nginx would serve
+# that stale .gz to gzip-capable clients (browsers) instead of the fresh
+# config.js generated above — leaving window.__VEDO_CONFIG__ as the
+# placeholder (no SKIP_AUTH) and breaking dev auth bypass. The regular
+# "gzip on" directive re-compresses the fresh file on the fly.
+rm -f "${CONFIG_FILE}.gz"
+
 echo "[entrypoint] config.js generated (public, no secrets)"
 exec nginx -g "daemon off;"
