@@ -80,7 +80,8 @@ See `.ai-factory/DESCRIPTION.md` for detailed project specification.
 │   ├── gates/            #   CI quality gates
 │   ├── suites/           #   Integration test suites
 │   ├── e2e/playwright/   #   Playwright end-to-end tests
-│   └── security/         #   Authorization test suites (BOLA/BFLA)
+│   ├── security/         #   Authorization test suites (BOLA/BFLA)
+│   └── specs/            #   Spec artifact validation (ADR/TTL structure)
 ├── tools/                # Build and development tools
 │   ├── build/            #   Makefile build includes (docker.mk, go.mk, rust.mk, etc.)
 │   ├── dockerfiles/      #   Multi-stage Dockerfile templates by language

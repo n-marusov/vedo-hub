@@ -6,41 +6,45 @@ Created: 2026-08-01
 ## Progress
 
 ### Phase 1: REQ Constraint Files
-- [ ] Task 1: REQ-CON.SECURITY.write-path-invariant.md
-- [ ] Task 2: REQ-FUN.API.rest-gitlab-alignment.md
-- [ ] Task 3: REQ-CON.STACK.publishing-extension.md
+- [x] Task 1: REQ-CON.SECURITY.write-path-invariant.md
+- [x] Task 2: REQ-FUN.API.rest-gitlab-alignment.md
+- [x] Task 3: REQ-CON.STACK.publishing-extension.md
 
 ### Phase 2: Architecture Decision Records
-- [ ] Task 4: ADR-DES.API.write-path-invariant.md
-- [ ] Task 5: ADR-DES.API.rest-gitlab-alignment.md
-- [ ] Task 6: ADR-DES.INFRA.publishing-extension.md
+- [x] Task 4: ADR-DES.API.write-path-invariant.md
+- [x] Task 5: ADR-DES.API.rest-gitlab-alignment.md
+- [x] Task 6: ADR-DES.INFRA.publishing-extension.md
 
 ### Phase 3: Artifact Owner Updates
-- [ ] Task 7: Обновить glossary.md (+5 терминов, +4 обновления)
-- [ ] Task 8: Обновить vision.md (F3, F6.1, F11, F16.1, MVP 2.5)
-- [ ] Task 9: Обновить ROADMAP.md (M5, M10, M11)
-- [ ] Task 10: Обновить traceability.ttl (+6 entries, +6 cross-references)
+- [x] Task 7: Обновить glossary.md (+5 терминов, +4 обновления)
+- [x] Task 8: Обновить vision.md (F3, F6.1, F11, F16.1, MVP 2.5)
+- [x] Task 9: Обновить ROADMAP.md (M5, M10, M11)
+- [x] Task 10: Обновить traceability.ttl (+6 entries, +6 cross-references)
 
 ### Phase 4: Validation Tests
-- [ ] Task 11: ADR structure validation tests
-- [ ] Task 12: traceability.ttl integrity tests
+- [x] Task 11: ADR structure validation tests
+- [x] Task 12: traceability.ttl integrity tests
 
-### Phase 5: Bug Fixes
-- [ ] Task 13: Fix grpcPool.Close() blocking bug
+### Phase 5: TDD RED — Failing Tests First
+- [x] Task 13: grpcPool lifecycle regression test
+- [x] Task 14: Deprecation headers test на /api/v1/ontologies/*
+- [x] Task 15: 501 planned-stubs test для /releases, /merge_requests, /protected_branches
+- [x] Task 16: RoleWeightPublish const test в auth.go
 
-### Phase 6: Guardrails & Deprecation
-- [ ] Task 14: Deprecation headers на /api/v1/ontologies/*
-- [ ] Task 15: 501 stubs для /releases, /merge_requests, /protected_branches
-- [ ] Task 16: Maintainer-gate annotation в auth.go
+### Phase 6: TDD GREEN — Implementation
+- [x] Task 17: Fix grpcPool.Close() blocking bug
+- [x] Task 18: Deprecation headers на /api/v1/ontologies/*
+- [x] Task 19: 501 stubs для /releases, /merge_requests, /protected_branches
+- [x] Task 20: Maintainer-gate annotation в auth.go
 
 ### Phase 7: Test Alignment & Suite Verification
-- [ ] Task 17: REQ traceability annotations на существующих тестах
-- [ ] Task 18: Полный прогон тестов (go + cargo + pytest + Playwright + security)
+- [x] Task 21: REQ traceability annotations на существующих тестах
+- [x] Task 22: Полный прогон тестов (go + cargo + pytest + Playwright + security)
 
 ### Phase 8: Documentation
-- [ ] Task 19: Antora developer guide — архитектурные секции
+- [x] Task 23: Antora developer guide — архитектурные секции
 
-> **Всего: 0/19 задач выполнено**
+> **Всего: 23/23 задач выполнено**
 
 ## Settings
 - Testing: yes
@@ -229,7 +233,7 @@ Open questions:
 | 🚫 Versioning → REMOVE from REST | 3 | checkout, switch, direct merge |
 | ⚠️ Versioning → VEDO extension | 2 | POST commits, compare |
 | 🔄 Minor rename (metrics) | 2 | Phase B |
-| 🕳️ Planned (501 stubs) | 11 | **This plan — Task 15** |
+| 🕳️ Planned (501 stubs) | 11 | **This plan — Tasks 15 (test) + 19 (impl)** |
 | 🕳️ Post-1.0 (no stubs) | 6 | Deferred |
 | **Total surface** | **74** | |
 
@@ -237,15 +241,19 @@ Open questions:
 
 > This plan = Phase A (ADR formalization + guardrails). Phase B (REST migration) changes listed for reference but **deferred**.
 
-### api-gateway (Go) — `routes.go`, `main.go`, `auth/auth.go` (tasks 13–16)
+### api-gateway (Go) — `routes.go`, `main.go`, `auth/auth.go` (tasks 13–20)
 
 | File | Change | Task | Commit |
 |------|--------|------|--------|
-| `routes.go` L45 | Move `defer grpcPool.Close()` → return pool ref to caller | 13 | 5 |
-| `main.go` | Add `grpcPool.Close()` to graceful shutdown handler (`srv.Shutdown`) | 13 | 5 |
-| `routes.go` L120–213 | Add Gin middleware: `Deprecation: true` + `Sunset: <date>` on all `/api/v1/ontologies/*` routes | 14 | 6 |
-| `routes.go` (new group) | Register 501 stubs: `GET /projects/{pid}/releases`, `GET/POST /projects/{pid}/merge_requests`, `GET/POST /projects/{pid}/protected_branches` with `x-vedo-status: planned` header + JSON body `{"message":"...","x_vedo_status":"planned"}` | 15 | 6 |
-| `auth/auth.go` | Add `const RoleWeightPublish = 2` + comment `// Publish gate per ADR-DES.INFRA.publishing-extension: Maintainer+` | 16 | 6 |
+| `grpc_pool_lifecycle_test.go` | CREATE — regression test: pool stays open after `RegisterRoutes`, closes on graceful shutdown | 13 | 5 |
+| `deprecation_headers_test.go` | CREATE — RED test: `/api/v1/ontologies/*` must return `Deprecation` + `Sunset` headers | 14 | 5 |
+| `planned_stubs_test.go` | CREATE — RED test: `/releases`, `/merge_requests`, `/protected_branches` return 501 + `x-vedo-status: planned` | 15 | 5 |
+| `auth/role_weight_publish_test.go` | CREATE — RED test: `RoleWeightPublish` const == 2 (Maintainer) | 16 | 5 |
+| `routes.go` L45 | Verify `RegisterRoutes` does NOT close the pool (fix already in place) | 17 | 6 |
+| `main.go` | Verify/add `grpcPool.Close()` to graceful shutdown handler (`srv.Shutdown`); ensure INFO log | 17 | 6 |
+| `routes.go` L120–213 | Add Gin middleware: `Deprecation: true` + `Sunset: <date>` on all `/api/v1/ontologies/*` routes | 18 | 6 |
+| `routes.go` (new group) | Register 501 stubs: `GET /projects/{pid}/releases`, `GET/POST /projects/{pid}/merge_requests`, `GET/POST /projects/{pid}/protected_branches` with `x-vedo-status: planned` header + JSON body `{"message":"...","x_vedo_status":"planned"}` | 19 | 6 |
+| `auth/auth.go` | Add `const RoleWeightPublish = 2` + comment `// Publish gate per ADR-DES.INFRA.publishing-extension: Maintainer+` | 20 | 6 |
 
 **Endpoints affected in routes.go:**
 - 24 `/api/v1/ontologies/*` routes (L120–213) → deprecation headers only (routes NOT removed)
@@ -267,30 +275,30 @@ Open questions:
 | `.ai-factory/ROADMAP.md` M5/M10/M11/Notes | UPDATE — M5 diff path, M10 invariant note, M11 publishing model, Notes entry | 9 | 3 |
 | `.ai-factory/traceability/traceability.ttl` | UPDATE — +3 ADR entries, +3 REQ entries, +7 cross-reference triples | 10 | 3 |
 
-### Tests (Go + Rust + TS) — new + annotated (tasks 11–12, 17–18)
+### Tests (Go + Rust + TS) — new + annotated (tasks 11–12, 21–22)
 
 | File | Change | Task | Commit |
 |------|--------|------|--------|
 | `tests/specs/adr_structure_test.go` | CREATE — 15–20 cases: frontmatter, sections, cross-refs | 11 | 4 |
 | `tests/specs/traceability_integrity_test.go` | CREATE — 12–15 cases: refs, syntax, duplicates + 1 negative security test | 12 | 4 |
-| `apps/services/ontology-service/tests/class_integration.rs` | ANNOTATE — `// Validates: REQ-CON.SECURITY.write-path-invariant` | 17 | 7 |
-| `apps/services/ontology-service/tests/property_integration.rs` | ANNOTATE — same | 17 | 7 |
-| `apps/services/ontology-service/tests/individual_integration.rs` | ANNOTATE — same | 17 | 7 |
-| `apps/services/ontology-service/tests/import_export_integration.rs` | ANNOTATE — `// NOTE: violates ADR-DES.API.write-path-invariant; to be migrated in M10` | 17 | 7 |
-| `apps/services/api-gateway/auth_integration_test.go` | ANNOTATE — `// Validates: REQ-FUN.API.rest-gitlab-alignment` | 17 | 7 |
-| `apps/services/api-gateway/rest_entity_crud_integration_test.go` | ANNOTATE — same | 17 | 7 |
-| `tests/security/authorization/rbac_cross_tenant_bola_test.go` | ANNOTATE — `// Validates: REQ-CON.SECURITY.write-path-invariant` | 17 | 7 |
-| `tests/security/authorization/rbac_bfla_membership_test.go` | ANNOTATE — same | 17 | 7 |
-| `tests/e2e/specs/api/rest/api-gateway-full.spec.ts` | ANNOTATE — `// Validates: REQ-FUN.API.rest-gitlab-alignment` | 17 | 7 |
-| `tests/e2e/specs/api/rest/org-api.spec.ts` | ANNOTATE — same | 17 | 7 |
+| `apps/services/ontology-service/tests/class_integration.rs` | ANNOTATE — `// Validates: REQ-CON.SECURITY.write-path-invariant` | 21 | 7 |
+| `apps/services/ontology-service/tests/property_integration.rs` | ANNOTATE — same | 21 | 7 |
+| `apps/services/ontology-service/tests/individual_integration.rs` | ANNOTATE — same | 21 | 7 |
+| `apps/services/ontology-service/tests/import_export_integration.rs` | ANNOTATE — `// NOTE: violates ADR-DES.API.write-path-invariant; to be migrated in M10` | 21 | 7 |
+| `apps/services/api-gateway/auth_integration_test.go` | ANNOTATE — `// Validates: REQ-FUN.API.rest-gitlab-alignment` | 21 | 7 |
+| `apps/services/api-gateway/rest_entity_crud_integration_test.go` | ANNOTATE — same | 21 | 7 |
+| `tests/security/authorization/rbac_cross_tenant_bola_test.go` | ANNOTATE — `// Validates: REQ-CON.SECURITY.write-path-invariant` | 21 | 7 |
+| `tests/security/authorization/rbac_bfla_membership_test.go` | ANNOTATE — same | 21 | 7 |
+| `tests/e2e/specs/api/rest/api-gateway-full.spec.ts` | ANNOTATE — `// Validates: REQ-FUN.API.rest-gitlab-alignment` | 21 | 7 |
+| `tests/e2e/specs/api/rest/org-api.spec.ts` | ANNOTATE — same | 21 | 7 |
 
-**Full suite run (Task 18):** `go test ./...` (api-gateway, auth-service, vedo-cli) + `cargo test` (ontology-service, versioning-service) + `pytest` (document-extractor) + Playwright E2E smoke + `tests/security/`. Fork BOLA tests (`tests/security/fork_bola_test.go`) remain skipped per ROADMAP M5.
+**Full suite run (Task 22):** `go test ./...` (api-gateway, auth-service, vedo-cli) + `cargo test` (ontology-service, versioning-service) + `pytest` (document-extractor) + Playwright E2E smoke + `tests/security/`. Fork BOLA tests (`tests/security/fork_bola_test.go`) remain skipped per ROADMAP M5.
 
-### Documentation (AsciiDoc) — `docs/antora/` (task 19)
+### Documentation (AsciiDoc) — `docs/antora/` (task 23)
 
 | File | Change | Task | Commit |
 |------|--------|------|--------|
-| `docs/antora/developer-guide/modules/ROOT/pages/architecture.adoc` | UPDATE — 3 sections: Write-Path Invariant, REST API Structure, Publishing Model | 19 | 8 |
+| `docs/antora/developer-guide/modules/ROOT/pages/architecture.adoc` | UPDATE — 3 sections: Write-Path Invariant, REST API Structure, Publishing Model | 23 | 8 |
 
 ### Deferred to Phase B (NOT in this plan — listed for reference)
 
@@ -314,10 +322,10 @@ Open questions:
 - **Commit 2** (after tasks 4-6): "feat(specs): formalize ADRs for write-path invariant, REST GitLab alignment, and publishing extension"
 - **Commit 3** (after tasks 7-10): "docs(specs): update glossary, vision, roadmap, and traceability for new ADRs"
 - **Commit 4** (after tasks 11-12): "test(specs): add ADR structure and traceability integrity validation"
-- **Commit 5** (after task 13): "fix(api-gateway): move grpcPool.Close() to graceful shutdown hook"
-- **Commit 6** (after tasks 14-16): "feat(api-gateway): add deprecation warnings and planned-endpoint stubs"
-- **Commit 7** (after tasks 17-18): "test: add REQ traceability annotations; verify full test suite passes"
-- **Commit 8** (after task 19): "docs(antora): update developer guide for new architecture decisions"
+- **Commit 5** (after tasks 13-16, TDD RED): "test(api-gateway): add failing tests for grpcPool lifecycle, deprecation headers, planned stubs, and publish gate"
+- **Commit 6** (after tasks 17-20, TDD GREEN): "fix(api-gateway): implement guardrails, planned-endpoint stubs, and publish gate annotation"
+- **Commit 7** (after tasks 21-22): "test: add REQ traceability annotations; verify full test suite passes"
+- **Commit 8** (after task 23): "docs(antora): update developer guide for new architecture decisions"
 
 ## Acceptance Criteria
 
@@ -328,12 +336,13 @@ Open questions:
 - [ ] vision.md: F3, F6.1, F11, F16.1, and MVP 2.5 REST section updated
 - [ ] ROADMAP.md: M5, M10, M11 path references updated
 - [ ] traceability.ttl: all new ADR/REQ entries added; no broken or dangling references
-- [ ] Test Quality Score (TQS) ≥ bronze (6.0) for all new test files (Tasks 11, 12, 18)
+- [ ] Test Quality Score (TQS) ≥ bronze (6.0) for all new test files (Tasks 11, 12, 22)
 - [ ] No B1–B7 anti-patterns (see .ai-factory/rules/test-quality.md)
 - [ ] `// Validates: REQ-...` traceability annotations present on all new tests
 
 ### Code Quality (MR gate — must pass before merge)
-- [ ] `grpcPool.Close()` moved to graceful shutdown hook; `go test ./...` in api-gateway passes
+- [ ] TDD RED: tests 13–16 written FIRST and confirmed failing before implementation (tasks 17–20)
+- [ ] `grpcPool.Close()` moved to graceful shutdown hook; regression test (Task 13) passes; `go test ./...` in api-gateway passes
 - [ ] `/api/v1/ontologies/*` endpoints return `Deprecation: true` + `Sunset: <ISO8601>` headers; no 500 errors
 - [ ] `/api/v1/projects/{pid}/releases`, `.../protected_branches`, `.../merge_requests` return `501 Not Implemented` with `x-vedo-status: planned` header
 - [ ] `auth.go` maintainer gate annotated: publish action requires weight ≥ 2; comment links to ADR-DES.INFRA.publishing-extension
@@ -345,7 +354,7 @@ Open questions:
   - Security: `tests/security/` BOLA/BFLA tests pass (fork_bola may remain RED/skipped)
 
 ### MR Readiness
-- [ ] All 19 tasks marked complete with `git diff main` showing only planned changes
+- [ ] All 23 tasks marked complete with `git diff main` showing only planned changes
 - [ ] No commented-out code, no `TODO` without ticket reference
 - [ ] Commit history is linear and clean (8 атомарных коммитов)
 - [ ] `traceability.ttl` passes integrity test (Task 12)
@@ -625,11 +634,11 @@ Open questions:
 
 ### Step N: Update traceability.ttl (integration verification)
   <!-- Per skill-context rule: explicit traceability.ttl update step -->
-  - Verify all new `vdo:TestSuite` entries are in place (Tasks 11, 12, 17 create them)
+  - Verify all new `vdo:TestSuite` entries are in place (Tasks 11, 12, 21 create them)
   - Verify all `vdo:validates` triples for `// Validates: REQ-...` annotations
   - Remove any stale triples if files were renamed during artifact updates
   - Ensure turtle syntax validity (no unclosed prefixes, valid URIs)
-  > This step is executed after Task 17 (test traceability annotations) as part of the traceability round-trip
+  > This step is executed after Task 21 (test traceability annotations) as part of the traceability round-trip
 
 ### Phase 4: Validation Tests
 <!-- Tests for structural integrity of the new ADR/REQ files and traceability cross-references. -->
@@ -689,36 +698,114 @@ Open questions:
 
 <!-- Commit checkpoint: tasks 11-12 -->
 
-### Phase 5: Bug Fixes
-<!-- Fix known bugs identified in the research session that are blocking or correctness-critical. -->
+**Test Quality Checkpoint:** Run `$aif-test-quality` after tasks 11-12 — TQS ≥ bronze (6.0) required for the new ADR/traceability tests; fix anti-patterns before proceeding.
 
-- [ ] **Task 13: Fix grpcPool.Close() blocking bug in api-gateway**
+### Phase 5: TDD RED — Failing Tests First
+<!-- Per rules/base.md (TDD Compliance) + user directive: tests are written BEFORE code changes. Each RED test must FAIL against current code and pass only after its GREEN implementation (Phase 6). -->
+
+- [ ] **Task 13: grpcPool lifecycle regression test**
+  Files to create:
+  - `apps/services/api-gateway/grpc_pool_lifecycle_test.go`
+
+  Deliverable:
+  - Regression test proving the gRPC pool lifecycle contract:
+    1. After `RegisterRoutes(r, pool)` returns, the pool is NOT closed — connections remain usable (`GetConn` succeeds)
+    2. After the graceful shutdown path (as in `main.go`), `pool.Close()` is invoked and connections are closed
+  - Context: the original bug (`defer grpcPool.Close()` inside `RegisterRoutes`) closed the pool before the HTTP server started; the fix is already present in `main.go` (L179-181: `grpcPool.Close()` in the shutdown handler). This test locks in the correct behavior — it FAILS if the bug is reintroduced (e.g., `Close()` moved back into `RegisterRoutes` or removed from shutdown).
+  - Test approach: unit-level using `NewGrpcClientPool` + `httptest` router built via `RegisterRoutes`; probe pool state with `GetConn`/`Close`. No external infrastructure → **no** `//go:build integration` tag.
+  - If the fix is NOT actually in place (test fails at RED), Task 17 performs the fix.
+
+  > BDD naming: `[Condition]_[Action]_[ExpectedResult]`, e.g. `TestGRPCPool_AfterRegisterRoutes_ShouldStayOpen`, `TestGRPCPool_AfterShutdown_ShouldClose`
+
+  LOGGING REQUIREMENTS (standard):
+  - Log pool state at each assertion (INFO): `[grpc_pool_test] pool state after RegisterRoutes {state}`
+  - Log final verdict (INFO): `[grpc_pool_test] lifecycle contract verified {passed}`
+
+- [ ] **Task 14: Deprecation headers test (RED)**
+  Files to create:
+  - `apps/services/api-gateway/deprecation_headers_test.go`
+
+  Deliverable:
+  - Failing test: ALL routes under `/api/v1/ontologies/*` MUST return response headers `Deprecation: true` and `Sunset: Sat, 01 Aug 2026 00:00:00 GMT`:
+    - `GET /ontologies` (list)
+    - `GET/PUT/DELETE /ontologies/:id`
+    - `GET/POST /ontologies/:id/classes`, `/properties`, `/individuals`
+    - `GET /ontologies/:id/export`, `POST /ontologies/:id/import`
+    - `/ontologies/:id/versioning/*` (if present)
+  - Before middleware (Task 18): headers absent → test FAILS (RED)
+  - Test approach: `httptest` against the `RegisterRoutes` router with the middleware applied; representative sample of routes is sufficient (list, get-one, write). No external infra → no integration tag.
+  - `// Validates: REQ-FUN.API.rest-gitlab-alignment` annotation (deprecation of legacy paths is part of the GitLab-alignment contract).
+
+  > BDD naming: `[Condition]_[Action]_[ExpectedResult]`, e.g. `TestDeprecation_GetOntology_ShouldReturnSunsetHeader`, `TestDeprecation_PostClass_ShouldReturnDeprecationHeader`
+
+  LOGGING REQUIREMENTS (standard):
+  - Log each route checked with header presence (INFO/WARN)
+  - Log summary: routes checked, missing headers (INFO)
+
+- [ ] **Task 15: 501 planned-stubs test (RED)**
+  Files to create:
+  - `apps/services/api-gateway/planned_stubs_test.go`
+
+  Deliverable:
+  - Failing test: stub endpoints MUST return `501 Not Implemented` with header `x-vedo-status: planned` and body `{"message":"Not implemented — planned for M10/M11","x_vedo_status":"planned"}`:
+    - `GET /api/v1/projects/{pid}/releases` — planned for M11
+    - `GET /api/v1/projects/{pid}/merge_requests` — planned for M10
+    - `POST /api/v1/projects/{pid}/merge_requests` — planned for M10
+    - `GET /api/v1/projects/{pid}/protected_branches` — planned for M10
+    - `POST /api/v1/projects/{pid}/protected_branches` — planned for M10
+  - Before stubs (Task 19): routes return 404 → test FAILS (RED)
+  - Test approach: `httptest` against the `RegisterRoutes` router; no external infra → no integration tag.
+  - `// Validates: REQ-FUN.API.rest-gitlab-alignment` annotation.
+
+  > BDD naming: `[Condition]_[Action]_[ExpectedResult]`, e.g. `TestPlannedStub_GetReleases_ShouldReturn501`, `TestPlannedStub_PostProtectedBranches_ShouldReturnXStatusPlanned`
+
+  LOGGING REQUIREMENTS (standard):
+  - Log each stub endpoint checked with status/header (INFO/WARN)
+  - Log summary: endpoints checked, mismatches (INFO)
+
+- [ ] **Task 16: RoleWeightPublish const test (RED)**
+  Files to create:
+  - `apps/services/api-gateway/auth/role_weight_publish_test.go`
+
+  Deliverable:
+  - Failing test: `auth.RoleWeightPublish` const MUST exist and equal `2` (Maintainer weight) per ADR-DES.INFRA.publishing-extension publish gate.
+  - Before const (Task 20): test does not compile (const undefined) → RED
+  - Test approach: plain Go unit test in `auth` package.
+  - `// Validates: REQ-CON.STACK.publishing-extension` annotation (publish gate requirement).
+
+  > BDD naming: `TestRoleWeightPublish_ShouldEqualMaintainerWeight`
+
+  LOGGING REQUIREMENTS (standard):
+  - Log const value and expected value (INFO)
+
+<!-- Commit checkpoint: tasks 13-16 (RED tests) -->
+
+**Test Quality Checkpoint:** Run `$aif-test-quality` after tasks 13-16 — TQS ≥ bronze (6.0) required for the new guardrail tests; fix anti-patterns before proceeding.
+
+### Phase 6: TDD GREEN — Implementation
+<!-- Implementations that make the Phase 5 RED tests pass. Each task references its test task. -->
+
+- [ ] **Task 17: Fix grpcPool.Close() blocking bug** (makes Task 13 pass)
   Files to modify:
   - `apps/services/api-gateway/routes.go`
   - `apps/services/api-gateway/main.go`
 
   Deliverable:
-  - **Bug:** `defer grpcPool.Close()` in `RegisterRoutes()` closes the gRPC connection pool before the HTTP server starts. HTTP proxy masks the problem — old CRUD routes continue working through HTTP fallback, but gRPC clients never connect.
-  - **Fix:**
-    1. Remove `defer grpcPool.Close()` from `RegisterRoutes()` (routes.go)
-    2. Pass the pool reference to `main()` return value or shutdown context
-    3. Call `grpcPool.Close()` in the graceful shutdown handler in `main.go` (alongside existing `srv.Shutdown(ctx)`)
-    4. Add INFO log: `[api-gateway] gRPC pool closed during graceful shutdown`
-  - **Verification:** `go test ./...` in api-gateway passes; start server locally, verify gRPC connections are established (not just HTTP fallback)
+  - Verify (and complete if needed) the lifecycle fix:
+    1. `RegisterRoutes()` does NOT close the pool (no `defer grpcPool.Close()`)
+    2. `main.go` graceful shutdown handler calls `grpcPool.Close()` alongside `srv.Shutdown(ctx)`
+    3. INFO log present: `[api-gateway] gRPC pool closed {reason: "graceful_shutdown"}`
+  - If Task 13 regression test fails: apply the fix (remove `defer` from `RegisterRoutes`, add `Close()` to shutdown handler), then re-run until green.
+  - **Verification:** `go test ./...` in api-gateway passes including Task 13 test.
 
   LOGGING REQUIREMENTS (standard):
   - Log pool initialization in `RegisterRoutes()`: `[api-gateway] gRPC pool initialized {size, targets}`
   - Log pool closure in shutdown: `[api-gateway] gRPC pool closed {reason: "graceful_shutdown"}`
   - Log any close errors: `[api-gateway] gRPC pool close error {error}`
   - Use INFO level for lifecycle, WARN for errors
-  > BDD naming: N/A (bugfix; verified via existing gRPC tests)
+  > BDD naming: N/A (bugfix; verified via Task 13 regression test)
 
-<!-- Commit checkpoint: task 13 -->
-
-### Phase 6: Guardrails & Deprecation Warnings
-<!-- Plug gaps between current code state and target architecture without implementing M10/M11 features. -->
-
-- [ ] **Task 14: Add deprecation warnings on /api/v1/ontologies/* routes** (depends on Task 5)
+- [ ] **Task 18: Add deprecation warnings on /api/v1/ontologies/* routes** (makes Task 14 pass) (depends on Task 5)
   Files to modify:
   - `apps/services/api-gateway/routes.go`
 
@@ -735,14 +822,14 @@ Open questions:
   - Implementation: add a Gin middleware that injects deprecation headers for matched path prefix
   - Log deprecation warning once per route registration: `[api-gateway] route deprecated {path, sunset, replacement}`
   - **Do NOT remove or disable routes** — this task only adds headers; actual removal happens in Phase B (REST migration)
-  - **Verification:** `curl -I http://localhost:8080/api/v1/ontologies/test-id` returns `Deprecation: true` and `Sunset: ...` headers; existing E2E tests still pass (headers are additive, don't change response body)
+  - **Verification:** Task 14 test passes; `curl -I http://localhost:8080/api/v1/ontologies/test-id` returns `Deprecation: true` and `Sunset: ...` headers; existing E2E tests still pass (headers are additive, don't change response body)
 
   LOGGING REQUIREMENTS (standard):
   - Log each deprecated route at startup (INFO): `[api-gateway] deprecated route registered {path, sunset, replacement}`
   - Log each request to deprecated route (INFO, sampled at 1/100): `[api-gateway] deprecated route accessed {path, client_ip}`
-  > BDD naming: N/A (middleware change; verified via curl + existing tests)
+  > BDD naming: N/A (middleware change; verified via Task 14 test + curl)
 
-- [ ] **Task 15: Add x-vedo-status: planned stubs for future endpoints** (depends on Tasks 5, 6)
+- [ ] **Task 19: Add x-vedo-status: planned stubs for future endpoints** (makes Task 15 pass) (depends on Tasks 5, 6)
   Files to modify:
   - `apps/services/api-gateway/routes.go`
   - `apps/services/api-gateway/main.go` (if new route groups needed)
@@ -756,42 +843,42 @@ Open questions:
     - `POST /api/v1/projects/{pid}/protected_branches` — planned for M10
   - Response body: `{"message": "Not implemented — planned for M10/M11", "x_vedo_status": "planned"}`
   - **Do NOT implement actual logic** — this is a contract stub for API consumers and test authors
-  - **Verification:** `curl http://localhost:8080/api/v1/projects/123/releases` returns `501` with `x-vedo-status: planned`
+  - **Verification:** Task 15 test passes; `curl http://localhost:8080/api/v1/projects/123/releases` returns `501` with `x-vedo-status: planned`
 
   LOGGING REQUIREMENTS (standard):
   - Log each stub route registered at startup (INFO): `[api-gateway] planned stub registered {path, milestone, status_code: 501}`
   - Log each stub access (DEBUG, sampled): `[api-gateway] planned stub accessed {path}`
-  > BDD naming: N/A (stub endpoints; verified via curl)
+  > BDD naming: N/A (stub endpoints; verified via Task 15 test + curl)
 
-- [ ] **Task 16: Add maintainer-gate annotation in auth.go** (depends on Task 6)
+- [ ] **Task 20: Add maintainer-gate annotation in auth.go** (makes Task 16 pass) (depends on Task 6)
   Files to modify:
   - `apps/services/api-gateway/auth/auth.go`
 
   Deliverable:
-  - In `RequiredRoleLevel` function (or equivalent RBAC gate), add annotation comment:
+  - Add the publish-gate annotation next to `roleWeight` (or `RequiredRoleLevel` equivalent RBAC gate):
     ```go
     // Publish gate per ADR-DES.INFRA.publishing-extension:
     //   weight >= 2 (Maintainer+)
     //   No separate publisher role — Maintainer performs publish action.
     //   Owner (weight=3) can also publish.
     ```
-  - If publish gate is not yet enforced in code (current code has no publish action), add a const:
+  - Add a const (publish gate is not yet enforced in code — no publish action exists):
     ```go
     const RoleWeightPublish = 2 // Maintainer — per ADR-DES.INFRA.publishing-extension
     ```
   - **Do NOT add new auth middleware** — this task only documents the gate; enforcement comes in M11
-  - **Verification:** `go build ./...` compiles; no behavioral change
+  - **Verification:** Task 16 test compiles and passes; `go build ./...` compiles; no behavioral change
 
   LOGGING REQUIREMENTS (standard):
   - No runtime logging changes (annotation-only task)
-  > BDD naming: N/A (annotation-only task)
+  > BDD naming: N/A (annotation + const task; verified via Task 16 test)
 
-<!-- Commit checkpoint: tasks 14-16 -->
+<!-- Commit checkpoint: tasks 17-20 (GREEN implementations) -->
 
 ### Phase 7: Test Alignment & Suite Verification
 <!-- Ensure existing tests are aligned with new ADRs/REQs and the full test suite passes. -->
 
-- [ ] **Task 17: Add REQ traceability annotations to relevant existing tests** (depends on Tasks 1-6, 13-16)
+- [ ] **Task 21: Add REQ traceability annotations to relevant existing tests** (depends on Tasks 1-6, 17-20)
   Files to scan and annotate:
   - `apps/services/ontology-service/tests/class_integration.rs`, `property_integration.rs`, `individual_integration.rs`
   - `apps/services/ontology-service/tests/import_export_integration.rs`
@@ -815,7 +902,7 @@ Open questions:
   LOGGING REQUIREMENTS (standard):
   - No runtime logging changes (annotation-only task)
 
-- [ ] **Task 18: Run full test suite, verify zero regressions** (depends on Tasks 1-17)
+- [ ] **Task 22: Run full test suite, verify zero regressions** (depends on Tasks 1-21)
   Test commands:
   - `go test ./...` in `apps/services/api-gateway/`
   - `go test ./...` in `apps/services/auth-service/`
@@ -827,9 +914,10 @@ Open questions:
   - Security suite: `go test ./...` in `tests/security/`
 
   Deliverable:
+  - Run `$aif-test-quality` (TQS ≥ bronze, RCS vs traceability.ttl) as a gate before the full suite run
   - All test suites **MUST pass** with zero new failures
   - Document any pre-existing failures (e.g., fork_bola skipped tests) as known exceptions
-  - If deprecation headers (Task 15) or planned stubs (Task 16) cause test failures:
+  - If deprecation headers (Task 18) or planned stubs (Task 19) cause test failures:
     - Fix the affected tests to tolerate new headers/stubs
     - Do NOT revert the guardrails
   - Generate a test run report: `test_run_report.txt` with per-suite pass/fail counts
@@ -841,10 +929,10 @@ Open questions:
   - Log summary: total suites, passed, failed (INFO)
   - Use format: `[test_runner] <message> {suite, passed, failed, duration}`
 
-<!-- Commit checkpoint: tasks 17-18 -->
+<!-- Commit checkpoint: tasks 21-22 -->
 
 ### Phase 8: Documentation
-- [ ] **Task 19: Update Antora developer guide** (depends on Tasks 4-18)
+- [ ] **Task 23: Update Antora developer guide** (depends on Tasks 4-22)
   Files to modify:
   - `docs/antora/developer-guide/modules/ROOT/pages/architecture.adoc`
 
@@ -869,4 +957,4 @@ Open questions:
   - No runtime code changes in this task
   > BDD naming: N/A (document-only task)
 
-<!-- Commit checkpoint: task 19 -->
+<!-- Commit checkpoint: task 23 -->
