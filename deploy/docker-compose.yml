@@ -32,7 +32,7 @@ services:
       dockerfile: tools/dockerfiles/Dockerfile.typescript
       args:
         SERVICE_DIR: apps/services/frontend
-        VITE_MODE: production
+        BUILD_PROFILE: ${BUILD_PROFILE:-production}
     ports:
       - "${FRONTEND_PORT:-3000}:${FRONTEND_CONTAINER_PORT:-3000}"
     environment:

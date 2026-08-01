@@ -38,6 +38,6 @@ services:
       dockerfile: tools/dockerfiles/Dockerfile.typescript
       args:
         SERVICE_DIR: apps/services/frontend
-        VITE_MODE: e2e
+        BUILD_PROFILE: e2e
     environment:
       VEDO_SKIP_AUTH: "true"

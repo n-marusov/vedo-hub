@@ -264,7 +264,12 @@ build-frontend:
   services:
     - docker:24.0-dind
   script:
-    - docker build -t ${REGISTRY}/vedo-frontend:${CI_COMMIT_SHORT_SHA} -t ${REGISTRY}/vedo-frontend:latest apps/services/frontend
+    - docker build
+        -f tools/dockerfiles/Dockerfile.typescript
+        --build-arg SERVICE_DIR=apps/services/frontend
+        -t ${REGISTRY}/vedo-frontend:${CI_COMMIT_SHORT_SHA}
+        -t ${REGISTRY}/vedo-frontend:latest
+        .
     - docker push ${REGISTRY}/vedo-frontend:${CI_COMMIT_SHORT_SHA}
     - docker push ${REGISTRY}/vedo-frontend:latest
   rules:
