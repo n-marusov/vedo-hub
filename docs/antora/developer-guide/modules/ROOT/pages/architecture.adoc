@@ -167,6 +167,51 @@ Prometheus metrics are available at `/metrics`.
 |❌ *Leaky Gateway* |API Gateway containing business logic instead of routing
 |===
 
+== Write-Path Invariant
+
+*Architectural constraint* per `ADR-DES.API.write-path-invariant` (specs/adr/): *no path to mutate ontology state exists outside the versioning pipeline.*
+
+* **No direct writes to Neo4j** — neither humans, nor AI agents, nor administrators write to ontology storage directly. The prohibition covers both ABox and TBox.
+* **Every mutation** follows the pipeline `branch → commit → MR → review → merge` and is a logged commit with an audit trail (who, what, when, branch).
+* **REST write endpoints** operate on branch-local snapshots, never on the live ontology.
+* **Enforcement** is deferred to M10 (MR workflow becomes the enforcement backbone).
+* **Current code** carries deprecation warnings on the legacy direct-write surface and is annotated for migration.
+
+Source requirement: `REQ-CON.SECURITY.write-path-invariant` (specs/requirements/).
+
+== REST API Structure
+
+The REST API follows GitLab-aligned conventions per `ADR-DES.API.rest-gitlab-alignment` (specs/adr/): operations are nested under `/projects/{pid}/`.
+
+|===
+|Area |Current state |Target state
+
+|Ontology content |`/api/v1/ontologies/*` (deprecated) |`/projects/{pid}/repository/classes|properties|individuals` with `?ref=`
+|Versioning |`/api/v1/versioning/*` |`/projects/{pid}/repository/commits|branches`
+|Merge Requests |— |`/projects/{pid}/merge_requests` (iid-based, PUT merge, state_event, /diffs)
+|Releases |— |`/projects/{pid}/releases`
+|Branch protection |— |`/projects/{pid}/protected_branches`
+|===
+
+* Legacy paths `/api/v1/ontologies/*` return `Deprecation: true` + `Sunset` headers and remain active until Phase B (REST migration).
+* Planned endpoints (`/releases`, `/merge_requests`, `/protected_branches`) return `501 Not Implemented` with the `x-vedo-status: planned` header — a contract stub for consumers and test authors.
+* Global endpoints are read-aggregations only.
+
+Source requirement: `REQ-FUN.API.rest-gitlab-alignment` (specs/requirements/).
+
+== Publishing Model
+
+The publishing model extends the original ontology-publishing decision per `ADR-DES.INFRA.publishing-extension` (specs/adr/) with CQRS and a binary access model.
+
+* **CQRS serving layer** — a published snapshot (release) is a materialized read-only view of the ontology at a specific commit, served from a separate read-only store (second Neo4j or MinIO+index; decision deferred to implementation).
+* **Binary visibility** — public (no auth, basic DoS protection) or restricted (API key via `X-VEDO-API-Key`).
+* **Maintainer gate** — the publish action requires role weight ≥ 2 (Maintainer+); there is no separate publisher role.
+* **Releases naming** — published snapshots are exposed as `/projects/{pid}/releases`.
+
+Source requirement: `REQ-CON.STACK.publishing-extension` (specs/requirements/).
+
+NOTE: Code migration to the target architecture is deferred to M10 (MR workflow) and M11 (publishing pipeline). Current code includes deprecation warnings and planned stubs per the ADRs above.
+
 == See Also
 
 * xref:getting-started.adoc[Getting Started] — prerequisites and quick start
