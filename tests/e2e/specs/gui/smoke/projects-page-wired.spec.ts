@@ -35,6 +35,6 @@ test.describe('Projects Page — Real API', () => {
     const firstRow = projects.getProjects().first();
     const name = await firstRow.locator('.project-name').textContent();
     await projects.clickProject(name || '');
-    await expect(page).toHaveURL(/\/ontology\//);
+    await expect(page).toHaveURL(/\/project\//);
   });
 });
