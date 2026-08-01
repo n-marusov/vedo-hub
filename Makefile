@@ -1036,7 +1036,7 @@ docker-up: ## Start all services via Docker Compose (usage: make docker-up [ENV=
 		--env-file $(ROOT)/config/.env.$(ENV) \
 		-f $(ROOT)/$(COMPOSE_FILE) \
 		$(if $(COMPOSE_PROFILE),--profile $(COMPOSE_PROFILE)) \
-		up -d
+		up -d --build
 
 docker-env-check: ## Show resolved environment values for current ENV
 	@echo "ENV=$(ENV)"
