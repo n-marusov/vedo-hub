@@ -28,7 +28,7 @@ export class GroupsPage {
   }
 
   getVisibilityIcons() {
-    return this.page.locator('.gp-visibility-icon');
+    return this.page.locator('.gp-row-vis-icon');
   }
 
   getChildGroups() {

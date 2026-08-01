@@ -91,7 +91,17 @@ export async function listGroups(q?: string): Promise<GroupInfo[]> {
 				ts: new Date().toISOString(),
 			}),
 		);
-		return data.data ?? [];
+		// Map API snake_case fields to the camelCase GroupInfo interface.
+		// The REST groups endpoint returns parent_id / childGroups not nested.
+		return (data.data ?? []).map((g: Record<string, unknown>) => ({
+			id: String(g.id ?? ""),
+			name: String(g.name ?? ""),
+			description: (g.description as string | null) ?? null,
+			parentGroupId: (g.parent_id as string | null) ?? null,
+			visibility: String(g.visibility ?? "Private").toLowerCase(),
+			memberCount: Number(g.member_count ?? 0),
+			projectCount: Number(g.project_count ?? 0),
+		}));
 	} catch (err: unknown) {
 		const msg = extractErrorMessage(err, "Failed to list groups");
 		console.error(

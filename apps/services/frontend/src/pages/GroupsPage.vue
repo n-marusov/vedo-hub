@@ -185,20 +185,29 @@ const groupRows = computed<GroupRow[]>(() => {
 	if (!items || items.length === 0) {
 		return [];
 	}
-	// Build flat hierarchy from nested API response
+	// Build a hierarchy from the flat API response. The REST groups endpoint
+	// returns groups with parentGroupId; children are looked up by parent id.
+	const childrenByParent = new Map<string | null, GroupInfo[]>();
+	for (const g of items) {
+		const key = g.parentGroupId || null;
+		const list = childrenByParent.get(key) ?? [];
+		list.push(g);
+		childrenByParent.set(key, list);
+	}
 	const rows: GroupRow[] = [];
 	function walk(group: GroupInfo, indent: number, isChild: boolean): void {
 		const groupName = String(group.name || "");
+		const children = childrenByParent.get(group.id) ?? [];
 		rows.push({
 			name: groupName,
 			indent,
-			chevronIcon: group.childGroups?.length ? ChevronDown : ChevronRight,
+			chevronIcon: children.length ? ChevronDown : ChevronRight,
 			logoLetter: String(group.name ? group.name[0] : "?").toUpperCase(),
 			logoBg: "#6366f126",
 			visibility: (group.visibility as "public" | "private") || "public",
 			description: String(group.description || ""),
 			type: "group",
-			subgroups: Number(group.childGroups?.length || 0),
+			subgroups: children.length,
 			projects: Number(group.projectCount || 0),
 			members: Number(group.memberCount || 0),
 			created: "",
@@ -206,13 +215,14 @@ const groupRows = computed<GroupRow[]>(() => {
 			isChild,
 		});
 		// Only walk children if this group is expanded
-		if (group.childGroups && expanded[groupName]) {
-			for (const child of group.childGroups) {
+		if (children.length && expanded[groupName]) {
+			for (const child of children) {
 				walk(child, indent + 18, true);
 			}
 		}
 	}
-	for (const g of items) {
+	// Top-level groups are those without a parent
+	for (const g of childrenByParent.get(null) ?? []) {
 		walk(g, 0, false);
 	}
 	return rows;
