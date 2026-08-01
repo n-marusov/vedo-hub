@@ -33,9 +33,11 @@ RUN echo "minimumReleaseAge=0" >> .npmrc
 ARG VITE_KEYCLOAK_REALM=
 ARG VITE_KEYCLOAK_CLIENT_ID=
 ARG VITE_KEYCLOAK_URL=
+ARG VITE_SKIP_AUTH=
 ENV VITE_KEYCLOAK_REALM=${VITE_KEYCLOAK_REALM}
 ENV VITE_KEYCLOAK_CLIENT_ID=${VITE_KEYCLOAK_CLIENT_ID}
 ENV VITE_KEYCLOAK_URL=${VITE_KEYCLOAK_URL}
+ENV VITE_SKIP_AUTH=${VITE_SKIP_AUTH}
 
 # Copy dependency manifests first for layer caching
 # pnpm-workspace.yaml must be copied too — the lockfile records overrides/

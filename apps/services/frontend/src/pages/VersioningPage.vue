@@ -402,6 +402,34 @@ watch(error, (err) => {
   font-weight: 600;
 }
 
+.version-error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--foreground);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px;
+}
+
+.retry-btn {
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  padding: 0 12px;
+  cursor: pointer;
+}
+
+.retry-btn:hover {
+  background: var(--secondary);
+}
+
 .branch-badge {
   border-radius: 999px;
   border: 1px solid var(--primary);

@@ -75,7 +75,7 @@
 	--border-error: var(--destructive);
 	--text-primary: var(--foreground);
 	--text-secondary: var(--muted-foreground);
-	--text-muted: #64748b;
+	--text-muted: #8a94a6; /* WCAG AA 4.5:1 on --card #101010 (was #64748b 3.99:1) */
 	--text-inverse: var(--primary-foreground);
 	--text-link: var(--primary);
 

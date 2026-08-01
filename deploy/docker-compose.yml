@@ -21,6 +21,7 @@ services:
         VITE_KEYCLOAK_REALM: ${VITE_KEYCLOAK_REALM:-vedo-core}
         VITE_KEYCLOAK_CLIENT_ID: ${VITE_KEYCLOAK_CLIENT_ID:-vedo-core-frontend}
         VITE_KEYCLOAK_URL: ${VITE_KEYCLOAK_URL:-http://localhost:${KC_HOSTNAME_PORT:-8180}}
+        VITE_SKIP_AUTH: ${VITE_SKIP_AUTH:-false}
     ports:
       - "${FRONTEND_PORT:-3000}:${FRONTEND_CONTAINER_PORT:-3000}"
     environment:

@@ -9,6 +9,8 @@ import type {
 	RouteRecordRaw,
 } from "vue-router";
 
+const SKIP_AUTH = import.meta.env.VITE_SKIP_AUTH === "true";
+
 // @ctx: route definitions per GUI-OW-001 Input route enum
 const routes: RouteRecordRaw[] = [
 	// @hlv GUI_ROUTE_NOT_FOUND
@@ -177,6 +179,12 @@ router.beforeEach(
 		next: NavigationGuardNext,
 	) => {
 		logNavigation({ route: to.name as string, path: to.path });
+
+		// Skip auth in test mode — avoids Keycloak redirection in Playwright E2E
+		if (SKIP_AUTH) {
+			next();
+			return;
+		}
 
 		if (to.meta.requiresAuth) {
 			if (!isAuthenticated()) {
