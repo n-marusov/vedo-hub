@@ -44,6 +44,7 @@ services:
       - VEDO_USE_MOCK_API=${VEDO_USE_MOCK_API:-false}
       - VEDO_APP_VERSION=${SERVICE_VERSION:-dev}
       - VEDO_APP_ENV=${APP_ENV:-dev}
+      - VEDO_PUBLIC_DOMAIN=${PUBLIC_DOMAIN:-vedo-core.local}
     depends_on:
       api-gateway:
         condition: service_healthy
