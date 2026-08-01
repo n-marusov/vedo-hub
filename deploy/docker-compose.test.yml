@@ -34,5 +34,10 @@ services:
 
   frontend:
     build:
+      context: ..
+      dockerfile: tools/dockerfiles/Dockerfile.typescript
       args:
-        VITE_SKIP_AUTH: "true"
+        SERVICE_DIR: apps/services/frontend
+        VITE_MODE: e2e
+    environment:
+      VEDO_SKIP_AUTH: "true"

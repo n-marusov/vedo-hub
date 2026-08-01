@@ -9,7 +9,13 @@ import type {
 	RouteRecordRaw,
 } from "vue-router";
 
-const SKIP_AUTH = import.meta.env.VITE_SKIP_AUTH === "true";
+// SKIP_AUTH is disabled in production builds — Vite's dead-code elimination
+// removes all SKIP_AUTH branches at build time when MODE=production.
+// In non-production builds (dev server, e2e test images), the runtime
+// window.__VEDO_CONFIG__.SKIP_AUTH value is honored.
+const SKIP_AUTH = import.meta.env.PROD
+	? false
+	: (window.__VEDO_CONFIG__?.SKIP_AUTH || "false") === "true";
 
 // @ctx: route definitions per GUI-OW-001 Input route enum
 const routes: RouteRecordRaw[] = [

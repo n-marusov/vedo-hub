@@ -117,217 +117,230 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref, watch } from 'vue'
-import { type TicketDraft, useTicketDraftStore } from '../../stores/ticketDraftStore'
-import Dialog from '../ui-kit/Dialog.vue'
-import AttachmentUpload from './AttachmentUpload.vue'
-import CategoryWizard from './CategoryWizard.vue'
-import MetadataPreview from './MetadataPreview.vue'
+import { onMounted, reactive, ref, watch } from "vue";
+import {
+	type TicketDraft,
+	useTicketDraftStore,
+} from "../../stores/ticketDraftStore";
+import Dialog from "../ui-kit/Dialog.vue";
+import AttachmentUpload from "./AttachmentUpload.vue";
+import CategoryWizard from "./CategoryWizard.vue";
+import MetadataPreview from "./MetadataPreview.vue";
 
 // @ctx: props
 const props = defineProps<{
-  isOpen: boolean
-}>()
+	isOpen: boolean;
+}>();
 
 const emit = defineEmits<{
-  close: []
-  submit: [data: Record<string, unknown>]
-}>()
+	close: [];
+	submit: [data: Record<string, unknown>];
+}>();
 
 // @ctx: draft store integration
 const {
-  draft,
-  hasDraft,
-  updateDraft,
-  restoreDraft: doRestoreDraft,
-  resetDraft
-} = useTicketDraftStore()
-const showDraftRestore = ref(false)
+	draft,
+	hasDraft,
+	updateDraft,
+	restoreDraft: doRestoreDraft,
+	resetDraft,
+} = useTicketDraftStore();
+const showDraftRestore = ref(false);
 
 // @ctx: form state
 const form = reactive({
-  title: '',
-  description: '',
-  attachments: [] as File[]
-})
+	title: "",
+	description: "",
+	attachments: [] as File[],
+});
 
 const categoryData = reactive({
-  category: '',
-  user_severity: '',
-  steps_to_reproduce: '',
-  expected_behavior: '',
-  expected_duration: '',
-  actual_duration: ''
-})
+	category: "",
+	user_severity: "",
+	steps_to_reproduce: "",
+	expected_behavior: "",
+	expected_duration: "",
+	actual_duration: "",
+});
 
-const errors = reactive<Record<string, string>>({})
-const categoryErrors = reactive<Record<string, boolean>>({})
-const isSubmitting = ref(false)
-const submitError = ref<string | null>(null)
+const errors = reactive<Record<string, string>>({});
+const categoryErrors = reactive<Record<string, boolean>>({});
+const isSubmitting = ref(false);
+const submitError = ref<string | null>(null);
 
 // @ctx: auto-captured metadata
 const metadata = reactive({
-  version: import.meta.env.VITE_APP_VERSION || '0.1.0',
-  environment: import.meta.env.VITE_APP_ENV || 'dev',
-  userAgent: navigator.userAgent,
-  traceId: crypto.randomUUID?.() || null,
-  pageUrl: window.location.href
-})
+	version: window.__VEDO_CONFIG__?.APP_VERSION || "0.1.0",
+	environment: window.__VEDO_CONFIG__?.APP_ENV || "dev",
+	userAgent: navigator.userAgent,
+	traceId: crypto.randomUUID?.() || null,
+	pageUrl: window.location.href,
+});
 
 // @ctx: sync form to draft store
 watch(
-  [form, categoryData],
-  () => {
-    if (props.isOpen) {
-      updateDraft({
-        title: form.title,
-        description: form.description,
-        category: categoryData.category as TicketDraft['category'],
-        user_severity: categoryData.user_severity as TicketDraft['user_severity'],
-        steps_to_reproduce: categoryData.steps_to_reproduce,
-        expected_behavior: categoryData.expected_behavior,
-        attachments: form.attachments.map((f) => ({
-          filename: f.name,
-          size: f.size,
-          type: f.type
-        })),
-        trace_id: metadata.traceId,
-        page_url: metadata.pageUrl,
-        saved_at: new Date().toISOString()
-      })
-    }
-  },
-  { deep: true }
-)
+	[form, categoryData],
+	() => {
+		if (props.isOpen) {
+			updateDraft({
+				title: form.title,
+				description: form.description,
+				category: categoryData.category as TicketDraft["category"],
+				user_severity:
+					categoryData.user_severity as TicketDraft["user_severity"],
+				steps_to_reproduce: categoryData.steps_to_reproduce,
+				expected_behavior: categoryData.expected_behavior,
+				attachments: form.attachments.map((f) => ({
+					filename: f.name,
+					size: f.size,
+					type: f.type,
+				})),
+				trace_id: metadata.traceId,
+				page_url: metadata.pageUrl,
+				saved_at: new Date().toISOString(),
+			});
+		}
+	},
+	{ deep: true },
+);
 
 // @ctx: check for draft on modal open
 onMounted(() => {
-  if (hasDraft.value && draft.value?.title) {
-    showDraftRestore.value = true
-  }
-})
+	if (hasDraft.value && draft.value?.title) {
+		showDraftRestore.value = true;
+	}
+});
 
 watch(
-  () => props.isOpen,
-  (open) => {
-    if (open && hasDraft.value && draft.value?.title) {
-      showDraftRestore.value = true
-    } else if (!open) {
-      showDraftRestore.value = false
-      submitError.value = null
-    }
-  }
-)
+	() => props.isOpen,
+	(open) => {
+		if (open && hasDraft.value && draft.value?.title) {
+			showDraftRestore.value = true;
+		} else if (!open) {
+			showDraftRestore.value = false;
+			submitError.value = null;
+		}
+	},
+);
 
 function restoreDraft() {
-  const saved = doRestoreDraft()
-  if (saved) {
-    form.title = saved.title
-    form.description = saved.description
-    categoryData.category = saved.category as typeof categoryData.category
-    categoryData.user_severity = saved.user_severity as typeof categoryData.user_severity
-    categoryData.steps_to_reproduce = saved.steps_to_reproduce
-    categoryData.expected_behavior = saved.expected_behavior
-  }
-  showDraftRestore.value = false
+	const saved = doRestoreDraft();
+	if (saved) {
+		form.title = saved.title;
+		form.description = saved.description;
+		categoryData.category = saved.category as typeof categoryData.category;
+		categoryData.user_severity =
+			saved.user_severity as typeof categoryData.user_severity;
+		categoryData.steps_to_reproduce = saved.steps_to_reproduce;
+		categoryData.expected_behavior = saved.expected_behavior;
+	}
+	showDraftRestore.value = false;
 }
 
 function discardDraft() {
-  resetDraft()
-  showDraftRestore.value = false
+	resetDraft();
+	showDraftRestore.value = false;
 }
 
 function onAttachmentError(code: string) {
-  // @ctx: attachment error — already handled in AttachmentUpload
-  submitError.value =
-    code === 'TICKET-UI-TOO-MANY-FILES'
-      ? 'Too many files attached. Maximum is 10.'
-      : 'File too large. Maximum size is 10 MB.'
+	// @ctx: attachment error — already handled in AttachmentUpload
+	submitError.value =
+		code === "TICKET-UI-TOO-MANY-FILES"
+			? "Too many files attached. Maximum is 10."
+			: "File too large. Maximum size is 10 MB.";
 }
 
 // @ctx: validation — all error codes from GUI-TICKET-001 contract
 function validate(): boolean {
-  // Clear previous errors
-  for (const k of Object.keys(errors)) delete errors[k]
-  for (const k of Object.keys(categoryErrors)) delete categoryErrors[k]
+	// Clear previous errors
+	for (const k of Object.keys(errors)) delete errors[k];
+	for (const k of Object.keys(categoryErrors)) delete categoryErrors[k];
 
-  let valid = true
+	let valid = true;
 
-  // @hlv TICKET-UI-EMPTY-TITLE
-  if (!form.title.trim()) {
-    errors.title = 'Title is required. Please describe the issue briefly.'
-    valid = false
-  }
+	// @hlv TICKET-UI-EMPTY-TITLE
+	if (!form.title.trim()) {
+		errors.title = "Title is required. Please describe the issue briefly.";
+		valid = false;
+	}
 
-  // @hlv TICKET-UI-EMPTY-DESCRIPTION
-  if (!form.description.trim()) {
-    errors.description = 'Description is required. Please provide details about the issue.'
-    valid = false
-  }
+	// @hlv TICKET-UI-EMPTY-DESCRIPTION
+	if (!form.description.trim()) {
+		errors.description =
+			"Description is required. Please provide details about the issue.";
+		valid = false;
+	}
 
-  // @hlv TICKET-UI-MISSING-CATEGORY
-  if (!categoryData.category) {
-    categoryErrors.category = true
-    valid = false
-  }
+	// @hlv TICKET-UI-MISSING-CATEGORY
+	if (!categoryData.category) {
+		categoryErrors.category = true;
+		valid = false;
+	}
 
-  // @hlv TICKET-UI-MISSING-SEVERITY
-  if (!categoryData.user_severity) {
-    categoryErrors.severity = true
-    valid = false
-  }
+	// @hlv TICKET-UI-MISSING-SEVERITY
+	if (!categoryData.user_severity) {
+		categoryErrors.severity = true;
+		valid = false;
+	}
 
-  // @hlv TICKET-UI-MISSING-STEPS
-  if (categoryData.category === 'bug' && !categoryData.steps_to_reproduce.trim()) {
-    categoryErrors.steps = true
-    valid = false
-  }
+	// @hlv TICKET-UI-MISSING-STEPS
+	if (
+		categoryData.category === "bug" &&
+		!categoryData.steps_to_reproduce.trim()
+	) {
+		categoryErrors.steps = true;
+		valid = false;
+	}
 
-  // @hlv TICKET-UI-MISSING-EXPECTED
-  if (categoryData.category === 'feature' && !categoryData.expected_behavior.trim()) {
-    categoryErrors.expected = true
-    valid = false
-  }
+	// @hlv TICKET-UI-MISSING-EXPECTED
+	if (
+		categoryData.category === "feature" &&
+		!categoryData.expected_behavior.trim()
+	) {
+		categoryErrors.expected = true;
+		valid = false;
+	}
 
-  return valid
+	return valid;
 }
 
 async function onSubmit() {
-  submitError.value = null
+	submitError.value = null;
 
-  if (!validate()) return
+	if (!validate()) return;
 
-  isSubmitting.value = true
+	isSubmitting.value = true;
 
-  try {
-    const payload = {
-      title: form.title.trim(),
-      description: form.description.trim(),
-      category: categoryData.category,
-      user_severity: categoryData.user_severity,
-      steps_to_reproduce: categoryData.steps_to_reproduce.trim() || null,
-      expected_behavior: categoryData.expected_behavior.trim() || null,
-      trace_id: metadata.traceId,
-      page_url: metadata.pageUrl,
-      attachments: form.attachments.map((f) => ({
-        filename: f.name,
-        size: f.size
-      }))
-    }
+	try {
+		const payload = {
+			title: form.title.trim(),
+			description: form.description.trim(),
+			category: categoryData.category,
+			user_severity: categoryData.user_severity,
+			steps_to_reproduce: categoryData.steps_to_reproduce.trim() || null,
+			expected_behavior: categoryData.expected_behavior.trim() || null,
+			trace_id: metadata.traceId,
+			page_url: metadata.pageUrl,
+			attachments: form.attachments.map((f) => ({
+				filename: f.name,
+				size: f.size,
+			})),
+		};
 
-    emit('submit', payload)
-    resetDraft()
-    onClose()
-  } catch (_err) {
-    // @hlv TICKET-UI-NETWORK-ERROR
-    submitError.value = 'Failed to submit ticket. Please check your connection and try again.'
-  } finally {
-    isSubmitting.value = false
-  }
+		emit("submit", payload);
+		resetDraft();
+		onClose();
+	} catch (_err) {
+		// @hlv TICKET-UI-NETWORK-ERROR
+		submitError.value =
+			"Failed to submit ticket. Please check your connection and try again.";
+	} finally {
+		isSubmitting.value = false;
+	}
 }
 
 function onClose() {
-  emit('close')
+	emit("close");
 }
 </script>
 

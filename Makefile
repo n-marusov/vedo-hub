@@ -1019,11 +1019,17 @@ endif
 .PHONY: docker-down-dev docker-down-test docker-down-staging
 
 docker-up: ## Start all services via Docker Compose (usage: make docker-up [ENV=dev|test|staging])
-	docker compose \
+	SERVICE_VERSION=$(VERSION) docker compose \
 		--env-file $(ROOT)/config/.env.$(ENV) \
 		-f $(ROOT)/$(COMPOSE_FILE) \
 		$(if $(COMPOSE_PROFILE),--profile $(COMPOSE_PROFILE)) \
 		up -d
+
+docker-env-check: ## Show resolved environment values for current ENV
+	@echo "ENV=$(ENV)"
+	@echo "COMPOSE_FILE=$(COMPOSE_FILE)"
+	@echo "SERVICE_VERSION=$(VERSION)"
+	@SERVICE_VERSION=$(VERSION) docker compose --env-file $(ROOT)/config/.env.$(ENV) -f $(ROOT)/$(COMPOSE_FILE) config 2>/dev/null | grep -E "KC_HOSTNAME_PORT|VEDO_KEYCLOAK_URL|SERVICE_VERSION|FRONTEND_PORT|API_GATEWAY_PORT" || echo "(no matches — compose config may be invalid)"
 
 docker-up-dev: ## Start dev environment (alias for make docker-up ENV=dev)
 	$(MAKE) docker-up ENV=dev
