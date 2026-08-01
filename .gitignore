@@ -46,6 +46,7 @@ tests/e2e/test-results/
 tests/e2e/test-output*.txt
 tests/e2e/playwright-report/
 tests/e2e/specs/helpers/jwt-tokens.ts
+tests/e2e/specs/jwt-tokens.ts
 .playwright-mcp/
 
 # ── Environment ────────────────────────────────────────────────────────────────
