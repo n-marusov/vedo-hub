@@ -46,7 +46,6 @@
               "name": "navLeft",
               "layout": "horizontal",
               "alignItems": "center",
-              "gap": 32,
               "children": [
                 {
                   "type": "text",
@@ -57,7 +56,17 @@
                   "fontFamily": "IBM Plex Mono",
                   "fontSize": 16,
                   "fontWeight": "700"
-                },
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "landingNavRight",
+              "name": "navRight",
+              "layout": "horizontal",
+              "alignItems": "center",
+              "gap": 32,
+              "children": [
                 {
                   "type": "text",
                   "id": "landingNavProd",
@@ -87,17 +96,7 @@
                   "fontFamily": "IBM Plex Mono",
                   "fontSize": 13,
                   "fontWeight": "normal"
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "landingNavRight",
-              "name": "navRight",
-              "layout": "horizontal",
-              "alignItems": "center",
-              "gap": 16,
-              "children": [
+                },
                 {
                   "id": "landingNavLogin",
                   "type": "ref",
