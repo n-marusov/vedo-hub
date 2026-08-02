@@ -43,8 +43,6 @@ test.describe('Ontology Lifecycle E2E', () => {
       });
     });
 
-    await workspace.openOntology(UNIVERSITY_ONTOLOGY.name);
-
     // Track created entities for stateful mock responses (combobox, tree, graph)
     const createdClasses: Array<{id: string; label: string; parents: string[]}> = [];
     const createdProperties: Array<{id: string; label: string; propertyType: string}> = [];
@@ -76,22 +74,22 @@ test.describe('Ontology Lifecycle E2E', () => {
       }
 
       if (op === 'ClassTree') {
-        // Pre-populate tree with expected classes from test data
-        const classTreeData = UNIVERSITY_ONTOLOGY.classes
-          .filter((c) => !c.parents || c.parents.length === 0)
-          .map((c) => ({
+        // Flat tree — university fixtures plus any classes created via dialogs
+        // (the workspace refetches ClassTree after class creation).
+        const classTreeData = [
+          ...UNIVERSITY_ONTOLOGY.classes.map((c) => ({
             id: c.id,
             label: c.label,
             comment: c.comment || null,
-            children: UNIVERSITY_ONTOLOGY.classes
-              .filter((child) => child.parents?.includes(c.id))
-              .map((child) => ({
-                id: child.id,
-                label: child.label,
-                comment: child.comment || null,
-                children: [],
-              })),
-          }));
+            children: [],
+          })),
+          ...createdClasses.map((c) => ({
+            id: c.id,
+            label: c.label,
+            comment: null,
+            children: [],
+          })),
+        ];
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
@@ -210,6 +208,10 @@ test.describe('Ontology Lifecycle E2E', () => {
         await route.continue();
       }
     });
+
+    // Navigate AFTER all route mocks are registered so the ClassTree GraphQL
+    // query (Q3) and REST meta request are intercepted on mount.
+    await workspace.openOntology(UNIVERSITY_ONTOLOGY.name);
   });
 
   test('full ontology lifecycle: classes -> properties -> individuals -> commit', async ({ page }) => {

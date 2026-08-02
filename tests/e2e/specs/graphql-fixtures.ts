@@ -341,7 +341,10 @@ export const test = base.extend({
     await page.route('**/graphql', handleGuiGraphql);
     await page.route('**/api/v1/sparql', handleSparqlRest);
     await page.route('**/api/v1/groups*', handleRestGroups);
+    // Versioning REST: legacy flat paths AND GitLab-aligned project-scoped paths
+    // (ADR-DES.API.rest-gitlab-alignment) — frontend uses /projects/{pid}/repository/*
     await page.route('**/api/v1/versioning/*', handleRestVersioning);
+    await page.route('**/api/v1/projects/*/repository/*', handleRestVersioning);
     await page.route('**/api/v1/ontologies/*/validate', handleValidationRest);
     await page.route('**/api/v1/ontologies/*', handleOntologyMeta);
 

@@ -17,6 +17,11 @@
 // Validates: US-a11y.versioning.switch-branch
 import { test, expect } from '@playwright/test';
 
+// @skip — Accessibility is a continuous NFR (ROADMAP: Continuous NFRs). Tests cover
+// keyboard-only/screen-reader flows for features not yet landed (comments M10, SHACL M12,
+// publish M11, search M8, account close post-MVP). Un-skip incrementally as each feature
+// lands; axe smoke audits (axe-audit.spec.ts) run in every GUI pass.
+// Backlog: continuous NFR per ROADMAP.
 test.describe.skip('Accessibility (a11y) — keyboard-only navigation and screen reader support', () => {
   test('US-a11y.account.close-confirm: account close via typed confirmation with keyboard', async ({ page }) => {
     // TODO: Navigate to account settings → activate close → type confirmation → submit

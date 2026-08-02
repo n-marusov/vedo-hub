@@ -8,6 +8,9 @@
 // Validates: US-browse.search.parametric
 import { test, expect } from '@playwright/test';
 
+// @skip — Feature not implemented in MVP: graph pagination (large ontologies), full-text
+// and parametric search are M8 (Query Experience 1.0) / M11 (Public Browse 1.0) scope.
+// Backlog: ROADMAP M8/M11. MVP baseline (M1) provides graph browsing primitives only.
 test.describe.skip('Browse — ontology browsing and discovery', () => {
   test('US-browse.graph.paginated: paginated graph view for large ontologies', async ({ page }) => {
     // TODO: Open large ontology → scroll graph → verify pagination loads more nodes

@@ -7,6 +7,10 @@
 // Validates: US-io.xlsx.import-export
 import { test, expect } from '@playwright/test';
 
+// @skip — Feature not implemented in MVP: OWL/RDF import/export, XLSX/DOCX exchange,
+// snapshot publishing and reports are M11 (Publishing, Import/Export & Public Browse 1.0).
+// Backlog: ROADMAP M11. MVP import path is document-to-ontology (M2) — covered by
+// document-extraction specs (active).
 test.describe.skip('Import / Export — ontology data exchange', () => {
   test('US-io.export.canonical-turtle: export ontology in canonical Turtle', async ({ page }) => {
     // TODO: Open ontology → export → select canonical Turtle → verify download

@@ -2,6 +2,10 @@
 // Validates: US-git.commits.compare
 import { test, expect } from '@playwright/test';
 
+// @skip — Feature not implemented in MVP: MR lifecycle (create branch → MR → merge) is
+// M10 (Collaboration & Review 1.0) per ADR-DES.API.rest-gitlab-alignment. Commit diff
+// view is partially covered by active versioning-tabs smoke tests.
+// Backlog: ROADMAP M10.
 test.describe.skip('Git — versioning workflow (branches, commits, compare)', () => {
   test('US-git.branches.create-merge: create branch and merge via MR', async ({ page }) => {
     // TODO: Create branch → make changes → create MR → merge → verify

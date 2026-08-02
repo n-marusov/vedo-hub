@@ -61,18 +61,44 @@ export class OntologyWorkspacePage {
   }
 
   async getClassTree(): Promise<string[]> {
-    // OntologyWorkspace.vue renders each class as a <button class="class-row">
-    // inside the .class-panel aside. Use role-based locators for resilience.
-    const treeItems = await this.page
-      .locator('.class-panel')
-      .getByRole('button')
-      .allTextContents();
-    return treeItems;
+    // The real ClassTree renders clickable .class-tree__node divs (Q3 wiring),
+    // while some specs inject legacy .class-row buttons into .class-list.
+    // Wait for either shape to populate (the tree fills async from GraphQL).
+    const realNodes = this.page.locator('.class-panel .class-tree__label');
+    const injected = this.page.locator('.class-panel .class-row');
+    await this.page
+      .waitForFunction(
+        () => {
+          const panel = document.querySelector('.class-panel');
+          if (!panel) return false;
+          return (
+            panel.querySelectorAll('.class-tree__label').length > 0 ||
+            panel.querySelectorAll('button.class-row, .class-panel button').length > 0
+          );
+        },
+        undefined,
+        { timeout: 10_000 },
+      )
+      .catch(() => {
+        // Fall through — return whatever is currently in the DOM
+      });
+
+    const real = await realNodes.allTextContents();
+    if (real.length > 0) return real;
+    return this.page.locator('.class-panel').getByRole('button').allTextContents();
   }
 
   async selectClass(label: string) {
-    // Class rows are <button class="class-row"> scoped to .class-panel.
-    // Use exact name match to avoid selecting "Person" when "PersonProfile" exists.
+    // Real ClassTree (Q3): click the .class-tree__node whose label matches.
+    const realNode = this.page
+      .locator('.class-panel .class-tree__node')
+      .filter({ hasText: label })
+      .first();
+    if (await realNode.isVisible({ timeout: 1500 }).catch(() => false)) {
+      await realNode.click();
+      return;
+    }
+    // Legacy fallback: injected .class-row buttons scoped to .class-panel.
     await this.page
       .locator('.class-panel')
       .getByRole('button', { name: label, exact: true })
@@ -188,18 +214,23 @@ export class OntologyWorkspacePage {
     }, message);
   }
 
-  /** Inject a list of class names into the class tree DOM (.class-list). */
+  /** Inject a list of class names into the class tree DOM.
+   *  Works with the real ClassTree (.class-tree__list > .class-tree__node)
+   *  and falls back to the legacy .class-list for older specs. */
   async injectClassTree(classNames: string[]) {
     await this.page.evaluate((names) => {
-      const list = document.querySelector('.class-list');
+      const list = document.querySelector('.class-tree__list') || document.querySelector('.class-list');
       if (list) {
         list.innerHTML = '';
         names.forEach((name) => {
-          const btn = document.createElement('button');
-          btn.className = 'class-row';
-          btn.type = 'button';
-          btn.textContent = name;
-          list.appendChild(btn);
+          const node = document.createElement('div');
+          node.className = 'class-tree__node';
+          node.setAttribute('role', 'treeitem');
+          const label = document.createElement('span');
+          label.className = 'class-tree__label';
+          label.textContent = name;
+          node.appendChild(label);
+          list.appendChild(node);
         });
       }
     }, classNames);

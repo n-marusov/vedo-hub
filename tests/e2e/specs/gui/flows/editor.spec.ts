@@ -13,6 +13,9 @@
 // Validates: US-abox.properties.add-inline
 import { test, expect } from '@playwright/test';
 
+// @skip — Feature not implemented in MVP: SHACL visual builder / validation gates are
+// M12 (Ontology Quality & Reasoning 1.0); batch individual workflows are M9/M7 polish.
+// Backlog: ROADMAP M12 (SHACL rules, validation), M9 (ABox batch), M7 (editor polish).
 test.describe.skip('TBox / ABox Editor — ontology editing workflows', () => {
   test('US-editor.annotations.add-label: add label annotation to class', async ({ page }) => {
     // TODO: Open class editor → add label annotation → save → verify annotation appears

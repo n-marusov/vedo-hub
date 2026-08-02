@@ -3,6 +3,10 @@
 // Validates: US-projects.fork
 import { test, expect } from '@playwright/test';
 
+// @skip — Feature not implemented in MVP: merge request review/approval workflow and
+// comment visibility enforcement are M10 (Collaboration & Review 1.0). Fork is covered
+// by API security tests (tests/security/authorization/fork_bola_test.go).
+// Backlog: ROADMAP M10.
 test.describe.skip('Team & Projects — collaboration and project management', () => {
   test('US-team.comments.visibility: enforce comment visibility by access rights', async ({ page }) => {
     // TODO: Login as viewer → verify restricted comments hidden → login as owner → verify visible

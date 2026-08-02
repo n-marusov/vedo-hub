@@ -7,6 +7,9 @@
 // Validates: US-support.tickets.create-track
 import { test, expect } from '@playwright/test';
 
+// @skip — Feature not implemented in MVP: support portal, feedback/NPS flows, knowledge
+// base, status page, telemetry opt-in are M13 (Operations, Support & Analytics 1.0).
+// Backlog: ROADMAP M13.
 test.describe.skip('Support — feedback, knowledge base, and support tickets', () => {
   test('US-support.community.forum: access and browse community forum', async ({ page }) => {
     // TODO: Navigate to Community → verify forum loads → browse topics

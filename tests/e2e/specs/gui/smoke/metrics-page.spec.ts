@@ -45,6 +45,9 @@ test.describe('Metrics Page', () => {
     await expect(page.locator('.metrics-chart').first()).toBeVisible()
   })
 
+  // @skip — Timing-dependent: mocked metrics data responds in ~200ms, so the loading
+  // skeleton is not reliably observable. Loading/empty/error states are part of M7
+  // (Empty/error/loading states) verification. Backlog: ROADMAP M7.
   test.skip('should show loading skeleton while data is being fetched', async ({ page }) => {
     const metrics = new MetricsPage(page)
     // Navigate with a cache-busting param to ensure fresh load triggers skeleton

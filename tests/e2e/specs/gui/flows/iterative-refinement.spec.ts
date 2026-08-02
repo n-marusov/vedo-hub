@@ -1,103 +1,125 @@
 import { test, expect } from '../../fixtures';
 import { DocumentUploadPage } from '../../../pages/document-upload.page';
+import { UNIVERSITY_ONTOLOGY } from '../../ontology-test-data';
 
+// Validates: US-io.ontology.iterative-refinement
+// Validates: REQ-FUN.API.iterative-refinement-context
+//
 // E2E-ai.refinement.iterative — Iterative refinement of generated ontologies (P1)
 // Covers US: US-io.ontology.iterative-refinement
 //
-// Tests:
-// - Generate initial ontology → provide feedback "add a Location class"
-//   → verify refined sequence includes Location
-// - Multiple refinement rounds → verify sequence accumulates changes
-// - Apply final refined version → verify all entities created
+// Feature implemented: OntologyWorkspace NL→OWL tab (M4 Д1-Д2) —
+//   generateFromText → POST /api/v1/ontologies/{id}/generate-from-text
+//   refineSequence   → POST /api/v1/ontologies/{id}/ai/refine
+// (ai-orchestration-service proxy via api-gateway). Tests drive the real UI with
+// route-mocked API responses (fixture pattern used by ontology-lifecycle.spec.ts).
 
-// @skip — iterative refinement backend/API exists in api-gateway and M2 plans, but
-// the current frontend AI import panel only exposes document upload/preview/apply.
-// No NL prompt textarea/refinement feedback controls (`nl-to-owl-input`,
-// `refinement-input`) are wired in `src/services/frontend/src`.
-// AI-agent note: do not mark this as backend-missing. Wire the existing refinement
-// endpoint into the workspace UI and update routes to `/api/v1/documents/*` or the
-// actual refine endpoint before unskipping.
-test.describe.skip('Iterative Refinement', () => {
+const MOCK_INITIAL_GENERATE = {
+  id: 'gen-001',
+  ontologyId: UNIVERSITY_ONTOLOGY.name,
+  steps: [
+    { id: 's1', operation: 'CREATE_CLASS', entityId: 'Person', label: 'Person', parentId: 'owl:Thing', parentLabel: 'owl:Thing', included: true },
+    { id: 's2', operation: 'CREATE_CLASS', entityId: 'Event', label: 'Event', parentId: 'owl:Thing', parentLabel: 'owl:Thing', included: true },
+  ],
+};
+
+const MOCK_REFINED = {
+  id: 'gen-001',
+  ontologyId: UNIVERSITY_ONTOLOGY.name,
+  steps: [
+    { id: 's1', operation: 'CREATE_CLASS', entityId: 'Person', label: 'Person', parentId: 'owl:Thing', parentLabel: 'owl:Thing', included: true },
+    { id: 's2', operation: 'CREATE_CLASS', entityId: 'Event', label: 'Event', parentId: 'owl:Thing', parentLabel: 'owl:Thing', included: true },
+    { id: 's3', operation: 'CREATE_CLASS', entityId: 'Location', label: 'Location', parentId: 'owl:Thing', parentLabel: 'owl:Thing', included: true },
+    { id: 's4', operation: 'CREATE_OBJECT_PROPERTY', entityId: 'locatedAt', label: 'locatedAt', domain: 'Event', range: 'Location', included: true },
+  ],
+  round: 1,
+  maxRounds: 3,
+};
+
+test.describe('Iterative Refinement', () => {
   let uploadPage: DocumentUploadPage;
-  let refinementRound = 0;
-
-  const MOCK_INITIAL_GENERATE = {
-    steps: [
-      { operation: 'CREATE_CLASS', entityId: 'Person', label: 'Person', parentId: 'owl:Thing' },
-      { operation: 'CREATE_CLASS', entityId: 'Event', label: 'Event', parentId: 'owl:Thing' },
-    ],
-    promptTokens: 30,
-    completionTokens: 60,
-  };
-
-  const MOCK_REFINED = {
-    steps: [
-      { operation: 'CREATE_CLASS', entityId: 'Person', label: 'Person', parentId: 'owl:Thing' },
-      { operation: 'CREATE_CLASS', entityId: 'Event', label: 'Event', parentId: 'owl:Thing' },
-      { operation: 'CREATE_CLASS', entityId: 'Location', label: 'Location', parentId: 'owl:Thing' },
-      { operation: 'CREATE_OBJECT_PROPERTY', entityId: 'locatedAt', label: 'locatedAt', domainId: 'Event', rangeId: 'Location' },
-    ],
-    promptTokens: 45,
-    completionTokens: 80,
-  };
-
-  const MOCK_DOUBLE_REFINED = {
-    steps: [
-      { operation: 'CREATE_CLASS', entityId: 'Person', label: 'Person', parentId: 'owl:Thing' },
-      { operation: 'CREATE_CLASS', entityId: 'Event', label: 'Event', parentId: 'owl:Thing' },
-      { operation: 'CREATE_CLASS', entityId: 'Location', label: 'Location', parentId: 'owl:Thing' },
-      { operation: 'CREATE_CLASS', entityId: 'Organization', label: 'Organization', parentId: 'owl:Thing' },
-      { operation: 'CREATE_OBJECT_PROPERTY', entityId: 'locatedAt', label: 'locatedAt', domainId: 'Event', rangeId: 'Location' },
-      { operation: 'CREATE_OBJECT_PROPERTY', entityId: 'organizedBy', label: 'organizedBy', domainId: 'Event', rangeId: 'Organization' },
-    ],
-    promptTokens: 55,
-    completionTokens: 110,
-  };
 
   test.beforeEach(async ({ page }) => {
     uploadPage = new DocumentUploadPage(page);
-    refinementRound = 0;
 
-    // Progressive mock: first call returns initial, subsequent calls return refined
-    await page.route('**/api/v1/ai/generate', async (route) => {
-      if (route.request().method() === 'POST') {
-        const body = JSON.parse(route.request().postData() || '{}');
+    // Mock the workspace ontology metadata REST endpoint (fetchOntologyMeta).
+    await page.route('**/api/v1/ontologies/*', async (route) => {
+      if (route.request().method() !== 'GET') return route.continue();
+      const url = route.request().url();
+      // Let entity sub-paths (classes/properties/individuals, ai/*, generate) fall through
+      if (/\/classes|\/properties|\/individuals|\/validate|\/ai\//.test(url)) return route.continue();
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: UNIVERSITY_ONTOLOGY.name,
+          name: UNIVERSITY_ONTOLOGY.name,
+          label: UNIVERSITY_ONTOLOGY.name,
+          branch: 'main',
+          description: 'Academic ontology',
+          class_count: UNIVERSITY_ONTOLOGY.classes.length,
+          property_count: UNIVERSITY_ONTOLOGY.properties.length,
+          individual_count: UNIVERSITY_ONTOLOGY.individuals.length,
+        }),
+      });
+    });
 
-        let response;
-        if (body.feedback) {
-          // Refinement call
-          refinementRound++;
-          if (refinementRound >= 2) {
-            response = MOCK_DOUBLE_REFINED;
-          } else {
-            response = MOCK_REFINED;
-          }
-        } else {
-          // Initial generation
-          response = MOCK_INITIAL_GENERATE;
-        }
+    // Mock GraphQL: ClassTree + Ontology queries (Apollo) so the workspace mounts cleanly
+    await page.route('**/api/v1/graphql', async (route) => {
+      const body = JSON.parse(route.request().postData() || '{}');
+      const op = body.operationName;
 
+      if (op === 'Ontology') {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify(response),
+          body: JSON.stringify({
+            data: {
+              ontology: {
+                id: UNIVERSITY_ONTOLOGY.name,
+                name: UNIVERSITY_ONTOLOGY.name,
+                branch: 'main',
+                commit: 'abc123',
+                dirty: false,
+              },
+            },
+          }),
+        });
+        return;
+      }
+
+      if (op === 'ClassTree') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ data: { classTree: [] } }),
+        });
+        return;
+      }
+
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: {} }) });
+    });
+
+    // Mock NL→OWL generation API (real contract: POST /api/v1/ontologies/{id}/generate-from-text)
+    await page.route('**/api/v1/ontologies/*/generate-from-text', async (route) => {
+      if (route.request().method() === 'POST') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(MOCK_INITIAL_GENERATE),
         });
       } else {
         await route.continue();
       }
     });
 
-    await page.route('**/api/v1/ontologies/**/apply', async (route) => {
+    // Mock refinement API (real contract: POST /api/v1/ontologies/{id}/ai/refine)
+    await page.route('**/api/v1/ontologies/*/ai/refine', async (route) => {
       if (route.request().method() === 'POST') {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify({
-            commitId: 'refine-commit-001',
-            message: 'Applied refined ontology after iteration',
-            branchId: 'main',
-            entityCount: 6,
-          }),
+          body: JSON.stringify(MOCK_REFINED),
         });
       } else {
         await route.continue();
@@ -105,117 +127,74 @@ test.describe.skip('Iterative Refinement', () => {
     });
   });
 
-  test('generate initial ontology then refine with feedback', async () => {
+  test('generate initial ontology then refine with feedback', async ({ page }) => {
     // US-io.ontology.iterative-refinement: Initial generation + refinement
-    await uploadPage.openDocumentUpload('TestOntology');
+    await uploadPage.openNLToOWLImport(UNIVERSITY_ONTOLOGY.name);
 
     // Initial generation
-    const nlInput = uploadPage.page.locator('.nl-to-owl-input textarea, [data-testid="nl-input"]');
-    await nlInput.fill('a system with people and events');
-    await uploadPage.page.getByRole('button', { name: /generate|create ontology/i }).click();
+    await uploadPage.nlInput().fill('a system with people and events');
+    await page.getByTestId('nl-to-owl-generate').click();
 
-    await uploadPage.page.waitForResponse(
-      (resp) => resp.url().includes('/api/v1/ai/generate') && resp.status() === 200,
-      { timeout: 10_000 }
-    );
-
-    // Verify initial steps
+    // Verify initial steps appear in the preview
     let labels = await uploadPage.getStepLabels();
     expect(labels.some((l) => l.includes('Person'))).toBe(true);
     expect(labels.some((l) => l.includes('Event'))).toBe(true);
 
-    // Provide feedback
-    const feedbackInput = uploadPage.page.locator('.refinement-input textarea, [data-testid="feedback-input"]');
+    // Provide feedback via the refinement input
+    const feedbackInput = page.getByTestId('refinement-input');
     await feedbackInput.fill('add a Location class with a locatedAt property from Event to Location');
-    await uploadPage.page.getByRole('button', { name: /refine|update/i }).click();
+    await page.getByTestId('refinement-submit').click();
 
-    await uploadPage.page.waitForResponse(
-      (resp) => resp.url().includes('/api/v1/ai/generate') && resp.status() === 200,
-      { timeout: 10_000 }
-    );
+    // Wait for the refined steps to render before reading the preview labels
+    await expect(page.locator('.preview-row__label-text').filter({ hasText: 'Location' })).toBeVisible({
+      timeout: 10_000,
+    });
 
-    // Verify refined steps include Location
+    // Verify refined steps include Location + locatedAt
     labels = await uploadPage.getStepLabels();
     expect(labels.some((l) => l.includes('Location'))).toBe(true);
     expect(labels.some((l) => l.includes('locatedAt'))).toBe(true);
   });
 
-  test('multiple refinement rounds accumulate changes', async () => {
-    // US-io.ontology.iterative-refinement: Multiple rounds
-    await uploadPage.openDocumentUpload('TestOntology');
+  test('refinement preserves previously generated elements', async ({ page }) => {
+    // REQ-FUN.API.iterative-refinement-context: context preservation
+    await uploadPage.openNLToOWLImport(UNIVERSITY_ONTOLOGY.name);
 
-    // Initial generation
-    const nlInput = uploadPage.page.locator('.nl-to-owl-input textarea, [data-testid="nl-input"]');
-    await nlInput.fill('a system with people and events');
-    await uploadPage.page.getByRole('button', { name: /generate|create ontology/i }).click();
+    await uploadPage.nlInput().fill('a system with people and events');
+    await page.getByTestId('nl-to-owl-generate').click();
 
-    await uploadPage.page.waitForResponse(
-      (resp) => resp.url().includes('/api/v1/ai/generate') && resp.status() === 200,
-      { timeout: 10_000 }
-    );
+    // Initial steps
+    let labels = await uploadPage.getStepLabels();
+    expect(labels.some((l) => l.includes('Person'))).toBe(true);
 
-    // First refinement: add Location
-    const feedbackInput1 = uploadPage.page.locator('.refinement-input textarea, [data-testid="feedback-input"]');
-    await feedbackInput1.fill('add a Location class');
-    await uploadPage.page.getByRole('button', { name: /refine|update/i }).click();
+    // Refine
+    await page.getByTestId('refinement-input').fill('add a Location class');
+    await page.getByTestId('refinement-submit').click();
 
-    await uploadPage.page.waitForResponse(
-      (resp) => resp.url().includes('/api/v1/ai/generate') && resp.status() === 200,
-      { timeout: 10_000 }
-    );
+    // Wait for the refined steps to render
+    await expect(page.locator('.preview-row__label-text').filter({ hasText: 'Location' })).toBeVisible({
+      timeout: 10_000,
+    });
 
-    // Second refinement: add Organization
-    const feedbackInput2 = uploadPage.page.locator('.refinement-input textarea, [data-testid="feedback-input"]');
-    await feedbackInput2.fill('add an Organization class and organizedBy property');
-    await uploadPage.page.getByRole('button', { name: /refine|update/i }).click();
-
-    await uploadPage.page.waitForResponse(
-      (resp) => resp.url().includes('/api/v1/ai/generate') && resp.status() === 200,
-      { timeout: 10_000 }
-    );
-
-    // Verify final sequence has all accumulated entities
-    const finalLabels = await uploadPage.getStepLabels();
-    expect(finalLabels.some((l) => l.includes('Person'))).toBe(true);
-    expect(finalLabels.some((l) => l.includes('Event'))).toBe(true);
-    expect(finalLabels.some((l) => l.includes('Location'))).toBe(true);
-    expect(finalLabels.some((l) => l.includes('Organization'))).toBe(true);
-
-    // Verify accumulated properties
-    expect(finalLabels.some((l) => l.includes('locatedAt'))).toBe(true);
-    expect(finalLabels.some((l) => l.includes('organizedBy'))).toBe(true);
+    // All prior elements preserved + new ones added
+    labels = await uploadPage.getStepLabels();
+    expect(labels.some((l) => l.includes('Person'))).toBe(true);
+    expect(labels.some((l) => l.includes('Event'))).toBe(true);
+    expect(labels.some((l) => l.includes('Location'))).toBe(true);
   });
 
-  test('apply final refined version creates all entities', async () => {
-    // US-io.ontology.iterative-refinement: Apply final
-    await uploadPage.openDocumentUpload('TestOntology');
+  test('refinement round indicator is shown after refinement', async ({ page }) => {
+    // REQ-FUN.API.iterative-refinement-context: round display
+    await uploadPage.openNLToOWLImport(UNIVERSITY_ONTOLOGY.name);
 
-    const nlInput = uploadPage.page.locator('.nl-to-owl-input textarea, [data-testid="nl-input"]');
-    await nlInput.fill('a system with people and events');
-    await uploadPage.page.getByRole('button', { name: /generate|create ontology/i }).click();
+    await uploadPage.nlInput().fill('a system with people and events');
+    await page.getByTestId('nl-to-owl-generate').click();
 
-    await uploadPage.page.waitForResponse(
-      (resp) => resp.url().includes('/api/v1/ai/generate') && resp.status() === 200,
-      { timeout: 10_000 }
-    );
+    // Refine once
+    await page.getByTestId('refinement-input').fill('add Location');
+    await page.getByTestId('refinement-submit').click();
 
-    // One refinement round
-    const feedbackInput = uploadPage.page.locator('.refinement-input textarea, [data-testid="feedback-input"]');
-    await feedbackInput.fill('add Location and organizedBy');
-    await uploadPage.page.getByRole('button', { name: /refine|update/i }).click();
-
-    await uploadPage.page.waitForResponse(
-      (resp) => resp.url().includes('/api/v1/ai/generate') && resp.status() === 200,
-      { timeout: 10_000 }
-    );
-
-    await uploadPage.applySequence();
-
-    const success = await uploadPage.waitForApplyComplete();
-    expect(success).toBe(true);
-
-    // Verify entity count in commit message
-    const successMsg = await uploadPage.getSuccessMessage();
-    expect(successMsg).not.toBeNull();
+    // Round indicator should show "Refinement round 1 / 3" (REQ-FUN.API.max-refinement-iterations: ≤ 3)
+    await expect(page.locator('.nl-refinement__round')).toContainText('1 / 3', { timeout: 10_000 });
   });
 });

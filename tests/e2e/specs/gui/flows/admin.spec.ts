@@ -7,6 +7,9 @@
 // Validates: US-admin.migration.transfer-staging
 import { test, expect } from '@playwright/test';
 
+// @skip — Feature not implemented in MVP: admin operations (backup, migrations, airgap,
+// endpoints, role assignment) are M13 (Operations, Support & Analytics 1.0) / M14 scope.
+// Backlog: ROADMAP M13/M14. MVP role assignment is covered by MembersPage smoke tests.
 test.describe.skip('Admin — administration and operations', () => {
   test('US-admin.access.assign-role: assign role to user in organization', async ({ page }) => {
     // TODO: Navigate to Members page → select user → assign role → verify

@@ -47,6 +47,9 @@ test.describe('Versioning Tabs', () => {
     await expect(branches.first()).toBeVisible()
   })
 
+  // @skip — Timing-dependent: mocked data responds in ~200ms making loading state
+  // flaky; loading/empty/error states are part of M7 (Empty/error/loading states)
+  // verification. Backlog: ROADMAP M7.
   test.skip('should show loading state while versioning data loads', async ({ page }) => {
     // Mock data responds in ~200ms making loading state timing-dependent.
     // Class names for loading state vary between Vue component versions.

@@ -6,6 +6,10 @@ import { OWNER_JWT } from '../../jwt-tokens';
 const API = '/api/v1';
 
 test.describe('Org Lifecycle User Stories', () => {
+  // The GUI flow assertions target the Russian UI (i18n). Force the browser
+  // locale so heading/button text matches regardless of the runner's locale.
+  test.use({ locale: 'ru-RU' });
+
   // US-org.create-group: Owner creates a group via REST → appears in groups list
   test('US-org.create-group: group created via REST appears in list', async ({ page }) => {
     const res = await page.request.post(`${API}/groups`, {
