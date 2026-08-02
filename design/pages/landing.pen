@@ -37,7 +37,6 @@
           "padding": [0, 360, 0, 360],
           "layout": "horizontal",
           "alignItems": "center",
-          "justifyContent": "space-between",
           "gap": 32,
           "children": [
             {
@@ -58,6 +57,13 @@
                   "fontWeight": "700"
                 }
               ]
+            },
+            {
+              "type": "frame",
+              "id": "landingHeaderSpacer",
+              "name": "headerSpacer",
+              "width": "fill_container",
+              "height": 1
             },
             {
               "type": "frame",
