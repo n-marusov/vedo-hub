@@ -14,12 +14,11 @@ package authorization
 
 import (
 	"bytes"
-	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 )
 
 // ============================================================================
@@ -77,9 +76,13 @@ const (
 // jwtCache stores fetched tokens to avoid repeated login calls.
 var jwtCache = map[string]string{}
 
-// getJWT obtains a JWT for the given test user via Keycloak OIDC password grant.
-// The token is cached for the duration of the test suite.
-// Fails the test if the auth endpoint is unreachable or credentials are missing.
+// getJWT returns a dev-signed JWT for the given test user alias.
+//
+// The test-stack gateway validates tokens against JWT_DEV_PUBLIC_KEY_PEM
+// (dev key), NOT against Keycloak JWKS — so real Keycloak tokens would be
+// rejected. Tokens are minted locally with the same test-jwt-key.pem used by
+// the Playwright E2E suite (see tests/e2e/scripts/global-setup.ts).
+// Fails the test if the key is unavailable or signing fails.
 func getJWT(t *testing.T, userAlias string) string {
 	t.Helper()
 
@@ -87,73 +90,20 @@ func getJWT(t *testing.T, userAlias string) string {
 		return token
 	}
 
-	// Map aliases to Keycloak credentials.
-	username, password := resolveCredentials(userAlias)
-	if username == "" {
-		t.Fatalf("no credentials configured for user alias %q", userAlias)
+	spec, ok := userSpecs[userAlias]
+	if !ok {
+		t.Fatalf("no claim spec configured for user alias %q", userAlias)
 		return ""
 	}
 
-	// Keycloak token endpoint — uses the public client for password grant.
-	keycloakURL := "http://localhost:8081/realms/vedo/protocol/openid-connect/token"
-	payload := fmt.Sprintf(
-		"client_id=vedo-public&username=%s&password=%s&grant_type=password",
-		username, password,
-	)
-
-	resp, err := http.Post(keycloakURL, "application/x-www-form-urlencoded", bytes.NewBufferString(payload))
+	token, err := mintJWT(spec, time.Hour)
 	if err != nil {
-		t.Fatalf("Keycloak not available at %s: %v", keycloakURL, err)
-		return ""
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		body, _ := io.ReadAll(resp.Body)
-		t.Fatalf("Keycloak returned %d for user %q: %s", resp.StatusCode, userAlias, string(body))
+		t.Fatalf("failed to mint JWT for %q: %v", userAlias, err)
 		return ""
 	}
 
-	var result struct {
-		AccessToken string `json:"access_token"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		t.Fatalf("failed to decode Keycloak token response: %v", err)
-		return ""
-	}
-
-	if result.AccessToken == "" {
-		t.Fatalf("empty access_token in Keycloak response for user %q", userAlias)
-		return ""
-	}
-
-	jwtCache[userAlias] = result.AccessToken
-	return result.AccessToken
-}
-
-// resolveCredentials maps test user aliases to actual Keycloak credentials.
-// These must match the seeded test data in the target environment.
-func resolveCredentials(alias string) (username, password string) {
-	switch alias {
-	case userViewerA:
-		return "u_viewer_A", "test-password"
-	case userReporterA:
-		return "u_reporter_A", "test-password"
-	case userEditorA:
-		return "u_editor_A", "test-password"
-	case userMaintainerA:
-		return "u_maintainer_A", "test-password"
-	case userOwnerA:
-		return "u_owner_A", "test-password"
-	case userOutsiderA:
-		return "u_outsider_A", "test-password"
-	case userViewerB:
-		return "u_viewer_B", "test-password"
-	case userOwnerB:
-		return "u_owner_B", "test-password"
-	default:
-		return "", ""
-	}
+	jwtCache[userAlias] = token
+	return token
 }
 
 // ============================================================================
@@ -267,12 +217,16 @@ func requireAPIAvail(t *testing.T) {
 	resp.Body.Close()
 }
 
-// setupTest is a convenience helper that checks API availability and obtains
-// a JWT for the given user alias. It reduces boilerplate in every test.
-// Returns an empty string if the test was skipped (API or Keycloak down).
+// setupTest is a convenience helper that checks API availability, seeds the
+// RBAC fixture data (once per binary), and obtains a JWT for the given user
+// alias. Returns an empty string if the test was skipped (API unreachable or
+// seeding failed).
 func setupTest(t *testing.T, userAlias string) (jwt string, available bool) {
 	t.Helper()
 	requireAPIAvail(t)
+	if err := seedRBACData(t); err != nil {
+		t.Logf("RBAC fixture seeding skipped: %v", err)
+	}
 	jwt = getJWT(t, userAlias)
 	// getJWT calls t.Skip internally on failure, so if we get here, we're available.
 	// But jwt may be empty if credentials are unconfigured.

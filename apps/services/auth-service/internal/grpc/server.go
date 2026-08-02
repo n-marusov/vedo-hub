@@ -213,11 +213,10 @@ func (s *OrgGrpcServer) ListChildGroups(ctx context.Context, req *authv1.ListChi
 func (s *OrgGrpcServer) CreateProject(ctx context.Context, req *authv1.CreateProjectRequest) (*authv1.CreateProjectResponse, error) {
 	requesterID := extractUserID(ctx)
 
-	// Default visibility to Private if not specified.
-	projectVisibility := req.Visibility
-	if projectVisibility == "" {
-		projectVisibility = "Private"
-	}
+	// Normalize visibility to canonical PascalCase — same contract as
+	// CreateGroup/UpdateGroup. Without this, lowercase "private"/"public"
+	// from the REST surface violates the scopes_visibility_check constraint.
+	projectVisibility := normalizeVisibility(req.GetVisibility())
 
 	projectID := newUUID()
 	node := org.ScopeNode{
@@ -420,7 +419,7 @@ func (s *OrgGrpcServer) ListMembers(ctx context.Context, req *authv1.ListMembers
 func (s *OrgGrpcServer) SetVisibility(ctx context.Context, req *authv1.SetVisibilityRequest) (*authv1.SetVisibilityResponse, error) {
 	requesterID := extractUserID(ctx)
 
-	vis := org.Visibility(req.Visibility)
+	vis := org.Visibility(normalizeVisibility(req.Visibility))
 	if err := s.svc.SetVisibility(requesterID, req.Scope, vis); err != nil {
 		return nil, mapOrgError(err)
 	}

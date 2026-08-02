@@ -4578,7 +4578,7 @@ base:test/m2-llm-integration a vdo:TestSuite ;
 base:test/fork-bola a vdo:TestSuite ;
     rdfs:label "Fork BOLA/BFLA Security Tests"@en ;
     rdfs:comment "Real-HTTP authorization negative tests for fork endpoint: cross-tenant BOLA, cross-object BOLA, BFLA, IDOR"@en ;
-    vdo:filePath "tests/security/fork_bola_test.go" ;
+    vdo:filePath "tests/security/authorization/fork_bola_test.go" ;
     vdo:validates base:nfr/security-bola-bfla .
 
 base:test/fork-acceptance a vdo:TestSuite ;
