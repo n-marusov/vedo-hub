@@ -1,0 +1,291 @@
+{
+  "version": "2.13",
+  "imports": {
+    "B": "../ui-kit.lib.pen"
+  },
+  "children": [
+    {
+      "type": "frame",
+      "id": "landingP",
+      "x": -34,
+      "y": -5000,
+      "name": "Landing Page",
+      "width": 1920,
+      "height": 1080,
+      "fill": "$B:background",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "text",
+          "id": "landingPC",
+          "x": 0,
+          "y": 0,
+          "name": "_landingComment",
+          "enabled": false,
+          "fill": "$B:muted-foreground",
+          "content": "Public landing page (F11.1): hero, email CTA, role-based audience sections, demo ontology showcase.",
+          "fontFamily": "IBM Plex Mono",
+          "fontSize": 10,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "landingHero",
+          "name": "heroSection",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 16,
+          "padding": [96, 24, 72, 24],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "landingHeroEyebrow",
+              "name": "heroEyebrow",
+              "fill": "$B:primary",
+              "content": "VEDO HUB",
+              "letterSpacing": 4,
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 13,
+              "fontWeight": "500"
+            },
+            {
+              "type": "text",
+              "id": "landingHeroTitle",
+              "name": "heroTitle",
+              "width": "fill_container",
+              "fill": "$B:foreground",
+              "content": "GitHub for ontologies",
+              "textAlign": "center",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 44,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "landingHeroSub",
+              "name": "heroSubtitle",
+              "width": 720,
+              "fill": "$B:muted-foreground",
+              "content": "Create, govern, version, and publish knowledge graphs with your team. Branch, merge, review, and release ontologies like code.",
+              "textAlign": "center",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 16,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "landingCta",
+              "name": "emailCta",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "landingCtaInput",
+                  "type": "ref",
+                  "ref": "B:SX8Ko",
+                  "width": 260,
+                  "height": 40,
+                  "descendants": {
+                    "B:VtfUp": {
+                      "content": "you@company.com",
+                      "fontSize": 13
+                    }
+                  }
+                },
+                {
+                  "id": "landingCtaBtn",
+                  "type": "ref",
+                  "ref": "B:3CI7c",
+                  "height": 40,
+                  "descendants": {
+                    "B:wMRLg": {
+                      "content": "Request early access",
+                      "fontSize": 13
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "landingAudience",
+          "name": "audienceSection",
+          "width": 960,
+          "layout": "vertical",
+          "gap": 16,
+          "padding": [48, 24, 48, 24],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "landingAudGrid",
+              "name": "audienceGrid",
+              "width": "fill_container",
+              "layout": "horizontal",
+              "gap": 16,
+              "children": [
+                {
+                  "id": "landingAud1",
+                  "type": "ref",
+                  "ref": "B:Nie8I",
+                  "width": "fill_container",
+                  "descendants": {
+                    "B:Ap3op": {
+                      "content": "Ontology engineers"
+                    },
+                    "B:kaoPr": {
+                      "content": "Visual editing with Git-like versioning: branches, commits, diffs, and merge reviews."
+                    }
+                  }
+                },
+                {
+                  "id": "landingAud2",
+                  "type": "ref",
+                  "ref": "B:Nie8I",
+                  "width": "fill_container",
+                  "descendants": {
+                    "B:Ap3op": {
+                      "content": "IT architects"
+                    },
+                    "B:kaoPr": {
+                      "content": "Publish governed knowledge graphs with visibility control and release pipelines."
+                    }
+                  }
+                },
+                {
+                  "id": "landingAud3",
+                  "type": "ref",
+                  "ref": "B:Nie8I",
+                  "width": "fill_container",
+                  "descendants": {
+                    "B:Ap3op": {
+                      "content": "Data analysts"
+                    },
+                    "B:kaoPr": {
+                      "content": "Query ontologies with SPARQL and browse class hierarchies without setup."
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "landingDemos",
+          "name": "demosSection",
+          "width": 960,
+          "layout": "vertical",
+          "gap": 16,
+          "padding": [48, 24, 64, 24],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "landingDemosTitle",
+              "name": "demosTitle",
+              "fill": "$B:foreground",
+              "content": "Try a demo ontology",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 24,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "landingDemosHint",
+              "name": "demosHint",
+              "fill": "$B:muted-foreground",
+              "content": "Explore a ready-made ontology — no account needed.",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "landingDemosGrid",
+              "name": "demosGrid",
+              "width": "fill_container",
+              "layout": "horizontal",
+              "gap": 14,
+              "children": [
+                {
+                  "id": "landingDemo1",
+                  "type": "ref",
+                  "ref": "B:Nie8I",
+                  "width": "fill_container",
+                  "descendants": {
+                    "B:Ap3op": {
+                      "content": "Продукт"
+                    },
+                    "B:kaoPr": {
+                      "content": "Product ontology: goods, categories, manufacturers, reviews."
+                    }
+                  }
+                },
+                {
+                  "id": "landingDemo2",
+                  "type": "ref",
+                  "ref": "B:Nie8I",
+                  "width": "fill_container",
+                  "descendants": {
+                    "B:Ap3op": {
+                      "content": "Организация"
+                    },
+                    "B:kaoPr": {
+                      "content": "Organization structure: departments, employees, roles."
+                    }
+                  }
+                },
+                {
+                  "id": "landingDemo3",
+                  "type": "ref",
+                  "ref": "B:Nie8I",
+                  "width": "fill_container",
+                  "descendants": {
+                    "B:Ap3op": {
+                      "content": "Процесс"
+                    },
+                    "B:kaoPr": {
+                      "content": "Process ontology: activities, inputs, outputs."
+                    }
+                  }
+                },
+                {
+                  "id": "landingDemo4",
+                  "type": "ref",
+                  "ref": "B:Nie8I",
+                  "width": "fill_container",
+                  "descendants": {
+                    "B:Ap3op": {
+                      "content": "Глоссарий"
+                    },
+                    "B:kaoPr": {
+                      "content": "Terms, definitions, synonyms, acronyms."
+                    }
+                  }
+                },
+                {
+                  "id": "landingDemo5",
+                  "type": "ref",
+                  "ref": "B:Nie8I",
+                  "width": "fill_container",
+                  "descendants": {
+                    "B:Ap3op": {
+                      "content": "Событие"
+                    },
+                    "B:kaoPr": {
+                      "content": "Events, participants, venues, schedules."
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
