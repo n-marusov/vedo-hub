@@ -296,6 +296,7 @@
 	"ontology_workspace.refine_placeholder": "Add more classes, change relationships, or specify details...",
 	"ontology_workspace.refining": "Refining...",
 	"ontology_workspace.refine": "Refine",
+	"ontology_workspace.refine_limit_reached": "Refinement limit reached. You can continue with manual editing.",
 	"ontology_workspace.refinement_round": "Refinement round {round} / {max}",
 	"ontology_workspace.filter_classes": "Filter classes...",
 	"ontology_workspace.graph_view": "Graph",

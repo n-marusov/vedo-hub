@@ -189,7 +189,7 @@
                         class="nl-refinement__btn"
                         type="button"
                         data-testid="refinement-submit"
-                        :disabled="!refinementFeedback.trim() || isRefining"
+                        :disabled="!refinementFeedback.trim() || isRefining || refinementLimitReached"
                         @click="handleRefine"
                       >
                         <span v-if="isRefining" class="btn-spinner"></span>
@@ -199,6 +199,9 @@
                     <span v-if="refinementRound > 0" class="nl-refinement__round">
                       {{ t('ontology_workspace.refinement_round', { round: String(refinementRound), max: String(maxRefinementRounds) }) }}
                     </span>
+                    <p v-if="refinementLimitReached" class="nl-refinement__limit" role="alert">
+                      {{ t('ontology_workspace.refine_limit_reached') }}
+                    </p>
                   </div>
                 </div>
               </template>
@@ -444,7 +447,14 @@ const nlResult = ref<AiGenerationResult | null>(null);
 const refinementFeedback = ref("");
 const isRefining = ref(false);
 const refinementRound = ref(0);
-const maxRefinementRounds = 5;
+// Per REQ-FUN.API.max-refinement-iterations: max 3 refinement cycles (spec threshold ≤ 3).
+const maxRefinementRounds = 3;
+
+// Spec acceptance: after reaching the limit the Refine button must be inactive
+// and a warning is shown (REQ-FUN.API.max-refinement-iterations, criteria 1-2).
+const refinementLimitReached = computed(
+	() => refinementRound.value >= maxRefinementRounds,
+);
 
 // ── Extraction / Preview state (shared) ───────────────────────────────────
 
@@ -478,6 +488,8 @@ function openCreateIndividual() {
 function onClassCreated(_name: string) {
 	showCreateClass.value = false;
 	draftState.trackChange("create:class", null, _name);
+	// The class tree must reflect newly created classes immediately.
+	refetchClassTree();
 }
 
 function onPropertyCreated(_name: string) {
@@ -910,7 +922,7 @@ async function handleSave(): Promise<void> {
 
 // ── Class tree ───────────────────────────────────────────────────────────────────────
 
-const { result: classTreeResult } = useQuery(
+const { result: classTreeResult, refetch: refetchClassTree } = useQuery(
 	CLASS_TREE_QUERY,
 	() => ({ ontologyId: ontologyId.value }),
 	{
@@ -1650,6 +1662,12 @@ watch(selectedClassId, () => {
 .nl-refinement__round {
   font-size: var(--font-size-xs, 12px);
   color: var(--text-muted, #6b7280);
+}
+
+.nl-refinement__limit {
+  font-size: var(--font-size-xs, 12px);
+  color: var(--color-danger, #b91c1c);
+  margin-top: 4px;
 }
 
 .btn-spinner {

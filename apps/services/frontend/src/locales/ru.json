@@ -296,6 +296,7 @@
 	"ontology_workspace.refine_placeholder": "Добавьте классы, измените связи или укажите детали...",
 	"ontology_workspace.refining": "Уточнение...",
 	"ontology_workspace.refine": "Уточнить",
+	"ontology_workspace.refine_limit_reached": "Достигнут лимит циклов уточнения. Вы можете продолжить ручное редактирование.",
 	"ontology_workspace.refinement_round": "Раунд уточнения {round} / {max}",
 	"ontology_workspace.filter_classes": "Фильтр классов...",
 	"ontology_workspace.graph_view": "Граф",
