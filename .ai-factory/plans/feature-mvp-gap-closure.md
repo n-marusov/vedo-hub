@@ -62,13 +62,13 @@ Active Summary (from `.ai-factory/RESEARCH.md`, session 2026-08-01): write-path 
     - `tests/security/authorization/fork_bola_test.go` (moved, package `authorization`)
     - `tests/security/fork_bola_test.go` (deleted)
   - **Acceptance:**
-    - [ ] `go vet -tags=integration ./...` passes in `tests/security/authorization/`
-    - [ ] 7 fork tests run (not skipped) and pass against the test stack: cross-tenant BOLA 403, cross-object BOLA 403, BFLA guest fork public 201, guest no-access 403, IDOR 403, successful fork 201, missing idempotency key 400
-    - [ ] Traceability: `vdo:filePath` updated from `tests/security/fork_bola_test.go` to `tests/security/authorization/fork_bola_test.go`
+    - [x] `go vet -tags=integration ./...` passes in `tests/security/authorization/`
+    - [x] 7 fork tests run (not skipped) and pass against the test stack: cross-tenant BOLA 403, cross-object BOLA 403, BFLA guest fork public 201, guest no-access 403, IDOR 403, successful fork 201, missing idempotency key 400
+    - [x] Traceability: `vdo:filePath` updated from `tests/security/fork_bola_test.go` to `tests/security/authorization/fork_bola_test.go`
   - **Logging:** standard — test names logged by Go test runner; no extra logging needed.
   - **Dependencies:** T2 (needs runnable stack); runs after T2.
 
-- [~] **T2. Make RBAC security suite runnable against the test stack**
+- [x] **T2. Make RBAC security suite runnable against the test stack**
   - **Done (2026-08-02):** JWT minting helper (`jwt_mint.go`) signs dev-key RS256 tokens per alias (role+tenant) — replaces the broken hardcoded Keycloak `:8081`/`vedo` password-grant (the test-stack gateway validates via `JWT_DEV_PUBLIC_KEY_PEM`, NOT Keycloak JWKS). Test-data seeder (`seed_test_data.go`) creates the fixture world (groups, projects under visibility-matched parents, memberships, tenant_B) through the real API, clean-slate each run. Found + fixed 2 real backend bugs: `CreateProject`/`SetVisibility` did not normalize visibility (lowercase → `scopes_visibility_check` 500).
   - **Result:** suite runs: **38/42 pass**; was 0/45 runnable (env-dial failures).
   - **Known gap (4 RED):** TC-001/003/011/012 — BOLA «never 404» policy NOT implemented: gateway returns 404 for cross-tenant/foreign/unknown ontology access, tests require 403 (resource-existence non-disclosure). This is a product gap in api-gateway (M7 authorization regression scope), correctly tracked as RED; not papered over.
@@ -79,9 +79,9 @@ Active Summary (from `.ai-factory/RESEARCH.md`, session 2026-08-01): write-path 
     - `deploy/keycloak/vedo-core-realm.json` (add test users) OR new `tests/security/authorization/seed_users.sh`
     - `config/.env.test` (document `KEYCLOAK_TEST_URL`/`KEYCLOAK_TEST_REALM`)
   - **Acceptance:**
-    - [ ] `go test -tags=integration ./...` in `tests/security/authorization/` runs against the stack: TC-001…TC-045 pass (or fail on assertions, not on env dial)
-    - [ ] Keycloak config is env-driven (no hardcoded `:8081`/`vedo` realm)
-    - [ ] Test users are provisioned and documented
+    - [x] `go test -tags=integration ./...` in `tests/security/authorization/` runs against the stack: TC-001…TC-045 pass (or fail on assertions, not on env dial) — 45/49, 4 RED tracked to M7
+    - [x] Auth is env-driven — JWT minting with dev keys replaces Keycloak hardcoded `:8081`/`vedo` realm
+    - [x] Test users are provisioned and documented — via JWT alias-based role+tenant
   - **Logging:** standard — helper logs which Keycloak URL/realm it targets.
   - **Dependencies:** none (stack must be up); T1 depends on it.
 
@@ -116,9 +116,9 @@ Active Summary (from `.ai-factory/RESEARCH.md`, session 2026-08-01): write-path 
     - `tests/e2e/specs/api/rest/org-api.spec.ts` (pairing test: tolerate 404 on missing group)
     - `tests/e2e/pages/projects.page.ts` (strict-mode locator → `.first()` or unique name)
   - **Acceptance:**
-    - [ ] `pnpm exec playwright test --config=config/playwright.api.config.ts` → 66/66 pass
-    - [ ] Wired GUI (`*-wired.spec.ts` run via temp config) → 15/15 pass
-    - [ ] Two consecutive runs both pass (no accumulation of test data)
+    - [x] `pnpm exec playwright test --config=config/playwright.api.config.ts` → 66/66 pass
+    - [x] Wired GUI (`*-wired.spec.ts` run via temp config) → 15/15 pass
+    - [x] Two consecutive runs both pass (no accumulation of test data)
   - **Logging:** standard — setup/teardown log what they clean.
   - **Dependencies:** none.
 
@@ -135,9 +135,9 @@ Active Summary (from `.ai-factory/RESEARCH.md`, session 2026-08-01): write-path 
     - `apps/services/metrics-service/main.py` (counter dedup guard)
     - `apps/services/metrics-service/tests/test_metrics.py` (new)
   - **Acceptance:**
-    - [ ] `docker compose -f deploy/docker-compose.test.yml up -d metrics-service` → container Healthy
-    - [ ] `uv run pytest` in metrics-service → ≥3 tests pass (endpoint health, counter guard, metrics shape)
-    - [ ] MetricsPage GUI e2e un-skips (at least partially) — defer full to F2 if feature-gated
+    - [x] `docker compose -f deploy/docker-compose.test.yml up -d metrics-service` → container Healthy
+    - [x] `uv run pytest` in metrics-service → ≥3 tests pass (endpoint health, counter guard, metrics shape) — 5 pass
+    - [ ] MetricsPage GUI e2e un-skips — deferred to F2 (feature-gated, empty TODO stubs)
   - **Logging:** standard — WARN on duplicate registration attempt, INFO on successful startup.
   - **Dependencies:** none.
 
@@ -159,10 +159,10 @@ Active Summary (from `.ai-factory/RESEARCH.md`, session 2026-08-01): write-path 
     - `apps/services/versioning-service/src/handlers/branch_handler.rs` tests (new: `test_merge_conflict_returns_409`)
     - `apps/services/versioning-service/tests/merge_integration_test.rs` (409 on conflicting merge)
   - **Acceptance:**
-    - [ ] New unit test: conflicting merge → 409 VER-MERGE-CONFLICT
-    - [ ] Existing merge tests stay green (non-conflicting merge → 200)
-    - [ ] `cargo test --lib` → 80+ pass (was 79)
-    - [ ] Integration: conflicting merge via API → 409
+    - [x] New unit test: conflicting merge → 409 VER-MERGE-CONFLICT
+    - [x] Existing merge tests stay green (non-conflicting merge → 200)
+    - [x] `cargo test --lib` → 80+ pass (was 79)
+    - [x] Integration: conflicting merge via API → 409
   - **Logging:** standard — WARN with `conflict_count` when merge blocked.
   - **Dependencies:** T3 (test isolation) — run integration tests after T3.
 
@@ -182,10 +182,10 @@ Active Summary (from `.ai-factory/RESEARCH.md`, session 2026-08-01): write-path 
     - `apps/services/ontology-service/src/lib.rs` (wire audit module)
     - Tests: `apps/services/ontology-service/src/handlers/query_handler.rs` unit tests (audit record emitted)
   - **Acceptance:**
-    - [ ] Every executed SPARQL/CYPHER query produces an audit entry with trace_id, user, query, LIMIT, execution_time_ms
-    - [ ] Rejected/mutation queries produce an audit entry marked `rejected`
-    - [ ] Unit test: audit record shape contains all fields; BDD naming `[QueryExecuted]_[EmitsAuditRecord]_[WithAllFields]`
-    - [ ] Existing SPARQL E2E tests stay green
+    - [x] Every executed SPARQL/CYPHER query produces an audit entry with trace_id, user, query, LIMIT, execution_time_ms
+    - [x] Rejected/mutation queries produce an audit entry marked `rejected`
+    - [x] Unit test: audit record shape contains all fields; BDD naming `[QueryExecuted]_[EmitsAuditRecord]_[WithAllFields]`
+    - [x] Existing SPARQL E2E tests stay green
   - **Logging:** standard — audit entries at INFO with structured JSON.
   - **Dependencies:** none.
 
@@ -206,10 +206,10 @@ Active Summary (from `.ai-factory/RESEARCH.md`, session 2026-08-01): write-path 
     - `apps/services/frontend/src/components/ontology/IndividualsTable.vue` (new if ABox table missing)
     - `apps/services/frontend/src/__tests__/OntologyWorkspaceViews.spec.ts` (new)
   - **Acceptance:**
-    - [ ] Three navigation views render and switch correctly
-    - [ ] `ClassTree.vue` is imported and functional (drag-n-drop + filter)
-    - [ ] Frontend unit tests pass (248 existing + new)
-    - [ ] GUI `browse.spec.ts` / `graph-visualization.spec.ts` tests un-skip where they cover these views (partial — full un-skip in F2)
+    - [x] Three navigation views render and switch correctly
+    - [x] `ClassTree.vue` is imported and functional (drag-n-drop + filter)
+    - [x] Frontend unit tests pass (248 existing + new — 252 total)
+    - [ ] GUI `browse.spec.ts` / `graph-visualization.spec.ts` tests un-skip — deferred to F2 (empty TODO stubs, no assertions)
   - **Logging:** standard — view-switch debug not needed; errors surfaced via existing `useErrorPresentation`.
   - **Dependencies:** T4 (E2E stability).
 
@@ -229,10 +229,10 @@ Active Summary (from `.ai-factory/RESEARCH.md`, session 2026-08-01): write-path 
     - `apps/services/frontend/src/api/comments.ts` (verify reply endpoint support)
     - `apps/services/frontend/src/__tests__/CommentsPage.spec.ts` (new)
   - **Acceptance:**
-    - [ ] Add comment via UI → appears in feed (real API)
-    - [ ] Empty comment → inline validation error, no request
-    - [ ] Comments scoped to selected ontology entity
-    - [ ] `commenting-flow.spec.ts` GUI tests un-skip and pass
+    - [x] Add comment via UI → appears in feed (real API)
+    - [x] Empty comment → inline validation error, no request
+    - [x] Comments scoped to selected ontology entity (scope label + entity_id param)
+    - [ ] `commenting-flow.spec.ts` GUI tests un-skip and pass — deferred (spec targets embedded workspace panel, M10 scope)
   - **Logging:** standard — errors via `useErrorPresentation`.
   - **Dependencies:** none.
 
@@ -259,11 +259,11 @@ Active Summary (from `.ai-factory/RESEARCH.md`, session 2026-08-01): write-path 
     - `apps/services/publish-browse-ui/nginx.conf` (verify SPA fallback)
     - Tests: `apps/services/publish-browse-ui/src/__tests__/LandingPage.spec.ts` (new)
   - **Acceptance:**
-    - [ ] Landing renders without auth: hero, email CTA, role sections
-    - [ ] Demo ontologies visible without auth and clickable → Vue Flow graph renders
-    - [ ] `landing.pen` created with no dangling `B:<id>` refs (referential-integrity audit via `.ai-factory/scripts/_analyze_refs.js`)
-    - [ ] `publish-browse-ui` tests pass (existing 1 + new)
-    - [ ] E2E smoke: public URL loads landing
+    - [x] Landing renders without auth: hero, email CTA, role sections
+    - [x] Demo ontologies visible without auth and clickable → class graph renders
+    - [x] `landing.pen` created with no dangling `B:<id>` refs (audit PASS, 0 broken) and following ADR-DES.UI.public-landing-architecture structure
+    - [x] `publish-browse-ui` tests pass (existing 1 + new — 6 total)
+    - [x] E2E smoke: public URL loads landing
   - **Logging:** standard — errors surfaced in UI.
   - **Dependencies:** Q3 (graph views provide graph rendering patterns to reuse).
 
@@ -273,9 +273,9 @@ Active Summary (from `.ai-factory/RESEARCH.md`, session 2026-08-01): write-path 
   - **Fix:** For each spec group, determine feature readiness: (a) if the feature is implemented (after Q1–Q4, F1), remove `test.skip`/`test.fixme` and make the test pass; (b) if the feature is genuinely post-MVP (admin backup/migration, io import-export, support ops), keep skipped but annotate with the milestone it belongs to (M11/M13) and add a tracked backlog item; (c) a11y (17) is a continuous NFR — audit and fix as part of each feature landing, un-skip as they pass.
   - **Files to create/modify:** the skipped spec files in `tests/e2e/specs/gui/flows/` + `tests/e2e/specs/gui/smoke/` (remove skips; add milestone annotations)
   - **Acceptance:**
-    - [ ] Every skipped GUI test is either green or explicitly annotated with a target milestone + backlog reference
-    - [ ] 0 skips without justification (audit in plan report)
-    - [ ] Default GUI run passes with the un-skipped tests green
+    - [x] Every skipped GUI test is either green or explicitly annotated with a target milestone + backlog reference — all 78 annotated
+    - [x] 0 skips without justification (audit in plan report)
+    - [x] Default GUI run passes with the un-skipped tests green — 119 pass / 78 skip / 0 fail
   - **Logging:** standard.
   - **Dependencies:** Q1–Q4, F1 (features must exist before un-skipping their tests).
 

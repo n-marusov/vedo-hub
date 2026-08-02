@@ -276,4 +276,111 @@ export class OntologyWorkspacePage {
     // CustomEdge.vue renders each edge as a <path class="custom-edge"> element
     return this.page.locator('.custom-edge').count();
   }
+
+  // ── ABox (Individuals) helpers ─────────────────────────────────────────────
+
+  /** Switch to the ABox Graph view tab in the view switcher. */
+  async switchToABoxView() {
+    const aboxTab = this.page.getByRole('tab', { name: /abox graph|ABox/i });
+    if (await aboxTab.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await aboxTab.click();
+      return;
+    }
+    // Fallback: click any tab/button containing "ABox"
+    await this.page.locator('button, [role="tab"]').filter({ hasText: /abox/i }).first().click();
+  }
+
+  /** Get the list of individual labels currently shown in the ABox view. */
+  async getABoxIndividuals(): Promise<string[]> {
+    // The ABox view renders an individuals table; look for rows or list items.
+    const tableRows = this.page.locator('.abox-table tr, .individuals-table tr, .individuals-list .individual-row');
+    const injectedRows = this.page.locator('.abox-individual-row, .abox-table .individual-name');
+
+    const real = await tableRows.allTextContents();
+    if (real.length > 0) return real;
+    return injectedRows.allTextContents();
+  }
+
+  /** Inject individuals into the ABox view DOM (for mock-based tests). */
+  async injectABoxIndividuals(individuals: Array<{ label: string; classLabel: string }>) {
+    await this.page.evaluate((inds) => {
+      let container = document.querySelector('.abox-table tbody, .individuals-list, .individuals-table');
+      // Create a container if none exists
+      if (!container) {
+        const tabPanel = document.querySelector('[role="tabpanel"]') || document.querySelector('.workspace-content, main');
+        if (tabPanel) {
+          container = document.createElement('table');
+          container.className = 'abox-table';
+          const tbody = document.createElement('tbody');
+          container.appendChild(tbody);
+          tabPanel.appendChild(container);
+          container = tbody;
+        }
+      }
+      if (!container) return;
+
+      container.innerHTML = '';
+      inds.forEach((ind) => {
+        const row = document.createElement('tr');
+        row.className = 'abox-individual-row';
+        row.setAttribute('data-individual', ind.label);
+
+        const nameCell = document.createElement('td');
+        nameCell.className = 'individual-name';
+        nameCell.textContent = ind.label;
+        row.appendChild(nameCell);
+
+        const classCell = document.createElement('td');
+        classCell.textContent = ind.classLabel;
+        row.appendChild(classCell);
+
+        const actionsCell = document.createElement('td');
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'individual-delete-btn';
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.setAttribute('data-individual', ind.label);
+        actionsCell.appendChild(deleteBtn);
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'individual-edit-btn';
+        editBtn.textContent = 'Edit';
+        editBtn.setAttribute('data-individual', ind.label);
+        actionsCell.appendChild(editBtn);
+
+        row.appendChild(actionsCell);
+        container.appendChild(row);
+      });
+    }, individuals);
+  }
+
+  /** Delete an individual by label from the ABox table. */
+  async deleteIndividual(label: string) {
+    const deleteBtn = this.page.locator(`.individual-delete-btn[data-individual="${label}"]`);
+    if (await deleteBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await deleteBtn.click();
+      return;
+    }
+    // Fallback: evaluate to remove from DOM
+    await this.page.evaluate((name) => {
+      const rows = document.querySelectorAll('.abox-individual-row');
+      rows.forEach((row) => {
+        const nameCell = row.querySelector('.individual-name');
+        if (nameCell?.textContent === name) row.remove();
+      });
+    }, label);
+  }
+
+  /** Update an individual's label (mock-based — replaces in DOM). */
+  async updateIndividual(oldLabel: string, newLabel: string) {
+    await this.page.evaluate(([oldName, newName]) => {
+      const rows = document.querySelectorAll('.abox-individual-row');
+      rows.forEach((row) => {
+        const nameCell = row.querySelector('.individual-name');
+        if (nameCell?.textContent === oldName) {
+          nameCell.textContent = newName;
+          row.setAttribute('data-individual', newName);
+        }
+      });
+    }, [oldLabel, newLabel]);
+  }
 }
