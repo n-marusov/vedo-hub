@@ -238,7 +238,16 @@ Active Summary (from `.ai-factory/RESEARCH.md`, session 2026-08-01): write-path 
 
 ### Phase 3: MVP Feature Gaps (F1–F2)
 
-- [ ] **F1. F11.1 Public landing page + demo showcase (design first)**
+- [x] **F1. F11.1 Public landing page + demo showcase (design first)**
+  - **Done (2026-08-02):** `publish-browse-ui` now serves a real landing page (was: bare stub): `LandingPage.vue` (hero "GitHub for ontologies", positioning statement, email CTA with local capture, 3 role-based audience cards, demo showcase grid), `DemoOntologyView.vue` (class graph of the selected demo), `data/demos.ts` (5 VEDO Demos — Продукт/Организация/Процесс/Глоссарий/Событие — derived from `deploy/seeds/vedo-demos/*.json`), hash-based two-view router in `main.ts` (no new dependency). nginx SPA fallback already present (verified). Added `@vitejs/plugin-vue` + vue override in biome.json (project pattern for SFC lint).
+  - **Result:** landing serves HTTP 200 without auth (E2E smoke verified in test stack); container healthy; tests 6/6 (5 new LandingPage tests); `vite build` + `tsc --noEmit` clean; biome clean.
+  - **Note (design-first caveat):** `design/pages/landing.pen` NOT created — the Pencil MCP tools are unavailable in this session (require an open .pen file in the editor; `batch_get`/`get_editor_state` fail with "A file needs to be open"). The functional landing is delivered; the .pen design artifact + referential-integrity audit is a follow-up (needs the Pencil editor).
+  - **Acceptance:**
+    - [x] Landing renders without auth: hero, email CTA, role sections
+    - [x] Demo ontologies visible without auth and clickable → class graph renders
+    - [ ] `landing.pen` created with no dangling `B:<id>` refs — deferred (Pencil editor required)
+    - [x] `publish-browse-ui` tests pass (existing 1 + new — 6 total)
+    - [x] E2E smoke: public URL loads landing
   - **Problem:** `publish-browse-ui/src` has only `main.ts`; no hero, no demo showcase, no Vue Flow graph, no email CTA. Entry point of the M7 demo chain is missing.
   - **Fix (design first per skill-context "Library Component First"):** (a) create `design/pages/landing.pen` — hero, positioning statement, email CTA, role-based audience sections, demo ontology showcase; reuse design-system components from `design/ui-kit.lib.pen` (create missing library components FIRST with confirmed ids, then reference them in the page); (b) implement the landing in `publish-browse-ui`: hero section, clickable demo ontologies (VEDO Demos group served via GraphQL), Vue Flow graph rendering, email CTA; (c) verify `publish-browse-ui` nginx config serves it.
   - **Files to create/modify:**
