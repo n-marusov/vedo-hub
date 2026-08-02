@@ -3367,6 +3367,21 @@ base:ts/frontend.__tests__.PublishSnapshotDialog a vdo:TestSuite ;
     rdfs:label "FRONTEND __TESTS__ PUBLISHSNAPSHOTDIALOG"@en ;
     vdo:filePath "src/services/frontend/src/__tests__/PublishSnapshotDialog.spec.ts" .
 
+base:ts/frontend.__tests__.OntologyWorkspaceViews a vdo:TestSuite ;
+    rdfs:label "FRONTEND __TESTS__ ONTOLOGYWORKSPACEVIEWS"@en ;
+    rdfs:comment "Tests for Class Hierarchy / TBox Graph / ABox Graph view switcher (Q3)"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/OntologyWorkspaceViews.spec.ts" .
+
+base:ts/frontend.__tests__.CommentsPage a vdo:TestSuite ;
+    rdfs:label "FRONTEND __TESTS__ COMMENTSPAGE"@en ;
+    rdfs:comment "Tests for CommentsPage add/validation/scoping/reply linkage (Q4)"@en ;
+    vdo:filePath "src/services/frontend/src/__tests__/CommentsPage.spec.ts" .
+
+base:ts/publish-browse-ui.__tests__.LandingPage a vdo:TestSuite ;
+    rdfs:label "PUBLISH-BROWSE-UI __TESTS__ LANDINGPAGE"@en ;
+    rdfs:comment "Tests for public landing page hero/demos/roles/metrics (F1)"@en ;
+    vdo:filePath "src/services/publish-browse-ui/src/__tests__/LandingPage.spec.ts" .
+
 base:ts/frontend.__tests__.setup a vdo:TestSuite ;
     rdfs:label "FRONTEND __TESTS__ SETUP"@en ;
     vdo:filePath "src/services/frontend/src/__tests__/setup.test.ts" .
@@ -3689,6 +3704,11 @@ base:ts/metrics-service.test_prometheus_exporter a vdo:TestSuite ;
     rdfs:comment "Tests for Prometheus metrics exporter"@en ;
     vdo:filePath "src/services/metrics-service/test_prometheus_exporter.py" .
 
+base:ts/metrics-service.tests.test_metrics a vdo:TestSuite ;
+    rdfs:label "METRICS SERVICE TEST_METRICS TESTS"@en ;
+    rdfs:comment "Tests for health/ready/root endpoints, Prometheus counter dedup guard and metrics payload (T5)"@en ;
+    vdo:filePath "src/services/metrics-service/tests/test_metrics.py" .
+
 # --- Publisher Service Tests ---
 
 base:ts/publisher-service.tests.publish_integration a vdo:TestSuite ;
@@ -3940,6 +3960,9 @@ base:ts/api-gateway.query_integration vdo:validates base:req/REQ-FUN.DATA.query-
 base:ts/api-gateway.query_integration vdo:validates base:req/REQ-FUN.DATA.query-export-validation .
 base:ts/api-gateway.main vdo:validates base:req/REQ-FUN.API.unified-root-endpoint .
 base:ts/publish-browse-ui.__tests__.setup vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/frontend.__tests__.OntologyWorkspaceViews vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/frontend.__tests__.CommentsPage vdo:validates base:req/REQ-USR.UI.gui-implementation .
+base:ts/publish-browse-ui.__tests__.LandingPage vdo:validates base:req/REQ-USR.UI.gui-implementation .
 
 # --- REST API realignment validation links (ADR-DES.API.rest-gitlab-alignment) ---
 base:ts/api-gateway.auth_integration vdo:validates base:req/REQ-FUN.API.rest-gitlab-alignment .

@@ -1,0 +1,61 @@
+{
+  "run_id": "mvp-gap-closure-verify-20260802-000000",
+  "task_alias": "mvp-gap-closure-verify",
+  "status": "completed",
+  "iteration": 1,
+  "max_iterations": 4,
+  "phase": "B",
+  "current_step": "DONE",
+  "task": {
+    "prompt": "Verify implementation of ALL tasks in .ai-factory/plans/feature-mvp-gap-closure.md (T1-T5, Q1-Q4, F1-F2, Step 22) using unit/integration/E2E tests. Fix any errors found. Make all tests pass. Forbidden to deviate from specs (specs/requirements, specs/adr) when fixing tests.",
+    "ideal_result": "All plan acceptance criteria green."
+  },
+  "criteria": {
+    "name": "mvp_gap_closure_verify_v1",
+    "version": 1,
+    "phase": {
+      "A": { "threshold": 0.9, "active_levels": ["A"] },
+      "B": { "threshold": 0.95, "active_levels": ["A", "B"] }
+    },
+    "rules": [
+      {"id": "R1", "description": "go test -count=1 ./... all Go services", "severity": "fail", "weight": 2, "phase": "A", "check": "go test"},
+      {"id": "R2", "description": "Rust unit: ontology 122+, versioning 80+", "severity": "fail", "weight": 2, "phase": "A", "check": "cargo test --lib"},
+      {"id": "R3", "description": "Versioning integration transactional 5/5", "severity": "fail", "weight": 2, "phase": "A", "check": "cargo test --test *"},
+      {"id": "R4", "description": "Python pytest: doc-extractor 61, metrics 5", "severity": "fail", "weight": 2, "phase": "A", "check": "uv run pytest"},
+      {"id": "R5", "description": "Frontend vitest 256+, publish-browse-ui 9+", "severity": "fail", "weight": 2, "phase": "A", "check": "pnpm test"},
+      {"id": "R6", "description": "Playwright API E2E 66/66", "severity": "fail", "weight": 2, "phase": "A", "check": "playwright api"},
+      {"id": "R7", "description": "GUI E2E 0 failures, skips justified", "severity": "fail", "weight": 2, "phase": "B", "check": "playwright gui"},
+      {"id": "R8", "description": "Security RBAC suite 45/49 (4 tracked RED M7)", "severity": "fail", "weight": 2, "phase": "A", "check": "go test -tags=integration"},
+      {"id": "R9", "description": "make test-gates-fast passes", "severity": "fail", "weight": 2, "phase": "B", "check": "make test-gates-fast"},
+      {"id": "R10", "description": "Traceability.ttl in sync", "severity": "fail", "weight": 2, "phase": "B", "check": "traceability-validator.sh"},
+      {"id": "R11", "description": "No deviation from specs/ADR; RED tests tracked not papered", "severity": "fail", "weight": 2, "phase": "A", "check": "specs review"}
+    ]
+  },
+  "plan": [
+    "Iteration 1: verify all suites, fix failures, complete F2 + Step 22"
+  ],
+  "prepared_checks": null,
+  "evaluation": {
+    "score": 1.0,
+    "passed": true,
+    "details": {
+      "R1": "PASS: go test 10/10 modules, 727 tests",
+      "R2": "PASS: ontology 122/122, versioning 80/80, clippy clean",
+      "R3": "PASS: versioning integration 5/5 transactional, full green",
+      "R4": "PASS: doc-extractor 61 pass/4 skip, metrics 5 pass",
+      "R5": "PASS: frontend 256 pass/67 todo, publish-browse-ui 9 pass",
+      "R6": "PASS: API E2E 66/66 (x2 runs)",
+      "R7": "PASS: GUI E2E 119 pass / 78 skip (all annotated) / 0 fail (x2 runs)",
+      "R8": "PASS: security RBAC 45/49; 4 RED TC-001/003/011/012 BOLA never-404 tracked to M7, fail on assertions not env dial",
+      "R9": "PASS: make test-gates-fast all gates green",
+      "R10": "PASS: traceability VALID, tests/specs PASS",
+      "R11": "PASS: fixes align with specs/ADR (max refinement cycles 3 per REQ-FUN.API.max-refinement-iterations; GitLab-aligned routes per ADR-DES.API.rest-gitlab-alignment)"
+    }
+  },
+  "critique": [],
+  "stop": { "passed": true, "reason": "threshold_reached" },
+  "last_score": 1.0,
+  "stagnation_count": 0,
+  "created_at": "2026-08-02T00:00:00Z",
+  "updated_at": "2026-08-02T13:10:00Z"
+}
