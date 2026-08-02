@@ -23,10 +23,20 @@
                 class="cm-new-comment__input"
                 :placeholder="t('comments.write_placeholder')"
                 rows="3"
+                aria-label="New comment"
+                @keydown.enter.exact.prevent="submitComment"
             />
-            <button class="cm-new-comment__submit" :disabled="!newCommentText.trim()" @click="submitComment">
-                {{ t('comments.send') }}
-            </button>
+            <div v-if="commentError" class="validation-error" role="alert">
+                {{ commentError }}
+            </div>
+            <div class="cm-new-comment__footer">
+                <span class="cm-scope">
+                    {{ t('comments.scope_label') }}: {{ entityScopeLabel }}
+                </span>
+                <button class="cm-new-comment__submit" @click="submitComment">
+                    {{ t('comments.send') }}
+                </button>
+            </div>
         </div>
     </div>
 </template>
@@ -46,6 +56,20 @@ import { useRoute } from "vue-router";
 const { t } = useI18n();
 const route = useRoute();
 const ontologyId = (route.params.ontologyId as string) || "default";
+// Entity scoping: the route may carry an optional entity context (e.g.
+// ?entityId=cls-42&entityType=class). When absent, comments are scoped to the
+// ontology itself.
+const entityId = ref<string>((route.query.entityId as string) || ontologyId);
+const entityType = ref<string>(
+	(route.query.entityType as string) || "ontology",
+);
+
+const entityScopeLabel = computed(() => {
+	if (entityType.value === "class" && entityId.value !== ontologyId) {
+		return t("comments.scope_class", { id: entityId.value });
+	}
+	return t("comments.scope_ontology");
+});
 
 // ── REST Data ────────────────────────────────────────────────────────────────────
 
@@ -57,7 +81,7 @@ async function fetchFeed() {
 	loading.value = true;
 	error.value = null;
 	try {
-		const result = await apiListComments(ontologyId, ontologyId, 1, 50);
+		const result = await apiListComments(ontologyId, entityId.value, 1, 50);
 		feedData.value = result.comments;
 	} catch (e: unknown) {
 		error.value = e instanceof Error ? e.message : String(e);
@@ -70,23 +94,33 @@ onMounted(() => {
 	fetchFeed();
 });
 
+// Replies (parentCommentId set) are shown with an "in reply to" prefix.
 const commentItems = computed(() =>
 	feedData.value.map((c) => ({
 		author: c.authorName ?? c.author ?? "",
 		handle: `@${c.author ?? ""}`,
 		timestamp: formatRelativeTime(c.createdAt ?? ""),
-		action: t("comments.commented_on_entity", { id: String(c.entityId ?? "") }),
+		action: c.parentCommentId
+			? t("comments.reply_to", { id: String(c.parentCommentId).slice(0, 8) })
+			: t("comments.commented_on_entity", { id: String(c.entityId ?? "") }),
 		text: c.text ?? "",
 	})),
 );
 
 const mutationError = ref<string | null>(null);
+const commentError = ref<string | null>(null);
 const newCommentText = ref("");
 
 async function submitComment() {
-	if (!newCommentText.value.trim()) return;
+	const text = newCommentText.value.trim();
+	// Empty-input validation: inline error, no request is sent.
+	if (!text) {
+		commentError.value = t("comments.empty_error");
+		return;
+	}
+	commentError.value = null;
 	try {
-		await apiCreateComment(ontologyId, ontologyId, newCommentText.value.trim());
+		await apiCreateComment(ontologyId, entityId.value, text);
 		newCommentText.value = "";
 		await fetchFeed();
 	} catch (err: unknown) {
@@ -224,6 +258,26 @@ watch(error, (err) => {
     cursor: pointer;
     font-family: "IBM Plex Mono", monospace;
     font-size: 12px;
+}
+
+.cm-new-comment__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.cm-scope {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    color: var(--muted-foreground);
+}
+
+.validation-error {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--danger);
+    padding: 4px 0;
 }
 
 .cm-new-comment__submit:disabled {

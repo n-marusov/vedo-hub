@@ -228,69 +228,85 @@
 
             <!-- Regular workspace view (hidden when AI panel is open) -->
             <div v-if="!showAiPanel" class="workspace-row">
-            <aside class="class-panel card-side">
-              <div class="panel-tools">
-                <Search :size="14" class="muted" />
-                <div class="panel-input">{{ t('ontology_workspace.filter_classes') }}</div>
-              </div>
-
-              <div class="class-list">
+              <!-- Navigation view switcher: Class Hierarchy / TBox Graph / ABox Graph -->
+              <div class="nav-switcher" role="tablist" aria-label="Ontology views">
                 <button
-                  v-for="cls in classTree"
-                  :key="cls.id"
-                  class="class-row"
-                  :class="{ 'class-row--active': cls.id === selectedClassId }"
+                  class="nav-switcher__btn"
+                  :class="{ 'nav-switcher__btn--active': navView === 'hierarchy' }"
                   type="button"
-                  @click="selectClass(cls.id)"
+                  role="tab"
+                  :aria-selected="navView === 'hierarchy'"
+                  @click="switchNavView('hierarchy')"
                 >
-                  <ChevronRight v-if="cls.children?.length" :size="12" />
-                  <Folder :size="14" />
-                  {{ cls.label }}
-                </button>
-              </div>
-            </aside>
-
-            <div class="splitter"><GripVertical :size="8" /></div>
-
-            <section class="graph-panel card-side">
-              <div class="graph-panel__toolbar">
-                <button
-                  class="graph-panel__toggle"
-                  :class="{ 'graph-panel__toggle--active': viewMode === 'graph' }"
-                  @click="viewMode = 'graph'"
-                >
-                  {{ t('ontology_workspace.graph_view') }}
+                  {{ t('ontology_workspace.view_hierarchy') }}
                 </button>
                 <button
-                  class="graph-panel__toggle"
-                  :class="{ 'graph-panel__toggle--active': viewMode === 'table' }"
-                  @click="viewMode = 'table'"
+                  class="nav-switcher__btn"
+                  :class="{ 'nav-switcher__btn--active': navView === 'tbox' }"
+                  type="button"
+                  role="tab"
+                  :aria-selected="navView === 'tbox'"
+                  @click="switchNavView('tbox')"
                 >
-                  {{ t('ontology_workspace.table_view') }}
+                  {{ t('ontology_workspace.view_tbox') }}
+                </button>
+                <button
+                  class="nav-switcher__btn"
+                  :class="{ 'nav-switcher__btn--active': navView === 'abox' }"
+                  type="button"
+                  role="tab"
+                  :aria-selected="navView === 'abox'"
+                  @click="switchNavView('abox')"
+                >
+                  {{ t('ontology_workspace.view_abox') }}
                 </button>
               </div>
 
-              <!-- Graph Visualization view -->
-              <GraphVisualization
-                v-if="viewMode === 'graph'"
-                :nodes="graphNodes"
-                :edges="graphEdges"
-                :show-table-fallback="false"
-                @node-click="onGraphNodeClick"
-              />
+              <!-- Class Hierarchy view: ClassTree organism (drag-n-drop + filter) -->
+              <aside v-if="navView === 'hierarchy'" class="class-panel card-side">
+                <ClassTree
+                  :nodes="classTreeNodes"
+                  :selected-id="selectedClassId || undefined"
+                  :readonly="false"
+                  @select="onClassTreeSelect"
+                  @move-class="onClassTreeMove"
+                />
+              </aside>
 
-              <!-- Detail panel overlay (visible when a class is selected) -->
-              <div v-if="selectedClass" class="detail-panel">
-                <div class="detail-panel__header">
-                  <span class="detail-panel__title">{{ selectedClass.label }}</span>
-                </div>
-                <div v-if="selectedClass.comment" class="detail-panel__comment">
-                  {{ selectedClass.comment }}
-                </div>
-              </div>
+              <div v-if="navView === 'hierarchy'" class="splitter"><GripVertical :size="8" /></div>
 
-              <!-- Table view (existing) -->
-              <template v-else>
+              <!-- Hierarchy detail panel (selected class info) -->
+              <section v-if="navView === 'hierarchy'" class="graph-panel card-side">
+                <div v-if="selectedClass" class="detail-panel">
+                  <div class="detail-panel__header">
+                    <span class="detail-panel__title">{{ selectedClass.label }}</span>
+                  </div>
+                  <div v-if="selectedClass.comment" class="detail-panel__comment">
+                    {{ selectedClass.comment }}
+                  </div>
+                </div>
+                <div v-else class="graph-empty">
+                  <span class="muted">{{ t('ontology_workspace.select_class_hint') }}</span>
+                </div>
+              </section>
+
+              <!-- TBox Graph view: classes + subclass edges only -->
+              <section v-else-if="navView === 'tbox'" class="graph-panel card-side">
+                <GraphVisualization
+                  :nodes="tboxGraphNodes"
+                  :edges="tboxGraphEdges"
+                  :show-table-fallback="false"
+                  @node-click="onGraphNodeClick"
+                />
+              </section>
+
+              <!-- ABox Graph view: individuals of the selected class -->
+              <section v-else class="graph-panel card-side">
+                <div class="graph-panel__toolbar">
+                  <span class="graph-panel__title">
+                    {{ t('ontology_workspace.abox_individuals') }}
+                  </span>
+                </div>
                 <div class="graph-head">
                   <span class="col-ind">{{ t('ontology_workspace.col_individual') }}</span>
                   <span class="col-prop">{{ t('ontology_workspace.col_property') }}</span>
@@ -309,30 +325,29 @@
                 <div v-if="individuals.length === 0" class="graph-empty">
                   <span class="muted">{{ t('ontology_workspace.no_individuals') }}</span>
                 </div>
-              </template>
-            </section>
+              </section>
 
-            <div class="splitter"><GripVertical :size="8" /></div>
+              <div class="splitter"><GripVertical :size="8" /></div>
 
-            <aside class="property-panel card-side panel-right">
-              <div class="panel-title">{{ t('ontology_workspace.individuals') }}</div>
-              <div class="panel-tools">
-                <Search :size="14" class="muted" />
-                <div class="panel-input">{{ t('ontology_workspace.filter_individuals') }}</div>
-              </div>
-              <div class="indiv-head"><span class="i-name">{{ t('ontology_workspace.col_name') }}</span><span class="i-type">{{ t('ontology_workspace.col_type') }}</span></div>
-              <div v-for="item in individuals" :key="item.id" class="indiv-row">
-                <span class="i-name">{{ item.label }}</span>
-                <span class="i-type i-type--active">{{ item.classLabel }}</span>
-              </div>
-              <AiSuggestionPanel
-                v-if="selectedClassId"
-                :ontology-id="ontologyId"
-                :class-id="selectedClassId"
-                @suggestion-accepted="onAiSuggestionAccepted"
-              />
-            </aside>
-          </div>
+              <aside class="property-panel card-side panel-right">
+                <div class="panel-title">{{ t('ontology_workspace.individuals') }}</div>
+                <div class="panel-tools">
+                  <Search :size="14" class="muted" />
+                  <div class="panel-input">{{ t('ontology_workspace.filter_individuals') }}</div>
+                </div>
+                <div class="indiv-head"><span class="i-name">{{ t('ontology_workspace.col_name') }}</span><span class="i-type">{{ t('ontology_workspace.col_type') }}</span></div>
+                <div v-for="item in individuals" :key="item.id" class="indiv-row">
+                  <span class="i-name">{{ item.label }}</span>
+                  <span class="i-type i-type--active">{{ item.classLabel }}</span>
+                </div>
+                <AiSuggestionPanel
+                  v-if="selectedClassId"
+                  :ontology-id="ontologyId"
+                  :class-id="selectedClassId"
+                  @suggestion-accepted="onAiSuggestionAccepted"
+                />
+              </aside>
+            </div>
         </section>
       </div>
     </template>
@@ -368,12 +383,11 @@ import CreateIndividualDialog from "@/components/ontology/CreateIndividualDialog
 import CreatePropertyDialog from "@/components/ontology/CreatePropertyDialog.vue";
 import DocumentUploader from "@/components/ontology/DocumentUploader.vue";
 import SequencePreview from "@/components/ontology/SequencePreview.vue";
+import ClassTree from "@/components/organisms/ClassTree.vue";
 import GraphVisualization from "@/components/organisms/GraphVisualization.vue";
 import { useI18n } from "@/composables/useI18n";
 import {
-	ChevronRight,
 	FileText,
-	Folder,
 	GripVertical,
 	MessageSquare,
 	Plus,
@@ -399,7 +413,13 @@ const { t } = useI18n();
 const ontologyId = ref((route.params.id as string) || "default");
 const selectedClassId = ref<string | null>(null);
 const selectedIndividualId = ref<string | null>(null);
-const viewMode = ref<"graph" | "table">("table");
+
+// Three separate navigation views per Roadmap Notes: Class Hierarchy (tree),
+// TBox Graph (classes + subclass edges only), ABox Graph (individuals of the
+// selected class). The old graph/table toggle inside the panel is superseded
+// by this navigation split.
+type NavigationView = "hierarchy" | "tbox" | "abox";
+const navView = ref<NavigationView>("hierarchy");
 
 // ── Save Draft state ────────────────────────────────────────────────────────
 
@@ -711,68 +731,89 @@ const selectedClass = computed(
 	() => flatClasses.value.find((c) => c.id === selectedClassId.value) ?? null,
 );
 
-const graphNodes = computed(() => {
-	const nodes: Array<{
-		id: string;
-		label: string;
-		type: "class" | "property" | "individual";
-		x: number;
-		y: number;
-	}> = [];
-	let idx = 0;
-	// Add classes as nodes (flattened — includes nested children)
-	for (const cls of flatClasses.value) {
-		nodes.push({
-			id: cls.id,
-			label: cls.label,
-			type: "class",
-			x: 50 + (idx % 5) * 200,
-			y: 50 + Math.floor(idx / 5) * 80,
-		});
-		idx++;
-	}
-	// Add individuals as nodes
-	for (const ind of individuals.value) {
-		if (!ind.id) continue;
-		nodes.push({
-			id: ind.id,
-			label: ind.label || ind.id,
-			type: "individual",
-			x: 50 + (idx % 5) * 200,
-			y: 50 + Math.floor(idx / 5) * 80,
-		});
-		idx++;
-	}
-	return nodes;
-});
-
-const graphEdges = computed(() => {
-	const edges: Array<{
-		source: string;
-		target: string;
-		type: "subclass_of" | "object_property" | "datatype_property";
-	}> = [];
-	// Subclass edges: child → parent (keeps hierarchy visible even with no individuals)
-	for (const cls of flatClasses.value) {
-		if (cls.parentId) {
-			edges.push({ source: cls.id, target: cls.parentId, type: "subclass_of" });
-		}
-	}
-	// Individual → class instance edges
-	for (const ind of individuals.value) {
-		if (ind.classId) {
-			edges.push({ source: ind.id, target: ind.classId, type: "subclass_of" });
-		}
-	}
-	return edges;
-});
-
 function onGraphNodeClick(node: { id: string; label: string; type: string }) {
 	if (node.type === "individual") {
 		selectedIndividualId.value = node.id;
 	} else if (node.type === "class") {
 		selectedClassId.value = node.id;
 	}
+}
+
+// TBox Graph view: classes + subclass edges only (no individuals). The ABox
+// is deliberately excluded so the TBox view shows the class taxonomy alone.
+const tboxGraphNodes = computed(() =>
+	flatClasses.value.map((cls, idx) => ({
+		id: cls.id,
+		label: cls.label,
+		type: "class" as const,
+		x: 50 + (idx % 5) * 200,
+		y: 50 + Math.floor(idx / 5) * 80,
+	})),
+);
+
+const tboxGraphEdges = computed(() => {
+	const edges: Array<{
+		source: string;
+		target: string;
+		type: "subclass_of" | "object_property" | "datatype_property";
+	}> = [];
+	for (const cls of flatClasses.value) {
+		if (cls.parentId) {
+			edges.push({ source: cls.id, target: cls.parentId, type: "subclass_of" });
+		}
+	}
+	return edges;
+});
+
+// ClassTree expects a TreeNode shape (id, label, children, childrenCount).
+// The workspace's classTree from CLASS_TREE_QUERY has { id, label, comment,
+// children }; map it to the organism's TreeNode recursively.
+type ClassTreeSourceNode = {
+	id: string;
+	label: string;
+	comment?: string | null;
+	children?: ClassTreeSourceNode[] | null;
+};
+
+// Structurally mirrors the ClassTree organism's TreeNode (recursive).
+type ClassTreeNode = {
+	id: string;
+	label: string;
+	expanded?: boolean;
+	children?: ClassTreeNode[];
+	childrenCount?: number;
+};
+
+const classTreeNodes = computed<ClassTreeNode[]>(() => {
+	const mapNode = (node: ClassTreeSourceNode): ClassTreeNode => ({
+		id: node.id,
+		label: node.label,
+		children: node.children?.length ? node.children.map(mapNode) : undefined,
+		childrenCount: node.children?.length ?? undefined,
+	});
+	return (classTree.value as ClassTreeSourceNode[]).map(mapNode);
+});
+
+function switchNavView(view: NavigationView) {
+	navView.value = view;
+	// Selecting a class in the tree should surface in the ABox view too.
+	if (view === "abox" && selectedClassId.value) {
+		refetchIndividuals();
+	}
+}
+
+function onClassTreeSelect(node: { id: string; label: string }) {
+	selectClass(node.id);
+}
+
+function onClassTreeMove(sourceId: string, newParentId: string | null) {
+	// Best-effort: record the move in the draft state. Full reparenting via
+	// the backend is out of scope for this navigation wiring.
+	console.info("[OntologyWorkspace] class move requested", {
+		sourceId,
+		newParentId,
+	});
+	draftState.trackChange("move:class", null, sourceId);
 }
 
 // ── Ontology metadata (REST — migrated from ONTOLOGY_QUERY) ────────────────────
@@ -1033,6 +1074,41 @@ watch(selectedClassId, () => {
   flex: 1;
   display: flex;
   min-height: 0;
+}
+
+/* ── Navigation view switcher (Class Hierarchy / TBox / ABox) ────────── */
+.nav-switcher {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 2px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border-default);
+  background: var(--card, #101010);
+}
+
+.nav-switcher__btn {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted-foreground, #8a94a6);
+  font-size: var(--font-size-sm, 13px);
+  cursor: pointer;
+}
+
+.nav-switcher__btn:hover {
+  color: var(--text-primary, #fafafa);
+}
+
+.nav-switcher__btn--active {
+  background: var(--primary, #10b981);
+  color: #fff;
+}
+
+.graph-panel__title {
+  font-size: var(--font-size-sm, 13px);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--text-primary, #fafafa);
 }
 
 .class-panel {
