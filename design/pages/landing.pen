@@ -1,8 +1,5 @@
 {
-  "version": "2.13",
-  "imports": {
-    "B": "../ui-kit.lib.pen"
-  },
+  "version": "2.15",
   "children": [
     {
       "type": "frame",
@@ -11,10 +8,8 @@
       "y": -5000,
       "name": "Landing Page",
       "width": 1920,
-      "height": 1080,
       "fill": "$B:background",
       "layout": "vertical",
-      "clip": true,
       "children": [
         {
           "type": "text",
@@ -40,58 +35,81 @@
           "strokeWidth": 1,
           "strokeAlignment": "inner",
           "padding": [0, 360, 0, 360],
+          "layout": "horizontal",
           "alignItems": "center",
+          "justifyContent": "space-between",
+          "gap": 32,
           "children": [
             {
-              "type": "text",
-              "id": "landingLogo",
-              "name": "logo",
-              "fill": "$B:foreground",
-              "content": "VEDO Hub",
-              "fontFamily": "IBM Plex Mono",
-              "fontSize": 16,
-              "fontWeight": "700"
-            },
-            {
-              "type": "text",
-              "id": "landingNavProd",
-              "name": "navProduct",
-              "fill": "$B:muted-foreground",
-              "content": "Продукт",
-              "fontFamily": "IBM Plex Mono",
-              "fontSize": 13,
-              "fontWeight": "normal"
-            },
-            {
-              "type": "text",
-              "id": "landingNavPrice",
-              "name": "navPricing",
-              "fill": "$B:muted-foreground",
-              "content": "Тарифы",
-              "fontFamily": "IBM Plex Mono",
-              "fontSize": 13,
-              "fontWeight": "normal"
-            },
-            {
-              "type": "text",
-              "id": "landingNavDocs",
-              "name": "navDocs",
-              "fill": "$B:muted-foreground",
-              "content": "Документация",
-              "fontFamily": "IBM Plex Mono",
-              "fontSize": 13,
-              "fontWeight": "normal"
-            },
-            {
-              "id": "landingNavLogin",
-              "type": "ref",
-              "ref": "B:c8T4z",
-              "descendants": {
-                "B:esH0z": {
-                  "content": "Войти",
-                  "fontSize": 13
+              "type": "frame",
+              "id": "landingNavLeft",
+              "name": "navLeft",
+              "layout": "horizontal",
+              "alignItems": "center",
+              "gap": 32,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "landingLogo",
+                  "name": "logo",
+                  "fill": "$B:foreground",
+                  "content": "VEDO Hub",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 16,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "landingNavProd",
+                  "name": "navProduct",
+                  "fill": "$B:muted-foreground",
+                  "content": "Продукт",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "landingNavPrice",
+                  "name": "navPricing",
+                  "fill": "$B:muted-foreground",
+                  "content": "Тарифы",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "landingNavDocs",
+                  "name": "navDocs",
+                  "fill": "$B:muted-foreground",
+                  "content": "Документация",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
                 }
-              }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "landingNavRight",
+              "name": "navRight",
+              "layout": "horizontal",
+              "alignItems": "center",
+              "gap": 16,
+              "children": [
+                {
+                  "id": "landingNavLogin",
+                  "type": "ref",
+                  "ref": "B:c8T4z",
+                  "descendants": {
+                    "B:esH0z": {
+                      "content": "Войти",
+                      "fontSize": 13
+                    }
+                  }
+                }
+              ]
             }
           ]
         },
@@ -102,14 +120,18 @@
           "width": "fill_container",
           "layout": "vertical",
           "gap": 12,
-          "padding": [96, 360, 72, 360],
+          "padding": [
+            96,
+            360,
+            72,
+            360
+          ],
           "alignItems": "center",
           "children": [
             {
               "type": "text",
               "id": "landingHeroTitle",
               "name": "heroTitle",
-              "width": "fill_container",
               "fill": "$B:primary",
               "content": "VEDO Hub — GitHub + Hugging Face для онтологий",
               "textAlign": "center",
@@ -121,7 +143,6 @@
               "type": "text",
               "id": "landingHeroSub1",
               "name": "heroSub1",
-              "width": "fill_container",
               "fill": "$B:muted-foreground",
               "content": "Создайте онтологию из документа за 1 минуту — без OWL",
               "textAlign": "center",
@@ -133,7 +154,6 @@
               "type": "text",
               "id": "landingHeroSub2",
               "name": "heroSub2",
-              "width": "fill_container",
               "fill": "$B:muted-foreground",
               "content": "Работайте командой: ветки, слияния, ревью — как в Git",
               "textAlign": "center",
@@ -145,7 +165,6 @@
               "type": "text",
               "id": "landingHeroSub3",
               "name": "heroSub3",
-              "width": "fill_container",
               "fill": "$B:muted-foreground",
               "content": "Публикуйте с DOI, форкайте, цитируйте",
               "textAlign": "center",
@@ -164,7 +183,10 @@
                   "id": "landingHeroCtaPrimary",
                   "type": "ref",
                   "ref": "B:3CI7c",
-                  "padding": [14, 32],
+                  "padding": [
+                    14,
+                    32
+                  ],
                   "descendants": {
                     "B:wMRLg": {
                       "content": "Создать аккаунт бесплатно",
@@ -177,7 +199,10 @@
                   "id": "landingHeroCtaOutline",
                   "type": "ref",
                   "ref": "B:c8T4z",
-                  "padding": [14, 28],
+                  "padding": [
+                    14,
+                    28
+                  ],
                   "descendants": {
                     "B:esH0z": {
                       "content": "Смотреть демо →",
@@ -197,7 +222,10 @@
           "width": "fill_container",
           "layout": "vertical",
           "gap": 8,
-          "padding": [48, 360, 48, 360],
+          "padding": [
+            48,
+            360
+          ],
           "alignItems": "center",
           "children": [
             {
@@ -224,12 +252,9 @@
               "type": "frame",
               "id": "landingDemosGrid",
               "name": "demosGrid",
-              "width": "fill_container",
-              "layout": "horizontal",
-              "gap": 24,
-              "overflowX": "auto",
-              "scrollSnapType": "x mandatory",
               "clip": true,
+              "width": "fill_container",
+              "gap": 24,
               "children": [
                 {
                   "id": "landingDemo1",
@@ -352,7 +377,10 @@
           "width": "fill_container",
           "layout": "vertical",
           "gap": 20,
-          "padding": [48, 360, 48, 360],
+          "padding": [
+            48,
+            360
+          ],
           "alignItems": "center",
           "children": [
             {
@@ -370,9 +398,7 @@
               "id": "landingRolesGrid",
               "name": "rolesGrid",
               "width": "fill_container",
-              "layout": "horizontal",
               "gap": 20,
-              "flexWrap": "wrap",
               "justifyContent": "center",
               "children": [
                 {
@@ -454,10 +480,12 @@
           "id": "landingTrust",
           "name": "trustSection",
           "width": "fill_container",
-          "fill": "$B:card",
           "layout": "vertical",
           "gap": 24,
-          "padding": [48, 360, 48, 360],
+          "padding": [
+            48,
+            360
+          ],
           "alignItems": "center",
           "children": [
             {
@@ -465,10 +493,8 @@
               "id": "landingMetricsRow",
               "name": "metricsRow",
               "width": "fill_container",
-              "layout": "horizontal",
               "gap": 32,
               "justifyContent": "center",
-              "flexWrap": "wrap",
               "children": [
                 {
                   "type": "frame",
@@ -625,10 +651,9 @@
               "id": "landingOpenCore",
               "name": "openCoreBanner",
               "width": "fill_container",
-              "layout": "horizontal",
               "gap": 16,
-              "alignItems": "center",
               "justifyContent": "center",
+              "alignItems": "center",
               "children": [
                 {
                   "type": "text",
@@ -666,14 +691,16 @@
           "strokeAlignment": "inner",
           "layout": "vertical",
           "gap": 8,
-          "padding": [32, 360, 32, 360],
+          "padding": [
+            32,
+            360
+          ],
           "children": [
             {
               "type": "frame",
               "id": "landingFooterCols",
               "name": "footerCols",
               "width": "fill_container",
-              "layout": "horizontal",
               "gap": 48,
               "children": [
                 {
@@ -827,5 +854,9 @@
         }
       ]
     }
-  ]
+  ],
+  "imports": {
+    "B": "../ui-kit.lib.pen"
+  },
+  "fileToken": "911197ae-52e7-4b05-97c3-1d8da85da83e"
 }
