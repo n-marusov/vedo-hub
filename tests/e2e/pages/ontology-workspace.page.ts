@@ -292,78 +292,87 @@ export class OntologyWorkspacePage {
 
   /** Get the list of individual labels currently shown in the ABox view. */
   async getABoxIndividuals(): Promise<string[]> {
-    // The ABox view renders an individuals table; look for rows or list items.
-    const tableRows = this.page.locator('.abox-table tr, .individuals-table tr, .individuals-list .individual-row');
-    const injectedRows = this.page.locator('.abox-individual-row, .abox-table .individual-name');
-
-    const real = await tableRows.allTextContents();
+    // The ABox view renders a 2D graph via GraphVisualization — node labels
+    // are in .graph-viz__flow-node-label spans inside .graph-viz__flow-node divs.
+    const graphLabels = this.page.locator('.graph-viz__flow-node-label');
+    const real = await graphLabels.allTextContents();
     if (real.length > 0) return real;
-    return injectedRows.allTextContents();
+    // Legacy fallback: table-based ABox view (pre-Q3 upgrade)
+    const tableRows = this.page.locator('.abox-table tr, .individuals-table tr, .individuals-list .individual-row');
+    const legacy = await tableRows.allTextContents();
+    if (legacy.length > 0) return legacy;
+    return this.page.locator('.abox-individual-row, .abox-table .individual-name').allTextContents();
   }
 
-  /** Inject individuals into the ABox view DOM (for mock-based tests). */
+  /** Inject individuals into the ABox 2D graph DOM (for mock-based tests). */
   async injectABoxIndividuals(individuals: Array<{ label: string; classLabel: string }>) {
     await this.page.evaluate((inds) => {
-      let container = document.querySelector('.abox-table tbody, .individuals-list, .individuals-table');
-      // Create a container if none exists
-      if (!container) {
-        const tabPanel = document.querySelector('[role="tabpanel"]') || document.querySelector('.workspace-content, main');
-        if (tabPanel) {
-          container = document.createElement('table');
-          container.className = 'abox-table';
-          const tbody = document.createElement('tbody');
-          container.appendChild(tbody);
-          tabPanel.appendChild(container);
-          container = tbody;
+      let pane = document.querySelector('.vue-flow__pane');
+      // Create the Vue Flow pane if it doesn't exist (e.g., GraphVisualization
+      // not rendered because individuals list is empty, or wrong view active).
+      if (!pane) {
+        const canvas = document.querySelector('.graph-viz__canvas, .graph-panel');
+        if (canvas) {
+          const flow = document.createElement('div');
+          flow.className = 'vue-flow';
+          flow.style.cssText = 'width:100%;height:100%;position:relative;';
+          pane = document.createElement('div');
+          pane.className = 'vue-flow__pane vue-flow__pane--default';
+          pane.style.cssText = 'position:relative;width:100%;height:100%;';
+          flow.appendChild(pane);
+          canvas.appendChild(flow);
         }
       }
-      if (!container) return;
+      if (!pane) return;
 
-      container.innerHTML = '';
-      inds.forEach((ind) => {
-        const row = document.createElement('tr');
-        row.className = 'abox-individual-row';
-        row.setAttribute('data-individual', ind.label);
+      // Remove any previously injected nodes
+      pane.querySelectorAll('.graph-viz__flow-node[data-injected]').forEach((n) => n.remove());
 
-        const nameCell = document.createElement('td');
-        nameCell.className = 'individual-name';
-        nameCell.textContent = ind.label;
-        row.appendChild(nameCell);
+      inds.forEach((ind, idx) => {
+        const node = document.createElement('div');
+        node.className = 'graph-viz__flow-node graph-viz__flow-node--individual';
+        node.setAttribute('data-injected', 'true');
+        node.style.cssText = [
+          'position: absolute',
+          `left: ${50 + (idx % 4) * 200}px`,
+          `top: ${180 + Math.floor(idx / 4) * 120}px`,
+          'display: flex',
+          'align-items: center',
+          'gap: 8px',
+          'padding: 8px 12px',
+          'background: white',
+          'border: 2px solid #ccc',
+          'border-left: 3px solid #3b82f6',
+          'border-radius: 8px',
+          'min-width: 80px',
+          'max-width: 200px',
+        ].join('; ');
 
-        const classCell = document.createElement('td');
-        classCell.textContent = ind.classLabel;
-        row.appendChild(classCell);
+        const icon = document.createElement('span');
+        icon.className = 'graph-viz__flow-node-icon';
+        icon.textContent = '○';
+        node.appendChild(icon);
 
-        const actionsCell = document.createElement('td');
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'individual-delete-btn';
-        deleteBtn.textContent = 'Delete';
-        deleteBtn.setAttribute('data-individual', ind.label);
-        actionsCell.appendChild(deleteBtn);
+        const label = document.createElement('span');
+        label.className = 'graph-viz__flow-node-label';
+        label.textContent = ind.label;
+        node.appendChild(label);
 
-        const editBtn = document.createElement('button');
-        editBtn.className = 'individual-edit-btn';
-        editBtn.textContent = 'Edit';
-        editBtn.setAttribute('data-individual', ind.label);
-        actionsCell.appendChild(editBtn);
-
-        row.appendChild(actionsCell);
-        container.appendChild(row);
+        pane.appendChild(node);
       });
     }, individuals);
   }
 
-  /** Delete an individual by label from the ABox table. */
+  /** Delete an individual by label from the ABox view. */
   async deleteIndividual(label: string) {
-    const deleteBtn = this.page.locator(`.individual-delete-btn[data-individual="${label}"]`);
-    if (await deleteBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await deleteBtn.click();
-      return;
-    }
-    // Fallback: evaluate to remove from DOM
     await this.page.evaluate((name) => {
-      const rows = document.querySelectorAll('.abox-individual-row');
-      rows.forEach((row) => {
+      // GraphVisualization nodes
+      document.querySelectorAll('.graph-viz__flow-node').forEach((node) => {
+        const labelEl = node.querySelector('.graph-viz__flow-node-label');
+        if (labelEl?.textContent === name) node.remove();
+      });
+      // Legacy fallback: table-based rows
+      document.querySelectorAll('.abox-individual-row').forEach((row) => {
         const nameCell = row.querySelector('.individual-name');
         if (nameCell?.textContent === name) row.remove();
       });
@@ -373,8 +382,15 @@ export class OntologyWorkspacePage {
   /** Update an individual's label (mock-based — replaces in DOM). */
   async updateIndividual(oldLabel: string, newLabel: string) {
     await this.page.evaluate(([oldName, newName]) => {
-      const rows = document.querySelectorAll('.abox-individual-row');
-      rows.forEach((row) => {
+      // GraphVisualization nodes
+      document.querySelectorAll('.graph-viz__flow-node').forEach((node) => {
+        const labelEl = node.querySelector('.graph-viz__flow-node-label');
+        if (labelEl?.textContent === oldName) {
+          labelEl.textContent = newName;
+        }
+      });
+      // Legacy fallback: table-based rows
+      document.querySelectorAll('.abox-individual-row').forEach((row) => {
         const nameCell = row.querySelector('.individual-name');
         if (nameCell?.textContent === oldName) {
           nameCell.textContent = newName;

@@ -106,10 +106,10 @@ describePage("OntologyWorkspaceViews", () => {
 			.findAll(".nav-switcher__btn")
 			.find((b) => b.text().includes("ABox Graph"));
 		if (!aboxBtn) throw new Error("ABox Graph tab not found");
-		await aboxBtn.trigger("click");
+		aboxBtn.trigger("click");
 		await nextTick();
-		// ABox view shows the individuals table header.
-		expect(wrapper.find(".graph-head").exists()).toBe(true);
+		// ABox view shows 2D graph visualization (empty state when no individuals).
 		expect(wrapper.find(".class-tree").exists()).toBe(false);
+		expect(wrapper.find(".graph-empty").exists()).toBe(true);
 	});
 });

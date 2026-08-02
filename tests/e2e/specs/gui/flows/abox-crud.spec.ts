@@ -268,11 +268,11 @@ test.describe('ABox CRUD — Minimal individuals management', () => {
     let individuals = await workspace.getABoxIndividuals();
     expect(individuals.join(' ')).toContain('Alice');
 
-    await workspace.updateIndividual('Alice', 'AliceUpdated');
+    await workspace.updateIndividual('Alice', 'Alicia');
     await page.waitForTimeout(500);
 
     individuals = await workspace.getABoxIndividuals();
     expect(individuals.join(' ')).not.toContain('Alice');
-    expect(individuals.join(' ')).toContain('AliceUpdated');
+    expect(individuals.join(' ')).toContain('Alicia');
   });
 });

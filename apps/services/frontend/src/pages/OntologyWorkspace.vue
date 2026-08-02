@@ -303,32 +303,19 @@
                 />
               </section>
 
-              <!-- ABox Graph view: individuals of the selected class -->
-              <section v-else class="graph-panel card-side">
-                <div class="graph-panel__toolbar">
-                  <span class="graph-panel__title">
-                    {{ t('ontology_workspace.abox_individuals') }}
-                  </span>
-                </div>
-                <div class="graph-head">
-                  <span class="col-ind">{{ t('ontology_workspace.col_individual') }}</span>
-                  <span class="col-prop">{{ t('ontology_workspace.col_property') }}</span>
-                  <span class="col-val">{{ t('ontology_workspace.col_value') }}</span>
-                </div>
-                <div
-                  v-for="ind in individuals"
-                  :key="ind.id"
-                  class="graph-row"
-                  :class="{ 'graph-row--active': ind.id === selectedIndividualId }"
-                >
-                  <span class="col-ind">{{ ind.label }}</span>
-                  <span class="col-prop">rdf:type</span>
-                  <span class="col-val">{{ ind.classLabel }}</span>
-                </div>
-                <div v-if="individuals.length === 0" class="graph-empty">
-                  <span class="muted">{{ t('ontology_workspace.no_individuals') }}</span>
-                </div>
-              </section>
+              			<!-- ABox Graph view: 2D graph visualization of individuals -->
+              			<section v-else class="graph-panel card-side">
+              				<GraphVisualization
+              					v-if="individuals.length > 0"
+              					:nodes="aboxGraphNodes"
+              					:edges="aboxGraphEdges"
+              					:show-table-fallback="false"
+              					@node-click="onGraphNodeClick"
+              				/>
+              				<div v-else class="graph-empty">
+              					<span class="muted">{{ t('ontology_workspace.no_individuals') }}</span>
+              				</div>
+              			</section>
 
               <div class="splitter"><GripVertical :size="8" /></div>
 
@@ -774,6 +761,73 @@ const tboxGraphEdges = computed(() => {
 			edges.push({ source: cls.id, target: cls.parentId, type: "subclass_of" });
 		}
 	}
+	return edges;
+});
+
+// ABox Graph view: individuals as 2D graph nodes with rdf:type edges
+// to their class and object-property edges between individuals.
+const aboxGraphNodes = computed(() => {
+	const nodes: Array<{
+		id: string;
+		label: string;
+		type: "class" | "individual";
+		x: number;
+		y: number;
+	}> = [];
+
+	// Selected class as a parent node (top center)
+	if (selectedClass.value) {
+		nodes.push({
+			id: selectedClass.value.id,
+			label: selectedClass.value.label,
+			type: "class",
+			x: 350,
+			y: 30,
+		});
+	}
+
+	// Individual nodes arranged in a grid below the class node
+	individuals.value.forEach((ind, idx) => {
+		nodes.push({
+			id: ind.id,
+			label: ind.label,
+			type: "individual",
+			x: 50 + (idx % 4) * 200,
+			y: 180 + Math.floor(idx / 4) * 120,
+		});
+	});
+
+	return nodes;
+});
+
+const aboxGraphEdges = computed(() => {
+	const edges: Array<{
+		source: string;
+		target: string;
+		type: "subclass_of" | "object_property" | "datatype_property";
+	}> = [];
+
+	for (const ind of individuals.value) {
+		// rdf:type edge: individual → class
+		if (ind.classId) {
+			edges.push({
+				source: ind.id,
+				target: ind.classId,
+				type: "subclass_of",
+			});
+		}
+		// Object property edges from referenceValues
+		if (ind.referenceValues) {
+			for (const ref of ind.referenceValues) {
+				edges.push({
+					source: ind.id,
+					target: ref.targetId,
+					type: "object_property",
+				});
+			}
+		}
+	}
+
 	return edges;
 });
 

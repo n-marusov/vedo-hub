@@ -246,15 +246,12 @@ export const LIST_INDIVIDUALS_QUERY = gql`
       perPage: $perPage
     ) {
       items {
-        id
-        label
-        comment
-        classId
-        classLabel
+        ...IndividualFields
       }
       total
       page
       perPage
     }
   }
+  ${INDIVIDUAL_FRAGMENT}
 `;

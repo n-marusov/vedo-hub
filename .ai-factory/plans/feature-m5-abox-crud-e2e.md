@@ -54,7 +54,7 @@ Rationale: This plan closes the last remaining M5 gap — Minimal ABox CRUD GUI 
 ## Acceptance Criteria (plan-level)
 - [x] All ABox CRUD e2e tests pass against the test stack
 - [x] M5 all sub-items `[x]`, M5 marked Completed in ROADMAP.md
-- [ ] GUI e2e run: existing tests unaffected (119 pass / 78 skip → 124+ pass)
+- [x] GUI e2e run: existing tests unaffected (119 pass / 78 skip → 124 pass / 78 skip / 0 fail)
 
 ## Notes
 - Minimal scope: basic CRUD only. Batch operations (M9), inline editing (M9), search/filter (M8) are out of scope.
