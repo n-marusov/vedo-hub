@@ -139,6 +139,11 @@ pub async fn switch_branch_handler(
 }
 
 /// POST /api/v1/versioning/branches/merge — Merge two branches.
+///
+/// Per vision F3.828: a merge with conflicts is blocked with 409
+/// VER-MERGE-CONFLICT. The conflict guard lives in `BranchRepository::
+/// merge_branches` (BEFORE any write) so a blocked merge never persists a
+/// merge commit.
 pub async fn merge_branches_handler(
     State(state): State<Arc<AppState>>,
     Json(req): Json<MergeBranchesRequest>,
@@ -413,7 +418,40 @@ mod tests {
             ))
             .await
             .unwrap();
-        assert!(resp.status().is_success() || resp.status().is_client_error());
+        assert_eq!(resp.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn test_merge_conflict_returns_409() {
+        // Per vision F3.828: the repository blocks a conflicting merge with
+        // 409 VER-MERGE-CONFLICT BEFORE writing; the handler propagates it.
+        let mut mock = MockBranchRepository::new();
+        mock.merge_branches_result =
+            std::sync::Mutex::new(Some(Err(VersionError::MergeConflict {
+                details: "Merge blocked: 2 conflicting change(s)".to_string(),
+            })));
+
+        let app = build_app(mock);
+        let resp = app
+            .oneshot(req(
+                Method::POST,
+                "/api/v1/versioning/branches/merge",
+                Some(r#"{"source_branch_id":"00000000-0000-0000-0000-000000000001","target_branch_id":"00000000-0000-0000-0000-000000000002","message":"merge","author_id":"user","author_name":"User"}"#),
+            ))
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::CONFLICT);
+
+        let body = axum::body::to_bytes(resp.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(json["error"], "VER-MERGE-CONFLICT");
+        let detail = json["detail"].as_str().unwrap();
+        assert!(
+            detail.contains("2 conflicting change(s)"),
+            "detail should mention conflict count, got: {detail}",
+        );
     }
 
     #[tokio::test]

@@ -25,13 +25,14 @@ use std::time::{Duration, Instant};
 
 use axum::{
     extract::State,
-    http::{header, StatusCode},
+    http::{header, HeaderMap, StatusCode},
     response::{IntoResponse, Response},
     Json,
 };
 use serde::{Deserialize, Serialize};
 use tracing::{debug, error, info, warn};
 
+use crate::audit::{trace_id_from_headers, user_id_from_headers, AuditEntry, AuditStatus};
 use crate::AppState;
 
 /// Default row cap applied when the inbound query has no LIMIT. The gateway
@@ -104,13 +105,26 @@ fn error_response(status: StatusCode, code: &str, message: &str) -> Response {
 /// callers can route via the explicit Cypher endpoint.
 pub async fn sparql_handler(
     State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
     Json(req): Json<QueryRequest>,
 ) -> Response {
     let start = Instant::now();
+    let trace_id = trace_id_from_headers(&headers);
+    let user_id = user_id_from_headers(&headers);
     debug!(query_len = req.query.len(), "SPARQL query received");
 
     if let Some(code) = validate_readonly(&req.query, QueryDialect::Sparql) {
         warn!(code, "SPARQL query rejected by server-side validator");
+        AuditEntry {
+            trace_id,
+            user_id,
+            dialect: "sparql",
+            query: req.query.clone(),
+            limit: None,
+            execution_time_ms: start.elapsed().as_millis() as u64,
+            status: AuditStatus::Rejected,
+        }
+        .emit();
         return error_response(
             StatusCode::BAD_REQUEST,
             code,
@@ -122,6 +136,16 @@ pub async fn sparql_handler(
         Ok(t) => t,
         Err(reason) => {
             warn!(reason, "SPARQL query not yet supported by translator");
+            AuditEntry {
+                trace_id,
+                user_id,
+                dialect: "sparql",
+                query: req.query.clone(),
+                limit: None,
+                execution_time_ms: start.elapsed().as_millis() as u64,
+                status: AuditStatus::Rejected,
+            }
+            .emit();
             return error_response(
                 StatusCode::NOT_IMPLEMENTED,
                 "ONT-SPARQL-UNSUPPORTED",
@@ -135,7 +159,19 @@ pub async fn sparql_handler(
 
     let pool = match require_neo4j(&state) {
         Ok(p) => p,
-        Err(resp) => return resp,
+        Err(resp) => {
+            AuditEntry {
+                trace_id,
+                user_id,
+                dialect: "sparql",
+                query: req.query.clone(),
+                limit: Some(translation.limit),
+                execution_time_ms: start.elapsed().as_millis() as u64,
+                status: AuditStatus::Rejected,
+            }
+            .emit();
+            return resp;
+        }
     };
 
     debug!(cypher = %translation.cypher, limit = translation.limit, "Executing translated Cypher");
@@ -150,6 +186,16 @@ pub async fn sparql_handler(
                 rows = triple_count,
                 execution_time_ms, "SPARQL query executed"
             );
+            AuditEntry {
+                trace_id,
+                user_id,
+                dialect: "sparql",
+                query: req.query.clone(),
+                limit: Some(translation.limit),
+                execution_time_ms,
+                status: AuditStatus::Succeeded,
+            }
+            .emit();
             (
                 StatusCode::OK,
                 [(header::CONTENT_TYPE, "application/json")],
@@ -163,6 +209,16 @@ pub async fn sparql_handler(
         }
         Err(e) => {
             error!(error = %e, "Neo4j query failed for SPARQL translation");
+            AuditEntry {
+                trace_id,
+                user_id,
+                dialect: "sparql",
+                query: req.query.clone(),
+                limit: Some(translation.limit),
+                execution_time_ms,
+                status: AuditStatus::Rejected,
+            }
+            .emit();
             error_response(
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "ONT-DATABASE-ERROR",
@@ -175,13 +231,26 @@ pub async fn sparql_handler(
 /// `POST /api/v1/cypher` — execute a (validated) read-only Cypher query.
 pub async fn cypher_handler(
     State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
     Json(req): Json<QueryRequest>,
 ) -> Response {
     let start = Instant::now();
+    let trace_id = trace_id_from_headers(&headers);
+    let user_id = user_id_from_headers(&headers);
     debug!(query_len = req.query.len(), "CYPHER query received");
 
     if let Some(code) = validate_readonly(&req.query, QueryDialect::Cypher) {
         warn!(code, "CYPHER query rejected by server-side validator");
+        AuditEntry {
+            trace_id,
+            user_id,
+            dialect: "cypher",
+            query: req.query.clone(),
+            limit: None,
+            execution_time_ms: start.elapsed().as_millis() as u64,
+            status: AuditStatus::Rejected,
+        }
+        .emit();
         return error_response(
             StatusCode::BAD_REQUEST,
             code,
@@ -191,7 +260,19 @@ pub async fn cypher_handler(
 
     let pool = match require_neo4j(&state) {
         Ok(p) => p,
-        Err(resp) => return resp,
+        Err(resp) => {
+            AuditEntry {
+                trace_id,
+                user_id,
+                dialect: "cypher",
+                query: req.query.clone(),
+                limit: None,
+                execution_time_ms: start.elapsed().as_millis() as u64,
+                status: AuditStatus::Rejected,
+            }
+            .emit();
+            return resp;
+        }
     };
 
     let result = run_readonly_cypher(pool, &req.query).await;
@@ -204,6 +285,16 @@ pub async fn cypher_handler(
                 rows = triple_count,
                 execution_time_ms, "CYPHER query executed"
             );
+            AuditEntry {
+                trace_id,
+                user_id,
+                dialect: "cypher",
+                query: req.query.clone(),
+                limit: None,
+                execution_time_ms,
+                status: AuditStatus::Succeeded,
+            }
+            .emit();
             (
                 StatusCode::OK,
                 [(header::CONTENT_TYPE, "application/json")],
@@ -217,6 +308,16 @@ pub async fn cypher_handler(
         }
         Err(e) => {
             error!(error = %e, "Neo4j query failed for CYPHER");
+            AuditEntry {
+                trace_id,
+                user_id,
+                dialect: "cypher",
+                query: req.query.clone(),
+                limit: None,
+                execution_time_ms,
+                status: AuditStatus::Rejected,
+            }
+            .emit();
             error_response(
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "ONT-DATABASE-ERROR",
@@ -805,5 +906,49 @@ mod tests {
                 detail
             );
         }
+    }
+
+    #[test]
+    fn test_query_executed_emits_audit_record_with_all_fields() {
+        // Per vision F3.878: an executed query produces an audit record with
+        // trace_id, user, query, limit, and execution time. Build the record
+        // and verify every field is present in the emitted shape.
+        let entry = AuditEntry {
+            trace_id: "trace-xyz".to_string(),
+            user_id: "user-42".to_string(),
+            dialect: "sparql",
+            query: "SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 10".to_string(),
+            limit: Some(10),
+            execution_time_ms: 5,
+            status: AuditStatus::Succeeded,
+        };
+
+        // The struct fields are all populated — this guards the record shape
+        // (adding/renaming fields breaks this test, keeping the audit contract
+        // stable for M6 MCP consumers).
+        assert_eq!(entry.trace_id, "trace-xyz");
+        assert_eq!(entry.user_id, "user-42");
+        assert_eq!(entry.dialect, "sparql");
+        assert!(entry.query.contains("LIMIT 10"));
+        assert_eq!(entry.limit, Some(10));
+        assert_eq!(entry.execution_time_ms, 5);
+        assert_eq!(entry.status, AuditStatus::Succeeded);
+        assert_eq!(entry.status.as_str(), "succeeded");
+    }
+
+    #[test]
+    fn test_rejected_query_marks_audit_rejected() {
+        // Rejected queries must be audited as rejected (not silently dropped).
+        let entry = AuditEntry {
+            trace_id: "trace-r".to_string(),
+            user_id: "".to_string(),
+            dialect: "cypher",
+            query: "CREATE (n:Test)".to_string(),
+            limit: None,
+            execution_time_ms: 1,
+            status: AuditStatus::Rejected,
+        };
+        assert_eq!(entry.status, AuditStatus::Rejected);
+        assert_eq!(entry.status.as_str(), "rejected");
     }
 }

@@ -414,6 +414,26 @@ impl BranchRepositoryTrait for BranchRepository {
         // [FIX] Compute merged delta using the merge service
         let merge_analysis =
             crate::services::merge_service::compute_merged_delta(&src_delta, &tgt_delta);
+
+        // Per vision F3.828: a merge with conflicts MUST be blocked BEFORE any
+        // write. Returning the error here prevents a merge commit from being
+        // persisted for a conflicting merge (the handler would otherwise
+        // return 409 AFTER the repo already wrote the commit — inconsistent).
+        if merge_analysis.conflict_count > 0 {
+            tracing::warn!(
+                source = %req.source_branch_id,
+                target = %req.target_branch_id,
+                conflict_count = merge_analysis.conflict_count,
+                "merge blocked before write: conflicts detected"
+            );
+            return Err(VersionError::MergeConflict {
+                details: format!(
+                    "Merge blocked: {} conflicting change(s) between source {} and target {}",
+                    merge_analysis.conflict_count, req.source_branch_id, req.target_branch_id
+                ),
+            });
+        }
+
         let mut merged_delta = merge_analysis.merged_delta;
         merged_delta.merge_metadata = Some(MergeMetadata {
             source_branch_id: req.source_branch_id.to_string(),

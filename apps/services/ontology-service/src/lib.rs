@@ -9,6 +9,7 @@
     clippy::doc_markdown
 )]
 
+pub mod audit;
 pub mod classes;
 pub mod clients;
 pub mod error;
