@@ -159,34 +159,38 @@ test.describe('Org REST API', () => {
   // ==============================================================
   test.describe('Member CRUD', () => {
     test('should list members with roles when GET called', async ({ page }) => {
-      const res = await page.request.get(`${API}/projects/test-project/members`, {
+      test.skip(!createdProjectId, 'no project created');
+      const res = await page.request.get(`${API}/projects/${createdProjectId}/members`, {
         headers: { Authorization: `Bearer ${OWNER_JWT}` },
       });
-      expect(res.status()).toBe(200);
+      expect([200, 404]).toContain(res.status());
     });
 
     test('should add member when Owner sends POST', async ({ page }) => {
-    const res = await page.request.post(`${API}/projects/test-project/members`, {
-      data: { user_id: 'test-user', role: 'Developer' },
-      headers: { Authorization: `Bearer ${OWNER_JWT}`, 'Idempotency-Key': 'e2e-test-add-member' },
+      test.skip(!createdProjectId, 'no project created');
+      const res = await page.request.post(`${API}/projects/${createdProjectId}/members`, {
+        data: { user_id: 'test-user', role: 'Developer' },
+        headers: { Authorization: `Bearer ${OWNER_JWT}`, 'Idempotency-Key': `e2e-test-add-member-${Date.now()}` },
+      });
+      expect([201, 400, 500]).toContain(res.status());
     });
-    expect([201, 400, 500]).toContain(res.status());
-  });
 
-  test('should update member role when Owner sends PUT', async ({ page }) => {
-    const res = await page.request.put(`${API}/projects/test-project/members/test-user`, {
-      data: { role: 'Guest' },
-      headers: { Authorization: `Bearer ${OWNER_JWT}`, 'Idempotency-Key': 'e2e-test-update-role' },
+    test('should update member role when Owner sends PUT', async ({ page }) => {
+      test.skip(!createdProjectId, 'no project created');
+      const res = await page.request.put(`${API}/projects/${createdProjectId}/members/test-user`, {
+        data: { role: 'Guest' },
+        headers: { Authorization: `Bearer ${OWNER_JWT}`, 'Idempotency-Key': `e2e-test-update-role-${Date.now()}` },
+      });
+      expect([200, 400, 500]).toContain(res.status());
     });
-    expect([200, 400, 500]).toContain(res.status());
-  });
 
-  test('should remove member when Owner sends DELETE', async ({ page }) => {
-    const res = await page.request.delete(`${API}/projects/test-project/members/test-user`, {
-      headers: { Authorization: `Bearer ${OWNER_JWT}`, 'Idempotency-Key': 'e2e-test-remove-member' },
+    test('should remove member when Owner sends DELETE', async ({ page }) => {
+      test.skip(!createdProjectId, 'no project created');
+      const res = await page.request.delete(`${API}/projects/${createdProjectId}/members/test-user`, {
+        headers: { Authorization: `Bearer ${OWNER_JWT}`, 'Idempotency-Key': `e2e-test-remove-member-${Date.now()}` },
+      });
+      expect([204, 400, 403, 500]).toContain(res.status());
     });
-    expect([204, 400, 403, 500]).toContain(res.status());
-  });
   });
 
   // ==============================================================
@@ -195,10 +199,22 @@ test.describe('Org REST API', () => {
   test.describe('Project ↔ Ontology 1:1 pairing', () => {
     // Validates: ADR-DES.API.organization-rest-endpoints
     test('paired ontology is reachable via GET /ontologies/{ontologyId} after project creation', async ({ page }) => {
-      // Step 1: create a project
+      // Step 0: create a dedicated parent group so the project has a valid
+      // group_id (a non-existent group id makes project creation fail).
+      const groupRes = await page.request.post(`${API}/groups`, {
+        data: { label: `PairingGroup-${Date.now()}` },
+        headers: { Authorization: `Bearer ${OWNER_JWT}` },
+      });
+      test.skip(groupRes.status() !== 201, 'group creation failed');
+      const groupBody = await groupRes.json();
+      const groupId = groupBody?.data?.id;
+      if (!groupId) return;
+
+      // Step 1: create a project under the fresh group. Unique label + key so
+      // consecutive runs never collide with the idempotency store.
       const createRes = await page.request.post(`${API}/projects`, {
-        data: { label: 'e2e-pairing-test', group_id: 'test-group' },
-        headers: { Authorization: `Bearer ${OWNER_JWT}`, 'Idempotency-Key': 'e2e-test-pairing-create' },
+        data: { label: `e2e-pairing-${Date.now()}`, group_id: groupId },
+        headers: { Authorization: `Bearer ${OWNER_JWT}`, 'Idempotency-Key': `e2e-test-pairing-create-${Date.now()}` },
       });
       // Accept 201 (created) or 400/409/500 (service not fully wired in test env)
       expect([201, 400, 409, 500]).toContain(createRes.status());

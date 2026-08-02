@@ -27,7 +27,9 @@ export class ProjectsPage {
   }
 
   async clickProject(name: string) {
-    await this.page.locator('.pp-row', { hasText: name }).click();
+    // Use .first() — the API can return duplicate names (e.g. stale rows from
+    // earlier runs); clicking the first match is the intent here.
+    await this.page.locator('.pp-row', { hasText: name }).first().click();
   }
 
   getProjectCount(): Promise<number> {

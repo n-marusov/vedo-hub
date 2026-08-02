@@ -70,8 +70,39 @@ pub async fn create_pool(config: &PgConfig) -> Result<PgPoolWrapper, sqlx::Error
 
 /// Runs manual SQL migrations for the versioning schema.
 /// Uses CREATE TABLE IF NOT EXISTS so it can be run idempotently.
+///
+/// Concurrent invocations are serialized with `pg_advisory_lock` so two
+/// processes (or two tests in one binary) cannot race on CREATE/DROP INDEX —
+/// a race produced duplicate `pg_class_relname_nsp_index` failures.
 #[allow(clippy::too_many_lines)]
 pub async fn run_manual_migrations(pool: &PgPool) -> Result<(), sqlx::Error> {
+    // Lock key shared by every process that migrates the schema.
+    const MIGRATION_LOCK_KEY: i64 = 787_896_734;
+
+    // Single dedicated connection holds the advisory lock for the whole
+    // migration run — pool-checked-out connections would not share the lock.
+    let mut conn = pool.acquire().await?;
+
+    sqlx::query("SELECT pg_advisory_lock($1)")
+        .bind(MIGRATION_LOCK_KEY)
+        .execute(&mut *conn)
+        .await?;
+
+    let result = run_migrations_locked(&mut conn).await;
+
+    // Always release the lock, even on migration failure.
+    sqlx::query("SELECT pg_advisory_unlock($1)")
+        .bind(MIGRATION_LOCK_KEY)
+        .execute(&mut *conn)
+        .await?;
+
+    result
+}
+
+/// Executes the migration statements while holding the advisory lock.
+/// Separate function keeps the lock acquire/release pair tight and readable.
+#[allow(clippy::too_many_lines)]
+async fn run_migrations_locked(conn: &mut sqlx::postgres::PgConnection) -> Result<(), sqlx::Error> {
     // Migration 001: Initial schema
     sqlx::query(
         r"
@@ -85,7 +116,7 @@ pub async fn run_manual_migrations(pool: &PgPool) -> Result<(), sqlx::Error> {
         );
         ",
     )
-    .execute(pool)
+    .execute(&mut *conn)
     .await?;
 
     sqlx::query(
@@ -102,29 +133,29 @@ pub async fn run_manual_migrations(pool: &PgPool) -> Result<(), sqlx::Error> {
         );
         ",
     )
-    .execute(pool)
+    .execute(&mut *conn)
     .await?;
 
     // Migration 002: Add indexes
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_commits_branch_id ON commits(branch_id)")
-        .execute(pool)
+        .execute(&mut *conn)
         .await?;
 
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_commits_created_at ON commits(created_at DESC)")
-        .execute(pool)
+        .execute(&mut *conn)
         .await?;
 
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_branches_ontology_id ON branches(ontology_id)")
-        .execute(pool)
+        .execute(&mut *conn)
         .await?;
 
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_branches_name ON branches(name)")
-        .execute(pool)
+        .execute(&mut *conn)
         .await?;
 
     // index from 002_add_commit_indexes.sql — missing from previous manual runner
     sqlx::query("CREATE INDEX IF NOT EXISTS idx_commits_author_id ON commits(author_id)")
-        .execute(pool)
+        .execute(&mut *conn)
         .await?;
 
     // Migration 003: State snapshots for fast materialization
@@ -138,32 +169,32 @@ pub async fn run_manual_migrations(pool: &PgPool) -> Result<(), sqlx::Error> {
         );
         ",
     )
-    .execute(pool)
+    .execute(&mut *conn)
     .await?;
 
     sqlx::query(
         "CREATE INDEX IF NOT EXISTS idx_state_snapshots_branch_id ON state_snapshots(branch_id)",
     )
-    .execute(pool)
+    .execute(&mut *conn)
     .await?;
 
     // Composite index for efficient commit listing by branch + creation order
     sqlx::query(
         "CREATE INDEX IF NOT EXISTS idx_commits_branch_created ON commits(branch_id, created_at DESC)",
     )
-    .execute(pool)
+    .execute(&mut *conn)
     .await?;
 
     // Migration 004: Add constraints (unique index, foreign keys with cascade)
     sqlx::query(
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_branches_ontology_name ON branches(ontology_id, name)",
     )
-    .execute(pool)
+    .execute(&mut *conn)
     .await?;
 
     // Drop the non-unique name index now that we have a unique composite index
     sqlx::query("DROP INDEX IF EXISTS idx_branches_name")
-        .execute(pool)
+        .execute(&mut *conn)
         .await?;
 
     // Add foreign key constraints to state_snapshots (idempotent via DO block)
@@ -180,7 +211,7 @@ pub async fn run_manual_migrations(pool: &PgPool) -> Result<(), sqlx::Error> {
         END $$;
         ",
     )
-    .execute(pool)
+    .execute(&mut *conn)
     .await?;
 
     sqlx::query(
@@ -196,7 +227,7 @@ pub async fn run_manual_migrations(pool: &PgPool) -> Result<(), sqlx::Error> {
         END $$;
         ",
     )
-    .execute(pool)
+    .execute(&mut *conn)
     .await?;
 
     tracing::info!("Manual migrations completed successfully");

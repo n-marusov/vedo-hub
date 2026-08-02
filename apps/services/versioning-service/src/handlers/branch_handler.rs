@@ -23,7 +23,7 @@ use crate::AppState;
 
 /// Helper: extracts a `BranchRepository` from the application state.
 /// Prefers an injected mock repo when available, otherwise creates a real
-/// repository from the PostgreSQL pool.
+/// repository from the `PostgreSQL` pool.
 fn repo_from_state(
     state: &AppState,
 ) -> Result<Arc<dyn BranchRepositoryTrait + Send + Sync>, VersionError> {

@@ -22,7 +22,7 @@ import aio_pika
 import redis.asyncio as aioredis
 from fastapi import FastAPI, Request
 from fastapi.responses import PlainTextResponse
-from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, generate_latest
+from prometheus_client import CONTENT_TYPE_LATEST, REGISTRY, Counter, Gauge, generate_latest
 
 from config import settings
 
@@ -42,15 +42,43 @@ logging.basicConfig(
 logger = logging.getLogger(SERVICE_NAME)
 
 # ─── Prometheus Metrics ────────────────────────────────────────────────────────
+#
+# Registration guard: uvicorn may import the app module more than once (e.g.
+# with a reloader or a worker pre-fork). prometheus_client raises ValueError
+# when a metric with the same name is registered twice against the default
+# registry, which crashed the service at startup with
+# "Duplicated timeseries in CollectorRegistry". The _metric helper reuses an
+# existing registration instead of failing.
 
-REQUESTS_TOTAL = Counter("vedo_requests_total", "Total requests", ["method", "path", "status"])
-EVENTS_CONSUMED = Counter(
-    "vedo_events_consumed_total", "Total events consumed from RabbitMQ", ["source"]
+
+def _metric(kind: type, *args: Any, **kwargs: Any) -> Any:
+    """Return an existing metric from the default registry, or register a new one.
+
+    Prometheus names are unique; on duplicate registration we fetch the
+    already-registered collector so module re-imports stay idempotent.
+    """
+    try:
+        return kind(*args, **kwargs)
+    except ValueError:
+        # Re-import happened; the metric already exists in the default registry.
+        existing = REGISTRY._names_to_collectors.get(args[0])
+        if existing is None:
+            raise
+        return existing
+
+
+REQUESTS_TOTAL = _metric(
+    Counter, "vedo_requests_total", "Total requests", ["method", "path", "status"]
 )
-EVENTS_FAILED = Counter(
-    "vedo_events_failed_total", "Total events that failed processing", ["source"]
+EVENTS_CONSUMED = _metric(
+    Counter, "vedo_events_consumed_total", "Total events consumed from RabbitMQ", ["source"]
 )
-ACTIVE_CONNECTIONS = Gauge("vedo_active_connections", "Currently active connections", ["type"])
+EVENTS_FAILED = _metric(
+    Counter, "vedo_events_failed_total", "Total events that failed processing", ["source"]
+)
+ACTIVE_CONNECTIONS = _metric(
+    Gauge, "vedo_active_connections", "Currently active connections", ["type"]
+)
 
 # ─── Globals ───────────────────────────────────────────────────────────────────
 

@@ -622,14 +622,19 @@ test-integration-go-full: ## Go integration tests — full statistics (auto-star
 test-versioning-fast: ## Versioning integration — fail-fast (auto-starts PostgreSQL if not running)
 	@PG_STARTED=""; \
 	PG_HOST="localhost"; \
-	PG_PORT="$${PG_TEST_PORT:-$$(grep -E '^POSTGRES_PORT=' "$(ROOT)/config/.env.test" 2>/dev/null | tail -1 | cut -d= -f2 | tr -d '\r[:space:]')}"; \
-	PG_PORT="$${PG_PORT:-15432}"; \
-	PG_USER="$${PG_USER:-vedo}"; \
-	PG_PASSWORD="$${PG_PASSWORD:-vedo}"; \
+	printf "$(C_CYAN)[Versioning]$(C_RESET) resolving PostgreSQL port...\n"; \
+	if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file "$(ROOT)/config/.env.test" ps postgres 2>/dev/null | grep -q "healthy"; then \
+		PG_PORT="$$(docker port vedo-core-test-postgres-1 2>/dev/null | sed -n 's/^\([0-9]*\)\/tcp -> 0.0.0.0:\([0-9]*\).*/\2/p' | head -1)"; \
+	fi; \
+	PG_PORT="$${PG_PORT:-$${PG_TEST_PORT:-$$(grep -E '^POSTGRES_PORT=' "$(ROOT)/config/.env.test" 2>/dev/null | tail -1 | cut -d= -f2 | tr -d '\r[:space:]')}}"; \
+	PG_PORT="$${PG_PORT:-5432}"; \
+	PG_USER="$${PG_USER:-postgres}"; \
+	PG_PASSWORD="$${PG_PASSWORD:-password}"; \
+	PG_DB="vedo_versioning_test"; \
 	PG_COMPOSE="$(ROOT)/deploy/docker-compose.test.yml"; \
 	PG_ENV_FILE="$(ROOT)/config/.env.test"; \
-	PG_URL="postgres://$${PG_USER}:$${PG_PASSWORD}@$${PG_HOST}:$${PG_PORT}/vedo_versioning"; \
-	printf "$(C_CYAN)[Versioning]$(C_RESET) checking PostgreSQL at $${PG_HOST}:$${PG_PORT}...\n"; \
+	PG_URL="postgres://$${PG_USER}:$${PG_PASSWORD}@$${PG_HOST}:$${PG_PORT}/$${PG_DB}?sslmode=disable"; \
+	printf "$(C_CYAN)[Versioning]$(C_RESET) PostgreSQL at $${PG_HOST}:$${PG_PORT} (user=$${PG_USER}, db=$${PG_DB})\n"; \
 	if command -v docker >/dev/null 2>&1 && docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" ps postgres 2>/dev/null | grep -q "healthy"; then \
 		printf "$(C_GREEN)[Versioning]$(C_RESET) PostgreSQL is already running (Docker healthy)\n"; \
 	else \
@@ -652,11 +657,11 @@ test-versioning-fast: ## Versioning integration — fail-fast (auto-starts Postg
 			exit 1; \
 		fi; \
 	fi; \
-	printf "$(C_CYAN)[Versioning]$(C_RESET) ensuring vedo_versioning database exists...\n"; \
+	printf "$(C_CYAN)[Versioning]$(C_RESET) ensuring $${PG_DB} database exists...\n"; \
 	docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" exec -T postgres \
-		psql -U "$$PG_USER" -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='vedo_versioning'" 2>/dev/null | grep -q 1 || \
+		psql -U "$$PG_USER" -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='$${PG_DB}'" 2>/dev/null | grep -q 1 || \
 	docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" exec -T postgres \
-		psql -U "$$PG_USER" -d postgres -c "CREATE DATABASE vedo_versioning" 2>&1; \
+		psql -U "$$PG_USER" -d postgres -c "CREATE DATABASE $${PG_DB}" 2>&1; \
 	export PG_TEST_DATABASE_URL="$$PG_URL"; \
 	export DATABASE_URL="$$PG_URL"; \
 	RESULT=0; \
@@ -679,14 +684,19 @@ test-versioning-fast: ## Versioning integration — fail-fast (auto-starts Postg
 test-versioning-full: ## Versioning integration — full statistics (collect all failures)
 	@PG_STARTED=""; \
 	PG_HOST="localhost"; \
-	PG_PORT="$${PG_TEST_PORT:-$$(grep -E '^POSTGRES_PORT=' "$(ROOT)/config/.env.test" 2>/dev/null | tail -1 | cut -d= -f2 | tr -d '\r[:space:]')}"; \
-	PG_PORT="$${PG_PORT:-15432}"; \
-	PG_USER="$${PG_USER:-vedo}"; \
-	PG_PASSWORD="$${PG_PASSWORD:-vedo}"; \
+	printf "$(C_CYAN)[Versioning]$(C_RESET) resolving PostgreSQL port...\n"; \
+	if command -v docker >/dev/null 2>&1 && docker compose -f "$(ROOT)/deploy/docker-compose.test.yml" --env-file "$(ROOT)/config/.env.test" ps postgres 2>/dev/null | grep -q "healthy"; then \
+		PG_PORT="$$(docker port vedo-core-test-postgres-1 2>/dev/null | sed -n 's/^\([0-9]*\)\/tcp -> 0.0.0.0:\([0-9]*\).*/\2/p' | head -1)"; \
+	fi; \
+	PG_PORT="$${PG_PORT:-$${PG_TEST_PORT:-$$(grep -E '^POSTGRES_PORT=' "$(ROOT)/config/.env.test" 2>/dev/null | tail -1 | cut -d= -f2 | tr -d '\r[:space:]')}}"; \
+	PG_PORT="$${PG_PORT:-5432}"; \
+	PG_USER="$${PG_USER:-postgres}"; \
+	PG_PASSWORD="$${PG_PASSWORD:-password}"; \
+	PG_DB="vedo_versioning_test"; \
 	PG_COMPOSE="$(ROOT)/deploy/docker-compose.test.yml"; \
 	PG_ENV_FILE="$(ROOT)/config/.env.test"; \
-	PG_URL="postgres://$${PG_USER}:$${PG_PASSWORD}@$${PG_HOST}:$${PG_PORT}/vedo_versioning"; \
-	printf "$(C_CYAN)[Versioning]$(C_RESET) checking PostgreSQL at $${PG_HOST}:$${PG_PORT}...\n"; \
+	PG_URL="postgres://$${PG_USER}:$${PG_PASSWORD}@$${PG_HOST}:$${PG_PORT}/$${PG_DB}?sslmode=disable"; \
+	printf "$(C_CYAN)[Versioning]$(C_RESET) PostgreSQL at $${PG_HOST}:$${PG_PORT} (user=$${PG_USER}, db=$${PG_DB})\n"; \
 	if command -v docker >/dev/null 2>&1 && docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" ps postgres 2>/dev/null | grep -q "healthy"; then \
 		printf "$(C_GREEN)[Versioning]$(C_RESET) PostgreSQL is already running (Docker healthy)\n"; \
 	else \
@@ -709,11 +719,11 @@ test-versioning-full: ## Versioning integration — full statistics (collect all
 			exit 1; \
 		fi; \
 	fi; \
-	printf "$(C_CYAN)[Versioning]$(C_RESET) ensuring vedo_versioning database exists...\n"; \
+	printf "$(C_CYAN)[Versioning]$(C_RESET) ensuring $${PG_DB} database exists...\n"; \
 	docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" exec -T postgres \
-		psql -U "$$PG_USER" -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='vedo_versioning'" 2>/dev/null | grep -q 1 || \
+		psql -U "$$PG_USER" -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='$${PG_DB}'" 2>/dev/null | grep -q 1 || \
 	docker compose -f "$$PG_COMPOSE" --env-file "$$PG_ENV_FILE" exec -T postgres \
-		psql -U "$$PG_USER" -d postgres -c "CREATE DATABASE vedo_versioning" 2>&1; \
+		psql -U "$$PG_USER" -d postgres -c "CREATE DATABASE $${PG_DB}" 2>&1; \
 	export PG_TEST_DATABASE_URL="$$PG_URL"; \
 	export DATABASE_URL="$$PG_URL"; \
 	RESULT=0; \
