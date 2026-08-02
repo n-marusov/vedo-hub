@@ -14,6 +14,7 @@
       "height": 1080,
       "fill": "$B:background",
       "layout": "vertical",
+      "clip": true,
       "children": [
         {
           "type": "text",
@@ -226,6 +227,9 @@
               "width": "fill_container",
               "layout": "horizontal",
               "gap": 24,
+              "overflowX": "auto",
+              "scrollSnapType": "x mandatory",
+              "clip": true,
               "children": [
                 {
                   "id": "landingDemo1",
@@ -290,6 +294,50 @@
                     },
                     "B:dpcDomain": {
                       "content": "Operations"
+                    }
+                  }
+                },
+                {
+                  "id": "landingDemo4",
+                  "type": "ref",
+                  "ref": "B:ze4Nt",
+                  "descendants": {
+                    "B:dpcName": {
+                      "content": "Глоссарий"
+                    },
+                    "B:dpcDesc": {
+                      "content": "Термины, определения, синонимы"
+                    },
+                    "B:dpcClass": {
+                      "content": "12 классов"
+                    },
+                    "B:dpcProp": {
+                      "content": "9 свойств"
+                    },
+                    "B:dpcDomain": {
+                      "content": "Knowledge"
+                    }
+                  }
+                },
+                {
+                  "id": "landingDemo5",
+                  "type": "ref",
+                  "ref": "B:ze4Nt",
+                  "descendants": {
+                    "B:dpcName": {
+                      "content": "Событие"
+                    },
+                    "B:dpcDesc": {
+                      "content": "События, участники, площадки"
+                    },
+                    "B:dpcClass": {
+                      "content": "15 классов"
+                    },
+                    "B:dpcProp": {
+                      "content": "11 свойств"
+                    },
+                    "B:dpcDomain": {
+                      "content": "Events"
                     }
                   }
                 }
