@@ -23,10 +23,76 @@
           "name": "_landingComment",
           "enabled": false,
           "fill": "$B:muted-foreground",
-          "content": "Public landing page (F11.1): hero, email CTA, role-based audience sections, demo ontology showcase.",
+          "content": "Public landing page (F11.1) per ADR-DES.UI.public-landing-architecture: header, hero, demo cards, roles, trust/metrics, footer. Content max-width 1200px.",
           "fontFamily": "IBM Plex Mono",
           "fontSize": 10,
           "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "landingHeader",
+          "name": "headerNav",
+          "width": "fill_container",
+          "height": 56,
+          "fill": "$B:card",
+          "stroke": "$B:border",
+          "strokeWidth": 1,
+          "strokeAlignment": "inner",
+          "padding": [0, 360, 0, 360],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "landingLogo",
+              "name": "logo",
+              "fill": "$B:foreground",
+              "content": "VEDO Hub",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 16,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "landingNavProd",
+              "name": "navProduct",
+              "fill": "$B:muted-foreground",
+              "content": "Продукт",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "landingNavPrice",
+              "name": "navPricing",
+              "fill": "$B:muted-foreground",
+              "content": "Тарифы",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "landingNavDocs",
+              "name": "navDocs",
+              "fill": "$B:muted-foreground",
+              "content": "Документация",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "id": "landingNavLogin",
+              "type": "ref",
+              "ref": "B:c8T4z",
+              "descendants": {
+                "B:esH0z": {
+                  "content": "Войти",
+                  "fontSize": 13
+                }
+              }
+            }
+          ]
         },
         {
           "type": "frame",
@@ -34,74 +100,88 @@
           "name": "heroSection",
           "width": "fill_container",
           "layout": "vertical",
-          "gap": 16,
-          "padding": [96, 24, 72, 24],
+          "gap": 12,
+          "padding": [96, 360, 72, 360],
           "alignItems": "center",
           "children": [
-            {
-              "type": "text",
-              "id": "landingHeroEyebrow",
-              "name": "heroEyebrow",
-              "fill": "$B:primary",
-              "content": "VEDO HUB",
-              "letterSpacing": 4,
-              "fontFamily": "IBM Plex Mono",
-              "fontSize": 13,
-              "fontWeight": "500"
-            },
             {
               "type": "text",
               "id": "landingHeroTitle",
               "name": "heroTitle",
               "width": "fill_container",
-              "fill": "$B:foreground",
-              "content": "GitHub for ontologies",
+              "fill": "$B:primary",
+              "content": "VEDO Hub — GitHub + Hugging Face для онтологий",
               "textAlign": "center",
               "fontFamily": "IBM Plex Mono",
-              "fontSize": 44,
+              "fontSize": 32,
               "fontWeight": "700"
             },
             {
               "type": "text",
-              "id": "landingHeroSub",
-              "name": "heroSubtitle",
-              "width": 720,
+              "id": "landingHeroSub1",
+              "name": "heroSub1",
+              "width": "fill_container",
               "fill": "$B:muted-foreground",
-              "content": "Create, govern, version, and publish knowledge graphs with your team. Branch, merge, review, and release ontologies like code.",
+              "content": "Создайте онтологию из документа за 1 минуту — без OWL",
               "textAlign": "center",
               "fontFamily": "IBM Plex Mono",
-              "fontSize": 16,
+              "fontSize": 18,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "landingHeroSub2",
+              "name": "heroSub2",
+              "width": "fill_container",
+              "fill": "$B:muted-foreground",
+              "content": "Работайте командой: ветки, слияния, ревью — как в Git",
+              "textAlign": "center",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 18,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "landingHeroSub3",
+              "name": "heroSub3",
+              "width": "fill_container",
+              "fill": "$B:muted-foreground",
+              "content": "Публикуйте с DOI, форкайте, цитируйте",
+              "textAlign": "center",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 18,
               "fontWeight": "normal"
             },
             {
               "type": "frame",
-              "id": "landingCta",
-              "name": "emailCta",
-              "gap": 8,
+              "id": "landingHeroCta",
+              "name": "heroCta",
+              "gap": 16,
               "alignItems": "center",
               "children": [
                 {
-                  "id": "landingCtaInput",
-                  "type": "ref",
-                  "ref": "B:SX8Ko",
-                  "width": 260,
-                  "height": 40,
-                  "descendants": {
-                    "B:VtfUp": {
-                      "content": "you@company.com",
-                      "fontSize": 13
-                    }
-                  }
-                },
-                {
-                  "id": "landingCtaBtn",
+                  "id": "landingHeroCtaPrimary",
                   "type": "ref",
                   "ref": "B:3CI7c",
-                  "height": 40,
+                  "padding": [14, 32],
                   "descendants": {
                     "B:wMRLg": {
-                      "content": "Request early access",
-                      "fontSize": 13
+                      "content": "Создать аккаунт бесплатно",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  }
+                },
+                {
+                  "id": "landingHeroCtaOutline",
+                  "type": "ref",
+                  "ref": "B:c8T4z",
+                  "padding": [14, 28],
+                  "descendants": {
+                    "B:esH0z": {
+                      "content": "Смотреть демо →",
+                      "fontSize": 14,
+                      "fontWeight": "600"
                     }
                   }
                 }
@@ -111,76 +191,12 @@
         },
         {
           "type": "frame",
-          "id": "landingAudience",
-          "name": "audienceSection",
-          "width": 960,
-          "layout": "vertical",
-          "gap": 16,
-          "padding": [48, 24, 48, 24],
-          "alignItems": "center",
-          "children": [
-            {
-              "type": "frame",
-              "id": "landingAudGrid",
-              "name": "audienceGrid",
-              "width": "fill_container",
-              "layout": "horizontal",
-              "gap": 16,
-              "children": [
-                {
-                  "id": "landingAud1",
-                  "type": "ref",
-                  "ref": "B:Nie8I",
-                  "width": "fill_container",
-                  "descendants": {
-                    "B:Ap3op": {
-                      "content": "Ontology engineers"
-                    },
-                    "B:kaoPr": {
-                      "content": "Visual editing with Git-like versioning: branches, commits, diffs, and merge reviews."
-                    }
-                  }
-                },
-                {
-                  "id": "landingAud2",
-                  "type": "ref",
-                  "ref": "B:Nie8I",
-                  "width": "fill_container",
-                  "descendants": {
-                    "B:Ap3op": {
-                      "content": "IT architects"
-                    },
-                    "B:kaoPr": {
-                      "content": "Publish governed knowledge graphs with visibility control and release pipelines."
-                    }
-                  }
-                },
-                {
-                  "id": "landingAud3",
-                  "type": "ref",
-                  "ref": "B:Nie8I",
-                  "width": "fill_container",
-                  "descendants": {
-                    "B:Ap3op": {
-                      "content": "Data analysts"
-                    },
-                    "B:kaoPr": {
-                      "content": "Query ontologies with SPARQL and browse class hierarchies without setup."
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "frame",
-          "id": "landingDemos",
+          "id": "landingDemoCards",
           "name": "demosSection",
-          "width": 960,
+          "width": "fill_container",
           "layout": "vertical",
-          "gap": 16,
-          "padding": [48, 24, 64, 24],
+          "gap": 8,
+          "padding": [48, 360, 48, 360],
           "alignItems": "center",
           "children": [
             {
@@ -188,17 +204,17 @@
               "id": "landingDemosTitle",
               "name": "demosTitle",
               "fill": "$B:foreground",
-              "content": "Try a demo ontology",
+              "content": "Попробуйте прямо сейчас — без регистрации",
               "fontFamily": "IBM Plex Mono",
               "fontSize": 24,
-              "fontWeight": "700"
+              "fontWeight": "600"
             },
             {
               "type": "text",
               "id": "landingDemosHint",
               "name": "demosHint",
               "fill": "$B:muted-foreground",
-              "content": "Explore a ready-made ontology — no account needed.",
+              "content": "Выберите демо-онтологию и нажмите, чтобы открыть",
               "fontFamily": "IBM Plex Mono",
               "fontSize": 14,
               "fontWeight": "normal"
@@ -209,79 +225,555 @@
               "name": "demosGrid",
               "width": "fill_container",
               "layout": "horizontal",
-              "gap": 14,
+              "gap": 24,
               "children": [
                 {
                   "id": "landingDemo1",
                   "type": "ref",
-                  "ref": "B:Nie8I",
-                  "width": "fill_container",
+                  "ref": "B:ze4Nt",
                   "descendants": {
-                    "B:Ap3op": {
-                      "content": "Продукт"
+                    "B:dpcName": {
+                      "content": "Организация"
                     },
-                    "B:kaoPr": {
-                      "content": "Product ontology: goods, categories, manufacturers, reviews."
+                    "B:dpcDesc": {
+                      "content": "Департаменты, роли, сотрудники"
+                    },
+                    "B:dpcClass": {
+                      "content": "24 класса"
+                    },
+                    "B:dpcProp": {
+                      "content": "18 свойств"
+                    },
+                    "B:dpcDomain": {
+                      "content": "Enterprise"
                     }
                   }
                 },
                 {
                   "id": "landingDemo2",
                   "type": "ref",
-                  "ref": "B:Nie8I",
-                  "width": "fill_container",
+                  "ref": "B:ze4Nt",
                   "descendants": {
-                    "B:Ap3op": {
-                      "content": "Организация"
+                    "B:dpcName": {
+                      "content": "Продукт"
                     },
-                    "B:kaoPr": {
-                      "content": "Organization structure: departments, employees, roles."
+                    "B:dpcDesc": {
+                      "content": "Каталог, SKU, категории"
+                    },
+                    "B:dpcClass": {
+                      "content": "18 классов"
+                    },
+                    "B:dpcProp": {
+                      "content": "22 свойства"
+                    },
+                    "B:dpcDomain": {
+                      "content": "Commerce"
                     }
                   }
                 },
                 {
                   "id": "landingDemo3",
                   "type": "ref",
-                  "ref": "B:Nie8I",
-                  "width": "fill_container",
+                  "ref": "B:ze4Nt",
                   "descendants": {
-                    "B:Ap3op": {
+                    "B:dpcName": {
                       "content": "Процесс"
                     },
-                    "B:kaoPr": {
-                      "content": "Process ontology: activities, inputs, outputs."
-                    }
-                  }
-                },
-                {
-                  "id": "landingDemo4",
-                  "type": "ref",
-                  "ref": "B:Nie8I",
-                  "width": "fill_container",
-                  "descendants": {
-                    "B:Ap3op": {
-                      "content": "Глоссарий"
+                    "B:dpcDesc": {
+                      "content": "Этапы, роли, входы/выходы"
                     },
-                    "B:kaoPr": {
-                      "content": "Terms, definitions, synonyms, acronyms."
-                    }
-                  }
-                },
-                {
-                  "id": "landingDemo5",
-                  "type": "ref",
-                  "ref": "B:Nie8I",
-                  "width": "fill_container",
-                  "descendants": {
-                    "B:Ap3op": {
-                      "content": "Событие"
+                    "B:dpcClass": {
+                      "content": "31 класс"
                     },
-                    "B:kaoPr": {
-                      "content": "Events, participants, venues, schedules."
+                    "B:dpcProp": {
+                      "content": "14 свойств"
+                    },
+                    "B:dpcDomain": {
+                      "content": "Operations"
                     }
                   }
                 }
               ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "landingRoles",
+          "name": "rolesSection",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 20,
+          "padding": [48, 360, 48, 360],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "landingRolesTitle",
+              "name": "rolesTitle",
+              "fill": "$B:foreground",
+              "content": "Для кого VEDO Hub",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 24,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "landingRolesGrid",
+              "name": "rolesGrid",
+              "width": "fill_container",
+              "layout": "horizontal",
+              "gap": 20,
+              "flexWrap": "wrap",
+              "justifyContent": "center",
+              "children": [
+                {
+                  "id": "landingRole1",
+                  "type": "ref",
+                  "ref": "B:Nie8I",
+                  "width": 280,
+                  "descendants": {
+                    "B:Ap3op": {
+                      "content": "Бизнес-аналитик / не-IT"
+                    },
+                    "B:kaoPr": {
+                      "content": "Создайте онтологию из документа или описания словами. Без знания OWL."
+                    }
+                  }
+                },
+                {
+                  "id": "landingRole2",
+                  "type": "ref",
+                  "ref": "B:Nie8I",
+                  "width": 280,
+                  "descendants": {
+                    "B:Ap3op": {
+                      "content": "Учёный / Исследователь"
+                    },
+                    "B:kaoPr": {
+                      "content": "Публикуйте с DOI, цитируйте в научных работах. Форкайте чужие онтологии."
+                    }
+                  }
+                },
+                {
+                  "id": "landingRole3",
+                  "type": "ref",
+                  "ref": "B:Nie8I",
+                  "width": 280,
+                  "descendants": {
+                    "B:Ap3op": {
+                      "content": "Инженер знаний / Онтолог"
+                    },
+                    "B:kaoPr": {
+                      "content": "1M аксиом, класс с 1000 потомков — <1 сек."
+                    }
+                  }
+                },
+                {
+                  "id": "landingRole4",
+                  "type": "ref",
+                  "ref": "B:Nie8I",
+                  "width": 280,
+                  "descendants": {
+                    "B:Ap3op": {
+                      "content": "Разработчик / Архитектор"
+                    },
+                    "B:kaoPr": {
+                      "content": "REST API, SPARQL, MCP-сервер. Полный CRUD программно."
+                    }
+                  }
+                },
+                {
+                  "id": "landingRole5",
+                  "type": "ref",
+                  "ref": "B:Nie8I",
+                  "width": 280,
+                  "descendants": {
+                    "B:Ap3op": {
+                      "content": "DevOps / Администратор"
+                    },
+                    "B:kaoPr": {
+                      "content": "Docker Compose, Helm, air-gapped, vedo-cli."
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "landingTrust",
+          "name": "trustSection",
+          "width": "fill_container",
+          "fill": "$B:card",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": [48, 360, 48, 360],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "landingMetricsRow",
+              "name": "metricsRow",
+              "width": "fill_container",
+              "layout": "horizontal",
+              "gap": 32,
+              "justifyContent": "center",
+              "flexWrap": "wrap",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "landingMetric1",
+                  "name": "metric1",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "landingMetric1a",
+                      "fill": "$B:foreground",
+                      "content": "45 сек",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 18,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "landingMetric1b",
+                      "fill": "$B:primary",
+                      "content": "<1 сек",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 18,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "landingMetric1c",
+                      "fill": "$B:muted-foreground",
+                      "content": "Открытие класса с 1000 потомков",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "landingMetric2",
+                  "name": "metric2",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "landingMetric2a",
+                      "fill": "$B:foreground",
+                      "content": "2 часа",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 18,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "landingMetric2b",
+                      "fill": "$B:primary",
+                      "content": "10 минут",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 18,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "landingMetric2c",
+                      "fill": "$B:muted-foreground",
+                      "content": "Разрешение конфликта версий",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "landingMetric3",
+                  "name": "metric3",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "landingMetric3a",
+                      "fill": "$B:foreground",
+                      "content": "40-80 часов",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 18,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "landingMetric3b",
+                      "fill": "$B:primary",
+                      "content": "30 минут",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 18,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "landingMetric3c",
+                      "fill": "$B:muted-foreground",
+                      "content": "Маппинг БД на онтологию",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "landingMetric4",
+                  "name": "metric4",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "landingMetric4a",
+                      "fill": "$B:foreground",
+                      "content": "12 часов",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 18,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "landingMetric4b",
+                      "fill": "$B:primary",
+                      "content": "2 минуты",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 18,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "landingMetric4c",
+                      "fill": "$B:muted-foreground",
+                      "content": "Настройка доступа для 12 чел.",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "landingOpenCore",
+              "name": "openCoreBanner",
+              "width": "fill_container",
+              "layout": "horizontal",
+              "gap": 16,
+              "alignItems": "center",
+              "justifyContent": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "landingOpenCoreText",
+                  "name": "openCoreText",
+                  "fill": "$B:muted-foreground",
+                  "content": "Публичные онтологии — бесплатно и навсегда · Приватные проекты, Enterprise-поддержка, on-premise — по подписке",
+                  "fontFamily": "IBM Plex Mono",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "id": "landingOpenCoreBtn",
+                  "type": "ref",
+                  "ref": "B:3CI7c",
+                  "descendants": {
+                    "B:wMRLg": {
+                      "content": "Тарифы →",
+                      "fontSize": 13
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "landingFooter",
+          "name": "footer",
+          "width": "fill_container",
+          "height": 160,
+          "stroke": "$B:border",
+          "strokeWidth": 1,
+          "strokeAlignment": "inner",
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [32, 360, 32, 360],
+          "children": [
+            {
+              "type": "frame",
+              "id": "landingFooterCols",
+              "name": "footerCols",
+              "width": "fill_container",
+              "layout": "horizontal",
+              "gap": 48,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "landingFooterCol1",
+                  "name": "footerProduct",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "landingFooterCol1Title",
+                      "fill": "$B:foreground",
+                      "content": "Продукт",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "landingFooterCol1L1",
+                      "fill": "$B:muted-foreground",
+                      "content": "Возможности",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "landingFooterCol2",
+                  "name": "footerResources",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "landingFooterCol2Title",
+                      "fill": "$B:foreground",
+                      "content": "Ресурсы",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "landingFooterCol2L1",
+                      "fill": "$B:muted-foreground",
+                      "content": "Демо-онтологии",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "landingFooterCol3",
+                  "name": "footerDocs",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "landingFooterCol3Title",
+                      "fill": "$B:foreground",
+                      "content": "Документация",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "landingFooterCol3L1",
+                      "fill": "$B:muted-foreground",
+                      "content": "API-справочник",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "landingFooterCol4",
+                  "name": "footerCompany",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "landingFooterCol4Title",
+                      "fill": "$B:foreground",
+                      "content": "Компания",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "landingFooterCol4L1",
+                      "fill": "$B:muted-foreground",
+                      "content": "О нас",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "landingFooterCol5",
+                  "name": "footerCommunity",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "landingFooterCol5Title",
+                      "fill": "$B:foreground",
+                      "content": "Сообщество",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "landingFooterCol5L1",
+                      "fill": "$B:muted-foreground",
+                      "content": "Поддержка",
+                      "fontFamily": "IBM Plex Mono",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "landingFooterCopyright",
+              "name": "copyright",
+              "fill": "$B:muted-foreground",
+              "content": "© 2026 VEDO Hub",
+              "fontFamily": "IBM Plex Mono",
+              "fontSize": 12,
+              "fontWeight": "normal"
             }
           ]
         }
