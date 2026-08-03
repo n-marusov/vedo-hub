@@ -45,10 +45,10 @@ pre-commit:
       stage_fixed: true
 
     # ── TypeScript / Vue: biome (frontend) ──
+    # Generated types (src/types/gql/**) are excluded via biome.json overrides.
     - name: biome-frontend
-      root: "apps/services/frontend/"
-      files: git diff --cached --name-only --diff-filter=ACMR -- apps/services/frontend/ | sed 's|^apps/services/frontend/||'
-      run: node node_modules/@biomejs/biome/bin/biome check --write {files}
+      glob: "apps/services/frontend/**/*.{ts,vue,js,json}"
+      run: node apps/services/frontend/node_modules/@biomejs/biome/bin/biome check --write {staged_files}
       stage_fixed: true
 
     # ── TypeScript / Vue: biome (publish-browse-ui) ──
