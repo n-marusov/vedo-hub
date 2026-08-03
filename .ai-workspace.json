@@ -1,0 +1,12 @@
+{
+  "name": "vedo-hub",
+  "groups": [
+    "vedo"
+  ],
+  "share": [
+    "Makefile",
+    "README.md",
+    "apps\\services\\api-gateway\\docs\\openapi.json",
+    "apps\\services\\ontology-service\\schema.graphql"
+  ]
+}
