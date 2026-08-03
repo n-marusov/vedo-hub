@@ -212,3 +212,138 @@ async fn test_property_type_includes_annotation() {
         "PropertyType must include DATATYPE variant"
     );
 }
+
+// ── SDL contract (committed schema.graphql) ────────────────────────────────
+
+/// The committed `schema.graphql` artifact MUST match the schema generated
+/// from code. This is the canonical contract consumed by frontend codegen.
+///
+/// Regenerate the artifact when the schema changes:
+///
+/// ```text
+/// EXPORT_SDL=1 cargo test --lib test_committed_sdl_matches_generated
+/// ```
+#[test]
+fn test_committed_sdl_matches_generated() {
+    let generated = super::schema::schema_sdl();
+    assert!(!generated.trim().is_empty(), "schema SDL must not be empty");
+
+    let committed_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("schema.graphql");
+
+    // Opt-in regeneration: write the canonical SDL from code so the artifact
+    // can be refreshed deterministically (see doc comment above).
+    if std::env::var_os("EXPORT_SDL").is_some() {
+        std::fs::write(&committed_path, &generated)
+            .expect("failed to write schema.graphql from generated SDL");
+    }
+
+    let committed = std::fs::read_to_string(&committed_path).unwrap_or_else(|e| {
+        panic!(
+            "schema.graphql missing at {} — regenerate with EXPORT_SDL=1 cargo test --lib test_committed_sdl_matches_generated: {e}",
+            committed_path.display()
+        )
+    });
+
+    assert_eq!(
+        committed, generated,
+        "schema.graphql is out of date — regenerate with EXPORT_SDL=1 cargo test --lib test_committed_sdl_matches_generated"
+    );
+}
+
+// ── Introspection JSON contract (committed introspection.json) ──────────────
+
+/// The committed `introspection.json` artifact is a machine-readable snapshot
+/// of the schema (used by breaking-change diff tools and codegen tooling that
+/// prefer JSON over SDL). It MUST match a fresh introspection of the schema.
+///
+/// Regenerate the artifact when the schema changes:
+///
+/// ```text
+/// EXPORT_SDL=1 cargo test --lib test_committed_introspection_matches_generated
+/// ```
+#[tokio::test]
+async fn test_committed_introspection_matches_generated() {
+    let schema = super::schema::build_schema();
+    let response = schema
+        .execute(
+            r#"{
+            __schema {
+              queryType { name }
+              mutationType { name }
+              subscriptionType { name }
+              types {
+                kind
+                name
+                description
+                fields(includeDeprecated: true) {
+                  name
+                  description
+                  isDeprecated
+                  deprecationReason
+                  type { kind name ofType { kind name ofType { kind name ofType { kind name } } } }
+                  args { name description type { kind name ofType { kind name ofType { kind name } } } defaultValue }
+                }
+                inputFields { name description type { kind name ofType { kind name ofType { kind name } } } defaultValue }
+                interfaces { kind name }
+                enumValues(includeDeprecated: true) { name description isDeprecated deprecationReason }
+                possibleTypes { kind name }
+              }
+              directives { name description locations args { name description type { kind name ofType { kind name ofType { kind name } } } defaultValue } isRepeatable }
+            }
+          }"#,
+        )
+        .await;
+
+    assert!(
+        response.errors.is_empty(),
+        "introspection query returned errors: {:?}",
+        response.errors
+    );
+    let mut data = response
+        .data
+        .into_json()
+        .expect("introspection result must be JSON");
+    // Sort type names so the snapshot is deterministic regardless of registry order.
+    let data_obj = data.as_object_mut().expect("data must be an object");
+    let schema_obj = data_obj["__schema"]
+        .as_object_mut()
+        .expect("__schema must be an object");
+    if let Some(types) = schema_obj.get_mut("types").and_then(|t| t.as_array_mut()) {
+        types.sort_by(|a, b| {
+            a.as_object()
+                .and_then(|o| o.get("name"))
+                .and_then(|n| n.as_str())
+                .unwrap_or_default()
+                .cmp(
+                    b.as_object()
+                        .and_then(|o| o.get("name"))
+                        .and_then(|n| n.as_str())
+                        .unwrap_or_default(),
+                )
+        });
+    }
+    let generated =
+        serde_json::to_string_pretty(&data).expect("introspection must serialize to JSON");
+
+    let committed_path =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("introspection.json");
+
+    // Opt-in regeneration (same pattern as the SDL drift test).
+    if std::env::var_os("EXPORT_SDL").is_some() {
+        std::fs::write(&committed_path, format!("{generated}\n"))
+            .expect("failed to write introspection.json from generated data");
+    }
+
+    let committed = std::fs::read_to_string(&committed_path).unwrap_or_else(|e| {
+        panic!(
+            "introspection.json missing at {} — regenerate with EXPORT_SDL=1 cargo test --lib test_committed_introspection_matches_generated: {e}",
+            committed_path.display()
+        )
+    });
+
+    assert_eq!(
+        committed,
+        format!("{generated}\n"),
+        "introspection.json is out of date — regenerate with EXPORT_SDL=1 cargo test --lib test_committed_introspection_matches_generated"
+    );
+}

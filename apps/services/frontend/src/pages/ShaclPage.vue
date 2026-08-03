@@ -58,9 +58,7 @@ import SHACLRuleBuilder from "@/components/organisms/SHACLRuleBuilder.vue";
 import PrimaryButton from "@/components/ui-kit/PrimaryButton.vue";
 import { useErrorPresentation } from "@/composables/useErrorPresentation";
 import { useI18n } from "@/composables/useI18n";
-import { gql } from "@apollo/client";
 import { AlertTriangle, ChevronRight, FileText, Shield } from "@lucide/vue";
-import { useQuery } from "@vue/apollo-composable";
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 
@@ -71,46 +69,27 @@ const ontologyName = computed(() => (route.query.name as string) || "");
 
 const { addError } = useErrorPresentation();
 
-// ── SHACL rules query ────────────────────────────────────────────────────────
-// Placeholder — real SHACL rule storage is post-M4
-const SHACL_RULES_QUERY = gql`
-  query GetShaclRules($ontologyId: ID!) {
-    shaclRules(ontologyId: $ontologyId) {
-      id
-      name
-      severity
-      target
-      condition
-      action
-    }
-  }
-`;
-
-const {
-	result,
-	loading,
-	error: queryError,
-	refetch,
-} = useQuery(SHACL_RULES_QUERY, { ontologyId: ontologyId.value || "default" });
-
-const rules = computed(() => {
-	if (!result.value?.shaclRules) return [];
-	return result.value.shaclRules as Array<{
+// ── SHACL rules state ───────────────────────────────────────────────────────
+// Real SHACL rule storage is post-M4; the GraphQL `shaclRules` field does not
+// exist in the graph-navigation-only schema, so the rules list stays empty and
+// the page renders its "no rules" empty state. Validation itself is REST
+// (POST /api/v1/ontologies/{id}/validate via @/api/validation).
+const rules = ref<
+	Array<{
 		id: string;
 		name: string;
 		severity: string;
 		target: string;
 		condition: string;
 		action: string;
-	}>;
-});
+	}>
+>([]);
+const loading = ref(false);
+const error = ref<string | null>(null);
 
-const error = computed(() => {
-	if (!queryError.value) return null;
-	const msg = queryError.value.message || "Failed to load SHACL rules";
-	addError("SHACL-RULES-LOAD-FAILED", msg);
-	return msg;
-});
+function retry(): void {
+	// No remote source to retry — rules are empty until post-M4 storage lands.
+}
 
 // ── Validation handler ───────────────────────────────────────────────────────
 
@@ -165,18 +144,6 @@ async function runValidation(): Promise<void> {
 	} finally {
 		validating.value = false;
 	}
-}
-
-async function retry(): Promise<void> {
-	console.debug(
-		JSON.stringify({
-			level: "debug",
-			msg: "Shacl.page.retry",
-			ontologyId: ontologyId.value,
-			ts: new Date().toISOString(),
-		}),
-	);
-	await refetch();
 }
 </script>
 

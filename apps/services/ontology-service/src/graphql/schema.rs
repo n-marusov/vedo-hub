@@ -33,3 +33,13 @@ pub fn build_schema() -> OntologySchema {
         .enable_federation()
         .finish()
 }
+
+/// Returns the canonical GraphQL SDL of the ontology-service schema.
+///
+/// This is the single source of truth for the committed `schema.graphql`
+/// artifact: the frontend codegen (G2) and the drift test both consume it.
+/// The output is deterministic — async-graphql renders registry types from a
+/// `BTreeMap` and object fields from an insertion-ordered `IndexMap`.
+pub fn schema_sdl() -> String {
+    build_schema().sdl()
+}

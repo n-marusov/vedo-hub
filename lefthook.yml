@@ -46,8 +46,9 @@ pre-commit:
 
     # ── TypeScript / Vue: biome (frontend) ──
     - name: biome-frontend
-      files: git diff --cached --name-only --diff-filter=ACMR -- apps/services/frontend/
-      run: node apps/services/frontend/node_modules/@biomejs/biome/bin/biome check --write {files}
+      root: "apps/services/frontend/"
+      files: git diff --cached --name-only --diff-filter=ACMR -- apps/services/frontend/ | sed 's|^apps/services/frontend/||'
+      run: node node_modules/@biomejs/biome/bin/biome check --write {files}
       stage_fixed: true
 
     # ── TypeScript / Vue: biome (publish-browse-ui) ──

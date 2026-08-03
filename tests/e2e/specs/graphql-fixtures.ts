@@ -476,6 +476,9 @@ async function handleOntologyMeta(route: Route) {
       class_count: 4,
       property_count: 2,
       individual_count: 2,
+      published_at: '2026-03-15T14:30:00Z',
+      format: 'owl',
+      class_tree: MOCK_CLASS_TREE,
     }),
   });
 }

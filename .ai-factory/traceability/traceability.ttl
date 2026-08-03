@@ -4442,6 +4442,16 @@ base:graphql/query-resolver a vdo:CodeArtifact ;
     vdo:filePath "src/services/ontology-service/src/graphql/query.rs" ;
     vdo:implements base:spec/gui-ow-001 .
 
+base:graphql/ontology-schema-sdl a vdo:CodeArtifact ;
+    rdfs:label "Ontology GraphQL SDL Contract"@en ;
+    rdfs:comment "Committed canonical SDL of the ontology-service schema, generated from build_schema().sdl() and enforced by a drift test (graphql/tests.rs); consumed by frontend codegen"@en ;
+    vdo:filePath "apps/services/ontology-service/schema.graphql" .
+
+base:graphql/ontology-introspection-json a vdo:CodeArtifact ;
+    rdfs:label "Ontology GraphQL Introspection Snapshot"@en ;
+    rdfs:comment "Committed machine-readable introspection snapshot of the ontology-service schema, enforced by a drift test (graphql/tests.rs); breaking-change detection"@en ;
+    vdo:filePath "apps/services/ontology-service/introspection.json" .
+
 base:graphql/gateway-proxy a vdo:CodeArtifact ;
     rdfs:label "GraphQL Gateway Proxy Route"@en ;
     rdfs:comment "API Gateway route forwarding /api/v1/graphql to ontology-service"@en ;

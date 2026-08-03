@@ -77,7 +77,7 @@ export const INDIVIDUAL_FRAGMENT = gql`
 // ── Class Queries ────────────────────────────────────────────────────────────────────
 
 export const GET_CLASS_QUERY = gql`
-  query GetClass($ontologyId: ID!, $classId: ID!) {
+  query GetClass($ontologyId: String!, $classId: String!) {
     class(ontologyId: $ontologyId, classId: $classId) {
       ...ClassFields
     }
@@ -86,7 +86,7 @@ export const GET_CLASS_QUERY = gql`
 `;
 
 export const LIST_CLASSES_QUERY = gql`
-  query ListClasses($ontologyId: ID!, $q: String, $page: Int, $perPage: Int) {
+  query ListClasses($ontologyId: String!, $q: String, $page: Int, $perPage: Int) {
     classes(ontologyId: $ontologyId, q: $q, page: $page, perPage: $perPage) {
       items {
         ...ClassSummaryFields
@@ -100,19 +100,16 @@ export const LIST_CLASSES_QUERY = gql`
 `;
 
 export const CLASS_TREE_QUERY = gql`
-  query ClassTree($ontologyId: ID!) {
+  query ClassTree($ontologyId: String!) {
     classTree(ontologyId: $ontologyId) {
       id
       label
-      comment
       children {
         id
         label
-        comment
         children {
           id
           label
-          comment
         }
       }
     }
@@ -120,7 +117,7 @@ export const CLASS_TREE_QUERY = gql`
 `;
 
 export const CLASS_ANCESTORS_QUERY = gql`
-  query ClassAncestors($ontologyId: ID!, $classId: ID!) {
+  query ClassAncestors($ontologyId: String!, $classId: String!) {
     classAncestors(ontologyId: $ontologyId, classId: $classId) {
       id
       label
@@ -129,7 +126,7 @@ export const CLASS_ANCESTORS_QUERY = gql`
 `;
 
 export const CLASS_DESCENDANTS_QUERY = gql`
-  query ClassDescendants($ontologyId: ID!, $classId: ID!, $maxDepth: Int) {
+  query ClassDescendants($ontologyId: String!, $classId: String!, $maxDepth: Int) {
     classDescendants(
       ontologyId: $ontologyId
       classId: $classId
@@ -147,8 +144,8 @@ export const CLASS_DESCENDANTS_QUERY = gql`
 
 export const GRAPH_NEIGHBORHOOD_QUERY = gql`
   query GraphNeighborhood(
-    $ontologyId: ID!
-    $classId: ID!
+    $ontologyId: String!
+    $classId: String!
     $depth: Int
   ) {
     graphNeighborhood(
@@ -171,7 +168,7 @@ export const GRAPH_NEIGHBORHOOD_QUERY = gql`
 `;
 
 export const AUTOCOMPLETE_CLASSES_QUERY = gql`
-  query AutocompleteClasses($ontologyId: ID!, $q: String!, $limit: Int) {
+  query AutocompleteClasses($ontologyId: String!, $q: String!, $limit: Int) {
     autocompleteClasses(ontologyId: $ontologyId, q: $q, limit: $limit) {
       ...ClassSummaryFields
     }
@@ -182,7 +179,7 @@ export const AUTOCOMPLETE_CLASSES_QUERY = gql`
 // ── Property Queries ─────────────────────────────────────────────────────────────────
 
 export const GET_PROPERTY_QUERY = gql`
-  query GetProperty($ontologyId: ID!, $propertyId: ID!) {
+  query GetProperty($ontologyId: String!, $propertyId: String!) {
     property(ontologyId: $ontologyId, propertyId: $propertyId) {
       ...PropertyFields
     }
@@ -192,7 +189,7 @@ export const GET_PROPERTY_QUERY = gql`
 
 export const LIST_PROPERTIES_QUERY = gql`
   query ListProperties(
-    $ontologyId: ID!
+    $ontologyId: String!
     $q: String
     $propertyType: PropertyType
     $page: Int
@@ -222,7 +219,7 @@ export const LIST_PROPERTIES_QUERY = gql`
 // ── Individual Queries ───────────────────────────────────────────────────────────────
 
 export const GET_INDIVIDUAL_QUERY = gql`
-  query GetIndividual($ontologyId: ID!, $individualId: ID!) {
+  query GetIndividual($ontologyId: String!, $individualId: String!) {
     individual(ontologyId: $ontologyId, individualId: $individualId) {
       ...IndividualFields
     }
@@ -232,8 +229,8 @@ export const GET_INDIVIDUAL_QUERY = gql`
 
 export const LIST_INDIVIDUALS_QUERY = gql`
   query ListIndividuals(
-    $ontologyId: ID!
-    $classId: ID!
+    $ontologyId: String!
+    $classId: String!
     $q: String
     $page: Int
     $perPage: Int

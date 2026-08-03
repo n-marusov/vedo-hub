@@ -42,7 +42,16 @@ test-typescript-full: ## TypeScript tests — full statistics (collect all failu
 	printf "$(C_GREEN)[PASS]$(C_RESET) All TypeScript tests passed\n"
 
 .PHONY: typecheck-typescript
-typecheck-typescript:
+codegen-check:
+	@if [ -z "$(TS_DIRS)" ]; then echo "No TypeScript services found"; exit 0; fi
+	@for dir in $(TS_DIRS); do \
+		if [ -f "$(ROOT)/$$dir/codegen.ts" ]; then \
+			echo "[TypeScript] codegen check $$(basename $$dir)"; \
+			cd $(ROOT)/$$dir && pnpm codegen:check 2>&1 || { echo "CODEGEN_FAILED: generated GraphQL types out of date in $$dir (run pnpm codegen)"; exit 1; }; \
+		fi; \
+	done
+
+typecheck-typescript: codegen-check
 	@if [ -z "$(TS_DIRS)" ]; then echo "No TypeScript services found"; exit 0; fi
 	@for dir in $(TS_DIRS); do \
 		echo "[TypeScript] typechecking $$(basename $$dir)"; \
