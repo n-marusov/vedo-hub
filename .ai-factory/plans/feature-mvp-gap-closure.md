@@ -297,6 +297,67 @@ Active Summary (from `.ai-factory/RESEARCH.md`, session 2026-08-01): write-path 
   - **Logging:** standard.
   - **Dependencies:** all T1–F2.
 
+### Phase 5: GraphQL Schema Contract (G1–G4)
+
+> Added 2026-08-03 ($aif-improve). Follows the explore findings: the GraphQL schema exists only as code-first Rust types; no committed SDL/JSON contract, no frontend codegen, and a live drift case (`usePublicOntology.ts` queries `publicOntology`, which is not among the 11 graph-navigation fields).
+
+- [ ] **G1. Export GraphQL SDL from `build_schema()` and commit `schema.graphql` as canonical contract**
+  - **Problem:** GraphQL schema exists only as code-first `async-graphql` types (`ontology-service/src/graphql/{schema,query,types}.rs`); no committed SDL artifact. Frontend hand-written `gql` queries (`src/apollo/queries.ts`, `src/composables/usePublicOntology.ts`) drift silently — `usePublicOntology.ts` queries `publicOntology(slug:)`, which is not in the schema (11 graph-navigation fields only).
+  - **Fix:** Export the schema via `async-graphql` `Schema::sdl()` in a test (or small helper in `src/graphql/`); commit the generated `apps/services/ontology-service/schema.graphql` as the canonical contract; add a drift test asserting the committed SDL equals `schema.sdl()` (snapshot-style) so schema changes surface as a review diff instead of silent drift.
+  - **Files to create/modify:**
+    - `apps/services/ontology-service/src/graphql/schema.rs` (SDL export helper) or `src/graphql/sdl.rs` (new)
+    - `apps/services/ontology-service/schema.graphql` (new — committed artifact)
+    - `apps/services/ontology-service/src/graphql/tests.rs` (drift test: committed SDL == `schema.sdl()`)
+  - **Acceptance:**
+    - [ ] `schema.graphql` committed and identical to `schema.sdl()` output
+    - [ ] Drift test fails when `schema.rs`/`query.rs`/`types.rs` change without updating `schema.graphql`
+    - [ ] `cargo test --lib` green (existing 122 + new)
+  - **Logging:** standard — test failure message includes the SDL diff hint.
+  - **Dependencies:** none (standalone; unblocks G2/G4).
+
+- [ ] **G2. Add GraphQL Codegen for the frontend**
+  - **Problem:** `frontend` has no GraphQL type generation (`@graphql-codegen/*` absent from `package.json`, no `graphql.config.*`); query results are consumed via hand-written TS interfaces (`PublicOntology`, `PublicClassNode`, `PublicProperty`, `ClassResult`, etc.) that duplicate the schema and drift.
+  - **Fix:** Add `graphql.config.ts`/`codegen.ts` pointing `schema` at the committed `apps/services/ontology-service/schema.graphql` and `documents` at `src/**/*.{ts,vue}`; add dev deps `@graphql-codegen/cli` + `@graphql-codegen/client-preset` (or `typescript` + `typescript-operations`); add `pnpm codegen` generating `src/types/graphql.ts`; add `pnpm codegen:check` (`graphql-codegen --check`) wired into the frontend/CI gate so queries that don't match the schema fail the build.
+  - **Files to create/modify:**
+    - `apps/services/frontend/graphql.config.ts` (new)
+    - `apps/services/frontend/codegen.ts` (new)
+    - `apps/services/frontend/package.json` (scripts + devDependencies)
+    - `apps/services/frontend/src/types/graphql.ts` (generated)
+    - CI/frontend gate (Makefile test-gates target or `tools/build/*.mk`) — `pnpm codegen:check`
+  - **Acceptance:**
+    - [ ] `pnpm codegen` generates `src/types/graphql.ts` from `schema.graphql` + documents
+    - [ ] `graphql-codegen --check` passes on a clean tree
+    - [ ] Frontend typecheck (`vue-tsc --noEmit`) green with generated types
+  - **Logging:** standard.
+  - **Dependencies:** G1 (schema.graphql as schema source).
+
+- [ ] **G3. Resolve GraphQL contract drift (publicOntology + hand-written types)**
+  - **Problem:** `src/composables/usePublicOntology.ts` queries `publicOntology(slug:)` via the default Apollo client (`/api/v1/graphql`), but the ontology-service schema exposes only 11 graph-navigation fields — the query fails at runtime. Hand-written TS interfaces mirror schema types and drift.
+  - **Fix:** (a) decide the public metadata source — either add a `publicOntology` resolver to the ontology-service schema (if served by that service) or route the composable to the correct endpoint (public-browse-api REST); (b) replace hand-written interfaces with generated types from G2 in `usePublicOntology.ts`, `queries.ts` consumers, and `api/ontology.ts` where GraphQL shapes are duplicated; (c) keep REST request/response types in `api/*.ts` (they mirror REST, not GraphQL).
+  - **Files to create/modify:**
+    - `apps/services/frontend/src/composables/usePublicOntology.ts` (align query + generated types)
+    - `apps/services/frontend/src/pages/PublicOntologyPage.vue` (types)
+    - `apps/services/frontend/src/api/ontology.ts` (only GraphQL-shape duplicates)
+    - `apps/services/ontology-service/src/graphql/query.rs` + `types.rs` (only if `publicOntology` resolver is added)
+  - **Acceptance:**
+    - [ ] `publicOntology` query resolves against the real schema (resolver added or endpoint routed)
+    - [ ] No hand-written GraphQL-shaped interfaces remain in the frontend (grep-verified)
+    - [ ] Frontend unit tests + `vue-tsc --noEmit` green
+  - **Logging:** standard.
+  - **Dependencies:** G2 (generated types first).
+
+- [ ] **G4. Introspection JSON snapshot + breaking-change gate (optional)**
+  - **Problem:** no machine-readable snapshot of the GraphQL schema and no breaking-change detection when the contract evolves.
+  - **Fix:** add a test/build step that dumps introspection JSON into `apps/services/ontology-service/introspection.json` (via `schema.execute` introspection or against the running endpoint); add a breaking-change diff gate (e.g. `graphql-inspector diff` between committed snapshot and current schema, or extend the G1 drift test to reject removed fields/types).
+  - **Files to create/modify:**
+    - `apps/services/ontology-service/introspection.json` (committed)
+    - `apps/services/ontology-service/src/graphql/tests.rs` (introspection dump/compare) or `tools/build/*.mk` gate
+  - **Acceptance:**
+    - [ ] introspection.json committed and regenerable
+    - [ ] Breaking-change diff gate runs in CI (or documented as manual step)
+  - **Logging:** standard.
+  - **Dependencies:** G1.
+
 ## Commit Plan
 
 | Commit | After | Message |
@@ -308,6 +369,7 @@ Active Summary (from `.ai-factory/RESEARCH.md`, session 2026-08-01): write-path 
 | 5 | F1 | `feat(publish-browse-ui): public landing page + demo showcase` |
 | 6 | F2 | `test(e2e): un-skip GUI P0 specs per feature readiness` |
 | 7 | Phase 4 | `chore: update traceability.ttl and verify full suite` |
+| 8 | G1–G4 | `feat(graphql): commit schema SDL contract; add frontend codegen + drift gates` |
 
 ## Acceptance Criteria (plan-level)
 
@@ -322,6 +384,9 @@ Active Summary (from `.ai-factory/RESEARCH.md`, session 2026-08-01): write-path 
 - [x] API E2E 66/66; wired GUI 15/15
 - [x] New tests meet minimum quality (TQS ≥ bronze) per No-Tests Services Policy
 - [x] BDD naming for test tasks: `[Condition]_[Action]_[ExpectedResult]` (Go/Rust/Python), `'should <expected> when <condition>'` (TypeScript)
+- [ ] Committed `schema.graphql` matches `schema.sdl()` (G1 drift test green)
+- [ ] Frontend builds with generated GraphQL types; `graphql-codegen --check` passes (G2)
+- [ ] No hand-written GraphQL-shaped interfaces remain in the frontend; `publicOntology` resolves against the real schema (G3)
 
 ## Notes
 
